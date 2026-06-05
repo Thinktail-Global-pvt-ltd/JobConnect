@@ -41,6 +41,48 @@ class WebAuthController extends Controller
             ], 422);
         }
 
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($request->mobile_number === $user->mobile_number) {
+                $targetRole = $request->login_role;
+                
+                // Deactivate all user's roles
+                $user->roles()->update(['is_active' => false]);
+
+                // Find or create the selected role and set it active
+                UserRole::updateOrCreate(
+                    ['user_id' => $user->id, 'role_type' => $targetRole],
+                    ['is_active' => true]
+                );
+
+                // Generate Sanctum auth token
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Already logged in.',
+                    'token' => $token,
+                    'user' => [
+                        'id' => $user->id,
+                        'mobile_number' => $user->mobile_number,
+                        'full_name' => $user->full_name,
+                        'email' => $user->email,
+                        'profile_photo_path' => $user->profile_photo_path,
+                        'city' => $user->city,
+                        'experience_range' => $user->experience_range,
+                        'preferred_role' => $user->preferred_role,
+                        'current_employer' => $user->current_employer,
+                        'skills' => $user->skills,
+                        'active_role' => $targetRole,
+                    ],
+                ]);
+            } else {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
+
         $mobile = $request->mobile_number;
         
         // Generate random 4-digit OTP

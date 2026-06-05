@@ -181,4 +181,41 @@ class RoleLoginTest extends TestCase
             'success' => true,
         ]);
     }
+
+    /**
+     * Test submit login when already logged in returns JSON directly.
+     */
+    public function test_submit_login_when_already_logged_in_returns_json(): void
+    {
+        // 1. Create a user and authenticate them
+        $user = User::create([
+            'mobile_number' => '8799730966',
+            'is_suspended' => false,
+        ]);
+        
+        $this->actingAs($user);
+
+        // 2. Submit login with the same mobile number
+        $response = $this->post('/api/login', [
+            'mobile_number' => '8799730966',
+            'login_role' => 'employer',
+        ]);
+
+        // 3. Assert JSON response indicating already logged in with token and user details
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'success' => true,
+            'message' => 'Already logged in.',
+        ]);
+        $response->assertJsonStructure([
+            'success',
+            'message',
+            'token',
+            'user' => [
+                'id',
+                'mobile_number',
+                'active_role',
+            ],
+        ]);
+    }
 }
