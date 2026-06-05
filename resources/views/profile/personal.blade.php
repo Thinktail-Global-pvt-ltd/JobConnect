@@ -176,7 +176,7 @@
     </div>
 
     <!-- Personal Form Card -->
-    <form action="{{ route('profile.personal.update') }}" method="POST" class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-4 space-y-4 mb-8">
+    <form action="{{ route('profile.personal.update') }}" method="POST" class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-4 space-y-4 mb-8" data-ajax>
         @csrf
         <div>
             <label for="full_name" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Full Name (15%)</label>

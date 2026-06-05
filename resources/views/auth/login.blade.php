@@ -10,7 +10,7 @@
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <form action="{{ route('login.submit') }}" method="POST">
+        <form action="{{ route('login.submit') }}" method="POST" data-ajax>
             @csrf
             <div class="mb-5">
                 <label for="mobile_number" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Mobile Number</label>

@@ -19,28 +19,45 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Root Feed Page Route
+// Root Feed Page Route (View)
 Route::get('/', [WebHomeController::class, 'index'])->name('home');
 
-// GitHub Auto-Deployment Webhook Route
+// GitHub Auto-Deployment Webhook Route (API)
 Route::post('/webhook/deploy', [WebhookController::class, 'deploy'])->name('webhook.deploy');
 
-// Guest Prototype Auth Routes
-Route::middleware('guest')->prefix('api')->group(function () {
+// ==========================================
+// Guest Routes (Views and APIs)
+// ==========================================
+
+// Guest Views (HTML)
+Route::middleware('guest')->group(function () {
     Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
     Route::get('/verify-otp', [WebAuthController::class, 'showVerify'])->name('verify-otp');
+});
+
+// Guest APIs (JSON)
+Route::middleware('guest')->prefix('api')->group(function () {
+    Route::post('/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
     Route::post('/verify-otp', [WebAuthController::class, 'submitVerify'])->name('verify-otp.submit');
 });
 
-// Secured Prototype Routes
+// ==========================================
+// Secured Routes (Views and APIs)
+// ==========================================
+
+// Secured Views (HTML)
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [WebAuthController::class, 'logout'])->name('logout');
-
     Route::get('/profile', [WebProfileController::class, 'index'])->name('profile');
     Route::get('/profile/personal', [WebProfileController::class, 'editPersonal'])->name('profile.personal.edit');
-    Route::post('/profile/personal', [WebProfileController::class, 'updatePersonal'])->name('profile.personal.update');
     Route::get('/profile/applications', [WebProfileController::class, 'applications'])->name('profile.applications');
+    Route::get('/jobs/create', [WebJobController::class, 'create'])->name('jobs.create');
+    Route::get('/jobs/{job}', [WebJobController::class, 'show'])->name('jobs.show');
+});
+
+// Secured APIs (JSON)
+Route::middleware('auth')->prefix('api')->group(function () {
+    Route::post('/profile/personal', [WebProfileController::class, 'updatePersonal'])->name('profile.personal.update');
     Route::post('/profile/update', [WebProfileController::class, 'update'])->name('profile.update');
     
     // Role Switching & Activation Routes
@@ -50,13 +67,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile/become-agency', [WebRoleController::class, 'becomeAgency'])->name('profile.become-agency');
     Route::post('/profile/become-admin', [WebRoleController::class, 'becomeAdmin'])->name('profile.become-admin');
     Route::post('/profile/become-chef', [WebRoleController::class, 'becomeChef'])->name('profile.become-chef');
-    Route::get('/jobs/create', [WebJobController::class, 'create'])->name('jobs.create');
-    Route::get('/jobs/{job}', [WebJobController::class, 'show'])->name('jobs.show');
+    
     Route::post('/jobs/{job}/apply', [WebJobController::class, 'apply'])->name('jobs.apply');
     Route::post('/jobs/store', [WebJobController::class, 'store'])->name('jobs.store');
 });
 
-// Admin Panel Framework Routing Group
+// ==========================================
+// Admin Panel Framework Routing Group (Views/APIs)
+// ==========================================
 Route::prefix('admin')->group(function () {
     // Dashboard Route
     Route::get('/dashboard', [DashboardController::class, 'index']);

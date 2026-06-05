@@ -17,7 +17,7 @@ class RoleLoginTest extends TestCase
      */
     public function test_login_page_renders_with_role_options(): void
     {
-        $response = $this->get('/api/login');
+        $response = $this->get('/login');
 
         $response->assertStatus(200);
         $response->assertSee('Job Seeker');
@@ -46,7 +46,7 @@ class RoleLoginTest extends TestCase
             'login_role' => 'employer',
         ]);
 
-        $response->assertRedirect('/api/verify-otp?mobile=9999999999&login_role=employer');
+        $response->assertRedirect('/verify-otp?mobile=9999999999&login_role=employer');
         $response->assertSessionHas('demo_otp');
     }
 

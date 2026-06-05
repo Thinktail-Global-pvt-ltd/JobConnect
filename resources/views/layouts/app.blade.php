@@ -117,7 +117,81 @@
                 </svg>
                 <span class="text-xs">Profile</span>
             </a>
-        </div>
-    </footer>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Intercept forms marked with data-ajax
+        document.querySelectorAll('form[data-ajax]').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="inline-block animate-pulse">Processing...</span>';
+                }
+
+                // Clear previous errors
+                form.querySelectorAll('.validation-error').forEach(el => el.remove());
+
+                const formData = new FormData(form);
+                const url = form.getAttribute('action');
+                
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        // Handle validation or other errors
+                        if (data.errors) {
+                            Object.keys(data.errors).forEach(field => {
+                                const input = form.querySelector(`[name="${field}"]`) || form.querySelector(`#${field}`);
+                                if (input) {
+                                    const errSpan = document.createElement('span');
+                                    errSpan.className = 'validation-error text-red-500 text-xs font-semibold mt-1 block';
+                                    errSpan.textContent = data.errors[field][0];
+                                    input.closest('div').appendChild(errSpan);
+                                }
+                            });
+                        } else if (data.message) {
+                            alert(data.message);
+                        }
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnText;
+                        }
+                        return;
+                    }
+
+                    // Success
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else if (data.message) {
+                        alert(data.message);
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnText;
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Something went wrong. Please try again.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>

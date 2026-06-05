@@ -314,7 +314,7 @@
                 Applied
             </button>
         @else
-            <form action="{{ route('jobs.apply', $job->id) }}" method="POST" class="flex-1 flex">
+            <form action="{{ route('jobs.apply', $job->id) }}" method="POST" class="flex-1 flex" data-ajax>
                 @csrf
                 <button type="submit" class="w-full h-12 bg-primary text-on-primary font-h2 text-h2 rounded-xl flex items-center justify-center transition-transform active:scale-95 shadow-lg shadow-primary/20">
                     Apply Now

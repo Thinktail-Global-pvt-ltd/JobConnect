@@ -175,7 +175,7 @@
     </div>
 
     <!-- Job Posting Form -->
-    <form action="{{ route('jobs.store') }}" method="POST" class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-4 space-y-4 mb-8">
+    <form action="{{ route('jobs.store') }}" method="POST" class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-4 space-y-4 mb-8" data-ajax>
         @csrf
         <div>
             <label for="job_title" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Job Title</label>

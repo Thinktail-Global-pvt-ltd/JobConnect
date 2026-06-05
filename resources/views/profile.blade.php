@@ -197,7 +197,7 @@
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 Active: {{ str_replace('_', ' ', $activeRole->role_type ?? 'job_seeker') }}
             </span>
-            <form action="{{ route('profile.toggle-role') }}" method="POST" class="inline">
+            <form action="{{ route('profile.toggle-role') }}" method="POST" class="inline" data-ajax>
                 @csrf
                 <button type="submit" class="flex items-center gap-0.5 bg-primary text-on-primary hover:bg-primary-container font-bold text-[11px] px-2.5 py-1 rounded-full shadow-sm transition active:scale-95 duration-200">
                     <span class="material-symbols-outlined !text-[14px]">sync</span>
@@ -374,7 +374,7 @@
             @php
                 $isActive = ($activeRole && $activeRole->role_type === $roleOption['type']);
             @endphp
-            <form action="{{ route('profile.switch-role') }}" method="POST" id="form-role-{{ $roleOption['type'] }}" class="whatsapp-list-item group flex items-start cursor-pointer hover:bg-surface-container-low transition-colors duration-200" onclick="document.getElementById('form-role-{{ $roleOption['type'] }}').submit()">
+            <form action="{{ route('profile.switch-role') }}" method="POST" id="form-role-{{ $roleOption['type'] }}" class="whatsapp-list-item group flex items-start cursor-pointer hover:bg-surface-container-low transition-colors duration-200" onclick="document.getElementById('form-role-{{ $roleOption['type'] }}').requestSubmit()" data-ajax>
                 @csrf
                 <input type="hidden" name="role_type" value="{{ $roleOption['type'] }}">
                 <div class="pl-4 py-4 pr-3">
@@ -607,6 +607,83 @@
             labelEl.textContent = languagesMap[savedLang];
         }
     });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Intercept forms marked with data-ajax
+    document.querySelectorAll('form[data-ajax]').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="inline-block animate-pulse">Processing...</span>';
+            }
+
+            // Clear previous errors
+            form.querySelectorAll('.validation-error').forEach(el => el.remove());
+
+            const formData = new FormData(form);
+            const url = form.getAttribute('action');
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Handle validation or other errors
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(field => {
+                            const input = form.querySelector(`[name="${field}"]`) || form.querySelector(`#${field}`);
+                            if (input) {
+                                const errSpan = document.createElement('span');
+                                errSpan.className = 'validation-error text-red-500 text-xs font-semibold mt-1 block';
+                                errSpan.textContent = data.errors[field][0];
+                                input.closest('div').appendChild(errSpan);
+                            }
+                        });
+                    } else if (data.message) {
+                        alert(data.message);
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                    return;
+                }
+
+                // Success
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else if (data.message) {
+                    alert(data.message);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Something went wrong. Please try again.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            }
+        });
+    });
+});
 </script>
 
 @include('layouts.google_translate')

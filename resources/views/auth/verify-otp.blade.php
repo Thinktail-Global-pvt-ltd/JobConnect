@@ -31,7 +31,7 @@
     </div>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <form action="{{ route('verify-otp.submit') }}" method="POST">
+        <form action="{{ route('verify-otp.submit') }}" method="POST" data-ajax>
             @csrf
             <input type="hidden" name="mobile_number" value="{{ $mobile }}">
             <input type="hidden" name="login_role" value="{{ $loginRole }}">
