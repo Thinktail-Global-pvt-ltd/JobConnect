@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhook/deploy',
+            'api/login',
+            'api/verify-otp',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
