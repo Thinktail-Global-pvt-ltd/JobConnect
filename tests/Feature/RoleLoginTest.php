@@ -17,7 +17,7 @@ class RoleLoginTest extends TestCase
      */
     public function test_login_page_renders_with_role_options(): void
     {
-        $response = $this->get('/dev/login');
+        $response = $this->get('/api/login');
 
         $response->assertStatus(200);
         $response->assertSee('Job Seeker');
@@ -29,7 +29,7 @@ class RoleLoginTest extends TestCase
      */
     public function test_submit_login_fails_without_role(): void
     {
-        $response = $this->post('/dev/login', [
+        $response = $this->post('/api/login', [
             'mobile_number' => '9999999999',
         ]);
 
@@ -41,12 +41,12 @@ class RoleLoginTest extends TestCase
      */
     public function test_submit_login_success_redirects_with_role(): void
     {
-        $response = $this->post('/dev/login', [
+        $response = $this->post('/api/login', [
             'mobile_number' => '9999999999',
             'login_role' => 'employer',
         ]);
 
-        $response->assertRedirect('/verify-otp?mobile=9999999999&login_role=employer');
+        $response->assertRedirect('/api/verify-otp?mobile=9999999999&login_role=employer');
         $response->assertSessionHas('demo_otp');
     }
 
@@ -56,7 +56,7 @@ class RoleLoginTest extends TestCase
     public function test_verify_otp_for_employer_redirects_correctly(): void
     {
         // 1. Submit login to generate OTP
-        $this->post('/dev/login', [
+        $this->post('/api/login', [
             'mobile_number' => '9999999999',
             'login_role' => 'employer',
         ]);
@@ -65,7 +65,7 @@ class RoleLoginTest extends TestCase
         $this->assertNotNull($cachedOtp);
 
         // 2. Submit OTP verify
-        $response = $this->post('/verify-otp', [
+        $response = $this->post('/api/verify-otp', [
             'mobile_number' => '9999999999',
             'otp' => $cachedOtp,
             'login_role' => 'employer',
@@ -86,7 +86,7 @@ class RoleLoginTest extends TestCase
     public function test_verify_otp_for_job_seeker_redirects_correctly(): void
     {
         // 1. Submit login to generate OTP
-        $this->post('/dev/login', [
+        $this->post('/api/login', [
             'mobile_number' => '9999999999',
             'login_role' => 'job_seeker',
         ]);
@@ -95,7 +95,7 @@ class RoleLoginTest extends TestCase
         $this->assertNotNull($cachedOtp);
 
         // 2. Submit OTP verify
-        $response = $this->post('/verify-otp', [
+        $response = $this->post('/api/verify-otp', [
             'mobile_number' => '9999999999',
             'otp' => $cachedOtp,
             'login_role' => 'job_seeker',

@@ -26,9 +26,9 @@ Route::get('/', [WebHomeController::class, 'index'])->name('home');
 Route::post('/webhook/deploy', [WebhookController::class, 'deploy'])->name('webhook.deploy');
 
 // Guest Prototype Auth Routes
-Route::middleware('guest')->group(function () {
-    Route::get('/dev/login', [WebAuthController::class, 'showLogin'])->name('login');
-    Route::post('/dev/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
+Route::middleware('guest')->prefix('api')->group(function () {
+    Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
     Route::get('/verify-otp', [WebAuthController::class, 'showVerify'])->name('verify-otp');
     Route::post('/verify-otp', [WebAuthController::class, 'submitVerify'])->name('verify-otp.submit');
 });
