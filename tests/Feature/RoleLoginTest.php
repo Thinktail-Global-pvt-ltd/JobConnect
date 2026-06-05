@@ -170,6 +170,7 @@ class RoleLoginTest extends TestCase
         $response->assertJsonStructure([
             'success',
             'message',
+            'token',
             'user' => [
                 'id',
                 'mobile_number',

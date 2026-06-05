@@ -147,12 +147,24 @@ class WebAuthController extends Controller
         // Regenerate session ID for security
         $request->session()->regenerate();
 
+        // Generate Sanctum auth token for API/mobile app compatibility
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'success' => true,
             'message' => 'Logged in successfully as ' . ucfirst(str_replace('_', ' ', $targetRole)) . '!',
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'mobile_number' => $user->mobile_number,
+                'full_name' => $user->full_name,
+                'email' => $user->email,
+                'profile_photo_path' => $user->profile_photo_path,
+                'city' => $user->city,
+                'experience_range' => $user->experience_range,
+                'preferred_role' => $user->preferred_role,
+                'current_employer' => $user->current_employer,
+                'skills' => $user->skills,
                 'active_role' => $targetRole,
             ],
         ]);
