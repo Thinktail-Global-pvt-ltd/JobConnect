@@ -34,6 +34,7 @@
         <form action="{{ route('verify-otp.submit') }}" method="POST">
             @csrf
             <input type="hidden" name="mobile_number" value="{{ $mobile }}">
+            <input type="hidden" name="login_role" value="{{ $loginRole }}">
 
             <div class="mb-6">
                 <label for="otp" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 text-center">4-Digit Passcode</label>

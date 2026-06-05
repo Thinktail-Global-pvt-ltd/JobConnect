@@ -29,6 +29,7 @@ class WebAuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
+            'login_role' => 'required|string|in:job_seeker,employer',
         ]);
 
         if ($validator->fails()) {
@@ -48,7 +49,7 @@ class WebAuthController extends Controller
         // Flash to Session for development/testing visibility
         session()->flash('demo_otp', $otp);
 
-        return redirect()->route('verify-otp', ['mobile' => $mobile])
+        return redirect()->route('verify-otp', ['mobile' => $mobile, 'login_role' => $request->login_role])
             ->with('success', 'Demo OTP generated successfully!');
     }
 
@@ -62,11 +63,12 @@ class WebAuthController extends Controller
         }
 
         $mobile = $request->query('mobile');
+        $loginRole = $request->query('login_role', 'job_seeker');
         if (empty($mobile)) {
             return redirect()->route('login');
         }
 
-        return view('auth.verify-otp', compact('mobile'));
+        return view('auth.verify-otp', compact('mobile', 'loginRole'));
     }
 
     /**
@@ -77,6 +79,7 @@ class WebAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
             'otp' => 'required|string|size:4',
+            'login_role' => 'required|string|in:job_seeker,employer',
         ]);
 
         if ($validator->fails()) {
@@ -87,6 +90,7 @@ class WebAuthController extends Controller
 
         $mobile = $request->mobile_number;
         $otp = $request->otp;
+        $targetRole = $request->login_role;
 
         $cachedOtp = Cache::get("web_otp_{$mobile}");
 
@@ -107,13 +111,6 @@ class WebAuthController extends Controller
                 'mobile_number' => $mobile,
                 'is_suspended' => false,
             ]);
-
-            // Create default active job_seeker role context
-            UserRole::create([
-                'user_id' => $user->id,
-                'role_type' => UserRole::ROLE_JOB_SEEKER,
-                'is_active' => true,
-            ]);
         }
 
         // Verify user state
@@ -122,20 +119,14 @@ class WebAuthController extends Controller
                 ->with('error', 'Your account has been suspended by an administrator.');
         }
 
-        // Make sure user has an active role
-        $activeRole = $user->currentRoleContext();
-        if (!$activeRole) {
-            $firstRole = $user->roles()->first();
-            if ($firstRole) {
-                $firstRole->update(['is_active' => true]);
-            } else {
-                UserRole::create([
-                    'user_id' => $user->id,
-                    'role_type' => UserRole::ROLE_JOB_SEEKER,
-                    'is_active' => true,
-                ]);
-            }
-        }
+        // Deactivate all user's roles
+        $user->roles()->update(['is_active' => false]);
+
+        // Find or create the selected role and set it active
+        UserRole::updateOrCreate(
+            ['user_id' => $user->id, 'role_type' => $targetRole],
+            ['is_active' => true]
+        );
 
         // Login using Laravel Web guard
         Auth::login($user, true);
@@ -143,8 +134,14 @@ class WebAuthController extends Controller
         // Regenerate session ID for security
         $request->session()->regenerate();
 
-        return redirect()->route('profile')
-            ->with('success', 'Logged in successfully!');
+        // Redirect based on selected role
+        if ($targetRole === UserRole::ROLE_EMPLOYER) {
+            return redirect()->route('profile', ['section' => 'my_posted_jobs'])
+                ->with('success', 'Logged in successfully as Employer!');
+        } else {
+            return redirect()->route('home')
+                ->with('success', 'Logged in successfully as Job Seeker!');
+        }
     }
 
     /**

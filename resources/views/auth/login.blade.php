@@ -30,6 +30,29 @@
                 @enderror
             </div>
 
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Login Role</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="login_role" value="job_seeker" class="peer sr-only" checked {{ old('login_role') === 'job_seeker' ? 'checked' : '' }}>
+                        <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50/50 peer-checked:text-blue-600 border border-gray-200 rounded-xl p-3 text-center transition hover:bg-gray-50 flex flex-col items-center justify-center gap-1.5 text-gray-500">
+                            <span class="text-2xl">🔍</span>
+                            <span class="block text-sm font-bold">Job Seeker</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="login_role" value="employer" class="peer sr-only" {{ old('login_role') === 'employer' ? 'checked' : '' }}>
+                        <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50/50 peer-checked:text-blue-600 border border-gray-200 rounded-xl p-3 text-center transition hover:bg-gray-50 flex flex-col items-center justify-center gap-1.5 text-gray-500">
+                            <span class="text-2xl">💼</span>
+                            <span class="block text-sm font-bold">Employer</span>
+                        </div>
+                    </label>
+                </div>
+                @error('login_role')
+                    <span class="text-red-500 text-xs font-semibold mt-1 block">{{ $message }}</span>
+                @enderror
+            </div>
+
             <button type="submit" 
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2">
                 Send OTP
