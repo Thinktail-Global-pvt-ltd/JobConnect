@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class UserModeratorController extends Controller
+{
+    /**
+     * Display a list of all users.
+     */
+    public function index(Request $request)
+    {
+        $query = User::with('roles');
+
+        // Optional Search filter
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('mobile_number', 'like', "%{$search}%")
+                  ->orWhere('full_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->latest()->paginate(15);
+
+        return view('admin.users', compact('users'));
+    }
+
+    /**
+     * Suspend a user.
+     */
+    public function suspend(User $user)
+    {
+        $user->update(['is_suspended' => true]);
+        
+        // Revoke all existing Sanctum auth tokens to log them out immediately
+        $user->tokens()->delete();
+
+        return redirect()->back()->with('success', "User account {$user->mobile_number} has been suspended successfully.");
+    }
+
+    /**
+     * Activate a user.
+     */
+    public function activate(User $user)
+    {
+        $user->update(['is_suspended' => false]);
+
+        return redirect()->back()->with('success', "User account {$user->mobile_number} has been activated successfully.");
+    }
+}
