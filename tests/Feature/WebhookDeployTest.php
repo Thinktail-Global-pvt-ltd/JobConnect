@@ -7,6 +7,25 @@ use Tests\TestCase;
 
 class WebhookDeployTest extends TestCase
 {
+    protected string $logPath;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->logPath = storage_path('logs/webhook.log');
+        if (file_exists($this->logPath)) {
+            unlink($this->logPath);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        if (file_exists($this->logPath)) {
+            unlink($this->logPath);
+        }
+        parent::tearDown();
+    }
+
     /**
      * Test webhook returns 403 when signature header is missing.
      */
@@ -19,6 +38,9 @@ class WebhookDeployTest extends TestCase
             'success' => false,
             'message' => 'Signature header missing.',
         ]);
+
+        $this->assertFileExists($this->logPath);
+        $this->assertStringContainsString('Verification FAILED: Signature header missing.', file_get_contents($this->logPath));
     }
 
     /**
@@ -35,6 +57,9 @@ class WebhookDeployTest extends TestCase
             'success' => false,
             'message' => 'Invalid signature format.',
         ]);
+
+        $this->assertFileExists($this->logPath);
+        $this->assertStringContainsString('Verification FAILED: Invalid signature format:', file_get_contents($this->logPath));
     }
 
     /**
@@ -57,6 +82,9 @@ class WebhookDeployTest extends TestCase
             'success' => false,
             'message' => 'Signature verification failed.',
         ]);
+
+        $this->assertFileExists($this->logPath);
+        $this->assertStringContainsString('Verification FAILED: Signature mismatch.', file_get_contents($this->logPath));
     }
 
     /**
@@ -88,5 +116,14 @@ class WebhookDeployTest extends TestCase
                 ],
             ],
         ]);
+
+        // Assert custom log file is generated and contains logs of deployment
+        $this->assertFileExists($this->logPath);
+        $logContent = file_get_contents($this->logPath);
+        
+        $this->assertStringContainsString('DEPLOYMENT TRIGGERED', $logContent);
+        $this->assertStringContainsString('Verification SUCCESS: Signature matches GITHUB_WEBHOOK_SECRET.', $logContent);
+        $this->assertStringContainsString('Executing command: cd /var/www/jobconnect && git pull 2>&1', $logContent);
+        $this->assertStringContainsString('DEPLOYMENT COMPLETED', $logContent);
     }
 }
