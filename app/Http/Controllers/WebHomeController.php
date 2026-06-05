@@ -13,6 +13,10 @@ class WebHomeController extends Controller
      */
     public function index(Request $request)
     {
+        if (!\Illuminate\Support\Facades\Auth::check()) {
+            return view('landing');
+        }
+
         $filter = $request->query('category', 'all');
 
         $jobs = collect();

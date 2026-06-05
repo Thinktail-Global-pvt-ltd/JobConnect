@@ -19,12 +19,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Root Feed Page Route
-Route::get('/', [WebHomeController::class, 'index'])->name('home')->middleware('auth');
+Route::get('/', [WebHomeController::class, 'index'])->name('home');
 
 // Guest Prototype Auth Routes
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
+    Route::get('/dev/login', [WebAuthController::class, 'showLogin'])->name('login');
+    Route::post('/dev/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
     Route::get('/verify-otp', [WebAuthController::class, 'showVerify'])->name('verify-otp');
     Route::post('/verify-otp', [WebAuthController::class, 'submitVerify'])->name('verify-otp.submit');
 });
