@@ -109,4 +109,67 @@ class RoleLoginTest extends TestCase
         $this->assertTrue($user->hasActiveRole(UserRole::ROLE_JOB_SEEKER));
         $this->assertFalse($user->hasActiveRole(UserRole::ROLE_EMPLOYER));
     }
+
+    /**
+     * Test JSON response format for submit login.
+     */
+    public function test_submit_login_returns_json_when_requested(): void
+    {
+        $response = $this->postJson('/api/login', [
+            'mobile_number' => '9999999999',
+            'login_role' => 'employer',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'success',
+            'message',
+            'demo_otp',
+            'mobile',
+            'login_role',
+        ]);
+        $response->assertJsonFragment([
+            'success' => true,
+            'mobile' => '9999999999',
+            'login_role' => 'employer',
+        ]);
+    }
+
+    /**
+     * Test JSON response format for verify OTP.
+     */
+    public function test_submit_verify_returns_json_when_requested(): void
+    {
+        // 1. Generate OTP
+        $this->postJson('/api/login', [
+            'mobile_number' => '9999999999',
+            'login_role' => 'employer',
+        ]);
+
+        $cachedOtp = Cache::get('web_otp_9999999999');
+        $this->assertNotNull($cachedOtp);
+
+        // 2. Verify OTP
+        $response = $this->postJson('/api/verify-otp', [
+            'mobile_number' => '9999999999',
+            'otp' => $cachedOtp,
+            'login_role' => 'employer',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'success',
+            'message',
+            'user' => [
+                'id',
+                'mobile_number',
+                'active_role',
+            ],
+            'redirect_url',
+        ]);
+        $response->assertJsonFragment([
+            'success' => true,
+            'redirect_url' => route('profile', ['section' => 'my_posted_jobs']),
+        ]);
+    }
 }

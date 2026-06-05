@@ -34,7 +34,15 @@ class WebAuthController extends Controller
             'login_role' => 'required|string|in:job_seeker,employer',
         ]);
 
+        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
+
         if ($validator->fails()) {
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -50,6 +58,16 @@ class WebAuthController extends Controller
 
         // Flash to Session for development/testing visibility
         session()->flash('demo_otp', $otp);
+
+        if ($expectsJson) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Demo OTP generated successfully.',
+                'demo_otp' => $otp,
+                'mobile' => $mobile,
+                'login_role' => $request->login_role,
+            ]);
+        }
 
         return redirect()->route('verify-otp', ['mobile' => $mobile, 'login_role' => $request->login_role])
             ->with('success', 'Demo OTP generated successfully!');
@@ -84,7 +102,15 @@ class WebAuthController extends Controller
             'login_role' => 'required|string|in:job_seeker,employer',
         ]);
 
+        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
+
         if ($validator->fails()) {
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -97,6 +123,12 @@ class WebAuthController extends Controller
         $cachedOtp = Cache::get("web_otp_{$mobile}");
 
         if ($cachedOtp === null || $cachedOtp !== $otp) {
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid or expired OTP code code.',
+                ], 401);
+            }
             return redirect()->back()
                 ->withErrors(['otp' => 'Invalid or expired OTP code code.'])
                 ->withInput();
@@ -117,6 +149,12 @@ class WebAuthController extends Controller
 
         // Verify user state
         if ($user->is_suspended) {
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your account has been suspended by an administrator.',
+                ], 403);
+            }
             return redirect()->route('login')
                 ->with('error', 'Your account has been suspended by an administrator.');
         }
@@ -135,6 +173,23 @@ class WebAuthController extends Controller
 
         // Regenerate session ID for security
         $request->session()->regenerate();
+
+        if ($expectsJson) {
+            $redirectUrl = $targetRole === UserRole::ROLE_EMPLOYER 
+                ? route('profile', ['section' => 'my_posted_jobs']) 
+                : route('home');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logged in successfully as ' . ucfirst(str_replace('_', ' ', $targetRole)) . '!',
+                'user' => [
+                    'id' => $user->id,
+                    'mobile_number' => $user->mobile_number,
+                    'active_role' => $targetRole,
+                ],
+                'redirect_url' => $redirectUrl,
+            ]);
+        }
 
         // Redirect based on selected role
         if ($targetRole === UserRole::ROLE_EMPLOYER) {
