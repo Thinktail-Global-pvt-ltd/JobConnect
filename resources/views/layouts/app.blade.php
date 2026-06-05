@@ -174,6 +174,29 @@
                     // Success
                     if (data.redirect_url) {
                         window.location.href = data.redirect_url;
+                    } else if (data.success) {
+                        const action = form.getAttribute('action') || '';
+                        if (action.includes('/api/login')) {
+                            const mobileVal = form.querySelector('[name="mobile_number"]')?.value || '';
+                            const roleVal = form.querySelector('[name="login_role"]:checked')?.value || 'job_seeker';
+                            window.location.href = '/verify-otp?mobile=' + encodeURIComponent(mobileVal) + '&login_role=' + encodeURIComponent(roleVal);
+                        } else if (action.includes('/api/verify-otp')) {
+                            const params = new URLSearchParams(window.location.search);
+                            const roleVal = params.get('login_role') || 'job_seeker';
+                            window.location.href = (roleVal === 'employer') ? '/profile?section=my_posted_jobs' : '/';
+                        } else if (action.includes('/api/profile/personal') || action.includes('/api/profile/update') || action.includes('/api/profile/switch-role') || action.includes('/api/profile/become-') || action.includes('/api/profile/toggle-role') || action.includes('/api/jobs/store')) {
+                            window.location.href = '/profile';
+                        } else if (action.includes('/apply')) {
+                            window.location.reload();
+                        } else {
+                            if (data.message) {
+                                alert(data.message);
+                            }
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = originalBtnText;
+                            }
+                        }
                     } else if (data.message) {
                         alert(data.message);
                         if (submitBtn) {

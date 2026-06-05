@@ -52,15 +52,12 @@ class WebAuthController extends Controller
         // Flash to Session for development/testing visibility
         session()->flash('demo_otp', $otp);
 
-        $redirectUrl = route('verify-otp', ['mobile' => $mobile, 'login_role' => $request->login_role]);
-
         return response()->json([
             'success' => true,
             'message' => 'Demo OTP generated successfully.',
             'demo_otp' => $otp,
             'mobile' => $mobile,
             'login_role' => $request->login_role,
-            'redirect_url' => $redirectUrl,
         ]);
     }
 
@@ -150,10 +147,6 @@ class WebAuthController extends Controller
         // Regenerate session ID for security
         $request->session()->regenerate();
 
-        $redirectUrl = $targetRole === UserRole::ROLE_EMPLOYER 
-            ? route('profile', ['section' => 'my_posted_jobs']) 
-            : route('home');
-
         return response()->json([
             'success' => true,
             'message' => 'Logged in successfully as ' . ucfirst(str_replace('_', ' ', $targetRole)) . '!',
@@ -162,7 +155,6 @@ class WebAuthController extends Controller
                 'mobile_number' => $user->mobile_number,
                 'active_role' => $targetRole,
             ],
-            'redirect_url' => $redirectUrl,
         ]);
     }
 

@@ -67,7 +67,6 @@ class WebProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile information updated! Your profile progress has been recalculated.',
-            'redirect_url' => route('profile'),
         ]);
     }
 
@@ -125,7 +124,6 @@ class WebProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile information updated successfully!',
-            'redirect_url' => route('profile'),
         ]);
     }
 

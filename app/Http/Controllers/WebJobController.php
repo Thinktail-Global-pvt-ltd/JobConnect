@@ -58,7 +58,6 @@ class WebJobController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Application submitted successfully!',
-            'redirect_url' => route('jobs.show', $job->id),
         ]);
     }
 
@@ -153,7 +152,6 @@ class WebJobController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Job vacancy posted successfully and is now active!',
-            'redirect_url' => route('profile'),
         ]);
     }
 }

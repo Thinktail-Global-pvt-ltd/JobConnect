@@ -61,7 +61,6 @@ class WebRoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Role switched to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.",
-                'redirect_url' => route('profile'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -118,7 +117,6 @@ class WebRoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Role toggled to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.",
-                'redirect_url' => route('profile'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -153,7 +151,6 @@ class WebRoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'You are now an Employer! You can post jobs.',
-                'redirect_url' => route('profile'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -188,7 +185,6 @@ class WebRoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'You are now registered as an Agency profile.',
-                'redirect_url' => route('profile'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -223,7 +219,6 @@ class WebRoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'You are now an Administrator.',
-                'redirect_url' => route('profile'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -278,7 +273,6 @@ class WebRoleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Chef profile details submitted successfully! It is now pending administrator review.',
-                'redirect_url' => route('profile'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
