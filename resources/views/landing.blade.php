@@ -16,11 +16,11 @@
 <body class="bg-[#faf8ff] flex items-center justify-center min-h-screen">
     <div class="text-center space-y-4">
         <!-- Logo Icon -->
-        <div class="w-20 h-20 rounded-2xl bg-[#0055c9] flex items-center justify-center text-white font-black text-4xl shadow-xl shadow-blue-500/20 mx-auto transform hover:scale-105 transition duration-300">
+        <div class="w-20 h-20 rounded-2xl bg-[#16a34a] flex items-center justify-center text-white font-black text-4xl shadow-xl shadow-green-500/20 mx-auto transform hover:scale-105 transition duration-300">
             J
         </div>
         <!-- Logo Text -->
-        <h1 class="text-3xl font-black tracking-tight text-[#0055c9]">JobConnect</h1>
+        <h1 class="text-3xl font-black tracking-tight text-[#16a34a]">JobConnect</h1>
         <p class="text-sm text-gray-500 max-w-xs mx-auto">Hospitality Connection Platform</p>
     </div>
 </body>

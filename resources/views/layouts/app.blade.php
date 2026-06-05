@@ -39,10 +39,10 @@
     <nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
             <a href="/" class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-outfit font-bold text-lg shadow-md">
+                <div class="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center text-white font-outfit font-bold text-lg shadow-md">
                     J
                 </div>
-                <span class="font-outfit font-bold text-xl tracking-tight text-blue-600">JobConnect</span>
+                <span class="font-outfit font-bold text-xl tracking-tight text-green-600">JobConnect</span>
             </a>
 
             @auth
