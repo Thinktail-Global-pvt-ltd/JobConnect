@@ -10,6 +10,7 @@ use App\Http\Controllers\WebRoleController;
 use App\Http\Controllers\WebProfileController;
 use App\Http\Controllers\WebHomeController;
 use App\Http\Controllers\WebJobController;
+use App\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,6 +21,9 @@ use Illuminate\Support\Facades\Route;
 
 // Root Feed Page Route
 Route::get('/', [WebHomeController::class, 'index'])->name('home');
+
+// GitHub Auto-Deployment Webhook Route
+Route::post('/webhook/deploy', [WebhookController::class, 'deploy'])->name('webhook.deploy');
 
 // Guest Prototype Auth Routes
 Route::middleware('guest')->group(function () {

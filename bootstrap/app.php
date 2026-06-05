@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role.active' => \App\Http\Middleware\EnforceActiveRoleWeb::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'webhook/deploy',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
