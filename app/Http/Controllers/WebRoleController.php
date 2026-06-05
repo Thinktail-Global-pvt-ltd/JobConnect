@@ -20,16 +20,11 @@ class WebRoleController extends Controller
             'role_type' => 'required|string|in:job_seeker,employer,agency,chef,administrator',
         ]);
 
-        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
-
         if ($validator->fails()) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid role selection.',
-                ], 422);
-            }
-            return redirect()->back()->with('error', 'Invalid role selection.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid role selection.',
+            ], 422);
         }
 
         $user = Auth::user();
@@ -63,24 +58,16 @@ class WebRoleController extends Controller
                 $user->roles()->where('role_type', $targetRole)->update(['is_active' => true]);
             });
 
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "Role switched to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.",
-                    'redirect_url' => route('profile'),
-                ]);
-            }
-
-            return redirect()->route('profile')
-                ->with('success', "Role switched to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.");
+            return response()->json([
+                'success' => true,
+                'message' => "Role switched to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.",
+                'redirect_url' => route('profile'),
+            ]);
         } catch (\Exception $e) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to toggle role. Please try again.',
-                ], 500);
-            }
-            return redirect()->back()->with('error', 'Failed to toggle role. Please try again.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to toggle role. Please try again.',
+            ], 500);
         }
     }
 
@@ -122,32 +109,22 @@ class WebRoleController extends Controller
             );
         }
 
-        $expectsJson = request()->expectsJson() || request()->query('format') === 'json' || request()->input('format') === 'json';
-
         try {
             DB::transaction(function () use ($user, $targetRole) {
                 $user->roles()->update(['is_active' => false]);
                 $user->roles()->where('role_type', $targetRole)->update(['is_active' => true]);
             });
 
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "Role toggled to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.",
-                    'redirect_url' => route('profile'),
-                ]);
-            }
-
-            return redirect()->route('profile')
-                ->with('success', "Role toggled to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.");
+            return response()->json([
+                'success' => true,
+                'message' => "Role toggled to '" . ucfirst(str_replace('_', ' ', $targetRole)) . "' successfully.",
+                'redirect_url' => route('profile'),
+            ]);
         } catch (\Exception $e) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to toggle role. Please try again.',
-                ], 500);
-            }
-            return redirect()->back()->with('error', 'Failed to toggle role. Please try again.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to toggle role. Please try again.',
+            ], 500);
         }
     }
 
@@ -157,8 +134,6 @@ class WebRoleController extends Controller
     public function becomeEmployer()
     {
         $user = Auth::user();
-
-        $expectsJson = request()->expectsJson() || request()->query('format') === 'json' || request()->input('format') === 'json';
 
         try {
             DB::transaction(function () use ($user) {
@@ -175,24 +150,16 @@ class WebRoleController extends Controller
                 $role->update(['is_active' => true]);
             });
 
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'You are now an Employer! You can post jobs.',
-                    'redirect_url' => route('profile'),
-                ]);
-            }
-
-            return redirect()->route('profile')
-                ->with('success', 'You are now an Employer! You can post jobs.');
+            return response()->json([
+                'success' => true,
+                'message' => 'You are now an Employer! You can post jobs.',
+                'redirect_url' => route('profile'),
+            ]);
         } catch (\Exception $e) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to activate Employer profile.',
-                ], 500);
-            }
-            return redirect()->back()->with('error', 'Failed to activate Employer profile.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to activate Employer profile.',
+            ], 500);
         }
     }
 
@@ -202,8 +169,6 @@ class WebRoleController extends Controller
     public function becomeAgency()
     {
         $user = Auth::user();
-
-        $expectsJson = request()->expectsJson() || request()->query('format') === 'json' || request()->input('format') === 'json';
 
         try {
             DB::transaction(function () use ($user) {
@@ -220,24 +185,16 @@ class WebRoleController extends Controller
                 $role->update(['is_active' => true]);
             });
 
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'You are now registered as an Agency profile.',
-                    'redirect_url' => route('profile'),
-                ]);
-            }
-
-            return redirect()->route('profile')
-                ->with('success', 'You are now registered as an Agency profile.');
+            return response()->json([
+                'success' => true,
+                'message' => 'You are now registered as an Agency profile.',
+                'redirect_url' => route('profile'),
+            ]);
         } catch (\Exception $e) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to activate Agency profile.',
-                ], 500);
-            }
-            return redirect()->back()->with('error', 'Failed to activate Agency profile.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to activate Agency profile.',
+            ], 500);
         }
     }
 
@@ -247,8 +204,6 @@ class WebRoleController extends Controller
     public function becomeAdmin()
     {
         $user = Auth::user();
-
-        $expectsJson = request()->expectsJson() || request()->query('format') === 'json' || request()->input('format') === 'json';
 
         try {
             DB::transaction(function () use ($user) {
@@ -265,24 +220,16 @@ class WebRoleController extends Controller
                 $role->update(['is_active' => true]);
             });
 
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'You are now an Administrator.',
-                    'redirect_url' => route('profile'),
-                ]);
-            }
-
-            return redirect()->route('profile')
-                ->with('success', 'You are now an Administrator.');
+            return response()->json([
+                'success' => true,
+                'message' => 'You are now an Administrator.',
+                'redirect_url' => route('profile'),
+            ]);
         } catch (\Exception $e) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to activate Administrator profile.',
-                ], 500);
-            }
-            return redirect()->back()->with('error', 'Failed to activate Administrator profile.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to activate Administrator profile.',
+            ], 500);
         }
     }
 
@@ -298,18 +245,11 @@ class WebRoleController extends Controller
             'availability_info' => 'nullable|string',
         ]);
 
-        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
-
         if ($validator->fails()) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         $user = Auth::user();
@@ -335,24 +275,16 @@ class WebRoleController extends Controller
                 );
             });
 
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Chef profile details submitted successfully! It is now pending administrator review.',
-                    'redirect_url' => route('profile'),
-                ]);
-            }
-
-            return redirect()->route('profile')
-                ->with('success', 'Chef profile details submitted successfully! It is now pending administrator review.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Chef profile details submitted successfully! It is now pending administrator review.',
+                'redirect_url' => route('profile'),
+            ]);
         } catch (\Exception $e) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to submit Chef profile.',
-                ], 500);
-            }
-            return redirect()->back()->with('error', 'Failed to submit Chef profile.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to submit Chef profile.',
+            ], 500);
         }
     }
 }

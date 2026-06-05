@@ -28,7 +28,6 @@ class WebProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
 
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
@@ -42,15 +41,10 @@ class WebProfileController extends Controller
         ]);
 
         if ($validator->fails()) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         // Process skills string to array
@@ -70,16 +64,11 @@ class WebProfileController extends Controller
             'skills' => $skillsArray,
         ]);
 
-        if ($expectsJson) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Profile information updated! Your profile progress has been recalculated.',
-                'redirect_url' => route('profile'),
-            ]);
-        }
-
-        return redirect()->route('profile')
-            ->with('success', 'Profile information updated! Your profile progress has been recalculated.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile information updated! Your profile progress has been recalculated.',
+            'redirect_url' => route('profile'),
+        ]);
     }
 
     /**
@@ -97,7 +86,6 @@ class WebProfileController extends Controller
     public function updatePersonal(Request $request)
     {
         $user = Auth::user();
-        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
 
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
@@ -111,16 +99,10 @@ class WebProfileController extends Controller
         ]);
 
         if ($validator->fails()) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput()
-                ->with('error', 'Please correct the validation errors on the form.');
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         // Process skills string to array
@@ -140,16 +122,11 @@ class WebProfileController extends Controller
             'skills' => $skillsArray,
         ]);
 
-        if ($expectsJson) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Profile information updated successfully!',
-                'redirect_url' => route('profile'),
-            ]);
-        }
-
-        return redirect()->route('profile')
-            ->with('success', 'Profile information updated successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile information updated successfully!',
+            'redirect_url' => route('profile'),
+        ]);
     }
 
     /**

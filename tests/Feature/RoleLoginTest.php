@@ -33,7 +33,8 @@ class RoleLoginTest extends TestCase
             'mobile_number' => '9999999999',
         ]);
 
-        $response->assertSessionHasErrors(['login_role']);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['login_role']);
     }
 
     /**
@@ -46,7 +47,11 @@ class RoleLoginTest extends TestCase
             'login_role' => 'employer',
         ]);
 
-        $response->assertRedirect('/verify-otp?mobile=9999999999&login_role=employer');
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'success' => true,
+            'redirect_url' => route('verify-otp', ['mobile' => '9999999999', 'login_role' => 'employer']),
+        ]);
         $response->assertSessionHas('demo_otp');
     }
 
@@ -71,7 +76,11 @@ class RoleLoginTest extends TestCase
             'login_role' => 'employer',
         ]);
 
-        $response->assertRedirect('/profile?section=my_posted_jobs');
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'success' => true,
+            'redirect_url' => route('profile', ['section' => 'my_posted_jobs']),
+        ]);
         
         // Assert user was created and has active employer role
         $user = User::where('mobile_number', '9999999999')->first();
@@ -101,7 +110,11 @@ class RoleLoginTest extends TestCase
             'login_role' => 'job_seeker',
         ]);
 
-        $response->assertRedirect('/');
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'success' => true,
+            'redirect_url' => route('home'),
+        ]);
         
         // Assert user was created and has active job seeker role
         $user = User::where('mobile_number', '9999999999')->first();

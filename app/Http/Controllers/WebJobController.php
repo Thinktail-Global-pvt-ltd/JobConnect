@@ -34,7 +34,6 @@ class WebJobController extends Controller
     public function apply(Request $request, JobPost $job)
     {
         $user = Auth::user();
-        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
 
         // Check if already applied
         $exists = JobApplication::where('applicant_id', $user->id)
@@ -42,13 +41,10 @@ class WebJobController extends Controller
             ->exists();
 
         if ($exists) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You have already applied for this job.',
-                ], 422);
-            }
-            return redirect()->back()->with('error', 'You have already applied for this job.');
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already applied for this job.',
+            ], 422);
         }
 
         // Create application
@@ -59,15 +55,11 @@ class WebJobController extends Controller
             'status' => 'new',
         ]);
 
-        if ($expectsJson) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Application submitted successfully!',
-                'redirect_url' => route('jobs.show', $job->id),
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Application submitted successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Application submitted successfully!',
+            'redirect_url' => route('jobs.show', $job->id),
+        ]);
     }
 
     /**
@@ -92,18 +84,14 @@ class WebJobController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $expectsJson = $request->expectsJson() || $request->query('format') === 'json' || $request->input('format') === 'json';
 
         // Security check
         $activeRole = $user->currentRoleContext();
         if (!$activeRole || ($activeRole->role_type !== 'employer' && $activeRole->role_type !== 'agency')) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Only active Employers or Agencies can post jobs.',
-                ], 403);
-            }
-            return redirect()->back()->with('error', 'Only active Employers or Agencies can post jobs.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Only active Employers or Agencies can post jobs.',
+            ], 403);
         }
 
         $validator = Validator::make($request->all(), [
@@ -124,13 +112,10 @@ class WebJobController extends Controller
         ]);
 
         if ($validator->fails()) {
-            if ($expectsJson) {
-                return response()->json([
-                    'success' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-            return redirect()->back()->withErrors($validator)->withInput()->with('error', 'Please correct the validation errors in the job posting form.');
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         // Process requirements comma-separated to array
@@ -165,14 +150,10 @@ class WebJobController extends Controller
             'status' => 'approved', // Auto-approved for frictionless prototype testing
         ]);
 
-        if ($expectsJson) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Job vacancy posted successfully and is now active!',
-                'redirect_url' => route('profile'),
-            ]);
-        }
-
-        return redirect()->route('profile')->with('success', 'Job vacancy posted successfully and is now active!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Job vacancy posted successfully and is now active!',
+            'redirect_url' => route('profile'),
+        ]);
     }
 }
