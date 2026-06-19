@@ -15,10 +15,10 @@ const footerColumns = [
     title: "Resources",
     links: [
       { label: "Support", href: "https://support.seasoned.co", external: true },
-      { label: "Privacy Policy", href: "privacypolicy.html" },
-      { label: "Terms of Use", href: "termsofservice.html" },
-      { label: "Community Guidelines", href: "communityguidelines.html" },
-      { label: "Site Map", href: "/restaurant-jobs" },
+      { label: "Privacy Policy", href: "privacy-policy" },
+      { label: "Terms & Condications", href: "/terms&condications" },
+      // { label: "Community Guidelines", href: "communityguidelines.html" },
+      // { label: "Site Map", href: "/restaurant-jobs" },
     ],
   },
 ];
