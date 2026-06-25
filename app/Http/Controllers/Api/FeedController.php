@@ -36,7 +36,7 @@ class FeedController extends Controller
         }
 
         $feedItems->getCollection()->transform(function ($job) use ($appliedJobIds) {
-            $job->is_applied = in_array($job->id, $appliedJobIds);
+            $job->applied = in_array($job->id, $appliedJobIds);
             return $job;
         });
 

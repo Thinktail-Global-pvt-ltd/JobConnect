@@ -36,6 +36,13 @@ class WebHomeController extends Controller
             $trainings = TrainingOpportunity::all();
         }
 
+        // Get applied job IDs for the current user
+        $appliedJobIds = collect();
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            $appliedJobIds = \App\Models\JobApplication::where('applicant_id', \Illuminate\Support\Facades\Auth::id())
+                ->pluck('job_post_id');
+        }
+
         // 3. Merge and Sort
         // Sorting logic: Pinned items at the top, then remaining items by created_at desc
         $feedItems = $jobs->concat($trainings)->sort(function ($a, $b) {
@@ -55,6 +62,6 @@ class WebHomeController extends Controller
             return $bTime <=> $aTime;
         })->values();
 
-        return view('home', compact('feedItems', 'filter'));
+        return view('home', compact('feedItems', 'filter', 'appliedJobIds'));
     }
 }

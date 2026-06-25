@@ -214,7 +214,14 @@
                                         <button class="p-2 text-primary hover:bg-surface-container-high rounded-full transition-colors">
                                             <span class="material-symbols-outlined">share</span>
                                         </button>
-                                         <a href="{{ route('jobs.show', $item->id) }}" class="px-6 h-10 rounded-xl bg-primary text-on-primary font-label-md text-label-md transition-all active:scale-95 shadow-sm inline-flex items-center justify-center">Apply</a>
+                                         @if($appliedJobIds->contains($item->id))
+                                             <button class="px-6 h-10 rounded-xl bg-gray-100 text-gray-400 font-label-md text-label-md flex items-center justify-center gap-1.5 cursor-not-allowed border border-outline-variant/20" disabled>
+                                                 <span class="material-symbols-outlined text-[16px] font-bold text-green-600">check_circle</span>
+                                                 Applied
+                                             </button>
+                                         @else
+                                             <a href="{{ route('jobs.show', $item->id) }}" class="px-6 h-10 rounded-xl bg-primary text-on-primary font-label-md text-label-md transition-all active:scale-95 shadow-sm inline-flex items-center justify-center">Apply</a>
+                                         @endif
                                      </div>
                                  </div>
                             </div>
