@@ -27,6 +27,19 @@ class FeedController extends Controller
         $feedItems = $query->sortedFeed()
                            ->paginate(15);
 
+        $user = $request->user();
+        $appliedJobIds = [];
+        if ($user) {
+            $appliedJobIds = \App\Models\JobApplication::where('applicant_id', $user->id)
+                ->pluck('job_post_id')
+                ->toArray();
+        }
+
+        $feedItems->getCollection()->transform(function ($job) use ($appliedJobIds) {
+            $job->is_applied = in_array($job->id, $appliedJobIds);
+            return $job;
+        });
+
         return response()->json([
             'success' => true,
             'feed' => $feedItems,
