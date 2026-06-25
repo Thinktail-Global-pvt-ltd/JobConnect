@@ -13,7 +13,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/jobs" element={<FindANewJob />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
-          <Route path="/terms&condications" element={<Term/>}/>
+          <Route path="/terms&conditions" element={<Term/>}/>
         </Routes>
       </BrowserRouter>
     </div>

@@ -16,8 +16,8 @@ const footerColumns = [
     links: [
       { label: "Support", href: "https://support.seasoned.co", external: true },
       { label: "Privacy Policy", href: "privacy-policy" },
-      { label: "Terms & Condications", href: "/terms&condications" },
-      // { label: "Community Guidelines", href: "communityguidelines.html" },
+      { label: "Terms & Condications", href: "/terms&conditions" },
+      // { label: "Data Deletion", href: "/datadeletion" },
       // { label: "Site Map", href: "/restaurant-jobs" },
     ],
   },
@@ -91,7 +91,7 @@ const Footer = () => {
         </div>
 
         <div className="pt-6 text-sm text-white/55">
-          Copyright 2020 - 2025 JobGet Inc. All rights reserved.
+          Copyright 2026 JobRito Inc. All rights reserved.
         </div>
       </div>
     </footer>
@@ -99,3 +99,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

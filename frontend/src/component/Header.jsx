@@ -18,11 +18,12 @@ const Header = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-around h-16 sm:h-18 md:h-20 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <a href="/" className="flex-shrink-0">
-          <img
+          {/* <img
             src="https://static.seasoned.co/images/logo_onDark2x.png"
-            alt="Seasoned Logo"
+            alt="JobRito Logo"
             className="h-5 sm:h-5 md:h-7 lg:h-8 w-auto object-contain transition-all duration-300"
-          />
+          /> */}
+          <span className="text-[#EB4B66] text-lg font-bold">Job Rito</span>
         </a>
 
         {/* Navigation */}

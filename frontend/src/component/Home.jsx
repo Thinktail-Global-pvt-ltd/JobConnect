@@ -48,7 +48,7 @@ const Home = () => {
                 loading="lazy"
                 width={565}
                 sizes="(max-width: 991px) 100vw, 70px"
-                alt="QR code to install the Seasoned Member App."
+                alt="QR code to install the JobRito Member App."
                 srcSet="https://static.seasoned.co/images/s-member-qr-p-500.png 500w, https://static.seasoned.co/images/s-member-qr-p-800.png 800w, https://static.seasoned.co/images/s-member-qr-p-1080.png 1080w, https://static.seasoned.co/images/s-member-qr.png 1130w"
                 className="qr-image"
               />
@@ -57,7 +57,7 @@ const Home = () => {
               href="https://getseasoned.onelink.me/Mfy7/homepg"
               className="button-primary member-btn w-button"
             >
-              Get the Seasoned app
+              Get the JobRito app
             </a>
             <div className="app-store-logos">
               <img
@@ -78,14 +78,14 @@ const Home = () => {
             <img
               src="https://static.seasoned.co/images/admin_recruit.png"
               loading="lazy"
-              alt="Candidates tab in the Seasoned Recruit app"
+              alt="Candidates tab in the JobRito Recruit app"
               width={261}
               className="image-17"
             />
             <img
               src="https://static.seasoned.co/images/member_jobs.png"
               loading="lazy"
-              alt="Jobs tab in the Seasoned app"
+              alt="Jobs tab in the JobRito app"
               width={384}
               className="image-18 img_shadow"
             />
@@ -115,13 +115,13 @@ const Home = () => {
               src="https://static.seasoned.co/images/PostCard2x.png"
               loading="lazy"
               width={375}
-              alt="Image of a post from the Seasoned community."
+              alt="Image of a post from the JobRito community."
               className="image-16"
             />
           </div>
           <div className="content-block">
             <div className="section-label text-light">
-              Seasoned Community App
+              JobRito Community App
             </div>
             <h2 className="section-title-dark">
               <strong className="bold-text-10">
@@ -129,7 +129,7 @@ const Home = () => {
               </strong>
             </h2>
             <h3 className="subtitle-dark">
-              The Seasoned App is where you find a job search as fast as you,
+              The JobRito App is where you find a job search as fast as you,
               get advice from people that get it, and grow your industry family.
             </h3>
             <div className="qr-block">
@@ -139,7 +139,7 @@ const Home = () => {
                 loading="lazy"
                 width={565}
                 sizes="(max-width: 991px) 100vw, 70px"
-                alt="QR code to install the Seasoned Member App."
+                alt="QR code to install the JobRito Member App."
                 srcSet="https://static.seasoned.co/images/s-member-qr-p-500.png 500w, https://static.seasoned.co/images/s-member-qr-p-800.png 800w, https://static.seasoned.co/images/s-member-qr-p-1080.png 1080w, https://static.seasoned.co/images/s-member-qr.png 1130w"
                 className="qr-image"
               />
@@ -148,7 +148,7 @@ const Home = () => {
               href="https://getseasoned.onelink.me/Mfy7/homepg"
               className="button-primary member-btn w-button"
             >
-              Get the Seasoned app
+              Get the JobRito app
             </a>
             <div className="member-quote-block">
               <h3 className="subtitle-dark">
@@ -157,7 +157,7 @@ const Home = () => {
               </h3>
               <p>
                 <strong>—Jarrad B</strong>.<br />
-                Seasoned Member
+                JobRito Member
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ const Home = () => {
       <div className="recruit">
         <div className="content-wrapper home-recruit">
           <div className="content-block home-recruit-content">
-            <div className="section-label">Seasoned Recruit App</div>
+            <div className="section-label">JobRito Recruit App</div>
             <h2 className="section-title-dark recruit-section">
               <strong>Hire on the fly with the Recruit App.</strong>
             </h2>
@@ -397,7 +397,7 @@ const Home = () => {
                   className="brandimg"
                 />
               </div>
-              <div className="brand-wrapper">
+              {/* <div className="brand-wrapper">
                 <img
                   src="https://static.seasoned.co/images/img_brand_371x.png"
                   loading="lazy"
@@ -406,8 +406,8 @@ const Home = () => {
                   alt="Cheddar's logo"
                   className="brandimg"
                 />
-              </div>
-              <div className="brand-wrapper">
+              </div> */}
+              {/* <div className="brand-wrapper">
                 <img
                   src="https://static.seasoned.co/images/img_brand_351x.png"
                   loading="lazy"
@@ -626,7 +626,7 @@ const Home = () => {
                   alt="Papa Johns logo"
                   className="brandimg"
                 />
-              </div>
+              </div> */}
             </div>
           </div>
           <a
