@@ -41,6 +41,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
             'otp' => 'required|string|size:6',
+            'selected_language' => 'nullable|string|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -67,6 +68,7 @@ class AuthController extends Controller
             $user = User::create([
                 'mobile_number' => $request->mobile_number,
                 'is_suspended' => false,
+                'selected_language' => $request->selected_language ?? 'en',
             ]);
 
             // Automatically register default profile (Job Seeker)
@@ -75,6 +77,12 @@ class AuthController extends Controller
                 'role_type' => 'job_seeker',
                 'is_active' => true,
             ]);
+        } else {
+            if ($request->filled('selected_language')) {
+                $user->update([
+                    'selected_language' => $request->selected_language
+                ]);
+            }
         }
 
         // Check if user is suspended

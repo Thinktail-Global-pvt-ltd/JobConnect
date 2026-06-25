@@ -130,6 +130,7 @@ class WebAuthController extends Controller
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
             'otp' => 'required|string|size:4',
             'login_role' => 'required|string|in:job_seeker,employer',
+            'selected_language' => 'nullable|string|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -163,7 +164,14 @@ class WebAuthController extends Controller
             $user = User::create([
                 'mobile_number' => $mobile,
                 'is_suspended' => false,
+                'selected_language' => $request->selected_language ?? 'en',
             ]);
+        } else {
+            if ($request->filled('selected_language')) {
+                $user->update([
+                    'selected_language' => $request->selected_language
+                ]);
+            }
         }
 
         // Verify user state
