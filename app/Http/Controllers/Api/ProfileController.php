@@ -28,6 +28,7 @@ class ProfileController extends Controller
                 'preferred_role' => $user->preferred_role,
                 'current_employer' => $user->current_employer,
                 'skills' => $user->skills,
+                'selected_language' => $user->selected_language ?? 'en',
                 'completeness' => $user->profile_completeness,
             ]
         ]);
@@ -83,8 +84,38 @@ class ProfileController extends Controller
                 'preferred_role' => $user->preferred_role,
                 'current_employer' => $user->current_employer,
                 'skills' => $user->skills,
+                'selected_language' => $user->selected_language ?? 'en',
                 'completeness' => $user->profile_completeness,
             ]
+        ]);
+    }
+
+    /**
+     * Update user's selected language.
+     */
+    public function updateLanguage(Request $request)
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'selected_language' => 'required|string|max:10',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user->update([
+            'selected_language' => $request->selected_language,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Language preference updated successfully.',
+            'selected_language' => $user->selected_language,
         ]);
     }
 }

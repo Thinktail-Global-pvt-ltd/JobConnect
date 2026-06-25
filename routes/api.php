@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // User Profile Routes
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/language', [ProfileController::class, 'updateLanguage']);
 
     // Unified Sorted Single Feed Route
     Route::get('/feed', [FeedController::class, 'index']);

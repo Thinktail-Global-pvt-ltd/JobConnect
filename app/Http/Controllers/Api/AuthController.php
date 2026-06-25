@@ -125,6 +125,7 @@ class AuthController extends Controller
                 'preferred_role' => $user->preferred_role,
                 'current_employer' => $user->current_employer,
                 'skills' => $user->skills,
+                'selected_language' => $user->selected_language ?? 'en',
                 'completeness' => $user->profile_completeness,
                 'profiles' => $roles->map(function ($r) {
                     return [

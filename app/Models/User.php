@@ -26,6 +26,7 @@ class User extends Authenticatable
         'current_employer',
         'skills',
         'is_suspended',
+        'selected_language',
     ];
 
     /**
