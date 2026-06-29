@@ -144,35 +144,15 @@ class WebProfileController extends Controller
         return view('profile.applications', compact('user', 'applications'));
     }
 
-    /**
-     * Get user's job applications as JSON.
-     */
     public function getApplications(Request $request)
     {
         $user = Auth::user();
 
         if (!$user) {
-            // Find by email or mobile number from the query parameter/request
-            if ($request->filled('email')) {
-                $user = \App\Models\User::where('email', $request->email)->first();
-            }
-            if (!$user && $request->filled('mobile_number')) {
-                $user = \App\Models\User::where('mobile_number', $request->mobile_number)->first();
-            }
-            if (!$user && $request->filled('user_id')) {
-                $user = \App\Models\User::find($request->user_id);
-            }
-            // Fallback to the first user if none found
-            if (!$user) {
-                $user = \App\Models\User::first();
-            }
-        }
-
-        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found.',
-            ], 404);
+                'message' => 'Unauthenticated.',
+            ], 401);
         }
 
         $applications = $user->applications()

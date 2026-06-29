@@ -39,7 +39,6 @@ Route::middleware('guest')->group(function () {
 Route::prefix('api')->group(function () {
     Route::post('/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
     Route::post('/verify-otp', [WebAuthController::class, 'submitVerify'])->name('verify-otp.submit');
-    Route::get('/profile/applications', [WebProfileController::class, 'getApplications'])->name('api.profile.applications');
 });
 
 // ==========================================
@@ -61,6 +60,7 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/profile/personal', [WebProfileController::class, 'updatePersonal'])->name('profile.personal.update');
     Route::post('/profile/update', [WebProfileController::class, 'update'])->name('profile.update');
     Route::get('/profile/saved', [WebProfileController::class, 'getSavedJobsJson'])->name('api.profile.saved');
+    Route::get('/profile/applications', [WebProfileController::class, 'getApplications'])->name('api.profile.applications');
     
     // Role Switching & Activation Routes
     Route::post('/profile/switch-role', [WebRoleController::class, 'switchRole'])->name('profile.switch-role');

@@ -156,4 +156,46 @@ class SavedJobsTest extends TestCase
                 'user_id' => $user->id,
             ]);
     }
+
+    /**
+     * Guest cannot view applications via JSON API.
+     */
+    public function test_guest_cannot_view_applications_json(): void
+    {
+        $response = $this->getJson('/api/profile/applications');
+        $response->assertStatus(401);
+    }
+
+    /**
+     * Authenticated user can view their applications list via JSON API.
+     */
+    public function test_authenticated_user_can_view_applications_json(): void
+    {
+        $user = $this->createUser('8799730966');
+        $creator = $this->createUser('9999999999');
+        $job = $this->createJobPost($creator->id);
+
+        // Apply to job
+        \App\Models\JobApplication::create([
+            'applicant_id' => $user->id,
+            'job_post_id' => $job->id,
+            'employer_id' => $creator->id,
+            'status' => 'new',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->getJson('/api/profile/applications');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'user_id',
+                'mobile_number',
+                'applications',
+            ])
+            ->assertJsonFragment([
+                'success' => true,
+                'user_id' => $user->id,
+            ]);
+    }
 }
