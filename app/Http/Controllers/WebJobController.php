@@ -154,4 +154,44 @@ class WebJobController extends Controller
             'message' => 'Job vacancy posted successfully and is now active!',
         ]);
     }
+
+    /**
+     * Toggle saving a job post.
+     */
+    public function toggleSave(Request $request, JobPost $job)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        // Check if already saved
+        $savedJob = \App\Models\SavedJob::where('user_id', $user->id)
+            ->where('job_post_id', $job->id)
+            ->first();
+
+        if ($savedJob) {
+            $savedJob->delete();
+            return response()->json([
+                'success' => true,
+                'saved' => false,
+                'message' => 'Job removed from saved list.',
+            ]);
+        }
+
+        \App\Models\SavedJob::create([
+            'user_id' => $user->id,
+            'job_post_id' => $job->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'saved' => true,
+            'message' => 'Job saved to your favorites!',
+        ]);
+    }
 }

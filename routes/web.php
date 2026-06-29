@@ -39,6 +39,7 @@ Route::middleware('guest')->group(function () {
 Route::prefix('api')->group(function () {
     Route::post('/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
     Route::post('/verify-otp', [WebAuthController::class, 'submitVerify'])->name('verify-otp.submit');
+    Route::get('/profile/applications', [WebProfileController::class, 'getApplications'])->name('api.profile.applications');
 });
 
 // ==========================================
@@ -51,12 +52,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [WebProfileController::class, 'index'])->name('profile');
     Route::get('/profile/personal', [WebProfileController::class, 'editPersonal'])->name('profile.personal.edit');
     Route::get('/profile/applications', [WebProfileController::class, 'applications'])->name('profile.applications');
+    Route::get('/profile/saved', [WebProfileController::class, 'savedJobs'])->name('profile.saved');
     Route::get('/jobs/create', [WebJobController::class, 'create'])->name('jobs.create');
     Route::get('/jobs/{job}', [WebJobController::class, 'show'])->name('jobs.show');
 });
 
 // Secured APIs (JSON)
-Route::middleware('auth')->prefix('api')->group(function () {
+Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/profile/personal', [WebProfileController::class, 'updatePersonal'])->name('profile.personal.update');
     Route::post('/profile/update', [WebProfileController::class, 'update'])->name('profile.update');
     
@@ -69,6 +71,7 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::post('/profile/become-chef', [WebRoleController::class, 'becomeChef'])->name('profile.become-chef');
     
     Route::post('/jobs/{job}/apply', [WebJobController::class, 'apply'])->name('jobs.apply');
+    Route::post('/jobs/{job}/save', [WebJobController::class, 'toggleSave'])->name('jobs.save');
     Route::post('/jobs/store', [WebJobController::class, 'store'])->name('jobs.store');
 });
 

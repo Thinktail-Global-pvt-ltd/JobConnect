@@ -96,6 +96,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's saved job records.
+     */
+    public function savedJobs()
+    {
+        return $this->hasMany(SavedJob::class);
+    }
+
+    /**
+     * Get the user's bookmarked job posts.
+     */
+    public function savedJobPosts()
+    {
+        return $this->belongsToMany(JobPost::class, 'saved_jobs', 'user_id', 'job_post_id')->withTimestamps();
+    }
+
+    /**
      * Accessor to dynamically calculate profile completeness percentage.
      */
     public function getProfileCompletenessAttribute(): int

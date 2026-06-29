@@ -211,6 +211,16 @@
                                         {{ $item->category === 'community' ? 'Referrals' : ucfirst($item->category) }}
                                     </span>
                                     <div class="flex gap-2">
+                                        @if(\Illuminate\Support\Facades\Auth::check())
+                                            @php
+                                                $isSaved = \App\Models\SavedJob::where('user_id', \Illuminate\Support\Facades\Auth::id())
+                                                    ->where('job_post_id', $item->id)
+                                                    ->exists();
+                                            @endphp
+                                            <button onclick="toggleSaveJob(this, {{ $item->id }})" class="p-2 text-primary hover:bg-surface-container-high rounded-full transition-colors" title="{{ $isSaved ? 'Unsave Job' : 'Save Job' }}">
+                                                <span class="material-symbols-outlined js-star-icon text-[24px]" style="{{ $isSaved ? "font-variation-settings: 'FILL' 1;" : "font-variation-settings: 'FILL' 0;" }}">star</span>
+                                            </button>
+                                        @endif
                                         <button class="p-2 text-primary hover:bg-surface-container-high rounded-full transition-colors">
                                             <span class="material-symbols-outlined">share</span>
                                         </button>
@@ -281,6 +291,19 @@
     <span class="material-symbols-outlined text-[28px]">edit</span>
 </a>
 
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-sm w-full mx-auto px-4 hidden">
+    <div id="toast-box" class="bg-primary text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px]" id="toast-icon">info</span>
+            <span class="text-sm font-semibold" id="toast-message">Notification message</span>
+        </div>
+        <button onclick="hideToast()" class="text-white hover:opacity-80">
+            <span class="material-symbols-outlined !text-[18px]">close</span>
+        </button>
+    </div>
+</div>
+
 <script>
     // Simple scroll observer for sticky header effect
     let lastScrollTop = 0;
@@ -294,6 +317,62 @@
         }
         lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
     }, false);
+
+    function showToast(message, isSuccess = true) {
+        const toast = document.getElementById('toast-container');
+        const box = document.getElementById('toast-box');
+        const icon = document.getElementById('toast-icon');
+        const msg = document.getElementById('toast-message');
+        
+        msg.textContent = message;
+        icon.textContent = isSuccess ? 'check_circle' : 'error';
+        
+        if (isSuccess) {
+            box.className = 'bg-green-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between';
+        } else {
+            box.className = 'bg-red-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between';
+        }
+        
+        toast.classList.remove('hidden');
+        setTimeout(hideToast, 3000);
+    }
+    
+    function hideToast() {
+        document.getElementById('toast-container').classList.add('hidden');
+    }
+
+    function toggleSaveJob(button, jobId) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const icon = button.querySelector('.js-star-icon');
+        
+        fetch(`/api/jobs/${jobId}/save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.saved) {
+                    icon.style.fontVariationSettings = "'FILL' 1";
+                    button.title = 'Unsave Job';
+                } else {
+                    icon.style.fontVariationSettings = "'FILL' 0";
+                    button.title = 'Save Job';
+                }
+                showToast(data.message);
+            } else {
+                showToast(data.message || 'An error occurred.', false);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('Unable to process request.', false);
+        });
+    }
 </script>
 @include('layouts.google_translate')
 </body>

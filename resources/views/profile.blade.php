@@ -274,6 +274,24 @@
             </div>
         </a>
 
+        <!-- Section: Saved Jobs -->
+        <a href="{{ route('profile.saved') }}" class="whatsapp-list-item-group border-b border-outline-variant/30 block">
+            <div class="whatsapp-list-item group flex items-start cursor-pointer hover:bg-surface-container-low transition-colors duration-200">
+                <div class="pl-4 py-4 pr-3">
+                    <span class="material-symbols-outlined text-secondary" data-icon="star">star</span>
+                </div>
+                <div class="flex-grow py-4 pr-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-body-lg text-body-lg text-on-surface">Saved Jobs</p>
+                            <p class="font-body-sm text-body-sm text-on-surface-variant">View your {{ $user->savedJobPosts->count() }} bookmarked vacancies</p>
+                        </div>
+                        <span class="material-symbols-outlined text-outline-variant !text-[20px]" data-icon="chevron_right">chevron_right</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
 
 
         <!-- Collapsible Section: My Posted Jobs -->

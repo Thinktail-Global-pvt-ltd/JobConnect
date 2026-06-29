@@ -1,0 +1,634 @@
+{
+  "info": {
+    "_postman_id": "db8d672e-8c3b-4c07-b2de-d236f1c4e7ab",
+    "name": "JobConnect Backend APIs",
+    "description": "Postman Collection for all JobConnect API endpoints (excluding Job Seeker job applications).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Request OTP (API)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"mobile_number\": \"1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/request-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "request-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP (API)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"mobile_number\": \"1234567890\",\n    \"otp\": \"123456\",\n    \"selected_language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Web Login (API)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"mobile_number\": \"1234567890\",\n    \"login_role\": \"employer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Web Verify OTP (API)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"mobile_number\": \"1234567890\",\n    \"otp\": \"4321\",\n    \"login_role\": \"employer\",\n    \"selected_language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "verify-otp"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Profile Management",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile (API)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"full_name\": \"Jane Doe\",\n    \"email\": \"jane@example.com\",\n    \"city\": \"Mumbai\",\n    \"experience_years\": 5,\n    \"preferred_role\": \"Executive Chef\",\n    \"current_employer\": \"The Taj\",\n    \"skills\": [\"Cooking\", \"Management\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Personal Info (Web API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"full_name\": \"Jane Doe\",\n    \"email\": \"jane.personal@example.com\",\n    \"city\": \"Delhi\",\n    \"experience_range\": \"3-5 years\",\n    \"preferred_role\": \"Manager\",\n    \"current_employer\": \"Thinktail\",\n    \"skills\": \"Management, Operations\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/personal",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "personal"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile Details (Web API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"full_name\": \"Jane Doe\",\n    \"email\": \"jane.work@example.com\",\n    \"city\": \"Delhi\",\n    \"experience_range\": \"3-5 years\",\n    \"preferred_role\": \"Manager\",\n    \"current_employer\": \"Thinktail\",\n    \"skills\": \"Management, Operations\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Language Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"selected_language\": \"hi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/language",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "language"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Role & Context Management",
+      "item": [
+        {
+          "name": "Switch Role Context",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"role_type\": \"employer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/switch-role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "switch-role"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle / Cycle Role Context",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/toggle-role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "toggle-role"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Become Employer Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/become-employer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "become-employer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Become Agency Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/become-agency",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "become-agency"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Become Chef Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cuisine_specialty\": \"Italian & Pasta\",\n    \"bio\": \"Specialized in traditional Italian cooking with 8 years of experience.\",\n    \"calendly_link\": \"https://calendly.com/italy-chef\",\n    \"availability_info\": \"Weekends only\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/become-chef",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "become-chef"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Become Admin Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/become-admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "become-admin"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Employer & Agency (Jobs)",
+      "item": [
+        {
+          "name": "Post Job (API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Sous Chef\",\n    \"category\": \"india\",\n    \"company\": \"Thinktail Global\",\n    \"contact_info\": \"careers@thinktail.com\",\n    \"description\": \"Responsible for assisting the head chef in menu curation and kitchen management.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jobs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Post Job with Details (Web API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Senior Culinary Artist\",\n    \"category\": \"overseas\",\n    \"company\": \"Luxury Resorts SG\",\n    \"salary\": \"SGD 6000 - SGD 8000\",\n    \"location\": \"Singapore\",\n    \"job_type\": \"Full-time\",\n    \"contact_info\": \"hr@luxuryresortssg.com\",\n    \"description\": \"Looking for a Senior Chef specialized in Asian fusion dishes.\",\n    \"experience_range\": \"6+ years\",\n    \"requirements\": \"Degree in Culinary Arts, Leadership Experience\",\n    \"benefits\": \"Accommodation, Flights, Health Care\",\n    \"showcase_image_url\": \"https://example.com/banner.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs/store",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jobs",
+                "store"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Chef Operations",
+      "item": [
+        {
+          "name": "Submit / Update Chef Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cuisine_specialty\": \"Japanese Sushi\",\n    \"bio\": \"Certified sushi master with training from Tokyo.\",\n    \"calendly_link\": \"https://calendly.com/sushimaster\",\n    \"availability_info\": \"Available for private catering on weekends\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chefs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chefs"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Feed",
+      "item": [
+        {
+          "name": "Get Sorted Job Feed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/feed?category=india",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "feed"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "india"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_sanctum_token_here",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  }
+}
