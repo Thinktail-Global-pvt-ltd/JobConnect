@@ -57,10 +57,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/jobs/{job}', [WebJobController::class, 'show'])->name('jobs.show');
 });
 
-// Secured APIs (JSON)
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/profile/personal', [WebProfileController::class, 'updatePersonal'])->name('profile.personal.update');
     Route::post('/profile/update', [WebProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/saved', [WebProfileController::class, 'getSavedJobsJson'])->name('api.profile.saved');
     
     // Role Switching & Activation Routes
     Route::post('/profile/switch-role', [WebRoleController::class, 'switchRole'])->name('profile.switch-role');

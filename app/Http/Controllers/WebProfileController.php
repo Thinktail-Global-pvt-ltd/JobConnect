@@ -205,4 +205,30 @@ class WebProfileController extends Controller
 
         return view('profile.saved', compact('user', 'savedJobs', 'appliedJobIds'));
     }
+
+    /**
+     * Get user's saved/favorite jobs as JSON.
+     */
+    public function getSavedJobsJson(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
+        $savedJobs = $user->savedJobPosts()
+            ->with('creator')
+            ->orderBy('saved_jobs.created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'user_id' => $user->id,
+            'mobile_number' => $user->mobile_number,
+            'saved_jobs' => $savedJobs,
+        ]);
+    }
 }

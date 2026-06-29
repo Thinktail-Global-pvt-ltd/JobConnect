@@ -128,4 +128,32 @@ class SavedJobsTest extends TestCase
             ->assertSee($job->title)
             ->assertSee($job->company);
     }
+
+    /**
+     * Authenticated user can view their saved jobs via JSON API.
+     */
+    public function test_authenticated_user_can_view_saved_jobs_json(): void
+    {
+        $user = $this->createUser('8799730966');
+        $creator = $this->createUser('9999999999');
+        $job = $this->createJobPost($creator->id);
+        
+        // Save job
+        $user->savedJobPosts()->attach($job->id);
+
+        $response = $this->actingAs($user)
+            ->getJson('/api/profile/saved');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'user_id',
+                'mobile_number',
+                'saved_jobs',
+            ])
+            ->assertJsonFragment([
+                'success' => true,
+                'user_id' => $user->id,
+            ]);
+    }
 }
