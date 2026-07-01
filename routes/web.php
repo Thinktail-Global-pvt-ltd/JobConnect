@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/personal', [WebProfileController::class, 'editPersonal'])->name('profile.personal.edit');
     Route::get('/profile/applications', [WebProfileController::class, 'applications'])->name('profile.applications');
     Route::get('/profile/saved', [WebProfileController::class, 'savedJobs'])->name('profile.saved');
+    Route::get('/employer/onboarding', [WebProfileController::class, 'onboarding'])->name('employer.onboarding');
     Route::get('/jobs/create', [WebJobController::class, 'create'])->name('jobs.create');
     Route::get('/jobs/{job}', [WebJobController::class, 'show'])->name('jobs.show');
 });
@@ -73,6 +74,7 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/jobs/{job}/apply', [WebJobController::class, 'apply'])->name('jobs.apply');
     Route::post('/jobs/{job}/save', [WebJobController::class, 'toggleSave'])->name('jobs.save');
     Route::post('/jobs/store', [WebJobController::class, 'store'])->name('jobs.store');
+    Route::post('/employer/onboarding/save', [WebProfileController::class, 'saveOnboarding'])->name('api.employer.onboarding.save');
 });
 
 // ==========================================

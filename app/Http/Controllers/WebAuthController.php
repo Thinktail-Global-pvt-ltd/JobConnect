@@ -85,8 +85,8 @@ class WebAuthController extends Controller
 
         $mobile = $request->mobile_number;
         
-        // Generate random 4-digit OTP
-        $otp = (string) mt_rand(1000, 9999);
+        // Generate random 6-digit OTP to match Figma screenshots
+        $otp = (string) mt_rand(100000, 999999);
 
         // Store OTP in Cache for 5 minutes
         Cache::put("web_otp_{$mobile}", $otp, now()->addMinutes(5));
@@ -128,7 +128,7 @@ class WebAuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
-            'otp' => 'required|string|size:4',
+            'otp' => 'required|string|size:6',
             'login_role' => 'required|string|in:job_seeker,employer',
             'selected_language' => 'nullable|string|max:10',
         ]);
@@ -200,10 +200,16 @@ class WebAuthController extends Controller
         // Generate Sanctum auth token for API/mobile app compatibility
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        $hasCompletedOnboarding = false;
+        if ($targetRole === 'employer') {
+            $hasCompletedOnboarding = $user->employerProfile ? (bool)$user->employerProfile->is_completed : false;
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Logged in successfully as ' . ucfirst(str_replace('_', ' ', $targetRole)) . '!',
             'token' => $token,
+            'has_completed_onboarding' => $hasCompletedOnboarding,
             'user' => [
                 'id' => $user->id,
                 'mobile_number' => $user->mobile_number,

@@ -112,6 +112,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's employer profile.
+     */
+    public function employerProfile()
+    {
+        return $this->hasOne(EmployerProfile::class);
+    }
+
+    /**
      * Accessor to dynamically calculate profile completeness percentage.
      */
     public function getProfileCompletenessAttribute(): int

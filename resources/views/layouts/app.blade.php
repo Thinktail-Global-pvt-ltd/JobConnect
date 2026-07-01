@@ -183,7 +183,15 @@
                         } else if (action.includes('/api/verify-otp')) {
                             const params = new URLSearchParams(window.location.search);
                             const roleVal = params.get('login_role') || 'job_seeker';
-                            window.location.href = (roleVal === 'employer') ? '/profile?section=my_posted_jobs' : '/';
+                            if (roleVal === 'employer') {
+                                if (data.has_completed_onboarding) {
+                                    window.location.href = '/profile?section=my_posted_jobs';
+                                } else {
+                                    window.location.href = '/employer/onboarding';
+                                }
+                            } else {
+                                window.location.href = '/';
+                            }
                         } else if (action.includes('/api/profile/personal') || action.includes('/api/profile/update') || action.includes('/api/profile/switch-role') || action.includes('/api/profile/become-') || action.includes('/api/profile/toggle-role') || action.includes('/api/jobs/store')) {
                             window.location.href = '/profile';
                         } else if (action.includes('/apply')) {

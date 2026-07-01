@@ -211,4 +211,98 @@ class WebProfileController extends Controller
             'saved_jobs' => $savedJobs,
         ]);
     }
+
+    /**
+     * Show the Employer Onboarding Wizard view.
+     */
+    public function onboarding()
+    {
+        $user = Auth::user();
+        
+        // Ensure user has Employer or Agency context active
+        $activeRole = $user->currentRoleContext();
+        if (!$activeRole || ($activeRole->role_type !== 'employer' && $activeRole->role_type !== 'agency')) {
+            return redirect()->route('profile')->with('error', 'Please switch your role to Employer first.');
+        }
+
+        // Get existing onboarding profile details if any
+        $profile = $user->employerProfile;
+
+        return view('auth.employer-onboarding', compact('user', 'profile'));
+    }
+
+    /**
+     * Save the final Employer Onboarding profile data.
+     */
+    public function saveOnboarding(Request $request)
+    {
+        $user = Auth::user();
+
+        $validator = Validator::make($request->all(), [
+            'business_name' => 'required|string|max:255',
+            'industry_segment' => 'required|string|max:255',
+            'business_location' => 'required|string|max:255',
+            'contact_person_name' => 'required|string|max:255',
+            'business_mobile' => 'required|string|max:20',
+            'business_email' => 'nullable|email|max:255',
+            'preferred_language' => 'required|string|max:50',
+            'company_logo' => 'nullable|image|max:5120', // PNG, JPG up to 5MB
+            'operational_locations' => 'required|array',
+            'operational_locations.*' => 'required|string|max:500',
+            'nominee_name' => 'required|string|max:255',
+            'nominee_relationship' => 'required|string|max:255',
+            'nominee_mobile' => 'required|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Process Company Logo upload
+        $logoPath = null;
+        if ($request->hasFile('company_logo')) {
+            $path = $request->file('company_logo')->store('logos', 'public');
+            $logoPath = \Illuminate\Support\Facades\Storage::url($path);
+        } else {
+            // Keep existing logo path if any
+            $logoPath = $user->employerProfile ? $user->employerProfile->company_logo_path : null;
+        }
+
+        // Update or create the profile
+        $user->employerProfile()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'business_name' => $request->business_name,
+                'industry_segment' => $request->industry_segment,
+                'business_location' => $request->business_location,
+                'contact_person_name' => $request->contact_person_name,
+                'business_mobile' => $request->business_mobile,
+                'business_email' => $request->business_email,
+                'preferred_language' => $request->preferred_language,
+                'company_logo_path' => $logoPath,
+                'operational_locations' => $request->operational_locations,
+                'nominee_name' => $request->nominee_name,
+                'nominee_relationship' => $request->nominee_relationship,
+                'nominee_mobile' => $request->nominee_mobile,
+                'is_completed' => true,
+            ]
+        );
+
+        // Also update user's profile completeness/details to link them up
+        $user->update([
+            'full_name' => $request->contact_person_name,
+            'email' => $request->business_email,
+            'city' => $request->business_location,
+            'profile_photo_path' => $logoPath,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Onboarding completed successfully!',
+            'redirect_url' => route('profile', ['section' => 'my_posted_jobs']),
+        ]);
+    }
 }
