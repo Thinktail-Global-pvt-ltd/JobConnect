@@ -277,5 +277,112 @@ class DatabaseSeeder extends Seeder
             'price' => 'Course Program',
             'external_link' => 'https://coffeeguild.it/global-certification',
         ]);
+
+        // 5. Create Job Seekers & Job Applications
+        $candidateNames = [
+            'Rahul Sharma', 'Priya Patel', 'Amit Mishra', 'Sneha Reddy', 
+            'Vikram Malhotra', 'Rohan Gupta', 'Neha Singh', 'Sanjay Dutt', 
+            'Anjali Verma', 'Arjun Kapoor', 'Kavita Joshi', 'Rajesh Kumar', 
+            'Divya Nair', 'Aditya Rao', 'Sandeep Singh', 'Pooja Hegde', 
+            'Manish Malhotra', 'Ritu Phogat', 'Vivek Oberoi', 'Karan Johar', 
+            'Sunita Williams', 'Abhishek Bachchan', 'Aishwarya Rai', 'Shah Rukh Khan'
+        ];
+
+        $candidates = [];
+        foreach ($candidateNames as $index => $name) {
+            $emailName = strtolower(str_replace(' ', '.', $name));
+            $cUser = User::create([
+                'mobile_number' => '90000000' . str_pad($index, 2, '0', STR_PAD_LEFT),
+                'full_name' => $name,
+                'email' => "{$emailName}@jobseeker.in",
+                'city' => 'Mumbai',
+                'experience_range' => '2-4 Years',
+                'preferred_role' => 'F&B Associate',
+                'skills' => ['Kitchen Assistance', 'Food Service'],
+            ]);
+            UserRole::create([
+                'user_id' => $cUser->id,
+                'role_type' => 'job_seeker',
+                'is_active' => true
+            ]);
+            $candidates[] = $cUser;
+        }
+
+        // Fetch created JobPosts
+        $p1 = JobPost::where('title', 'Urgent: Regional Warehouse Manager')->first();
+        $p2 = JobPost::where('title', 'Senior Pastry Chef')->first();
+        $p3 = JobPost::where('title', 'Head Chef - New Mumbai Branch')->first();
+        $p4 = JobPost::where('title', 'Guest Relations Officer')->first();
+        $p5 = JobPost::where('title', 'Restaurant Captain / Lead Waiter')->first();
+        $p6 = JobPost::where('title', 'F&B Supervisor - Quick Service Restaurant')->first();
+
+        // Seed Applications for Post 3 (Head Chef) - 24 applicants
+        // 3 new (pending), 8 shortlisted, 6 contacted, 7 rejected
+        $p3Statuses = array_merge(
+            array_fill(0, 3, 'new'),
+            array_fill(0, 8, 'shortlisted'),
+            array_fill(0, 6, 'contacted'),
+            array_fill(0, 7, 'rejected')
+        );
+        foreach ($candidates as $idx => $candidate) {
+            \App\Models\JobApplication::create([
+                'applicant_id' => $candidate->id,
+                'job_post_id' => $p3->id,
+                'employer_id' => $p3->created_by,
+                'status' => $p3Statuses[$idx] ?? 'new',
+            ]);
+        }
+
+        // Seed Applications for Post 1 (Regional Warehouse Manager) - 4 applicants
+        // 3 new, 1 shortlisted
+        $p1Statuses = ['new', 'new', 'new', 'shortlisted'];
+        for ($i = 0; $i < 4; $i++) {
+            \App\Models\JobApplication::create([
+                'applicant_id' => $candidates[$i]->id,
+                'job_post_id' => $p1->id,
+                'employer_id' => $p1->created_by,
+                'status' => $p1Statuses[$i],
+            ]);
+        }
+
+        // Seed Applications for Post 2 (Senior Pastry Chef) - 12 applicants
+        // 2 new, 5 shortlisted, 3 contacted, 2 rejected
+        $p2Statuses = array_merge(
+            array_fill(0, 2, 'new'),
+            array_fill(0, 5, 'shortlisted'),
+            array_fill(0, 3, 'contacted'),
+            array_fill(0, 2, 'rejected')
+        );
+        for ($i = 0; $i < 12; $i++) {
+            \App\Models\JobApplication::create([
+                'applicant_id' => $candidates[$i]->id,
+                'job_post_id' => $p2->id,
+                'employer_id' => $p2->created_by,
+                'status' => $p2Statuses[$i],
+            ]);
+        }
+
+        // Seed Applications for Post 4 (Guest Relations Officer) - 6 applicants
+        // 1 new, 2 shortlisted, 2 contacted, 1 rejected
+        $p4Statuses = ['new', 'shortlisted', 'shortlisted', 'contacted', 'contacted', 'rejected'];
+        for ($i = 0; $i < 6; $i++) {
+            \App\Models\JobApplication::create([
+                'applicant_id' => $candidates[$i]->id,
+                'job_post_id' => $p4->id,
+                'employer_id' => $p4->created_by,
+                'status' => $p4Statuses[$i],
+            ]);
+        }
+
+        // Seed Applications for Post 5 (Restaurant Captain / Lead Waiter) - 2 applicants
+        // 2 new
+        for ($i = 0; $i < 2; $i++) {
+            \App\Models\JobApplication::create([
+                'applicant_id' => $candidates[$i]->id,
+                'job_post_id' => $p5->id,
+                'employer_id' => $p5->created_by,
+                'status' => 'new',
+            ]);
+        }
     }
 }
