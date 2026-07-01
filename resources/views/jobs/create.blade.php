@@ -1,285 +1,409 @@
-<!DOCTYPE html>
-<html class="light" lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Post a New Job - JobConnect</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "on-background": "#191b24",
-                    "error": "#ba1a1a",
-                    "inverse-on-surface": "#eff0fc",
-                    "on-error-container": "#93000a",
-                    "surface-bright": "#faf8ff",
-                    "primary": "#0055c9",
-                    "on-tertiary": "#ffffff",
-                    "on-primary": "#ffffff",
-                    "secondary-fixed-dim": "#bdc7d9",
-                    "on-secondary-fixed": "#121c2a",
-                    "on-error": "#ffffff",
-                    "on-tertiary-fixed-variant": "#7f2b00",
-                    "outline": "#727787",
-                    "surface": "#faf8ff",
-                    "primary-container": "#006bfb",
-                    "secondary-container": "#d6e0f3",
-                    "on-tertiary-container": "#fffbff",
-                    "tertiary-fixed-dim": "#ffb599",
-                    "on-secondary": "#ffffff",
-                    "inverse-surface": "#2d3039",
-                    "surface-variant": "#e1e2ee",
-                    "secondary": "#555f6f",
-                    "tertiary-container": "#cb4a00",
-                    "primary-fixed-dim": "#b1c5ff",
-                    "on-tertiary-fixed": "#370e00",
-                    "surface-container-highest": "#e1e2ee",
-                    "on-surface": "#191b24",
-                    "tertiary-fixed": "#ffdbce",
-                    "secondary-fixed": "#d9e3f6",
-                    "on-secondary-container": "#596373",
-                    "on-primary-fixed": "#001946",
-                    "surface-container-lowest": "#ffffff",
-                    "on-primary-container": "#fefcff",
-                    "background": "#faf8ff",
-                    "outline-variant": "#c2c6d8",
-                    "primary-fixed": "#dae2ff",
-                    "surface-tint": "#0057ce",
-                    "error-container": "#ffdad6",
-                    "surface-dim": "#d8d9e5",
-                    "tertiary": "#a23900",
-                    "surface-container-low": "#f2f3ff",
-                    "on-primary-fixed-variant": "#00419e",
-                    "on-secondary-fixed-variant": "#3d4756",
-                    "inverse-primary": "#b1c5ff",
-                    "surface-container-high": "#e6e7f3",
-                    "on-surface-variant": "#424655",
-                    "surface-container": "#ecedf9"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-            },
-            "spacing": {
-                    "padding-item": "12px 16px",
-                    "gutter-list": "12px",
-                    "stack-md": "8px",
-                    "stack-lg": "16px",
-                    "unit": "4px",
-                    "margin-mobile": "16px",
-                    "stack-sm": "4px"
-            },
-            "fontFamily": {
-                    "h2": ["Inter"],
-                    "body-sm": ["Inter"],
-                    "label-md": ["Inter"],
-                    "body-md": ["Inter"],
-                    "h1": ["Inter"],
-                    "time-stamp": ["Inter"],
-                    "body-lg": ["Inter"]
-            },
-            "fontSize": {
-                    "h2": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
-                    "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
-                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
-                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                    "h1": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                    "time-stamp": ["11px", {"lineHeight": "14px", "fontWeight": "400"}],
-                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
-            }
-          },
-        },
-      }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #faf8ff;
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block;
-            line-height: 1;
-            text-transform: none;
-            letter-spacing: normal;
-            word-wrap: normal;
-            white-space: nowrap;
-            direction: ltr;
-        }
-        body {
-          min-height: max(884px, 100dvh);
-        }
-    </style>
-</head>
-<body class="bg-background text-on-surface antialiased">
+@extends('layouts.app')
 
-<!-- Flash Toast Notifications -->
-@if(session('success'))
-    <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-sm w-full mx-auto px-4">
-        <div class="bg-green-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                <span class="text-sm font-semibold">{{ session('success') }}</span>
-            </div>
-            <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:opacity-80">
-                <span class="material-symbols-outlined !text-[18px]">close</span>
-            </button>
+@section('title', 'Post a Job')
+
+@section('content')
+<div class="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col justify-between pb-8">
+    
+    <!-- Top App Bar -->
+    <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('profile') }}" class="text-gray-400 hover:text-gray-600 transition" id="back-button-link">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </a>
+            <span class="font-outfit font-bold text-lg text-gray-900" id="header-title">Post a Job</span>
         </div>
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-sm w-full mx-auto px-4">
-        <div class="bg-red-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px]">error</span>
-                <span class="text-sm font-semibold">{{ session('error') }}</span>
-            </div>
-            <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:opacity-80">
-                <span class="material-symbols-outlined !text-[18px]">close</span>
-            </button>
+        <div class="text-[10px] font-extrabold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full uppercase tracking-wider" id="draft-pill">
+            Draft
         </div>
-    </div>
-@endif
+    </header>
 
-<!-- Top App Bar -->
-<header class="fixed top-0 w-full h-[56px] flex justify-between items-center px-4 z-50 bg-surface border-b-[0.5px] border-outline-variant">
-    <div class="flex items-center gap-4">
-        <a href="{{ route('profile') }}" class="text-primary hover:bg-surface-container-low p-2 rounded-full transition-colors duration-200 flex items-center justify-center">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </a>
-        <h1 class="font-h1 text-h1 font-bold text-primary">Post a Job</h1>
-    </div>
-    <div class="flex items-center">
-        <span class="px-3.5 py-1 bg-primary/10 text-primary rounded-full font-label-md text-label-md uppercase tracking-wider font-extrabold flex items-center gap-1 border border-primary/20">
-            Employer context
-        </span>
-    </div>
-</header>
-
-<!-- Main Content Canvas -->
-<main class="pt-[56px] pb-[80px] max-w-md mx-auto min-h-screen px-4">
-    <!-- Form Intro -->
-    <div class="py-6 text-center">
-        <span class="material-symbols-outlined text-[48px] text-primary mb-2" style="font-variation-settings: 'FILL' 1;">post_add</span>
-        <h2 class="font-h1 text-h1 text-on-surface">Publish a New Vacancy</h2>
-        <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Fill out the details below to post a vacancy onto the community feed.</p>
+    <!-- Global Progress Bar -->
+    <div class="w-full bg-gray-100 h-1 sticky top-[52px] z-50">
+        <div class="bg-green-500 h-full transition-all duration-300" id="progress-fill" style="width: 33%;"></div>
     </div>
 
-    <!-- Job Posting Form -->
-    <form action="{{ route('jobs.store') }}" method="POST" class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-4 space-y-4 mb-8" data-ajax>
+    <!-- Step Sub-header -->
+    <div class="bg-gray-100/60 px-4 py-2 text-[10px] font-bold text-gray-500 tracking-wider uppercase border-b border-gray-200/50 sticky top-[56px] z-40" id="step-sub-header">
+        STEP 1 OF 3: SELECT REGION & JOB INFO
+    </div>
+
+    <!-- Onboarding Form Form -->
+    <form action="{{ route('jobs.store') }}" method="POST" id="job-post-form" class="flex-grow flex flex-col justify-between px-4 pt-5">
         @csrf
-        <div>
-            <label for="job_title" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Job Title</label>
-            <input type="text" name="title" id="job_title" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" required placeholder="e.g. Senior Pastry Chef" value="{{ old('title') }}">
-        </div>
+        
+        <!-- Hidden/Default Form fields -->
+        <input type="hidden" name="category" id="hidden-category" value="india">
+        <input type="hidden" name="company" value="{{ $user->employerProfile->business_name ?? 'My Establishment' }}">
+        <input type="hidden" name="company_logo_url" value="{{ $user->employerProfile->company_logo_path ?? '' }}">
+        <input type="hidden" name="contact_info" value="{{ $user->employerProfile->business_email ?? $user->email ?? 'careers@hospitality.com' }}">
+        <input type="hidden" name="job_type" value="Full-time">
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label for="job_category" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Category</label>
-                <select name="category" id="job_category" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" required>
-                    <option value="india" {{ old('category') === 'india' ? 'selected' : '' }}>India Jobs</option>
-                    <option value="overseas" {{ old('category') === 'overseas' ? 'selected' : '' }}>Overseas Jobs</option>
-                    <option value="community" {{ old('category') === 'community' ? 'selected' : '' }}>Referrals</option>
-                </select>
+        <!-- Step Container -->
+        <div class="flex-grow">
+            
+            <!-- STEP 1: Job Information -->
+            <div class="step-pane" id="step-pane-1">
+                <!-- Select Region Pills -->
+                <div class="mb-5">
+                    <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-2.5">Select Region *</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="selectRegion('India', 'india')" class="region-pill px-4 py-2 rounded-full border border-gray-200 text-xs font-bold text-gray-600 bg-white hover:bg-gray-50 transition active:scale-95 select-none" id="pill-india">
+                            India
+                        </button>
+                        <button type="button" onclick="selectRegion('KSA', 'overseas')" class="region-pill px-4 py-2 rounded-full border border-gray-200 text-xs font-bold text-gray-600 bg-white hover:bg-gray-50 transition active:scale-95 select-none" id="pill-ksa">
+                            KSA
+                        </button>
+                        <button type="button" onclick="selectRegion('Dubai', 'overseas')" class="region-pill px-4 py-2 rounded-full border border-gray-200 text-xs font-bold text-gray-600 bg-white hover:bg-gray-50 transition active:scale-95 select-none" id="pill-dubai">
+                            Dubai
+                        </button>
+                        <button type="button" onclick="selectRegion('Europe', 'overseas')" class="region-pill px-4 py-2 rounded-full border border-gray-200 text-xs font-bold text-gray-600 bg-white hover:bg-gray-50 transition active:scale-95 select-none" id="pill-europe">
+                            Europe
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">work</span> Job Title *
+                        </label>
+                        <input type="text" name="title" id="input-title" 
+                               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
+                               placeholder="e.g. Senior Head Chef" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">location_on</span> Location *
+                        </label>
+                        <input type="text" name="location" id="input-location" 
+                               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
+                               placeholder="e.g. Mumbai, India" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Salary Range *</label>
+                            <input type="text" name="salary" id="input-salary" 
+                                   class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
+                                   placeholder="e.g. INR 45k pm" required>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Experience *</label>
+                            <select name="experience_range" id="input-experience" 
+                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition" required>
+                                <option value="Entry Level">Entry Level</option>
+                                <option value="1-3 Years">1-3 Years</option>
+                                <option value="3-5 Years">3-5 Years</option>
+                                <option value="5+ Years" selected>5+ Years</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Open Positions *</label>
+                        <input type="number" name="open_positions" id="input-open-positions" min="1" value="1"
+                               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Job Description *</label>
+                        <textarea name="description" id="input-description" rows="4" 
+                                  class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
+                                  placeholder="Describe the role, responsibilities, and perks..." required></textarea>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="job_type" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Job Type</label>
-                <input type="text" name="job_type" id="job_type" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" required placeholder="e.g. Full-time" value="{{ old('job_type', 'Full-time') }}">
+
+            <!-- STEP 2: Review & Post -->
+            <div class="step-pane hidden" id="step-pane-2">
+                <div class="mb-5 flex justify-between items-center">
+                    <h3 class="font-outfit font-bold text-lg text-gray-900 tracking-tight">Review & Post</h3>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Job Details Card -->
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 relative">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-[10px] font-extrabold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase tracking-wider" id="review-region-label">India Jobs</span>
+                            <button type="button" onclick="goToStep(1)" class="text-xs font-bold text-green-600 hover:text-green-700 transition flex items-center gap-0.5">
+                                <span class="material-symbols-outlined text-sm">edit</span> Edit
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
+                                <div>
+                                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Position Title</span>
+                                    <p class="text-xs font-extrabold text-gray-800" id="review-title">Senior Head Chef</p>
+                                </div>
+                                <div>
+                                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Location</span>
+                                    <p class="text-xs font-extrabold text-gray-800" id="review-location">Mumbai, India</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3 border-b border-gray-100 pb-3">
+                                <div>
+                                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Salary</span>
+                                    <p class="text-xs font-extrabold text-gray-800" id="review-salary">INR 45k pm</p>
+                                </div>
+                                <div>
+                                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Experience</span>
+                                    <p class="text-xs font-extrabold text-gray-800" id="review-experience">5+ Years</p>
+                                </div>
+                                <div>
+                                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Openings</span>
+                                    <p class="text-xs font-extrabold text-gray-800" id="review-openings">2 Positions</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Job Description</span>
+                                <p class="text-xs font-medium text-gray-600 leading-relaxed whitespace-pre-line" id="review-description">
+                                    Seeking a passionate head chef...
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Contact Card -->
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="block text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Business Contact</span>
+                            <a href="{{ route('profile.personal.edit') }}" class="text-xs font-bold text-green-600 hover:text-green-700 transition flex items-center gap-0.5">
+                                <span class="material-symbols-outlined text-sm">edit</span> Edit
+                            </a>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                                @if($user->employerProfile && $user->employerProfile->company_logo_path)
+                                    <img src="{{ $user->employerProfile->company_logo_path }}" class="w-full h-full object-cover">
+                                @else
+                                    <span class="material-symbols-outlined text-gray-400 text-2xl">apartment</span>
+                                @endif
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-gray-900">{{ $user->employerProfile->business_name ?? 'My Establishment' }}</h4>
+                                <p class="text-[10px] text-gray-500 font-semibold mt-0.5 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs">person</span> {{ $user->employerProfile->contact_person_name ?? $user->full_name }}
+                                </p>
+                                <p class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs">call</span> {{ $user->employerProfile->business_mobile ?? $user->mobile_number }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guidelines disclaimer -->
+                <div class="mt-5 bg-green-50/60 border border-green-100 rounded-2xl p-4 flex gap-3">
+                    <svg class="w-5 h-5 text-green-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.085 1.085l-.04.02-.041.02a.75.75 0 01-1.085-1.085l.04-.02zM12 21.75a9.75 9.75 0 110-19.5 9.75 9.75 0 010 19.5z" />
+                    </svg>
+                    <p class="text-[10px] text-green-800 leading-relaxed font-semibold">
+                        Your job post will be visible to our community of 500+ hospitality professionals. By submitting, you agree to our terms of service and professional community guidelines.
+                    </p>
+                </div>
             </div>
-        </div>
 
-        <div>
-            <label for="company_name" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Company Name</label>
-            <input type="text" name="company" id="company_name" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" required placeholder="e.g. The Grand Patisserie" value="{{ old('company') }}">
-        </div>
+            <!-- STEP 3: Job Submitted Successfully -->
+            <div class="step-pane hidden" id="step-pane-3">
+                <div class="text-center mb-8 flex flex-col items-center pt-8">
+                    <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
+                        <svg class="w-12 h-12 text-green-600 animate-bounce" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                    </div>
+                    
+                    <h2 class="font-outfit font-bold text-2xl text-gray-900 tracking-tight mb-2">🎉 Job Submitted Successfully</h2>
+                    
+                    <div class="bg-white rounded-3xl border border-gray-100 p-5 mt-4 text-center max-w-sm mx-auto shadow-sm">
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            Your job has been submitted for <span class="font-bold text-gray-800">admin review</span>. 
+                            Once approved, it will be published in the community feed and notifications will be sent to matched staff.
+                        </p>
+                    </div>
+                </div>
 
-        <div>
-            <label for="company_logo_url" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Company Logo URL (Optional)</label>
-            <input type="url" name="company_logo_url" id="company_logo_url" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" placeholder="https://example.com/logo.jpg" value="{{ old('company_logo_url') }}">
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label for="salary_range" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Salary Range</label>
-                <input type="text" name="salary" id="salary_range" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" placeholder="e.g. £35k - £42k / yr" value="{{ old('salary') }}">
+                <div class="space-y-3 pt-4">
+                    <button type="button" onclick="resetJobWizard()" 
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+                        <span>Post a new job</span>
+                    </button>
+                    <a href="{{ route('profile', ['section' => 'my_posted_jobs']) }}" 
+                       class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center">
+                        Go to Dashboard
+                    </a>
+                </div>
             </div>
-            <div>
-                <label for="job_location" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Location</label>
-                <input type="text" name="location" id="job_location" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" placeholder="e.g. Mayfair, London" value="{{ old('location') }}">
-            </div>
+
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label for="job_experience" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Experience Range</label>
-                <select name="experience_range" id="job_experience" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition">
-                    <option value="0-2 Years" {{ old('experience_range') === '0-2 Years' ? 'selected' : '' }}>0-2 Years</option>
-                    <option value="2-4 Years" {{ old('experience_range') === '2-4 Years' ? 'selected' : '' }}>2-4 Years</option>
-                    <option value="4-6 Years" {{ old('experience_range') === '4-6 Years' ? 'selected' : '' }}>4-6 Years</option>
-                    <option value="6+ Years" {{ old('experience_range') === '6+ Years' ? 'selected' : '' }}>6+ Years</option>
-                </select>
-            </div>
-            <div>
-                <label for="job_contact" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Contact Information</label>
-                <input type="text" name="contact_info" id="job_contact" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" required placeholder="e.g. jobs@company.com" value="{{ old('contact_info') }}">
-            </div>
+        <!-- Sticky Bottom Action Button -->
+        <div class="pt-6" id="bottom-action-container">
+            <button type="button" id="next-button" onclick="handleNextStep()"
+                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-md shadow-green-200/50 transition flex items-center justify-center gap-2">
+                <span id="button-label">Submit For Approval</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" id="button-arrow">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+            </button>
         </div>
-
-        <div>
-            <label for="job_description" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Job Description</label>
-            <textarea name="description" id="job_description" rows="4" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" required placeholder="Describe the role responsibilities...">{{ old('description') }}</textarea>
-        </div>
-
-        <div>
-            <label for="job_requirements" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Requirements (Comma-separated)</label>
-            <textarea name="requirements" id="job_requirements" rows="2" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" placeholder="e.g. 5+ years experience, Food hygiene certificate">{{ old('requirements') }}</textarea>
-        </div>
-
-        <div>
-            <label for="job_benefits" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Benefits & Perks (Comma-separated)</label>
-            <textarea name="benefits" id="job_benefits" rows="2" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" placeholder="e.g. Free Staff Meals, Health Cover">{{ old('benefits') }}</textarea>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label for="showcase_image" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Showcase Image URL</label>
-                <input type="url" name="showcase_image_url" id="showcase_image" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" placeholder="https://example.com/dessert.jpg" value="{{ old('showcase_image_url') }}">
-            </div>
-            <div>
-                <label for="map_image" class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Map Image URL</label>
-                <input type="url" name="map_image_url" id="map_image" class="w-full px-4 py-2.5 bg-background border border-outline-variant/50 rounded-xl text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition" placeholder="https://example.com/map.jpg" value="{{ old('map_image_url') }}">
-            </div>
-        </div>
-
-        <button type="submit" class="w-full bg-primary hover:bg-primary-container text-on-primary font-bold py-3.5 px-4 rounded-xl shadow-md transition duration-200">
-            Publish Job Posting
-        </button>
     </form>
-</main>
-
-<!-- Bottom Navigation Bar -->
-@include('layouts.bottom_nav')
+</div>
 
 <script>
-    // Simple micro-interactions for input focus
-    document.querySelectorAll('input, select, textarea').forEach(input => {
-        input.addEventListener('focus', function() {
-            this.parentElement.classList.add('scale-[1.01]');
-        });
-        input.addEventListener('blur', function() {
-            this.parentElement.classList.remove('scale-[1.01]');
-        });
+let currentStep = 1;
+const totalSteps = 3;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Select India by default
+    selectRegion('India', 'india');
+});
+
+function selectRegion(label, category) {
+    // Reset all pills
+    document.querySelectorAll('.region-pill').forEach(pill => {
+        pill.classList.remove('bg-green-500', 'text-white', 'border-green-600');
+        pill.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
     });
+
+    // Highlight selected pill
+    let activeId = 'pill-' + label.toLowerCase();
+    let pill = document.getElementById(activeId);
+    if (pill) {
+        pill.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+        pill.classList.add('bg-green-500', 'text-white', 'border-green-600');
+    }
+
+    // Update hidden field
+    document.getElementById('hidden-category').value = category;
+    document.getElementById('review-region-label').textContent = `${label} Jobs`;
+}
+
+function validateStep1() {
+    return document.getElementById('input-title').value.trim() !== '' &&
+           document.getElementById('input-location').value.trim() !== '' &&
+           document.getElementById('input-salary').value.trim() !== '' &&
+           document.getElementById('input-experience').value !== '' &&
+           document.getElementById('input-description').value.trim() !== '';
+}
+
+function goToStep(step) {
+    document.querySelectorAll('.step-pane').forEach(p => p.classList.add('hidden'));
+    document.getElementById(`step-pane-${step}`).classList.remove('hidden');
+
+    currentStep = step;
+    const fill = document.getElementById('progress-fill');
+    const headerTitle = document.getElementById('header-title');
+    const stepSubHeader = document.getElementById('step-sub-header');
+    const btnLabel = document.getElementById('button-label');
+    const bottomBtn = document.getElementById('bottom-action-container');
+    const draftPill = document.getElementById('draft-pill');
+    const backBtn = document.getElementById('back-button-link');
+
+    if (step === 1) {
+        fill.style.width = '33%';
+        stepSubHeader.textContent = 'STEP 1 OF 3: SELECT REGION & JOB INFO';
+        btnLabel.textContent = 'Submit For Approval';
+        bottomBtn.classList.remove('hidden');
+        draftPill.classList.remove('hidden');
+        backBtn.setAttribute('href', "{{ route('profile') }}");
+    } else if (step === 2) {
+        fill.style.width = '66%';
+        stepSubHeader.textContent = 'STEP 2 OF 3: CONTACT & REVIEW';
+        btnLabel.textContent = 'Submit Job';
+        bottomBtn.classList.remove('hidden');
+        draftPill.classList.remove('hidden');
+        
+        // Populate review labels
+        document.getElementById('review-title').textContent = document.getElementById('input-title').value;
+        document.getElementById('review-location').textContent = document.getElementById('input-location').value;
+        document.getElementById('review-salary').textContent = document.getElementById('input-salary').value;
+        document.getElementById('review-experience').textContent = document.getElementById('input-experience').value;
+        document.getElementById('review-openings').textContent = document.getElementById('input-open-positions').value + ' Positions';
+        document.getElementById('review-description').textContent = document.getElementById('input-description').value;
+
+        // Custom back click handler
+        backBtn.removeAttribute('href');
+        backBtn.onclick = (e) => {
+            e.preventDefault();
+            goToStep(1);
+        };
+    } else if (step === 3) {
+        fill.style.width = '100%';
+        stepSubHeader.textContent = '100% COMPLETE';
+        bottomBtn.classList.add('hidden');
+        draftPill.classList.add('hidden');
+        headerTitle.textContent = 'Success';
+    }
+}
+
+function handleNextStep() {
+    if (currentStep === 1) {
+        if (!validateStep1()) {
+            alert('Please fill out all mandatory fields.');
+            return;
+        }
+        goToStep(2);
+    } else if (currentStep === 2) {
+        submitJobForm();
+    }
+}
+
+async function submitJobForm() {
+    const form = document.getElementById('job-post-form');
+    const submitBtn = document.getElementById('next-button');
+    const originalText = submitBtn.innerHTML;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="inline-block animate-pulse">Submitting vacancy...</span>';
+
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch(form.getAttribute('action'), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            goToStep(3);
+        } else {
+            if (data.errors) {
+                let errs = [];
+                Object.keys(data.errors).forEach(k => errs.push(data.errors[k][0]));
+                alert('Validation errors:\n\n' + errs.join('\n'));
+            } else {
+                alert(data.message || 'Job submission failed.');
+            }
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    } catch (err) {
+        console.error(err);
+        alert('An unexpected error occurred during submission.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+function resetJobWizard() {
+    document.getElementById('job-post-form').reset();
+    selectRegion('India', 'india');
+    goToStep(1);
+    document.getElementById('header-title').textContent = 'Post a Job';
+}
 </script>
-@include('layouts.google_translate')
-</body>
-</html>
+@endsection

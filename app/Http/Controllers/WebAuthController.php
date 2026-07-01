@@ -240,4 +240,29 @@ class WebAuthController extends Controller
         return redirect()->route('login')
             ->with('success', 'Signed out successfully.');
     }
+
+    /**
+     * Invalidate/revoke user access token (API Logout).
+     */
+    public function apiLogout(Request $request)
+    {
+        // Revoke the token that was used to authenticate the current request
+        if ($request->user() && $request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
+        // Also logout from web session guard for hybrid clients
+        if (Auth::guard('web') instanceof \Illuminate\Auth\SessionGuard) {
+            Auth::guard('web')->logout();
+        }
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out and token revoked successfully.'
+        ]);
+    }
 }

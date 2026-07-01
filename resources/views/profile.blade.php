@@ -160,6 +160,9 @@
     </div>
 @endif
 
+@if($activeRole && ($activeRole->role_type === 'employer' || $activeRole->role_type === 'agency'))
+    @include('profile.employer_dashboard')
+@else
 <!-- Top App Bar -->
 <header class="fixed top-0 w-full h-[56px] flex justify-between items-center px-4 z-50 bg-surface border-b-[0.5px] border-outline-variant">
     <div class="flex items-center gap-4">
@@ -479,6 +482,7 @@
 
 <!-- Bottom Navigation Bar -->
 @include('layouts.bottom_nav')
+@endif
 
 <script>
     // Simple micro-interaction for list items

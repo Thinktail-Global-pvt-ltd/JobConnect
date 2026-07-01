@@ -108,6 +108,7 @@ class WebJobController extends Controller
             'job_type' => 'required|string|max:255',
             'showcase_image_url' => 'nullable|url|max:500',
             'map_image_url' => 'nullable|url|max:500',
+            'open_positions' => 'nullable|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -146,6 +147,7 @@ class WebJobController extends Controller
             'job_type' => $request->job_type,
             'showcase_image_url' => $request->showcase_image_url,
             'map_image_url' => $request->map_image_url,
+            'open_positions' => $request->open_positions ?? 1,
             'status' => 'approved', // Auto-approved for frictionless prototype testing
         ]);
 

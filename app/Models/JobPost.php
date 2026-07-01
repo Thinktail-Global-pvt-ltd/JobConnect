@@ -29,6 +29,7 @@ class JobPost extends Model
         'job_type',
         'showcase_image_url',
         'map_image_url',
+        'open_positions',
     ];
 
     protected $casts = [

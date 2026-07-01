@@ -75,6 +75,7 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/jobs/{job}/save', [WebJobController::class, 'toggleSave'])->name('jobs.save');
     Route::post('/jobs/store', [WebJobController::class, 'store'])->name('jobs.store');
     Route::post('/employer/onboarding/save', [WebProfileController::class, 'saveOnboarding'])->name('api.employer.onboarding.save');
+    Route::post('/logout', [WebAuthController::class, 'apiLogout'])->name('api.logout');
 });
 
 // ==========================================

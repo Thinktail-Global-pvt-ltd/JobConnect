@@ -218,4 +218,32 @@ class RoleLoginTest extends TestCase
             ],
         ]);
     }
+
+    /**
+     * Test Sanctum token revocation on API logout.
+     */
+    public function test_api_logout_invalidates_sanctum_token(): void
+    {
+        $user = \App\Models\User::create([
+            'mobile_number' => '7777777777',
+            'full_name' => 'Test User',
+            'is_suspended' => false,
+        ]);
+
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ])->postJson('/api/logout');
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'message' => 'Logged out and token revoked successfully.',
+        ]);
+
+        // Assert token is revoked in database
+        $this->assertEquals(0, $user->tokens()->count());
+    }
 }

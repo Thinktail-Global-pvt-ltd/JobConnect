@@ -13,7 +13,7 @@ class WebProfileController extends Controller
      */
     public function index()
     {
-        $user = Auth::user()->load(['roles', 'chefProfile']);
+        $user = Auth::user()->load(['roles', 'chefProfile', 'employerProfile', 'jobPosts.applications.applicant']);
         
         // Formulate activated and available roles lists
         $userRoles = $user->roles->pluck('role_type')->toArray();
