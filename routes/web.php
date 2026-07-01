@@ -11,6 +11,7 @@ use App\Http\Controllers\WebProfileController;
 use App\Http\Controllers\WebHomeController;
 use App\Http\Controllers\WebJobController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\EmployerController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/employer/onboarding', [WebProfileController::class, 'onboarding'])->name('employer.onboarding');
     Route::get('/jobs/create', [WebJobController::class, 'create'])->name('jobs.create');
     Route::get('/jobs/{job}', [WebJobController::class, 'show'])->name('jobs.show');
+    
+    // Employer Dashboard views
+    Route::get('/employer_dashboard', [EmployerController::class, 'index'])->name('employer.dashboard');
+    Route::post('/jobs/{id}/close', [EmployerController::class, 'closeJob'])->name('employer.jobs.close');
 });
 
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
@@ -76,6 +81,10 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/jobs/store', [WebJobController::class, 'store'])->name('jobs.store');
     Route::post('/employer/onboarding/save', [WebProfileController::class, 'saveOnboarding'])->name('api.employer.onboarding.save');
     Route::post('/logout', [WebAuthController::class, 'apiLogout'])->name('api.logout');
+    
+    // Employer Dashboard APIs
+    Route::post('/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus'])->name('employer.applicants.status');
+    Route::post('/employer/jobs/store', [EmployerController::class, 'storeJob'])->name('employer.jobs.store');
 });
 
 // ==========================================
