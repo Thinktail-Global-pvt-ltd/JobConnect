@@ -57,9 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/jobs/create', [WebJobController::class, 'create'])->name('jobs.create');
     Route::get('/jobs/{job}', [WebJobController::class, 'show'])->name('jobs.show');
     
-    // Employer Dashboard views
+    // Employer Dashboard Web View
     Route::get('/employer_dashboard', [EmployerController::class, 'index'])->name('employer.dashboard');
-    Route::post('/jobs/{id}/close', [EmployerController::class, 'closeJob'])->name('employer.jobs.close');
 });
 
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
@@ -83,6 +82,8 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/logout', [WebAuthController::class, 'apiLogout'])->name('api.logout');
     
     // Employer Dashboard APIs
+    Route::get('/employer_dashboard', [EmployerController::class, 'index'])->name('api.employer.dashboard');
+    Route::post('/jobs/{id}/close', [EmployerController::class, 'closeJob'])->name('employer.jobs.close');
     Route::post('/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus'])->name('employer.applicants.status');
     Route::post('/employer/jobs/store', [EmployerController::class, 'storeJob'])->name('employer.jobs.store');
 });

@@ -2316,7 +2316,7 @@
         const jobId = state.activeJobToClose;
         if (!jobId) return;
         
-        fetch(`/jobs/${jobId}/close`, {
+        fetch(`/api/jobs/${jobId}/close`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
