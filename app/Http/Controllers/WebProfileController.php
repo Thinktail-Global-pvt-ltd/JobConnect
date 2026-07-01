@@ -244,7 +244,7 @@ class WebProfileController extends Controller
             'business_location' => 'required|string|max:255',
             'contact_person_name' => 'required|string|max:255',
             'business_mobile' => 'required|string|max:20',
-            'business_email' => 'nullable|email|max:255',
+            'business_email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'preferred_language' => 'required|string|max:50',
             'company_logo' => 'nullable|image|max:5120', // PNG, JPG up to 5MB
             'operational_locations' => 'required|array',
@@ -255,54 +255,63 @@ class WebProfileController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::error('Employer Onboarding Validation Failed: ' . json_encode($validator->errors()->toArray()));
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors(),
             ], 422);
         }
 
-        // Process Company Logo upload
-        $logoPath = null;
-        if ($request->hasFile('company_logo')) {
-            $path = $request->file('company_logo')->store('logos', 'public');
-            $logoPath = \Illuminate\Support\Facades\Storage::url($path);
-        } else {
-            // Keep existing logo path if any
-            $logoPath = $user->employerProfile ? $user->employerProfile->company_logo_path : null;
+        try {
+            // Process Company Logo upload
+            $logoPath = null;
+            if ($request->hasFile('company_logo')) {
+                $path = $request->file('company_logo')->store('logos', 'public');
+                $logoPath = \Illuminate\Support\Facades\Storage::url($path);
+            } else {
+                // Keep existing logo path if any
+                $logoPath = $user->employerProfile ? $user->employerProfile->company_logo_path : null;
+            }
+
+            // Update or create the profile
+            $user->employerProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'business_name' => $request->business_name,
+                    'industry_segment' => $request->industry_segment,
+                    'business_location' => $request->business_location,
+                    'contact_person_name' => $request->contact_person_name,
+                    'business_mobile' => $request->business_mobile,
+                    'business_email' => $request->business_email,
+                    'preferred_language' => $request->preferred_language,
+                    'company_logo_path' => $logoPath,
+                    'operational_locations' => $request->operational_locations,
+                    'nominee_name' => $request->nominee_name,
+                    'nominee_relationship' => $request->nominee_relationship,
+                    'nominee_mobile' => $request->nominee_mobile,
+                    'is_completed' => true,
+                ]
+            );
+
+            // Also update user's profile completeness/details to link them up
+            $user->update([
+                'full_name' => $request->contact_person_name,
+                'email' => $request->business_email,
+                'city' => $request->business_location,
+                'profile_photo_path' => $logoPath,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Onboarding completed successfully!',
+                'redirect_url' => route('profile', ['section' => 'my_posted_jobs']),
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Employer Onboarding Exception: ' . $e->getMessage() . PHP_EOL . $e->getTraceAsString());
+            return response()->json([
+                'success' => false,
+                'message' => 'Server Error: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Update or create the profile
-        $user->employerProfile()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'business_name' => $request->business_name,
-                'industry_segment' => $request->industry_segment,
-                'business_location' => $request->business_location,
-                'contact_person_name' => $request->contact_person_name,
-                'business_mobile' => $request->business_mobile,
-                'business_email' => $request->business_email,
-                'preferred_language' => $request->preferred_language,
-                'company_logo_path' => $logoPath,
-                'operational_locations' => $request->operational_locations,
-                'nominee_name' => $request->nominee_name,
-                'nominee_relationship' => $request->nominee_relationship,
-                'nominee_mobile' => $request->nominee_mobile,
-                'is_completed' => true,
-            ]
-        );
-
-        // Also update user's profile completeness/details to link them up
-        $user->update([
-            'full_name' => $request->contact_person_name,
-            'email' => $request->business_email,
-            'city' => $request->business_location,
-            'profile_photo_path' => $logoPath,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Onboarding completed successfully!',
-            'redirect_url' => route('profile', ['section' => 'my_posted_jobs']),
-        ]);
     }
 }

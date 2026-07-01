@@ -533,7 +533,15 @@ async function submitForm() {
         if (response.ok && data.success) {
             window.location.href = data.redirect_url;
         } else {
-            alert(data.message || 'Verification / submission failed.');
+            if (data.errors) {
+                let errorMessages = [];
+                Object.keys(data.errors).forEach(key => {
+                    errorMessages.push(data.errors[key][0]);
+                });
+                alert('Validation Errors:\n\n' + errorMessages.join('\n'));
+            } else {
+                alert(data.message || 'Verification / submission failed.');
+            }
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }
