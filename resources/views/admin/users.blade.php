@@ -69,11 +69,19 @@
                                 <div style="font-size: 0.8rem;">
                                     <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
                                         <span style="color: var(--text-secondary);">Posted:</span> 
-                                        <span style="background: rgba(147, 51, 234, 0.1); color: #a855f7; font-weight: 700; padding: 1px 5px; border-radius: 4px;">{{ $user->job_posts_count }}</span>
+                                        <button type="button" onclick="showPostedJobs('{{ $user->id }}', '{{ addslashes($user->full_name ?? 'Not Provided') }}')" 
+                                                class="badge-btn hover-scale"
+                                                style="background: rgba(147, 51, 234, 0.1); color: #a855f7; border: 1px solid rgba(147, 51, 234, 0.2); font-weight: 700; padding: 1px 6px; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
+                                            {{ $user->job_posts_count }} 🔍
+                                        </button>
                                     </div>
-                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px; margin-top: 6px;">
                                         <span style="color: var(--text-secondary);">Applied:</span> 
-                                        <span style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; font-weight: 700; padding: 1px 5px; border-radius: 4px;">{{ $user->applications_count }}</span>
+                                        <button type="button" onclick="showAppliedJobs('{{ $user->id }}', '{{ addslashes($user->full_name ?? 'Not Provided') }}')" 
+                                                class="badge-btn hover-scale"
+                                                style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); font-weight: 700; padding: 1px 6px; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
+                                            {{ $user->applications_count }} 🔍
+                                        </button>
                                     </div>
                                 </div>
                             </td>
@@ -117,4 +125,132 @@
         </div>
     @endif
 </div>
+
+<!-- Admin Stats Modal -->
+<div id="stats-detail-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; width: 100%; max-width: 500px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+        <!-- Header -->
+        <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+            <h3 id="modal-title" style="margin: 0; font-size: 1rem; font-weight: 700; color: #fff;">Jobs List</h3>
+            <button type="button" onclick="closeStatsModal()" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; padding: 4px; line-height: 1;">
+                ✕
+            </button>
+        </div>
+        <!-- Body -->
+        <div id="modal-body" style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Dynamic items -->
+        </div>
+    </div>
+</div>
+
+<script>
+function closeStatsModal() {
+    document.getElementById('stats-detail-modal').style.display = 'none';
+}
+
+// Close modal when clicking outside content area
+document.getElementById('stats-detail-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStatsModal();
+    }
+});
+
+async function showPostedJobs(userId, userName) {
+    const modal = document.getElementById('stats-detail-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    modalTitle.textContent = `Jobs Posted by Chef ${userName}`;
+    modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">Loading job posts...</p>';
+    modal.style.display = 'flex';
+
+    try {
+        const response = await fetch(`/admin/users/${userId}/posted-jobs`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.jobs.length > 0) {
+            modalBody.innerHTML = '';
+            data.jobs.forEach(job => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; text-align: left;';
+                item.innerHTML = `
+                    <div style="font-weight: 700; color: #fff; font-size: 0.85rem;">${job.title}</div>
+                    <div style="color: #aaa; font-size: 0.75rem; margin-top: 4px;">📍 ${job.location} • 💼 ${job.job_type || 'Full-time'}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                        <span style="color: #16a34a; font-weight: 700; font-size: 0.75rem;">${job.salary || 'Salary Disclosed'}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: ${job.status === 'approved' ? 'rgba(22, 163, 74, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${job.status === 'approved' ? '#22c55e' : '#eab308'}; padding: 2px 6px; border-radius: 4px;">
+                            ${job.status}
+                        </span>
+                    </div>
+                `;
+                modalBody.appendChild(item);
+            });
+        } else {
+            modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">This user has not posted any jobs yet.</p>';
+        }
+    } catch (err) {
+        console.error(err);
+        modalBody.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; text-align: center; padding: 1rem;">Failed to load jobs list.</p>';
+    }
+}
+
+async function showAppliedJobs(userId, userName) {
+    const modal = document.getElementById('stats-detail-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    modalTitle.textContent = `Jobs Applied by ${userName}`;
+    modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">Loading applications...</p>';
+    modal.style.display = 'flex';
+
+    try {
+        const response = await fetch(`/admin/users/${userId}/applied-jobs`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.applications.length > 0) {
+            modalBody.innerHTML = '';
+            data.applications.forEach(app => {
+                const job = app.job_post;
+                if (!job) return;
+                
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; text-align: left;';
+                
+                let statusColor = '#3b82f6';
+                let statusBg = 'rgba(59, 130, 246, 0.15)';
+                if (app.status === 'shortlisted') { statusColor = '#10b981'; statusBg = 'rgba(16, 185, 129, 0.15)'; }
+                else if (app.status === 'rejected') { statusColor = '#ef4444'; statusBg = 'rgba(239, 68, 68, 0.15)'; }
+                
+                item.innerHTML = `
+                    <div style="font-weight: 700; color: #fff; font-size: 0.85rem;">${job.title}</div>
+                    <div style="color: #aaa; font-size: 0.75rem; margin-top: 4px;">📍 ${job.location} • 💼 ${job.company || 'Direct Hire'}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.7rem;">
+                        <span style="color: var(--text-secondary);">Applied: ${app.applied_at}</span>
+                        <span style="font-weight: 800; text-transform: uppercase; background: ${statusBg}; color: ${statusColor}; padding: 2px 6px; border-radius: 4px;">
+                            ${app.status}
+                        </span>
+                    </div>
+                `;
+                modalBody.appendChild(item);
+            });
+        } else {
+            modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">This user has not applied to any jobs yet.</p>';
+        }
+    } catch (err) {
+        console.error(err);
+        modalBody.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; text-align: center; padding: 1rem;">Failed to load applications list.</p>';
+    }
+}
+</script>
+
+<style>
+.hover-scale:hover {
+    transform: scale(1.06);
+    filter: brightness(1.1);
+}
+</style>
 @endsection

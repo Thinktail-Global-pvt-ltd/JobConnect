@@ -52,4 +52,40 @@ class UserModeratorController extends Controller
 
         return redirect()->back()->with('success', "User account {$user->mobile_number} has been activated successfully.");
     }
+
+    /**
+     * Get JSON list of job posts created by the user.
+     */
+    public function postedJobsList(User $user)
+    {
+        $jobs = $user->jobPosts()->latest()->get();
+        return response()->json([
+            'success' => true,
+            'jobs' => $jobs
+        ]);
+    }
+
+    /**
+     * Get JSON list of jobs applied to by the user.
+     */
+    public function appliedJobsList(User $user)
+    {
+        $applications = $user->applications()
+            ->with('jobPost')
+            ->latest()
+            ->get()
+            ->map(function ($app) {
+                return [
+                    'id' => $app->id,
+                    'status' => $app->status,
+                    'applied_at' => $app->created_at ? $app->created_at->format('d M Y') : 'Unknown Date',
+                    'job_post' => $app->jobPost
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'applications' => $applications
+        ]);
+    }
 }
