@@ -165,7 +165,7 @@ async function showPostedJobs(userId, userName) {
     modal.style.display = 'flex';
 
     try {
-        const response = await fetch(`/admin/users/${userId}/posted-jobs`, {
+        const response = await fetch(`{{ url('/') }}/admin/users/${userId}/posted-jobs`, {
             headers: { 'Accept': 'application/json' }
         });
         const data = await response.json();
@@ -206,7 +206,7 @@ async function showAppliedJobs(userId, userName) {
     modal.style.display = 'flex';
 
     try {
-        const response = await fetch(`/admin/users/${userId}/applied-jobs`, {
+        const response = await fetch(`{{ url('/') }}/admin/users/${userId}/applied-jobs`, {
             headers: { 'Accept': 'application/json' }
         });
         const data = await response.json();
