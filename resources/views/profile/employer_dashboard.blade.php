@@ -186,19 +186,23 @@
                                     $postRejected = $jobPost->applications->where('status', 'rejected')->count();
                                 @endphp
                                 <div class="grid grid-cols-4 gap-2 text-center">
-                                    <div class="bg-white border border-gray-200/60 p-2 rounded-xl">
+                                    <!-- Pending -->
+                                    <div onclick="filterPipeline('{{ $jobPost->id }}', 'pending')" class="bg-white border border-gray-200/60 p-2 rounded-xl cursor-pointer hover:bg-gray-50 active:scale-95 transition-all duration-200 shadow-sm">
                                         <span class="text-xs font-extrabold text-yellow-600 block">{{ $postPending }}</span>
                                         <span class="text-[8px] font-bold text-gray-400 uppercase">Pending</span>
                                     </div>
-                                    <div class="bg-white border border-gray-200/60 p-2 rounded-xl">
+                                    <!-- Shortlist -->
+                                    <div onclick="filterPipeline('{{ $jobPost->id }}', 'shortlisted')" class="bg-white border border-gray-200/60 p-2 rounded-xl cursor-pointer hover:bg-gray-50 active:scale-95 transition-all duration-200 shadow-sm">
                                         <span class="text-xs font-extrabold text-indigo-600 block">{{ $postShortlist }}</span>
                                         <span class="text-[8px] font-bold text-gray-400 uppercase">Shortlist</span>
                                     </div>
-                                    <div class="bg-white border border-gray-200/60 p-2 rounded-xl">
+                                    <!-- Contacted -->
+                                    <div onclick="openStatusModal('{{ $jobPost->id }}', 'contacted', 'Contacted Candidates')" class="bg-white border border-gray-200/60 p-2 rounded-xl cursor-pointer hover:bg-gray-50 active:scale-95 transition-all duration-200 shadow-sm">
                                         <span class="text-xs font-extrabold text-green-600 block">{{ $postContacted }}</span>
                                         <span class="text-[8px] font-bold text-gray-400 uppercase">Contacted</span>
                                     </div>
-                                    <div class="bg-white border border-gray-200/60 p-2 rounded-xl">
+                                    <!-- Rejected -->
+                                    <div onclick="openStatusModal('{{ $jobPost->id }}', 'rejected', 'Rejected Candidates')" class="bg-white border border-gray-200/60 p-2 rounded-xl cursor-pointer hover:bg-gray-50 active:scale-95 transition-all duration-200 shadow-sm">
                                         <span class="text-xs font-extrabold text-red-600 block">{{ $postRejected }}</span>
                                         <span class="text-[8px] font-bold text-gray-400 uppercase">Rejected</span>
                                     </div>
@@ -225,25 +229,59 @@
                                 @else
                                     <div class="space-y-2">
                                         @foreach($jobPost->applications as $app)
-                                            <div class="bg-gray-50/50 border border-gray-100 p-3 rounded-2xl flex justify-between items-center text-xs">
-                                                <div>
-                                                    <p class="font-extrabold text-gray-800 text-xs">{{ $app->applicant->full_name ?? 'Anonymous Chef' }}</p>
-                                                    <p class="text-[9px] text-gray-400 font-semibold mt-0.5">{{ $app->applicant->mobile_number }}</p>
-                                                    <div class="flex flex-wrap gap-1 mt-1.5">
-                                                        @if(!empty($app->applicant->skills) && is_array($app->applicant->skills))
-                                                            @foreach(array_slice($app->applicant->skills, 0, 3) as $skill)
-                                                                <span class="px-1.5 py-0.5 bg-green-50 text-green-700 text-[8px] font-extrabold rounded-md">{{ $skill }}</span>
-                                                            @endforeach
-                                                        @else
-                                                            <span class="text-[8px] text-gray-400 italic">No skills listed</span>
-                                                        @endif
+                                            <div class="candidate-card bg-gray-50/50 border border-gray-100 p-3 rounded-2xl flex flex-col gap-2 text-xs" id="app-card-{{ $app->id }}" data-status="{{ $app->status }}">
+                                                <div class="flex justify-between items-start w-full">
+                                                    <div>
+                                                        <p class="font-extrabold text-gray-800 text-xs">{{ $app->applicant->full_name ?? 'Anonymous Chef' }}</p>
+                                                        <p class="text-[9px] text-gray-400 font-semibold mt-0.5">{{ $app->applicant->mobile_number }}</p>
+                                                        <div class="flex flex-wrap gap-1 mt-1.5">
+                                                            @if(!empty($app->applicant->skills) && is_array($app->applicant->skills))
+                                                                @foreach(array_slice($app->applicant->skills, 0, 3) as $skill)
+                                                                    <span class="px-1.5 py-0.5 bg-green-55 text-green-700 text-[8px] font-extrabold rounded-md">{{ $skill }}</span>
+                                                                @endforeach
+                                                            @else
+                                                                <span class="text-[8px] text-gray-400 italic">No skills listed</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-right flex flex-col items-end gap-1">
+                                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] uppercase font-bold bg-green-100 text-green-800">
+                                                            {{ $app->status === 'new' ? 'PENDING' : $app->status }}
+                                                        </span>
+                                                        <p class="text-[8px] text-gray-400 mt-1 font-semibold">{{ $app->created_at->diffForHumans() }}</p>
+                                                        <button type="button" onclick="toggleApplicantDetails('{{ $app->id }}')" class="text-primary hover:underline text-[9px] font-extrabold mt-1.5 flex items-center gap-0.5">
+                                                            <span>View Details</span>
+                                                            <span class="material-symbols-outlined text-[10px] keyboard-arrow-down-icon">keyboard_arrow_down</span>
+                                                        </button>
                                                     </div>
                                                 </div>
-                                                <div class="text-right">
-                                                    <span class="px-2.5 py-1 rounded-full text-[9px] uppercase font-bold bg-green-100 text-green-800">
-                                                        {{ $app->status }}
-                                                    </span>
-                                                    <p class="text-[8px] text-gray-400 mt-1 font-semibold">{{ $app->created_at->diffForHumans() }}</p>
+
+                                                <!-- Collapsible detailed view & action buttons -->
+                                                <div id="app-details-{{ $app->id }}" class="hidden pt-2.5 border-t border-dashed border-gray-200 mt-1 space-y-2.5">
+                                                    <div class="grid grid-cols-2 gap-2 text-[10px] text-gray-500 font-semibold">
+                                                        <div><span class="text-gray-400">City:</span> {{ $app->applicant->city ?? 'N/A' }}</div>
+                                                        <div><span class="text-gray-400">Experience:</span> {{ $app->applicant->experience_range ?? 'N/A' }}</div>
+                                                        <div class="col-span-2"><span class="text-gray-400">Current Employer:</span> {{ $app->applicant->current_employer ?? 'N/A' }}</div>
+                                                    </div>
+                                                    
+                                                    <!-- Action buttons bar -->
+                                                    <div class="flex gap-2 w-full pt-1">
+                                                        <!-- Reject (Red border) -->
+                                                        <button type="button" onclick="updateCandidateStatus('{{ $app->id }}', 'rejected')" 
+                                                                class="flex-1 py-1.5 px-3 border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-lg text-[9px] transition flex items-center justify-center gap-1">
+                                                            <span class="material-symbols-outlined text-[12px]">close</span> Reject
+                                                        </button>
+                                                        <!-- Call Talent (Green) -->
+                                                        <button type="button" onclick="callAndContactCandidate('{{ $app->id }}', '{{ $app->applicant->mobile_number }}')" 
+                                                                class="flex-1 py-1.5 px-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg text-[9px] transition flex items-center justify-center gap-1 shadow-sm">
+                                                            <span class="material-symbols-outlined text-[12px]">call</span> Call Now
+                                                        </button>
+                                                        <!-- Shortlist (Teal) -->
+                                                        <button type="button" onclick="updateCandidateStatus('{{ $app->id }}', 'shortlisted')" 
+                                                                class="flex-1 py-1.5 px-3 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-lg text-[9px] transition flex items-center justify-center gap-1 shadow-sm">
+                                                            <span class="material-symbols-outlined text-[12px]">favorite</span> Accept
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -417,6 +455,23 @@
     </nav>
 </div>
 
+<!-- Status Candidates Modal (Popup drawer) -->
+<div id="status-candidates-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[80vh] border border-gray-100">
+        <!-- Modal Header -->
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 id="status-modal-title" class="font-extrabold text-xs text-gray-800 uppercase tracking-wider">Candidates</h3>
+            <button type="button" onclick="closeStatusModal()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <!-- Modal Body -->
+        <div id="status-modal-body" class="p-5 overflow-y-auto space-y-3.5">
+            <!-- Populated dynamically via javascript clones -->
+        </div>
+    </div>
+</div>
+
 <script>
 function switchTab(tabName) {
     // Hide all tabs
@@ -481,6 +536,123 @@ function toggleApplicantsList(drawerId) {
     const drawer = document.getElementById(drawerId);
     if (drawer) {
         drawer.classList.toggle('hidden');
+    }
+}
+
+function toggleApplicantDetails(appId) {
+    const details = document.getElementById(`app-details-${appId}`);
+    if (details) {
+        details.classList.toggle('hidden');
+    }
+}
+
+async function updateCandidateStatus(appId, status) {
+    try {
+        const response = await fetch(`/api/applicants/${appId}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ status: status })
+        });
+        const data = await response.json();
+        if (data.success) {
+            alert(`Applicant status updated to ${status} successfully!`);
+            window.location.reload();
+        } else {
+            alert('Failed to update applicant status.');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Network connection error.');
+    }
+}
+
+function callAndContactCandidate(appId, mobile) {
+    window.location.href = `tel:${mobile}`;
+    updateCandidateStatus(appId, 'contacted');
+}
+
+function filterPipeline(jobId, status) {
+    const drawer = document.getElementById(`applicants-drawer-${jobId}`);
+    if (drawer) {
+        if (drawer.classList.contains('hidden')) {
+            drawer.classList.remove('hidden');
+        }
+        const cards = drawer.querySelectorAll('.candidate-card');
+        cards.forEach(card => {
+            const cardStatus = card.getAttribute('data-status');
+            const mappedStatus = (cardStatus === 'new' || cardStatus === 'pending') ? 'pending' : cardStatus;
+            
+            if (mappedStatus === status) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
+}
+
+function openStatusModal(jobId, status, title) {
+    const modal = document.getElementById('status-candidates-modal');
+    const modalTitle = document.getElementById('status-modal-title');
+    const modalBody = document.getElementById('status-modal-body');
+    
+    if (!modal || !modalTitle || !modalBody) return;
+
+    modalTitle.textContent = title;
+    modalBody.innerHTML = '';
+
+    const drawer = document.getElementById(`applicants-drawer-${jobId}`);
+    if (!drawer) return;
+
+    const cards = drawer.querySelectorAll('.candidate-card');
+    let count = 0;
+
+    cards.forEach(card => {
+        const cardStatus = card.getAttribute('data-status');
+        if (cardStatus === status) {
+            const clone = card.cloneNode(true);
+            clone.classList.remove('hidden');
+            
+            // Remap IDs for collapsible details in clone to avoid duplication issues
+            const cloneDetails = clone.querySelector('[id^="app-details-"]');
+            if (cloneDetails) {
+                cloneDetails.id = `modal-details-${cloneDetails.id.split('-').pop()}`;
+            }
+            const cloneBtn = clone.querySelector('button[onclick^="toggleApplicantDetails"]');
+            if (cloneBtn) {
+                const appId = cloneBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
+                cloneBtn.setAttribute('onclick', `toggleModalApplicantDetails('${appId}')`);
+            }
+
+            modalBody.appendChild(clone);
+            count++;
+        }
+    });
+
+    if (count === 0) {
+        modalBody.innerHTML = `<p class="text-xs text-gray-400 italic text-center py-6">No candidates in this category yet.</p>`;
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function toggleModalApplicantDetails(appId) {
+    const details = document.getElementById(`modal-details-${appId}`);
+    if (details) {
+        details.classList.toggle('hidden');
+    } else {
+        toggleApplicantDetails(appId);
+    }
+}
+
+function closeStatusModal() {
+    const modal = document.getElementById('status-candidates-modal');
+    if (modal) {
+        modal.classList.add('hidden');
     }
 }
 

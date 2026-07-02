@@ -99,7 +99,7 @@ class WebJobController extends Controller
             'company' => 'required|string|max:255',
             'salary' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'company_logo_url' => 'nullable|url|max:500',
+            'company_logo_url' => 'nullable|string|max:500',
             'contact_info' => 'required|string|max:255',
             'description' => 'required|string',
             'experience_range' => 'nullable|string|max:255',
