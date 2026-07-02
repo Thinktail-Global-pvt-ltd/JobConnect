@@ -56,8 +56,9 @@ class WebAuthController extends Controller
                 );
 
                 // Generate Sanctum auth token
+                $user->load(['employerProfile', 'chefProfile', 'roles']);
                 $token = $user->createToken('auth_token')->plainTextToken;
-
+ 
                 return response()->json([
                     'success' => true,
                     'message' => 'Already logged in.',
@@ -73,7 +74,11 @@ class WebAuthController extends Controller
                         'preferred_role' => $user->preferred_role,
                         'current_employer' => $user->current_employer,
                         'skills' => $user->skills,
+                        'selected_language' => $user->selected_language ?? 'en',
                         'active_role' => $targetRole,
+                        'employer_profile' => $user->employerProfile,
+                        'chef_profile' => $user->chefProfile,
+                        'registered_roles' => $user->roles,
                     ],
                 ]);
             } else {
@@ -198,15 +203,16 @@ class WebAuthController extends Controller
         $request->session()->regenerate();
 
         // Generate Sanctum auth token for API/mobile app compatibility
+        $user->load(['employerProfile', 'chefProfile', 'roles']);
         $token = $user->createToken('auth_token')->plainTextToken;
-
+ 
         $hasCompletedOnboarding = false;
         if ($targetRole === 'employer') {
             $hasCompletedOnboarding = $user->employerProfile ? (bool)$user->employerProfile->is_completed : false;
         } elseif ($targetRole === 'chef') {
             $hasCompletedOnboarding = $user->chefProfile ? true : false;
         }
-
+ 
         return response()->json([
             'success' => true,
             'message' => 'Logged in successfully as ' . ucfirst(str_replace('_', ' ', $targetRole)) . '!',
@@ -225,6 +231,9 @@ class WebAuthController extends Controller
                 'skills' => $user->skills,
                 'selected_language' => $user->selected_language ?? 'en',
                 'active_role' => $targetRole,
+                'employer_profile' => $user->employerProfile,
+                'chef_profile' => $user->chefProfile,
+                'registered_roles' => $user->roles,
             ],
         ]);
     }

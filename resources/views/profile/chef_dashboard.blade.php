@@ -212,16 +212,13 @@
                     <span class="material-symbols-outlined text-[16px] text-gray-400">chevron_right</span>
                 </div>
                 <!-- Logout -->
-                <form action="{{ route('logout') }}" method="POST" class="w-full">
-                    @csrf
-                    <button type="submit" class="w-full p-3.5 flex items-center justify-between hover:bg-red-50/30 transition text-left">
-                        <div class="flex items-center gap-3 text-red-500">
-                            <span class="material-symbols-outlined text-[18px]">logout</span>
-                            <span class="text-xs font-extrabold">Logout</span>
-                        </div>
-                        <span class="material-symbols-outlined text-[16px] text-red-300">chevron_right</span>
-                    </button>
-                </form>
+                <a href="{{ route('logout') }}" class="w-full p-3.5 flex items-center justify-between hover:bg-red-50/30 transition text-left block">
+                    <div class="flex items-center gap-3 text-red-500">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                        <span class="text-xs font-extrabold">Logout</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[16px] text-red-300">chevron_right</span>
+                </a>
             </div>
         </div>
 

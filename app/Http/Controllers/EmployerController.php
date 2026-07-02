@@ -21,6 +21,17 @@ class EmployerController extends Controller
                 return redirect()->route('login');
             }
 
+            // Clean up incomplete/null name applications from the database
+            \Illuminate\Support\Facades\DB::table('job_applications')
+                ->whereNotIn('applicant_id', function($query) {
+                    $query->select('id')
+                          ->from('users')
+                          ->whereNotNull('full_name')
+                          ->where('full_name', '!=', '')
+                          ->where('full_name', '!=', 'null');
+                })
+                ->delete();
+
             // Fetch job posts created by this user, eager loading applications, applicants, and chef profiles
             $jobs = JobPost::with(['applications.applicant.chefProfile'])
                 ->where('created_by', $user->id)
