@@ -28,8 +28,8 @@
                     <tr>
                         <th>Details</th>
                         <th>Mobile</th>
-                        <th>City / Experience</th>
-                        <th>Active Role</th>
+                        <th>Registered Roles</th>
+                        <th>Activity Stats</th>
                         <th>Profile Progress</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -43,19 +43,39 @@
                                 <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ $user->email ?? 'No email linked' }}</div>
                             </td>
                             <td><code>{{ $user->mobile_number }}</code></td>
+                            <!-- Registered Roles -->
                             <td>
-                                <div>{{ $user->city ?? 'No city' }}</div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">
-                                    {{ $user->experience_years !== null ? $user->experience_years . ' yrs exp' : 'No experience info' }}
+                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                                    @if($user->roles->isEmpty())
+                                        <span style="color: var(--text-muted); font-size: 0.8rem;">None</span>
+                                    @else
+                                        @foreach($user->roles as $role)
+                                            @php
+                                                $isActive = $role->is_active;
+                                                $roleLabel = ucfirst(str_replace('_', ' ', $role->role_type));
+                                                $bg = $isActive ? 'rgba(22, 163, 74, 0.1)' : 'rgba(255, 255, 255, 0.05)';
+                                                $color = $isActive ? '#16a34a' : 'var(--text-secondary)';
+                                                $border = $isActive ? '1px solid rgba(22, 163, 74, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)';
+                                            @endphp
+                                            <span class="badge" style="background: {{ $bg }}; color: {{ $color }}; border: {{ $border }}; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                                                {{ $roleLabel }} @if($isActive) (Active) @endif
+                                            </span>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </td>
+                            <!-- Stats (Posted / Applied) -->
                             <td>
-                                @php $actRole = $user->activeRole; @endphp
-                                @if($actRole)
-                                    <span class="badge badge-category">{{ ucfirst(str_replace('_', ' ', $actRole->role_type)) }}</span>
-                                @else
-                                    <span style="color: var(--text-muted);">None</span>
-                                @endif
+                                <div style="font-size: 0.8rem;">
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                        <span style="color: var(--text-secondary);">Posted:</span> 
+                                        <span style="background: rgba(147, 51, 234, 0.1); color: #a855f7; font-weight: 700; padding: 1px 5px; border-radius: 4px;">{{ $user->job_posts_count }}</span>
+                                    </div>
+                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                        <span style="color: var(--text-secondary);">Applied:</span> 
+                                        <span style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; font-weight: 700; padding: 1px 5px; border-radius: 4px;">{{ $user->applications_count }}</span>
+                                    </div>
+                                </div>
                             </td>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">

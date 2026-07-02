@@ -162,6 +162,8 @@
 
 @if($activeRole && ($activeRole->role_type === 'employer' || $activeRole->role_type === 'agency'))
     @include('profile.employer_dashboard')
+@elseif($activeRole && $activeRole->role_type === 'chef')
+    @include('profile.chef_dashboard')
 @else
 <!-- Top App Bar -->
 <header class="fixed top-0 w-full h-[56px] flex justify-between items-center px-4 z-50 bg-surface border-b-[0.5px] border-outline-variant">

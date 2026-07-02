@@ -13,7 +13,7 @@ class UserModeratorController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with('roles');
+        $query = User::with(['roles', 'activeRole'])->withCount(['jobPosts', 'applications']);
 
         // Optional Search filter
         if ($request->has('search') && !empty($request->search)) {

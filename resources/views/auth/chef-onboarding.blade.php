@@ -6,7 +6,7 @@
 <div class="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col justify-between pb-8">
     
     <!-- Top App Bar -->
-    <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm" id="onboarding-header">
+    <header class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm animate-fade-in" id="onboarding-header">
         <div class="flex items-center gap-3">
             <button type="button" id="btn-back" class="text-gray-400 hover:text-gray-600 transition p-1 hover:bg-gray-50 rounded-full">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -16,7 +16,7 @@
             <span class="font-outfit font-bold text-lg text-gray-900" id="header-title">ChefConnect</span>
         </div>
         <div class="text-xs font-bold text-green-600 uppercase tracking-wider hidden" id="step-indicator">
-            Step 1 of 4
+            Step 1 of 6
         </div>
     </header>
 
@@ -34,7 +34,7 @@
             <!-- ========================================== -->
             <!-- WELCOME SCREEN -->
             <!-- ========================================== -->
-            <div class="step-pane flex-grow flex flex-col justify-between" id="step-pane-welcome">
+            <div class="step-pane flex-grow flex flex-col justify-between animate-fade-in" id="step-pane-welcome">
                 <div class="space-y-6">
                     <!-- Brand Section -->
                     <div class="bg-gradient-to-tr from-green-800 to-green-600 rounded-3xl p-6 text-white shadow-md relative overflow-hidden">
@@ -105,7 +105,7 @@
             <!-- ========================================== -->
             <!-- STEP 1: PERSONAL DETAILS -->
             <!-- ========================================== -->
-            <div class="step-pane flex-grow flex flex-col justify-between hidden" id="step-pane-1">
+            <div class="step-pane flex-grow flex flex-col justify-between hidden animate-fade-in" id="step-pane-1">
                 <div class="space-y-6">
                     <!-- Heading -->
                     <div>
@@ -133,14 +133,14 @@
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Full Name *</label>
                             <input type="text" name="full_name" id="input-full-name" 
                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
-                                   placeholder="e.g. Rajesh Kumar" required value="{{ $user->full_name }}">
+                                   placeholder="Rajesh Kumar" required value="{{ $user->full_name }}">
                         </div>
 
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Professional Title *</label>
                             <input type="text" name="preferred_role" id="input-role" 
                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
-                                   placeholder="e.g. Executive Chef, Sous Chef" required value="{{ $user->preferred_role }}">
+                                   placeholder="Executive Chef, Sous Chef" required value="{{ $user->preferred_role }}">
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -148,13 +148,13 @@
                                 <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Current City *</label>
                                 <input type="text" name="city" id="input-city" 
                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
-                                       placeholder="e.g. Dubai" required value="{{ $user->city }}">
+                                       placeholder="Dubai" required value="{{ $user->city }}">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Country *</label>
                                 <input type="text" name="country" id="input-country" 
                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
-                                       placeholder="e.g. UAE" required value="India">
+                                       placeholder="UAE" required value="India">
                             </div>
                         </div>
 
@@ -192,7 +192,7 @@
             <!-- ========================================== -->
             <!-- STEP 2: PROFESSIONAL EXPERTISE -->
             <!-- ========================================== -->
-            <div class="step-pane flex-grow flex flex-col justify-between hidden" id="step-pane-2">
+            <div class="step-pane flex-grow flex flex-col justify-between hidden animate-fade-in" id="step-pane-2">
                 <div class="space-y-6">
                     <!-- Heading -->
                     <div>
@@ -217,7 +217,6 @@
                                     </button>
                                 @endforeach
                             </div>
-                            <!-- Save first selection to standard column, additional to serialized -->
                             <input type="hidden" name="cuisine_specialty" id="hidden-cuisine-main" required>
                         </div>
 
@@ -269,7 +268,7 @@
             <!-- ========================================== -->
             <!-- STEP 3: REGIONS & AVAILABILITY -->
             <!-- ========================================== -->
-            <div class="step-pane flex-grow flex flex-col justify-between hidden" id="step-pane-3">
+            <div class="step-pane flex-grow flex flex-col justify-between hidden animate-fade-in" id="step-pane-3">
                 <div class="space-y-6">
                     <!-- Heading -->
                     <div>
@@ -376,7 +375,7 @@
             <!-- ========================================== -->
             <!-- STEP 4: CALENDLY INTEGRATION -->
             <!-- ========================================== -->
-            <div class="step-pane flex-grow flex flex-col justify-between hidden" id="step-pane-4">
+            <div class="step-pane flex-grow flex flex-col justify-between hidden animate-fade-in" id="step-pane-4">
                 <div class="space-y-6">
                     <!-- Heading -->
                     <div>
@@ -416,10 +415,239 @@
                 </div>
 
                 <div class="pt-6">
+                    <button type="button" onclick="nextStep()"
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+                        Continue
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- STEP 5: SOCIAL MEDIA SYNC -->
+            <!-- ========================================== -->
+            <div class="step-pane flex-grow flex flex-col justify-between hidden animate-fade-in" id="step-pane-5">
+                <div class="space-y-6">
+                    <!-- Heading -->
+                    <div class="text-center">
+                        <div class="w-14 h-14 bg-green-50 text-green-600 flex items-center justify-center text-xl rounded-full mx-auto mb-3.5 shadow-sm">
+                            <span class="material-symbols-outlined text-[26px]">share</span>
+                        </div>
+                        <h2 class="font-outfit font-bold text-2xl text-gray-900 tracking-tight">Sync Your Profile</h2>
+                        <p class="text-gray-500 text-xs mt-1.5 leading-relaxed max-w-xs mx-auto">
+                            Connect your social accounts to import your work history and stand out to top employers.
+                        </p>
+                    </div>
+
+                    <!-- Integration List -->
+                    <div class="space-y-3">
+                        <!-- LinkedIn -->
+                        <div class="flex items-center justify-between p-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-[#0077b5]/10 text-[#0077b5] flex items-center justify-center text-lg rounded-xl font-bold shrink-0">in</div>
+                                <div class="text-left">
+                                    <h4 class="font-extrabold text-xs text-gray-800">LinkedIn</h4>
+                                    <p class="text-[9px] text-gray-400 mt-0.5">Work History & Certificates</p>
+                                </div>
+                            </div>
+                            <button type="button" id="btn-sync-linkedin" onclick="toggleSocialConnect(this, 'linkedin')" 
+                                    class="border border-gray-200 px-3.5 py-1.5 rounded-xl text-[10px] font-bold text-gray-600 hover:bg-gray-50 transition">
+                                Connect
+                            </button>
+                        </div>
+
+                        <!-- Instagram -->
+                        <div class="flex items-center justify-between p-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-pink-50 text-pink-600 flex items-center justify-center text-lg rounded-xl shrink-0">📸</div>
+                                <div class="text-left">
+                                    <h4 class="font-extrabold text-xs text-gray-800">Instagram</h4>
+                                    <p class="text-[9px] text-gray-400 mt-0.5">Visual Portfolio</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="toggleSocialConnect(this, 'instagram')" 
+                                    class="border border-gray-200 px-3.5 py-1.5 rounded-xl text-[10px] font-bold text-gray-600 hover:bg-gray-50 transition">
+                                Connect
+                            </button>
+                        </div>
+
+                        <!-- Facebook -->
+                        <div class="flex items-center justify-between p-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-blue-50 text-blue-600 flex items-center justify-center text-lg rounded-xl font-extrabold shrink-0">f</div>
+                                <div class="text-left">
+                                    <h4 class="font-extrabold text-xs text-gray-800">Facebook</h4>
+                                    <p class="text-[9px] text-gray-400 mt-0.5">Community Badges</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="toggleSocialConnect(this, 'facebook')" 
+                                    class="border border-gray-200 px-3.5 py-1.5 rounded-xl text-[10px] font-bold text-gray-600 hover:bg-gray-50 transition">
+                                Connect
+                            </button>
+                        </div>
+
+                        <!-- Add More -->
+                        <div class="flex items-center justify-between p-3.5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-50 text-gray-400 flex items-center justify-center text-lg rounded-xl shrink-0">+</div>
+                                <div class="text-left">
+                                    <h4 class="font-extrabold text-xs text-gray-800">Add More</h4>
+                                    <p class="text-[9px] text-gray-400 mt-0.5">Community Badges</p>
+                                </div>
+                            </div>
+                            <button type="button" class="border border-gray-200 px-3.5 py-1.5 rounded-xl text-[10px] font-bold text-gray-600 hover:bg-gray-50 transition">
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button type="button" onclick="nextStep()" 
+                            class="w-full bg-[#055b35] hover:bg-[#034427] text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+                        Finish Setup
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- STEP 6: FINAL REVIEW -->
+            <!-- ========================================== -->
+            <div class="step-pane flex-grow flex flex-col justify-between hidden animate-fade-in" id="step-pane-6">
+                <div class="space-y-6">
+                    <!-- Heading -->
+                    <div>
+                        <h2 class="font-outfit font-bold text-2xl text-gray-900 tracking-tight">Final Review</h2>
+                        <p class="text-gray-500 text-xs mt-1.5 leading-relaxed">
+                            Verify your details before submitting. This information will be visible to premium restaurant partners.
+                        </p>
+                    </div>
+
+                    <!-- Profile Preview Card -->
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-md p-5 text-left relative overflow-hidden">
+                        <div class="flex items-center gap-4 border-b border-gray-50 pb-4">
+                            <div class="w-14 h-14 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+                                <img id="review-avatar" src="" class="w-full h-full object-cover hidden">
+                                <div id="review-avatar-placeholder" class="w-full h-full flex items-center justify-center text-xl font-bold text-gray-400">👨‍🍳</div>
+                            </div>
+                            <div>
+                                <h3 id="review-name" class="font-extrabold text-sm text-gray-800">Rajesh Kumar</h3>
+                                <p id="review-email" class="text-[10px] text-gray-400 font-semibold">{{ $user->email ?? 'rajesh.kumar@chefconnect.com' }}</p>
+                                <span class="inline-flex items-center gap-1 bg-green-50 text-green-700 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mt-1.5 border border-green-100">
+                                    <span class="material-symbols-outlined text-[10px]">verified</span> Identity Verified
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Current Title & Experience -->
+                        <div class="grid grid-cols-2 gap-4 py-4 border-b border-gray-50">
+                            <div>
+                                <span class="block text-[8px] font-bold text-gray-400 uppercase tracking-wider">Current Title</span>
+                                <span id="review-title" class="text-[11px] font-extrabold text-gray-700 block mt-0.5">Executive Sous Chef</span>
+                            </div>
+                            <div>
+                                <span class="block text-[8px] font-bold text-gray-400 uppercase tracking-wider">Experience</span>
+                                <span id="review-experience" class="text-[11px] font-extrabold text-gray-700 block mt-0.5">12 Years</span>
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="py-4 border-b border-gray-50">
+                            <span class="block text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[12px]">description</span> Professional Bio
+                            </span>
+                            <p id="review-bio" class="text-[10px] text-gray-500 leading-relaxed font-medium">Dedicated culinary professional...</p>
+                        </div>
+
+                        <!-- Cuisines -->
+                        <div class="py-4 border-b border-gray-50">
+                            <span class="block text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[12px]">restaurant_menu</span> Cuisine Specialization
+                            </span>
+                            <div id="review-cuisines" class="flex flex-wrap gap-1.5">
+                                <!-- Dynamic -->
+                            </div>
+                        </div>
+
+                        <!-- Expertise -->
+                        <div class="py-4 border-b border-gray-50">
+                            <span class="block text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[12px]">construction</span> Operational Expertise
+                            </span>
+                            <div id="review-expertise" class="flex flex-wrap gap-1.5">
+                                <!-- Dynamic -->
+                            </div>
+                        </div>
+
+                        <!-- Regions -->
+                        <div class="pt-4">
+                            <span class="block text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[12px]">public</span> Regions
+                            </span>
+                            <p id="review-regions" class="text-[10px] text-gray-600 font-semibold">• Saudi Arabia, UAE</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6 space-y-3">
                     <button type="submit" id="btn-submit"
                             class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
-                        Connect & Complete
+                        Complete Profile
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
                     </button>
+                    <button type="button" onclick="currentStepIndex = 1; updateWizardUI();" class="w-full text-center text-xs font-bold text-green-600 hover:underline">
+                        Edit Information
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- STEP 7: CONGRATULATIONS / SUCCESS -->
+            <!-- ========================================== -->
+            <div class="step-pane flex-grow flex flex-col justify-between hidden animate-fade-in text-center py-8" id="step-pane-7">
+                <div class="space-y-6 flex-grow flex flex-col justify-center">
+                    <div class="w-20 h-20 bg-green-100 text-green-600 flex items-center justify-center text-3xl rounded-full mx-auto shadow-md shadow-green-500/10">
+                        <span class="material-symbols-outlined text-[40px] font-bold">check</span>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <h2 class="font-outfit font-black text-2xl text-gray-900 tracking-tight leading-snug">Congratulations!</h2>
+                        <p class="text-gray-500 text-xs max-w-xs mx-auto leading-relaxed">
+                            Your Chef Connect profile has been submitted successfully.
+                        </p>
+                    </div>
+
+                    <!-- Pending Approval Badge -->
+                    <div class="inline-flex items-center gap-1.5 bg-yellow-50 text-yellow-700 text-[10px] font-extrabold uppercase tracking-wider px-3.5 py-1.5 rounded-full mx-auto border border-yellow-200">
+                        <span class="material-symbols-outlined text-[14px]">schedule</span> Status: Pending Approval
+                    </div>
+
+                    <!-- Next Step Info Box -->
+                    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 max-w-sm mx-auto text-left space-y-2">
+                        <h4 class="font-extrabold text-[11px] text-gray-700 uppercase tracking-wider">What happens next?</h4>
+                        <p class="text-[10px] text-gray-400 leading-relaxed font-semibold">
+                            Our community moderators will review your culinary certifications and work history within the next 24-48 hours. Once approved, you will receive a notification and your profile will be visible to potential employers in the network.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-6 space-y-3">
+                    <a href="{{ route('home') }}" 
+                       class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+                        Return to Community Feed
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </a>
+                    <a href="{{ route('profile') }}" class="w-full text-center text-xs font-bold text-gray-400 hover:text-gray-600 block py-1.5">
+                        View My Profile Draft
+                    </a>
                 </div>
             </div>
 
@@ -429,7 +657,7 @@
 
 <script>
 // --- STEP WIZARD NAVIGATION ---
-const steps = ['welcome', '1', '2', '3', '4'];
+const steps = ['welcome', '1', '2', '3', '4', '5', '6', '7'];
 let currentStepIndex = 0;
 
 // Collections for chips
@@ -443,6 +671,7 @@ const state = {
 
 // DOM References
 const elements = {
+    onboardingHeader: document.getElementById('onboarding-header'),
     btnBack: document.getElementById('btn-back'),
     headerTitle: document.getElementById('header-title'),
     stepIndicator: document.getElementById('step-indicator'),
@@ -451,6 +680,55 @@ const elements = {
     form: document.getElementById('chef-onboarding-form'),
     submitBtn: document.getElementById('btn-submit')
 };
+
+function populateFinalReview() {
+    // Basic Details
+    document.getElementById('review-name').textContent = document.getElementById('input-full-name').value || 'Anonymous Chef';
+    document.getElementById('review-title').textContent = document.getElementById('input-role').value || 'Culinary Professional';
+    document.getElementById('review-experience').textContent = document.getElementById('input-experience').value || 'Not Specified';
+    document.getElementById('review-bio').textContent = document.getElementById('input-bio').value || 'No bio provided.';
+    
+    // Cuisine Chips
+    const cuisineContainer = document.getElementById('review-cuisines');
+    cuisineContainer.innerHTML = '';
+    state.cuisines.forEach(c => {
+        const span = document.createElement('span');
+        span.className = 'bg-gray-50 border border-gray-100 text-gray-600 px-2 py-1 rounded-md text-[9px] font-bold';
+        span.textContent = c;
+        cuisineContainer.appendChild(span);
+    });
+
+    // Operational Expertise Chips
+    const opContainer = document.getElementById('review-expertise');
+    opContainer.innerHTML = '';
+    state.skills.forEach(s => {
+        const span = document.createElement('span');
+        span.className = 'bg-gray-50 border border-gray-100 text-gray-600 px-2 py-1 rounded-md text-[9px] font-bold';
+        span.textContent = s;
+        opContainer.appendChild(span);
+    });
+
+    // Regions Text
+    const regionTxt = document.getElementById('review-regions');
+    if (state.regions.length > 0) {
+        regionTxt.textContent = '• ' + state.regions.join(', ');
+    } else {
+        regionTxt.textContent = '• Not Specified';
+    }
+
+    // Avatar preview copy
+    const reviewAvatar = document.getElementById('review-avatar');
+    const reviewPlaceholder = document.getElementById('review-avatar-placeholder');
+    const sourcePreview = document.getElementById('photo-preview');
+    if (sourcePreview && !sourcePreview.classList.contains('hidden')) {
+        reviewAvatar.src = sourcePreview.src;
+        reviewAvatar.classList.remove('hidden');
+        reviewPlaceholder.classList.add('hidden');
+    } else {
+        reviewAvatar.classList.add('hidden');
+        reviewPlaceholder.classList.remove('hidden');
+    }
+}
 
 function updateWizardUI() {
     const step = steps[currentStepIndex];
@@ -462,19 +740,30 @@ function updateWizardUI() {
     document.getElementById(`step-pane-${step}`).classList.remove('hidden');
 
     if (step === 'welcome') {
+        elements.onboardingHeader.classList.remove('hidden');
         elements.headerTitle.textContent = 'ChefConnect';
         elements.stepIndicator.classList.add('hidden');
         elements.progressBarContainer.classList.add('hidden');
+    } else if (step === '7') {
+        // Complete view (Hide header and progress completely to match standalone screen!)
+        elements.onboardingHeader.classList.add('hidden');
+        elements.progressBarContainer.classList.add('hidden');
     } else {
+        elements.onboardingHeader.classList.remove('hidden');
         const stepNum = parseInt(step);
         elements.headerTitle.textContent = 'Complete Profile';
         elements.stepIndicator.classList.remove('hidden');
-        elements.stepIndicator.textContent = `Step ${stepNum} of 4`;
+        elements.stepIndicator.textContent = `Step ${stepNum} of 6`;
         elements.progressBarContainer.classList.remove('hidden');
         
-        // Progress Fill percent
-        const percent = stepNum * 25;
+        // Progress Fill percent (divided across 6 wizard steps)
+        const percent = Math.round((stepNum / 6) * 100);
         elements.progressFill.style.width = `${percent}%`;
+
+        // If rendering step 6, populate review cards
+        if (step === '6') {
+            populateFinalReview();
+        }
     }
 }
 
@@ -534,7 +823,6 @@ function prevStep() {
         currentStepIndex--;
         updateWizardUI();
     } else {
-        // Go back to profile / logout / feed
         window.location.href = '/login';
     }
 }
@@ -558,8 +846,6 @@ function toggleLanguageChip(btn, lang) {
 }
 
 function toggleCuisineChip(btn, cuisine) {
-    // Standard Cuisine specialty only accepts one main selection in the schema, 
-    // so we will highlight the selected and store it.
     document.querySelectorAll('.cuisine-chip').forEach(el => {
         el.classList.remove('border-green-500', 'bg-green-50/40', 'text-green-700');
     });
@@ -580,11 +866,6 @@ function toggleOperationalChip(btn, skill) {
     } else {
         state.skills.splice(idx, 1);
     }
-    // Set to hidden skills input (standard input supports multiple arrays via fields skills[])
-    const container = document.getElementById('hidden-operational');
-    // Laravel expects individual inputs or array values, so we will append them
-    // Actually, we can serialize it as JSON or create dynamic inputs. 
-    // Let's create dynamic hidden inputs in form for skills[]:
     updateHiddenInputs('hidden-skills-container', 'skills[]', state.skills);
 }
 
@@ -614,6 +895,21 @@ function toggleEmploymentChip(btn, jt) {
         state.employment.splice(idx, 1);
     }
     updateHiddenInputs('hidden-employment-container', 'employment_preference[]', state.employment);
+}
+
+function toggleSocialConnect(btn, social) {
+    if (btn.textContent.trim() === 'Connect') {
+        btn.textContent = 'Connected';
+        btn.className = 'bg-green-50 border border-green-200 px-3.5 py-1.5 rounded-xl text-[10px] font-bold text-green-700 flex items-center gap-1 transition';
+        // Add checkmark symbol
+        const check = document.createElement('span');
+        check.className = 'material-symbols-outlined text-[12px]';
+        check.textContent = 'check';
+        btn.prepend(check);
+    } else {
+        btn.innerHTML = 'Connect';
+        btn.className = 'border border-gray-200 px-3.5 py-1.5 rounded-xl text-[10px] font-bold text-gray-600 hover:bg-gray-50 transition';
+    }
 }
 
 function updateHiddenInputs(containerId, inputName, list) {
@@ -651,12 +947,12 @@ elements.form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     elements.submitBtn.disabled = true;
-    elements.submitBtn.innerHTML = '<span class="inline-block animate-pulse">Saving Profile...</span>';
+    elements.submitBtn.innerHTML = '<span class="inline-block animate-pulse">Submitting Profile...</span>';
 
     const formData = new FormData(elements.form);
 
-    // Append localized JSON list values if not already covered
-    formData.delete('languages[]'); // replace with actual files
+    // Append languages Spoken
+    formData.delete('languages[]'); 
     state.languages.forEach(l => formData.append('languages[]', l));
 
     try {
@@ -672,22 +968,33 @@ elements.form.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok && data.success) {
-            alert(data.message);
-            window.location.href = data.redirect_url;
+            // Advancing to the final Step 7 (Congratulations!)
+            currentStepIndex = 7;
+            updateWizardUI();
         } else {
             alert(data.message || 'Onboarding failed. Please check inputs.');
             elements.submitBtn.disabled = false;
-            elements.submitBtn.innerHTML = 'Connect & Complete';
+            elements.submitBtn.innerHTML = 'Complete Profile';
         }
     } catch (err) {
         console.error(err);
         alert('Network connection error.');
         elements.submitBtn.disabled = false;
-        elements.submitBtn.innerHTML = 'Connect & Complete';
+        elements.submitBtn.innerHTML = 'Complete Profile';
     }
 });
 
 // Initialize UI
 updateWizardUI();
 </script>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+</style>
 @endsection
