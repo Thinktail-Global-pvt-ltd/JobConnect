@@ -58,7 +58,7 @@ class UserModeratorController extends Controller
      */
     public function postedJobsList(User $user)
     {
-        $jobs = $user->jobPosts()->latest()->get();
+        $jobs = $user->jobPosts()->with(['applications.applicant'])->latest()->get();
         return response()->json([
             'success' => true,
             'jobs' => $jobs

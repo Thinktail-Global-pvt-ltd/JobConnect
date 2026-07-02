@@ -175,6 +175,38 @@ async function showPostedJobs(userId, userName) {
             data.jobs.forEach(job => {
                 const item = document.createElement('div');
                 item.style.cssText = 'padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; text-align: left;';
+                
+                const appCount = job.applications ? job.applications.length : 0;
+                let appsHtml = '';
+                
+                if (appCount > 0) {
+                    job.applications.forEach(app => {
+                        const applicantName = app.applicant ? app.applicant.full_name : 'Anonymous';
+                        const applicantPhone = app.applicant ? app.applicant.mobile_number : 'N/A';
+                        const applicantEmail = app.applicant ? app.applicant.email : 'N/A';
+                        
+                        let statusColor = '#3b82f6';
+                        let statusBg = 'rgba(59, 130, 246, 0.15)';
+                        if (app.status === 'shortlisted') { statusColor = '#10b981'; statusBg = 'rgba(16, 185, 129, 0.15)'; }
+                        else if (app.status === 'rejected') { statusColor = '#ef4444'; statusBg = 'rgba(239, 68, 68, 0.15)'; }
+                        
+                        appsHtml += `
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.04); padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: start; margin-top: 4px;">
+                                <div style="font-size: 0.75rem;">
+                                    <div style="font-weight: 750; color: #eee;">${applicantName}</div>
+                                    <div style="color: #888; font-size: 0.7rem; margin-top: 2px;">
+                                        📞 <a href="tel:${applicantPhone}" style="color: #3b82f6; text-decoration: underline;">${applicantPhone}</a>
+                                    </div>
+                                    <div style="color: #666; font-size: 0.65rem; margin-top: 1px;">📧 ${applicantEmail}</div>
+                                </div>
+                                <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; background: ${statusBg}; color: ${statusColor}; padding: 1px 4px; border-radius: 4px; margin-top: 2px;">
+                                    ${app.status}
+                                </span>
+                            </div>
+                        `;
+                    });
+                }
+                
                 item.innerHTML = `
                     <div style="font-weight: 700; color: #fff; font-size: 0.85rem;">${job.title}</div>
                     <div style="color: #aaa; font-size: 0.75rem; margin-top: 4px;">📍 ${job.location} • 💼 ${job.job_type || 'Full-time'}</div>
@@ -183,6 +215,20 @@ async function showPostedJobs(userId, userName) {
                         <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: ${job.status === 'approved' ? 'rgba(22, 163, 74, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${job.status === 'approved' ? '#22c55e' : '#eab308'}; padding: 2px 6px; border-radius: 4px;">
                             ${job.status}
                         </span>
+                    </div>
+                    
+                    <div style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px;">
+                        ${appCount > 0 ? `
+                            <button type="button" onclick="const list = this.nextElementSibling; list.style.display = list.style.display === 'none' ? 'flex' : 'none';" 
+                                    style="background: rgba(22, 163, 74, 0.1); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; cursor: pointer; outline: none; transition: all 0.2s;">
+                                View Applicants (${appCount}) 👇
+                            </button>
+                            <div style="display: none; flex-direction: column; gap: 6px; margin-top: 8px;">
+                                ${appsHtml}
+                            </div>
+                        ` : `
+                            <span style="font-size: 0.7rem; color: #666; font-weight: bold; padding: 2px 0;">0 Applicants</span>
+                        `}
                     </div>
                 `;
                 modalBody.appendChild(item);
