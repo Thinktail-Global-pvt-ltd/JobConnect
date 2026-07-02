@@ -24,7 +24,7 @@ class ChefModeratorController extends Controller
 
         // Fetch all employers for coordination appointments
         $employers = \App\Models\User::whereHas('roles', function($q) {
-            $q->where('role', 'employer');
+            $q->where('role_type', 'employer');
         })->orderBy('full_name', 'asc')->get();
 
         return view('admin.chefs', compact('chefs', 'employers'));
