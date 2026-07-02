@@ -122,6 +122,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/chefs', [ChefModeratorController::class, 'index']);
     Route::post('/chefs/{chef}/approve', [ChefModeratorController::class, 'approve']);
     Route::post('/chefs/{chef}/reject', [ChefModeratorController::class, 'reject']);
+    Route::post('/chefs/schedule-appointment', [ChefModeratorController::class, 'scheduleAppointment']);
 
     // Training Programs CRUD Routes
     Route::get('/training', [TrainingController::class, 'index']);

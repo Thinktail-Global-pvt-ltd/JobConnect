@@ -22,7 +22,12 @@ class ChefModeratorController extends Controller
 
         $chefs = $query->latest()->paginate(15);
 
-        return view('admin.chefs', compact('chefs'));
+        // Fetch all employers for coordination appointments
+        $employers = \App\Models\User::whereHas('roles', function($q) {
+            $q->where('role', 'employer');
+        })->orderBy('full_name', 'asc')->get();
+
+        return view('admin.chefs', compact('chefs', 'employers'));
     }
 
     /**
@@ -43,5 +48,30 @@ class ChefModeratorController extends Controller
         $chef->update(['approval_status' => 'rejected']);
 
         return redirect()->back()->with('success', "Chef profile for {$chef->user->full_name} has been rejected.");
+    }
+
+    /**
+     * Schedule an appointment between a chef and an employer.
+     */
+    public function scheduleAppointment(Request $request)
+    {
+        $validated = $request->validate([
+            'chef_id' => 'required|exists:users,id',
+            'employer_id' => 'required|exists:users,id',
+            'meeting_date' => 'required|string',
+            'meeting_time' => 'required|string',
+            'purpose' => 'nullable|string|max:1000',
+        ]);
+
+        \App\Models\Appointment::create([
+            'chef_id' => $validated['chef_id'],
+            'employer_id' => $validated['employer_id'],
+            'meeting_date' => $validated['meeting_date'],
+            'meeting_time' => $validated['meeting_time'],
+            'purpose' => $validated['purpose'] ?? 'Coordinated by Administrator',
+            'status' => 'confirmed',
+        ]);
+
+        return redirect()->back()->with('success', "Appointment scheduled successfully.");
     }
 }
