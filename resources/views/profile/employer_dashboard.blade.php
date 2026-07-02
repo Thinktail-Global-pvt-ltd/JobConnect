@@ -300,6 +300,145 @@
         </div>
 
         <!-- ======================================= -->
+        <!-- TAB 2.5: Chef Connect Talent Discovery -->
+        <!-- ======================================= -->
+        <div id="tab-pane-chef_connect" class="employer-tab-pane hidden space-y-5">
+            <!-- Header Title -->
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="font-outfit font-bold text-xl text-gray-900 tracking-tight">Chef Connect</h3>
+                    <p class="text-[10px] text-gray-400 font-semibold mt-0.5">Discover Available Hospitality Professionals</p>
+                </div>
+                <!-- Count Badge -->
+                <span class="text-[10px] font-extrabold uppercase px-3 py-1 rounded-xl bg-green-50 text-green-700 border border-green-100 shrink-0">
+                    {{ count($registeredChefs) }} Chefs
+                </span>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <!-- Search Input -->
+                    <div class="flex-grow relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+                        <input type="text" id="chef-search" onkeyup="filterChefs()" placeholder="Name, Cuisine, or Location" 
+                               class="w-full bg-white border border-gray-100 pl-10 pr-4 py-2.5 rounded-2xl text-xs font-bold text-gray-800 placeholder-gray-400 focus:outline-none focus:border-green-500 shadow-sm transition">
+                    </div>
+                    <!-- Advanced Filters Toggle -->
+                    <button onclick="toggleAdvancedChefFilters()" class="shrink-0 p-2.5 bg-white border border-gray-100 hover:bg-gray-50 rounded-2xl shadow-sm text-gray-500 hover:text-green-600 transition flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg">tune</span>
+                    </button>
+                 </div>
+
+                 <!-- Filter Badges/Tabs -->
+                 <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                     <button onclick="filterChefType('all')" id="btn-chef-all" class="chef-type-filter-btn px-4 py-2 rounded-xl text-[10px] font-extrabold bg-green-600 text-white shadow-sm transition">
+                         All Professionals
+                     </button>
+                     <button onclick="filterChefType('Freelance')" id="btn-chef-freelance" class="chef-type-filter-btn px-4 py-2 rounded-xl text-[10px] font-extrabold bg-white border border-gray-100 text-gray-500 hover:bg-gray-50/50 transition">
+                         Freelance Chef
+                     </button>
+                     <button onclick="filterChefType('Full Time')" id="btn-chef-fulltime" class="chef-type-filter-btn px-4 py-2 rounded-xl text-[10px] font-extrabold bg-white border border-gray-100 text-gray-500 hover:bg-gray-50/50 transition">
+                         Full Time
+                     </button>
+                 </div>
+            </div>
+
+            <!-- Chefs Grid / List -->
+            <div id="chefs-list-wrapper" class="space-y-4">
+                @if(count($registeredChefs) === 0)
+                    <div class="bg-white border border-gray-100 p-8 rounded-3xl text-center shadow-sm">
+                        <span class="material-symbols-outlined text-gray-300 text-4xl">restaurant</span>
+                        <p class="text-xs text-gray-400 font-semibold mt-2">No chefs registered on the platform yet.</p>
+                    </div>
+                @else
+                    @foreach($registeredChefs as $chef)
+                        @php
+                            $pref = $chef->decoded_availability['employment_preference'] ?? [];
+                            $prefStr = is_array($pref) ? implode(' • ', $pref) : $pref;
+                            $isFreelance = str_contains(strtolower($prefStr), 'freelance') || str_contains(strtolower($prefStr), 'consultant');
+                            $isFullTime = str_contains(strtolower($prefStr), 'full time') || str_contains(strtolower($prefStr), 'permanent') || count($pref) === 0;
+                            
+                            // Tags
+                            $regional = $chef->decoded_availability['regional_experience'] ?? [];
+                        @endphp
+                        <div class="chef-card-item bg-white border border-gray-100 p-4 rounded-3xl shadow-sm hover:scale-[1.005] transition-all duration-300 flex flex-col justify-between gap-3"
+                             data-name="{{ strtolower($chef->full_name) }}"
+                             data-cuisine="{{ strtolower($chef->chefProfile->cuisine_specialty ?? '') }}"
+                             data-location="{{ strtolower($chef->city ?? '') }}"
+                             data-freelance="{{ $isFreelance ? 'true' : 'false' }}"
+                             data-fulltime="{{ $isFullTime ? 'true' : 'false' }}">
+                             
+                             <div class="flex items-start gap-3">
+                                 <!-- Avatar -->
+                                 <div class="w-12 h-12 rounded-2xl bg-green-50 border border-green-100 overflow-hidden shrink-0">
+                                     <img src="{{ $chef->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120' }}" class="w-full h-full object-cover">
+                                 </div>
+                                 <div class="flex-grow">
+                                     <div class="flex justify-between items-start">
+                                         <div>
+                                             <h4 class="font-outfit font-extrabold text-sm text-gray-900">{{ $chef->full_name }}</h4>
+                                             <p class="text-[10px] text-gray-400 font-semibold flex items-center gap-0.5 mt-0.5">
+                                                 📍 {{ $chef->city ?? 'Location Not Disclosed' }}
+                                             </p>
+                                         </div>
+                                         <!-- Badge -->
+                                         <span class="text-[9px] font-extrabold uppercase px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600">
+                                             {{ count($pref) > 0 ? $pref[0] : 'Chef Professional' }}
+                                         </span>
+                                     </div>
+                                     
+                                     <div class="mt-2 space-y-1 text-[11px]">
+                                         <div class="flex items-center gap-1 text-gray-500 font-semibold">
+                                             <span class="material-symbols-outlined text-[14px]">history</span>
+                                             <span>{{ $chef->experience_range ?? '0' }} Experience</span>
+                                         </div>
+                                         <div class="flex items-center gap-1 text-green-600 font-bold">
+                                             <span class="material-symbols-outlined text-[14px]">restaurant_menu</span>
+                                             <span>{{ $chef->chefProfile->cuisine_specialty ?? 'Multi-Cuisine' }} Specialty</span>
+                                         </div>
+                                     </div>
+
+                                     <!-- Tags -->
+                                     @if(count($regional) > 0)
+                                         <div class="flex flex-wrap gap-1.5 mt-3">
+                                             @foreach($regional as $tag)
+                                                 <span class="text-[8px] font-extrabold uppercase tracking-wider px-2 py-0.5 bg-gray-50 text-gray-400 border border-gray-100 rounded-md">
+                                                     {{ $tag }} Experience
+                                                 </span>
+                                             @endforeach
+                                         </div>
+                                     @endif
+                                 </div>
+                             </div>
+
+                             <!-- Actions -->
+                             <div class="flex flex-col gap-2 mt-1">
+                                 @if($isFreelance)
+                                     <button onclick="openBookingDrawer('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}', '{{ addslashes($chef->chefProfile->cuisine_specialty ?? 'Specialist') }}', '{{ $chef->experience_range }}', '{{ $chef->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120' }}', '{{ $chef->chefProfile->calendly_link }}')"
+                                             class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-2xl shadow-sm shadow-green-500/10 transition-colors flex items-center justify-center gap-1.5">
+                                         <span class="material-symbols-outlined text-sm">event</span>
+                                         Book Consultation
+                                     </button>
+                                 @else
+                                     <button onclick="requestChefResume('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}')"
+                                             class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-xs py-2.5 rounded-2xl transition flex items-center justify-center gap-1.5">
+                                         <span class="material-symbols-outlined text-sm">download</span>
+                                         Request Resume
+                                     </button>
+                                 @endif
+                                 <button onclick="openChefDetailsDrawer({{ json_encode($chef) }})"
+                                         class="w-full border border-gray-100 hover:bg-gray-50 text-gray-500 hover:text-gray-800 font-extrabold text-[10px] py-2 rounded-2xl transition">
+                                     View Full Profile
+                                 </button>
+                             </div>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+        </div>
+
+        <!-- ======================================= -->
         <!-- TAB 3: Employer Profile / Settings (Screen 4) -->
         <!-- ======================================= -->
         <div id="tab-pane-profile" class="employer-tab-pane hidden space-y-6">
@@ -448,6 +587,11 @@
             <span class="text-[9px] font-bold">My Jobs</span>
         </button>
 
+        <button onclick="switchTab('chef_connect')" id="nav-btn-chef_connect" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-green-600 transition">
+            <span class="material-symbols-outlined text-xl">restaurant_menu</span>
+            <span class="text-[9px] font-bold">Chef Connect</span>
+        </button>
+        
         <button onclick="switchTab('profile')" id="nav-btn-profile" class="flex flex-col items-center gap-0.5 text-gray-400 hover:text-green-600 transition">
             <span class="material-symbols-outlined text-xl">person</span>
             <span class="text-[9px] font-bold">Profile</span>
@@ -472,7 +616,381 @@
     </div>
 </div>
 
+<!-- Chef Details Drawer (Screen 2) -->
+<div id="chef-details-drawer" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[105] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[85vh] border border-gray-100">
+        <!-- Header -->
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="closeChefDetailsDrawer()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <h3 class="font-outfit font-extrabold text-sm text-gray-800">Chef Profile</h3>
+            </div>
+            <button type="button" onclick="closeChefDetailsDrawer()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+            </button>
+        </div>
+        
+        <!-- Body -->
+        <div class="p-5 overflow-y-auto space-y-5">
+            <!-- Profile Header Card -->
+            <div class="flex flex-col items-center text-center space-y-2">
+                <div class="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden relative mx-auto">
+                    <img id="detail-chef-avatar" src="" class="w-full h-full object-cover rounded-full">
+                    <!-- Active status dot -->
+                    <span class="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+                </div>
+                <div>
+                    <h2 id="detail-chef-name" class="font-outfit font-extrabold text-base text-gray-900"></h2>
+                    <p id="detail-chef-location" class="text-xs text-gray-400 font-semibold mt-0.5"></p>
+                </div>
+                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                    Available for Consultation
+                </span>
+            </div>
+
+            <!-- Professional Summary -->
+            <div class="bg-gray-50/50 border border-gray-100 p-4 rounded-2xl space-y-2">
+                <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400">Professional Summary</h4>
+                <p id="detail-chef-bio" class="text-xs text-gray-600 leading-relaxed font-semibold"></p>
+            </div>
+
+            <!-- Stats grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white border border-gray-100 p-3.5 rounded-2xl flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-green-600 text-sm">schedule</span>
+                    </div>
+                    <div>
+                        <span class="block text-[8px] font-extrabold text-gray-400 uppercase">Experience</span>
+                        <span id="detail-chef-experience" class="text-xs font-bold text-gray-800"></span>
+                    </div>
+                </div>
+                <div class="bg-white border border-gray-100 p-3.5 rounded-2xl flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-blue-600 text-sm">verified_user</span>
+                    </div>
+                    <div>
+                        <span class="block text-[8px] font-extrabold text-gray-400 uppercase">Identity</span>
+                        <span class="text-xs font-bold text-blue-600">Verified ✔</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Lists Sections -->
+            <div class="space-y-4">
+                <!-- Employment Preferences -->
+                <div class="space-y-1.5">
+                    <span class="block text-[9px] font-extrabold text-gray-400 uppercase tracking-wider">Employment Preference</span>
+                    <div id="detail-chef-employment" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- Cuisine Expertise -->
+                <div class="space-y-1.5">
+                    <span class="block text-[9px] font-extrabold text-gray-400 uppercase tracking-wider">Cuisine Expertise</span>
+                    <div id="detail-chef-cuisine" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- Operational Expertise -->
+                <div class="space-y-1.5">
+                    <span class="block text-[9px] font-extrabold text-gray-400 uppercase tracking-wider">Operational Expertise</span>
+                    <div id="detail-chef-operational" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- Core Skills -->
+                <div class="space-y-1.5">
+                    <span class="block text-[9px] font-extrabold text-gray-400 uppercase tracking-wider">Core Skills</span>
+                    <div id="detail-chef-skills" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <!-- Regional Experience -->
+                <div class="space-y-1.5">
+                    <span class="block text-[9px] font-extrabold text-gray-400 uppercase tracking-wider">Regional Experience</span>
+                    <div id="detail-chef-regional" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            <div class="border-t border-gray-100 pt-4 flex justify-center gap-6">
+                <button type="button" class="w-9 h-9 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 transition">
+                    <span class="material-symbols-outlined text-base">link</span>
+                </button>
+                <button type="button" class="w-9 h-9 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 transition">
+                    <span class="material-symbols-outlined text-base">language</span>
+                </button>
+                <button type="button" class="w-9 h-9 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-50 transition">
+                    <span class="material-symbols-outlined text-base">mail</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sticky Footer Action -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50">
+            <button id="detail-action-btn" onclick="" class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-3 rounded-2xl shadow-lg shadow-green-500/10 transition-colors flex items-center justify-center gap-1.5">
+                Get Appointment
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Chef Booking Drawer (Screen 3) -->
+<div id="chef-booking-drawer" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[85vh] border border-gray-100">
+        <!-- Header -->
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="closeBookingDrawer()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <h3 class="font-outfit font-extrabold text-sm text-gray-800">Book Appointment</h3>
+            </div>
+            <button type="button" onclick="closeBookingDrawer()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+            </button>
+        </div>
+        
+        <!-- Body -->
+        <div class="p-5 overflow-y-auto space-y-5">
+            <!-- Small Chef Header Summary -->
+            <div class="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                    <img id="booking-chef-avatar" src="" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h4 id="booking-chef-name" class="font-outfit font-extrabold text-xs text-gray-800"></h4>
+                    <p id="booking-chef-specialty" class="text-[10px] text-gray-400 font-semibold mt-0.5"></p>
+                </div>
+            </div>
+
+            <!-- Calendly Status Info -->
+            <div class="flex items-center justify-between bg-blue-50 border border-blue-100 px-4 py-3 rounded-2xl">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-600 text-lg">calendar_month</span>
+                    <span class="text-[10px] font-extrabold text-blue-800">Calendly Connected</span>
+                </div>
+                <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+            </div>
+
+            <!-- Slots Grid Section -->
+            <div class="space-y-4">
+                <span class="block text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Available Slots</span>
+                
+                <!-- Day 1 -->
+                <div class="space-y-2">
+                    <span class="block text-[10px] font-bold text-gray-800">Monday, Oct 23</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="selectTimeSlot(this)" class="time-slot-btn py-2.5 border border-gray-100 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition">10:00 AM</button>
+                        <button type="button" onclick="selectTimeSlot(this)" class="time-slot-btn py-2.5 border border-gray-100 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition">11:30 AM</button>
+                        <button type="button" onclick="selectTimeSlot(this)" class="time-slot-btn py-2.5 border border-gray-100 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition">2:00 PM</button>
+                        <button type="button" onclick="selectTimeSlot(this)" class="time-slot-btn py-2.5 border border-gray-100 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition">4:30 PM</button>
+                    </div>
+                </div>
+
+                <!-- Day 2 -->
+                <div class="space-y-2">
+                    <span class="block text-[10px] font-bold text-gray-800">Tuesday, Oct 24</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="selectTimeSlot(this)" class="time-slot-btn py-2.5 border border-gray-100 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition">9:00 AM</button>
+                        <button type="button" onclick="selectTimeSlot(this)" class="time-slot-btn py-2.5 border border-gray-100 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition">12:00 PM</button>
+                        <button type="button" onclick="selectTimeSlot(this)" class="time-slot-btn py-2.5 border border-gray-100 hover:bg-gray-50 rounded-xl text-xs font-bold text-gray-700 transition">3:30 PM</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purpose of meeting textarea -->
+            <div class="space-y-1.5">
+                <span class="block text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Purpose of Meeting (Optional)</span>
+                <textarea id="booking-purpose" placeholder="Briefly describe what you'd like to discuss..." 
+                          class="w-full bg-white border border-gray-100 p-3.5 rounded-2xl text-xs font-bold text-gray-800 placeholder-gray-400 focus:outline-none focus:border-green-500 shadow-sm transition h-20 resize-none"></textarea>
+            </div>
+        </div>
+
+        <!-- Sticky Footer Action -->
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50 flex flex-col gap-2">
+            <button onclick="confirmChefBooking()" class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-3 rounded-2xl shadow-lg shadow-green-500/10 transition-colors">
+                Confirm Appointment
+            </button>
+            <button onclick="closeBookingDrawer()" class="w-full hover:bg-gray-100 text-gray-500 font-extrabold text-[10px] py-2 rounded-2xl transition">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
+let selectedChefId = null;
+let selectedChefName = '';
+let selectedTimeSlotText = '';
+
+function filterChefs() {
+    const searchVal = document.getElementById('chef-search').value.toLowerCase();
+    const cards = document.querySelectorAll('.chef-card-item');
+    cards.forEach(card => {
+        const name = card.getAttribute('data-name');
+        const cuisine = card.getAttribute('data-cuisine');
+        const location = card.getAttribute('data-location');
+        
+        if (name.includes(searchVal) || cuisine.includes(searchVal) || location.includes(searchVal)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterChefType(type) {
+    // Update button styling
+    document.querySelectorAll('.chef-type-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-green-600', 'text-white', 'shadow-sm');
+        btn.classList.add('bg-white', 'border', 'border-gray-100', 'text-gray-500');
+    });
+    
+    const activeBtnId = `btn-chef-${type === 'all' ? 'all' : (type === 'Freelance' ? 'freelance' : 'fulltime')}`;
+    const activeBtn = document.getElementById(activeBtnId);
+    if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'border', 'border-gray-100', 'text-gray-500');
+        activeBtn.classList.add('bg-green-600', 'text-white', 'shadow-sm');
+    }
+
+    // Filter cards
+    const cards = document.querySelectorAll('.chef-card-item');
+    cards.forEach(card => {
+        const isFreelance = card.getAttribute('data-freelance') === 'true';
+        const isFullTime = card.getAttribute('data-fulltime') === 'true';
+        
+        if (type === 'all') {
+            card.style.display = 'flex';
+        } else if (type === 'Freelance') {
+            card.style.display = isFreelance ? 'flex' : 'none';
+        } else if (type === 'Full Time') {
+            card.style.display = isFullTime ? 'flex' : 'none';
+        }
+    });
+}
+
+function openChefDetailsDrawer(chef) {
+    const drawer = document.getElementById('chef-details-drawer');
+    if (!drawer) return;
+    
+    // Populate basic details
+    document.getElementById('detail-chef-avatar').src = chef.profile_photo_path || 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120';
+    document.getElementById('detail-chef-name').textContent = chef.full_name;
+    document.getElementById('detail-chef-location').textContent = `📍 ${chef.city || 'India & Overseas'}`;
+    document.getElementById('detail-chef-bio').textContent = chef.chef_profile ? chef.chef_profile.bio : 'No professional summary provided.';
+    document.getElementById('detail-chef-experience').textContent = `${chef.experience_range || '0+'} Years`;
+
+    // Helper function to render tag badges
+    const renderTags = (containerId, tagsArray, colorClass = 'bg-gray-100 text-gray-600') => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        if (tagsArray && tagsArray.length > 0) {
+            tagsArray.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = `text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-lg ${colorClass}`;
+                span.textContent = tag;
+                container.appendChild(span);
+            });
+        } else {
+            container.innerHTML = '<span class="text-[9px] text-gray-400 font-semibold">Not Specified</span>';
+        }
+    };
+
+    // Populate preferences and tags
+    const pref = chef.decoded_availability.employment_preference || [];
+    renderTags('detail-chef-employment', pref, 'bg-gray-100 text-gray-600');
+    
+    const cuisines = chef.chef_profile && chef.chef_profile.cuisine_specialty ? [chef.chef_profile.cuisine_specialty] : [];
+    renderTags('detail-chef-cuisine', cuisines, 'bg-green-50 text-green-700 border border-green-100');
+
+    // Populate mock operational, skills, regional tags
+    const operational = ['Kitchen Setup', 'Menu Engineering', 'Team Management'];
+    renderTags('detail-chef-operational', operational, 'bg-blue-50 text-blue-700 border border-blue-100');
+
+    const coreSkills = chef.skills || [];
+    renderTags('detail-chef-skills', coreSkills, 'bg-gray-50 text-gray-500 border border-gray-100');
+
+    const regional = chef.decoded_availability.regional_experience || [];
+    renderTags('detail-chef-regional', regional, 'bg-purple-50 text-purple-700 border border-purple-100');
+
+    // Update button action
+    const actionBtn = document.getElementById('detail-action-btn');
+    const prefStr = pref.join(' ').toLowerCase();
+    const isFreelance = prefStr.includes('freelance') || prefStr.includes('consultant');
+    
+    if (isFreelance) {
+        actionBtn.textContent = 'Get Appointment';
+        actionBtn.setAttribute('onclick', `closeChefDetailsDrawer(); openBookingDrawer('${chef.id}', '${chef.full_name.replace(/'/g, "\\'")}', '${chef.chef_profile ? chef.chef_profile.cuisine_specialty : 'Specialist'}', '${chef.experience_range}', '${chef.profile_photo_path}', '${chef.chef_profile ? chef.chef_profile.calendly_link : ''}')`);
+    } else {
+        actionBtn.textContent = 'Request Resume';
+        actionBtn.setAttribute('onclick', `closeChefDetailsDrawer(); requestChefResume('${chef.id}', '${chef.full_name.replace(/'/g, "\\'")}')`);
+    }
+
+    drawer.classList.remove('hidden');
+}
+
+function closeChefDetailsDrawer() {
+    const drawer = document.getElementById('chef-details-drawer');
+    if (drawer) drawer.classList.add('hidden');
+}
+
+function openBookingDrawer(id, name, specialty, experience, avatar, calendly) {
+    selectedChefId = id;
+    selectedChefName = name;
+    selectedTimeSlotText = '';
+    
+    const drawer = document.getElementById('chef-booking-drawer');
+    if (!drawer) return;
+
+    document.getElementById('booking-chef-avatar').src = avatar || 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120';
+    document.getElementById('booking-chef-name').textContent = name;
+    document.getElementById('booking-chef-specialty').textContent = `${specialty} Specialist • ${experience}`;
+    document.getElementById('booking-purpose').value = '';
+
+    // Reset slot buttons active states
+    document.querySelectorAll('.time-slot-btn').forEach(btn => {
+        btn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+        btn.classList.add('bg-white', 'border-gray-100', 'text-gray-700');
+    });
+
+    drawer.classList.remove('hidden');
+}
+
+function closeBookingDrawer() {
+    const drawer = document.getElementById('chef-booking-drawer');
+    if (drawer) drawer.classList.add('hidden');
+}
+
+function selectTimeSlot(button) {
+    document.querySelectorAll('.time-slot-btn').forEach(btn => {
+        btn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+        btn.classList.add('bg-white', 'border-gray-100', 'text-gray-700');
+    });
+
+    button.classList.remove('bg-white', 'border-gray-100', 'text-gray-700');
+    button.classList.add('bg-green-500', 'text-white', 'border-green-500');
+    selectedTimeSlotText = button.textContent;
+}
+
+function confirmChefBooking() {
+    if (!selectedTimeSlotText) {
+        alert('Please select a time slot first.');
+        return;
+    }
+
+    alert(`Appointment successfully confirmed with Chef ${selectedChefName} for slot ${selectedTimeSlotText}!`);
+    closeBookingDrawer();
+}
+
+function requestChefResume(chefId, name) {
+    alert(`Resume request sent to Chef ${name}. You will be notified once they share it.`);
+}
+
+function toggleAdvancedChefFilters() {
+    alert('Advanced Filters drawer will be implemented in the next release.');
+}
+
 function switchTab(tabName) {
     // Hide all tabs
     document.querySelectorAll('.employer-tab-pane').forEach(el => el.classList.add('hidden'));
@@ -484,6 +1002,7 @@ function switchTab(tabName) {
     const navButtons = {
         'dashboard': document.getElementById('nav-btn-dashboard'),
         'my_jobs': document.getElementById('nav-btn-my_jobs'),
+        'chef_connect': document.getElementById('nav-btn-chef_connect'),
         'profile': document.getElementById('nav-btn-profile')
     };
     
@@ -499,6 +1018,7 @@ function switchTab(tabName) {
         navButtons[tabName].classList.add('text-green-600');
     }
 }
+
 
 function filterJobs(status) {
     const listWrapper = document.getElementById('jobs-cards-wrapper');

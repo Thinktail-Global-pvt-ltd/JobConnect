@@ -19,7 +19,31 @@ class WebProfileController extends Controller
         $userRoles = $user->roles->pluck('role_type')->toArray();
         $activeRole = $user->currentRoleContext();
 
-        return view('profile', compact('user', 'userRoles', 'activeRole'));
+        // Load all registered chefs with profiles for discovery tab
+        $registeredChefs = \App\Models\User::whereHas('roles', function($q) {
+                $q->where('role_type', 'chef');
+            })
+            ->whereHas('chefProfile')
+            ->with('chefProfile')
+            ->latest()
+            ->get()
+            ->map(function ($chef) {
+                // Decode availability info JSON
+                $availability = null;
+                if ($chef->chefProfile && $chef->chefProfile->availability_info) {
+                    $availability = json_decode($chef->chefProfile->availability_info, true);
+                }
+                $chef->decoded_availability = $availability ?: [
+                    'languages' => [],
+                    'regional_experience' => [],
+                    'location_preference' => 'Both',
+                    'employment_preference' => [],
+                    'availability_status' => 'Available Immediately'
+                ];
+                return $chef;
+            });
+
+        return view('profile', compact('user', 'userRoles', 'activeRole', 'registeredChefs'));
     }
 
     /**
