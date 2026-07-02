@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ChefProfileController;
 use App\Http\Controllers\Api\FeedController;
 use App\Http\Controllers\Api\JobPostController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\AppointmentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,4 +34,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Submission Routes
     Route::post('/jobs', [JobPostController::class, 'store']);
     Route::post('/chefs', [ChefProfileController::class, 'store']);
+
+    // Chef Connect Appointment Routes
+    Route::post('/appointments/book', [AppointmentController::class, 'book']);
+    Route::get('/chef/appointments', [AppointmentController::class, 'chefAppointmentsList']);
+    Route::get('/employer/appointments', [AppointmentController::class, 'employerAppointmentsList']);
+    Route::get('/employer/chefs', [AppointmentController::class, 'registeredChefsList']);
 });

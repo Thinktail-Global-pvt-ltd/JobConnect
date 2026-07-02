@@ -100,6 +100,20 @@
                     <span class="material-symbols-outlined text-gray-300">chevron_right</span>
                 </a>
 
+                <!-- Booked Chef Consultations Button -->
+                <button type="button" onclick="openEmployerAppointmentsModal()" class="w-full flex items-center justify-between bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:bg-gray-50/50 transition text-left duration-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-blue-600 text-lg">event</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-gray-800">Booked Chef Consultations</h4>
+                            <p class="text-[10px] text-gray-400 mt-0.5">View your scheduled interviews with chefs</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-300">chevron_right</span>
+                </button>
+
                 <!-- My Jobs Button -->
                 <button onclick="switchTab('my_jobs')" class="w-full flex items-center justify-between bg-white border border-gray-100 p-4 rounded-2xl shadow-sm hover:bg-gray-50/50 transition text-left">
                     <div class="flex items-center gap-3">
@@ -811,7 +825,99 @@
     </div>
 </div>
 
+<!-- Employer Booked Consultations Modal -->
+
+<div id="employer-appointments-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[80vh] border border-gray-100">
+        <!-- Header -->
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="font-outfit font-extrabold text-xs text-gray-800 uppercase tracking-wider">Booked Consultations</h3>
+            <button type="button" onclick="closeEmployerAppointmentsModal()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <!-- Body -->
+        <div id="employer-appointments-body" class="p-5 overflow-y-auto space-y-3.5">
+            <!-- Dynamic items loaded via ajax -->
+        </div>
+    </div>
+</div>
+
 <script>
+function closeEmployerAppointmentsModal() {
+    document.getElementById('employer-appointments-modal').classList.add('hidden');
+}
+
+// Close modal when clicking outside content area
+document.getElementById('employer-appointments-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEmployerAppointmentsModal();
+    }
+});
+
+async function openEmployerAppointmentsModal() {
+    const modal = document.getElementById('employer-appointments-modal');
+    const body = document.getElementById('employer-appointments-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-6">Loading consultations...</p>';
+    modal.classList.remove('hidden');
+
+    try {
+        const response = await fetch("{{ url('/employer/appointments') }}", {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.appointments.length > 0) {
+            body.innerHTML = '';
+            data.appointments.forEach(app => {
+                const item = document.createElement('div');
+                item.className = "bg-white border border-gray-100 rounded-2xl p-4 space-y-2 text-left shadow-2xs";
+                item.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-green-50 overflow-hidden shrink-0 border border-green-100">
+                                <img src="${app.chef_avatar || 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120'}" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-gray-800">${app.chef_name}</h4>
+                                <p class="text-[9px] text-gray-400 font-semibold mt-0.5">${app.chef_specialty}</p>
+                            </div>
+                        </div>
+                        <span class="text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-green-50 text-green-700 border border-green-100">
+                            ${app.status}
+                        </span>
+                    </div>
+                    <div class="text-[10px] text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-100 leading-relaxed font-semibold">
+                        <strong>Agenda:</strong> ${app.purpose}
+                    </div>
+                    <div class="flex items-center justify-between text-[9px] text-gray-400 font-bold mt-2 pt-1 border-t border-gray-50">
+                        <span>🗓️ ${app.meeting_date}</span>
+                        <span>⏰ ${app.meeting_time}</span>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <a href="tel:${app.chef_phone}" class="flex-1 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-extrabold rounded-lg text-center transition flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-[12px]">call</span>
+                            Call Chef
+                        </a>
+                        <a href="mailto:${app.chef_email}" class="flex-1 py-1.5 border border-gray-100 hover:bg-gray-50 text-gray-500 hover:text-gray-800 text-[10px] font-extrabold rounded-lg text-center transition flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-[12px]">mail</span>
+                            Email Chef
+                        </a>
+                    </div>
+                `;
+                body.appendChild(item);
+            });
+        } else {
+            body.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-6">No scheduled consultations yet.</p>';
+        }
+    } catch (err) {
+        console.error(err);
+        body.innerHTML = '<p class="text-xs text-red-500 italic text-center py-6">Failed to load consultations list.</p>';
+    }
+}
+
 let selectedChefId = null;
 let selectedChefName = '';
 let selectedTimeSlotText = '';

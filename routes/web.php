@@ -66,6 +66,8 @@ Route::middleware('auth')->group(function () {
     // Appointment Booking Routes
     Route::post('/appointments/book', [AppointmentController::class, 'book'])->name('appointments.book');
     Route::get('/chef/appointments', [AppointmentController::class, 'chefAppointmentsList'])->name('chef.appointments');
+    Route::get('/employer/appointments', [AppointmentController::class, 'employerAppointmentsList'])->name('employer.appointments');
+    Route::get('/employer/chefs', [AppointmentController::class, 'registeredChefsList'])->name('employer.chefs');
 });
 
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
