@@ -182,11 +182,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Success redirect handling
             if (data.success) {
-                if (form.querySelector('[name="login_role"]').value === 'employer') {
+                const selectedRole = form.querySelector('[name="login_role"]').value;
+                if (selectedRole === 'employer') {
                     if (data.has_completed_onboarding) {
                         window.location.href = '/profile?section=my_posted_jobs';
                     } else {
                         window.location.href = '/employer/onboarding';
+                    }
+                } else if (selectedRole === 'chef') {
+                    if (data.has_completed_onboarding) {
+                        window.location.href = '/profile';
+                    } else {
+                        window.location.href = '/chef/onboarding';
                     }
                 } else {
                     window.location.href = '/';

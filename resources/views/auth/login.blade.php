@@ -31,20 +31,41 @@
             </div>
 
             <div class="mb-6">
-                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Login Role</label>
-                <div class="grid grid-cols-2 gap-3">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Login Role</label>
+                <div class="flex flex-col gap-3">
+                    <!-- Option 1: Register as Chef -->
                     <label class="cursor-pointer">
-                        <input type="radio" name="login_role" value="job_seeker" class="peer sr-only" checked {{ old('login_role') === 'job_seeker' ? 'checked' : '' }}>
-                        <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50/50 peer-checked:text-blue-600 border border-gray-200 rounded-xl p-3 text-center transition hover:bg-gray-50 flex flex-col items-center justify-center gap-1.5 text-gray-500">
-                            <span class="text-2xl">🔍</span>
-                            <span class="block text-sm font-bold">Job Seeker</span>
+                        <input type="radio" name="login_role" value="chef" class="peer sr-only" {{ old('login_role') === 'chef' ? 'checked' : '' }}>
+                        <div class="peer-checked:border-green-600 peer-checked:bg-green-50/40 peer-checked:text-green-800 border border-gray-200 rounded-xl p-3.5 flex items-center gap-3.5 transition hover:bg-gray-50 text-gray-500">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl shrink-0">👨‍🍳</div>
+                            <div class="flex-grow text-left">
+                                <span class="block text-xs font-extrabold text-gray-800 uppercase tracking-wide">Register as Chef</span>
+                                <span class="block text-[10px] text-gray-400 mt-0.5 leading-normal">Showcase your culinary skills to top employers</span>
+                            </div>
                         </div>
                     </label>
+
+                    <!-- Option 2: Talent / Job Seeker -->
+                    <label class="cursor-pointer">
+                        <input type="radio" name="login_role" value="job_seeker" class="peer sr-only" checked {{ old('login_role') === 'job_seeker' ? 'checked' : '' }}>
+                        <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50/40 peer-checked:text-blue-800 border border-gray-200 rounded-xl p-3.5 flex items-center gap-3.5 transition hover:bg-gray-50 text-gray-500">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl shrink-0">🔍</div>
+                            <div class="flex-grow text-left">
+                                <span class="block text-xs font-extrabold text-gray-800 uppercase tracking-wide">Talent</span>
+                                <span class="block text-[10px] text-gray-400 mt-0.5 leading-normal">Explore hospitality job opportunities</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Option 3: Post a Job / Employer -->
                     <label class="cursor-pointer">
                         <input type="radio" name="login_role" value="employer" class="peer sr-only" {{ old('login_role') === 'employer' ? 'checked' : '' }}>
-                        <div class="peer-checked:border-blue-600 peer-checked:bg-blue-50/50 peer-checked:text-blue-600 border border-gray-200 rounded-xl p-3 text-center transition hover:bg-gray-50 flex flex-col items-center justify-center gap-1.5 text-gray-500">
-                            <span class="text-2xl">💼</span>
-                            <span class="block text-sm font-bold">Employer</span>
+                        <div class="peer-checked:border-purple-600 peer-checked:bg-purple-50/40 peer-checked:text-purple-800 border border-gray-200 rounded-xl p-3.5 flex items-center gap-3.5 transition hover:bg-gray-50 text-gray-500">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl shrink-0">💼</div>
+                            <div class="flex-grow text-left">
+                                <span class="block text-xs font-extrabold text-gray-800 uppercase tracking-wide">Post a Job</span>
+                                <span class="block text-[10px] text-gray-400 mt-0.5 leading-normal">Hire talent for your kitchen</span>
+                            </div>
                         </div>
                     </label>
                 </div>

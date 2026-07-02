@@ -31,7 +31,7 @@ class WebAuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
-            'login_role' => 'required|string|in:job_seeker,employer',
+            'login_role' => 'required|string|in:job_seeker,employer,chef',
         ]);
 
         if ($validator->fails()) {
@@ -129,7 +129,7 @@ class WebAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
             'otp' => 'required|string|size:6',
-            'login_role' => 'required|string|in:job_seeker,employer',
+            'login_role' => 'required|string|in:job_seeker,employer,chef',
             'selected_language' => 'nullable|string|max:10',
         ]);
 
@@ -203,6 +203,8 @@ class WebAuthController extends Controller
         $hasCompletedOnboarding = false;
         if ($targetRole === 'employer') {
             $hasCompletedOnboarding = $user->employerProfile ? (bool)$user->employerProfile->is_completed : false;
+        } elseif ($targetRole === 'chef') {
+            $hasCompletedOnboarding = $user->chefProfile ? true : false;
         }
 
         return response()->json([
