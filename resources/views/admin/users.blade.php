@@ -176,14 +176,20 @@ async function showPostedJobs(userId, userName) {
                 const item = document.createElement('div');
                 item.style.cssText = 'padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; text-align: left;';
                 
-                const appCount = job.applications ? job.applications.length : 0;
                 let appsHtml = '';
+                let actualAppCount = 0;
                 
-                if (appCount > 0) {
+                if (job.applications && job.applications.length > 0) {
                     job.applications.forEach(app => {
-                        const applicantName = app.applicant ? app.applicant.full_name : 'Anonymous';
-                        const applicantPhone = app.applicant ? app.applicant.mobile_number : 'N/A';
-                        const applicantEmail = app.applicant ? app.applicant.email : 'N/A';
+                        // Skip if applicant doesn't exist OR has no name (is 'null' or empty)
+                        if (!app.applicant || !app.applicant.full_name || app.applicant.full_name.toLowerCase() === 'null' || app.applicant.full_name.trim() === '') {
+                            return;
+                        }
+                        
+                        actualAppCount++;
+                        const applicantName = app.applicant.full_name;
+                        const applicantPhone = app.applicant.mobile_number || 'N/A';
+                        const applicantEmail = app.applicant.email || 'N/A';
                         
                         let statusColor = '#3b82f6';
                         let statusBg = 'rgba(59, 130, 246, 0.15)';
@@ -218,10 +224,10 @@ async function showPostedJobs(userId, userName) {
                     </div>
                     
                     <div style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px;">
-                        ${appCount > 0 ? `
+                        ${actualAppCount > 0 ? `
                             <button type="button" onclick="const list = this.nextElementSibling; list.style.display = list.style.display === 'none' ? 'flex' : 'none';" 
                                     style="background: rgba(22, 163, 74, 0.1); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; cursor: pointer; outline: none; transition: all 0.2s;">
-                                View Applicants (${appCount}) 👇
+                                View Applicants (${actualAppCount}) 👇
                             </button>
                             <div style="display: none; flex-direction: column; gap: 6px; margin-top: 8px;">
                                 ${appsHtml}
