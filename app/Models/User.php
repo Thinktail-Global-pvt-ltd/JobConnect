@@ -80,6 +80,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get appointments received by the user as a chef.
+     */
+    public function chefAppointments()
+    {
+        return $this->hasMany(Appointment::class, 'chef_id');
+    }
+
+    /**
+     * Get appointments booked by the user as an employer.
+     */
+    public function employerAppointments()
+    {
+        return $this->hasMany(Appointment::class, 'employer_id');
+    }
+
+    /**
      * Get job posts created by the user.
      */
     public function jobPosts()

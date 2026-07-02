@@ -414,19 +414,11 @@
 
                              <!-- Actions -->
                              <div class="flex flex-col gap-2 mt-1">
-                                 @if($isFreelance)
-                                     <button onclick="openBookingDrawer('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}', '{{ addslashes($chef->chefProfile->cuisine_specialty ?? 'Specialist') }}', '{{ $chef->experience_range }}', '{{ $chef->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120' }}', '{{ $chef->chefProfile->calendly_link }}')"
-                                             class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-2xl shadow-sm shadow-green-500/10 transition-colors flex items-center justify-center gap-1.5">
-                                         <span class="material-symbols-outlined text-sm">event</span>
-                                         Book Consultation
-                                     </button>
-                                 @else
-                                     <button onclick="requestChefResume('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}')"
-                                             class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-xs py-2.5 rounded-2xl transition flex items-center justify-center gap-1.5">
-                                         <span class="material-symbols-outlined text-sm">download</span>
-                                         Request Resume
-                                     </button>
-                                 @endif
+                                 <button onclick="openBookingDrawer('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}', '{{ addslashes($chef->chefProfile->cuisine_specialty ?? 'Specialist') }}', '{{ $chef->experience_range }}', '{{ $chef->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120' }}', '{{ $chef->chefProfile->calendly_link }}')"
+                                         class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-2xl shadow-sm shadow-green-500/10 transition-colors flex items-center justify-center gap-1.5">
+                                     <span class="material-symbols-outlined text-sm">event</span>
+                                     Book Consultation
+                                 </button>
                                  <button onclick="openChefDetailsDrawer({{ json_encode($chef) }})"
                                          class="w-full border border-gray-100 hover:bg-gray-50 text-gray-500 hover:text-gray-800 font-extrabold text-[10px] py-2 rounded-2xl transition">
                                      View Full Profile
@@ -916,16 +908,8 @@ function openChefDetailsDrawer(chef) {
 
     // Update button action
     const actionBtn = document.getElementById('detail-action-btn');
-    const prefStr = pref.join(' ').toLowerCase();
-    const isFreelance = prefStr.includes('freelance') || prefStr.includes('consultant');
-    
-    if (isFreelance) {
-        actionBtn.textContent = 'Get Appointment';
-        actionBtn.setAttribute('onclick', `closeChefDetailsDrawer(); openBookingDrawer('${chef.id}', '${chef.full_name.replace(/'/g, "\\'")}', '${chef.chef_profile ? chef.chef_profile.cuisine_specialty : 'Specialist'}', '${chef.experience_range}', '${chef.profile_photo_path}', '${chef.chef_profile ? chef.chef_profile.calendly_link : ''}')`);
-    } else {
-        actionBtn.textContent = 'Request Resume';
-        actionBtn.setAttribute('onclick', `closeChefDetailsDrawer(); requestChefResume('${chef.id}', '${chef.full_name.replace(/'/g, "\\'")}')`);
-    }
+    actionBtn.textContent = 'Get Appointment';
+    actionBtn.setAttribute('onclick', `closeChefDetailsDrawer(); openBookingDrawer('${chef.id}', '${chef.full_name.replace(/'/g, "\\'")}', '${chef.chef_profile ? chef.chef_profile.cuisine_specialty : 'Specialist'}', '${chef.experience_range}', '${chef.profile_photo_path}', '${chef.chef_profile ? chef.chef_profile.calendly_link : ''}')`);
 
     drawer.classList.remove('hidden');
 }
@@ -973,14 +957,40 @@ function selectTimeSlot(button) {
     selectedTimeSlotText = button.textContent;
 }
 
-function confirmChefBooking() {
+async function confirmChefBooking() {
     if (!selectedTimeSlotText) {
         alert('Please select a time slot first.');
         return;
     }
 
-    alert(`Appointment successfully confirmed with Chef ${selectedChefName} for slot ${selectedTimeSlotText}!`);
-    closeBookingDrawer();
+    const purpose = document.getElementById('booking-purpose').value;
+
+    try {
+        const response = await fetch("{{ url('/') }}/appointments/book", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                chef_id: selectedChefId,
+                meeting_date: 'Monday, Oct 23',
+                meeting_time: selectedTimeSlotText,
+                purpose: purpose
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            alert(`Appointment successfully confirmed with Chef ${selectedChefName} for slot ${selectedTimeSlotText}!`);
+            closeBookingDrawer();
+        } else {
+            alert(data.message || 'Failed to book appointment.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('An error occurred while booking the appointment.');
+    }
 }
 
 function requestChefResume(chefId, name) {

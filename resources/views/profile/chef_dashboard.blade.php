@@ -117,24 +117,24 @@
                     </div>
                 </div>
                 <!-- Appointment Requests -->
-                <div class="p-3.5 flex items-center justify-between hover:bg-gray-50/50 transition cursor-pointer">
+                <div onclick="openChefAppointmentsModal()" class="p-3.5 flex items-center justify-between hover:bg-gray-50/50 transition cursor-pointer">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-gray-400 text-[18px]">event</span>
                         <span class="text-xs font-bold text-gray-700">Appointment Requests</span>
                     </div>
                     <div class="flex items-center gap-1 text-gray-400">
-                        <span class="bg-gray-100 text-gray-600 text-[9px] font-black px-2 py-0.5 rounded-full">3</span>
+                        <span id="chef-app-req-count" class="bg-green-100 text-green-800 text-[9px] font-black px-2 py-0.5 rounded-full">0</span>
                         <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                     </div>
                 </div>
                 <!-- Consultations -->
-                <div class="p-3.5 flex items-center justify-between hover:bg-gray-50/50 transition cursor-pointer">
+                <div onclick="openChefAppointmentsModal()" class="p-3.5 flex items-center justify-between hover:bg-gray-50/50 transition cursor-pointer">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-gray-400 text-[18px]">interpreter_mode</span>
                         <span class="text-xs font-bold text-gray-700">Upcoming Consultations</span>
                     </div>
                     <div class="flex items-center gap-1 text-gray-400">
-                        <span class="bg-gray-100 text-gray-600 text-[9px] font-black px-2 py-0.5 rounded-full">1</span>
+                        <span id="chef-app-up-count" class="bg-green-100 text-green-800 text-[9px] font-black px-2 py-0.5 rounded-full">0</span>
                         <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                     </div>
                 </div>
@@ -224,3 +224,103 @@
 
     </div>
 </div>
+
+<!-- Chef Appointments Drawer -->
+<div id="chef-appointments-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[80vh] border border-gray-100">
+        <!-- Header -->
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="font-outfit font-extrabold text-xs text-gray-800 uppercase tracking-wider">Booked Appointments</h3>
+            <button type="button" onclick="closeChefAppointmentsModal()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <!-- Body -->
+        <div id="chef-appointments-body" class="p-5 overflow-y-auto space-y-3.5">
+            <!-- Dynamic items loaded via ajax -->
+        </div>
+    </div>
+</div>
+
+<script>
+function closeChefAppointmentsModal() {
+    document.getElementById('chef-appointments-modal').classList.add('hidden');
+}
+
+// Close modal when clicking outside content area
+document.getElementById('chef-appointments-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeChefAppointmentsModal();
+    }
+});
+
+async function openChefAppointmentsModal() {
+    const modal = document.getElementById('chef-appointments-modal');
+    const body = document.getElementById('chef-appointments-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-6">Loading appointments...</p>';
+    modal.classList.remove('hidden');
+
+    try {
+        const response = await fetch("{{ url('/chef/appointments') }}", {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.appointments.length > 0) {
+            body.innerHTML = '';
+            data.appointments.forEach(app => {
+                const item = document.createElement('div');
+                item.className = "bg-white border border-gray-100 rounded-2xl p-4 space-y-2 text-left shadow-2xs";
+                item.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-xs text-gray-800">${app.employer_name}</h4>
+                            <p class="text-[9px] text-gray-400 font-semibold mt-0.5">📧 ${app.employer_email} • 📞 ${app.employer_phone}</p>
+                        </div>
+                        <span class="text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-green-50 text-green-700 border border-green-100">
+                            ${app.status}
+                        </span>
+                    </div>
+                    <div class="text-[10px] text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-100 leading-relaxed font-semibold">
+                        <strong>Agenda:</strong> ${app.purpose}
+                    </div>
+                    <div class="flex items-center justify-between text-[9px] text-gray-400 font-bold mt-2 pt-1 border-t border-gray-50">
+                        <span>🗓️ ${app.meeting_date}</span>
+                        <span>⏰ ${app.meeting_time}</span>
+                    </div>
+                `;
+                body.appendChild(item);
+            });
+        } else {
+            body.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-6">No appointments booked with you yet.</p>';
+        }
+    } catch (err) {
+        console.error(err);
+        body.innerHTML = '<p class="text-xs text-red-500 italic text-center py-6">Failed to load appointments list.</p>';
+    }
+}
+
+// Fetch appointment counts on load to populate badges dynamically
+async function loadAppointmentCounts() {
+    try {
+        const response = await fetch("{{ url('/chef/appointments') }}", {
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        if (data.success) {
+            const count = data.appointments.length;
+            const reqCountEl = document.getElementById('chef-app-req-count');
+            const upCountEl = document.getElementById('chef-app-up-count');
+            
+            if (reqCountEl) reqCountEl.textContent = count;
+            if (upCountEl) upCountEl.textContent = count;
+        }
+    } catch (err) {
+        console.error('Failed to load count badges:', err);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadAppointmentCounts);
+</script>

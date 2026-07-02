@@ -13,6 +13,7 @@ use App\Http\Controllers\WebJobController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\ChefOnboardingController;
+use App\Http\Controllers\AppointmentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,6 +62,10 @@ Route::middleware('auth')->group(function () {
     
     // Employer Dashboard Web View
     Route::get('/employer_dashboard', [EmployerController::class, 'index'])->name('employer.dashboard');
+
+    // Appointment Booking Routes
+    Route::post('/appointments/book', [AppointmentController::class, 'book'])->name('appointments.book');
+    Route::get('/chef/appointments', [AppointmentController::class, 'chefAppointmentsList'])->name('chef.appointments');
 });
 
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
