@@ -1467,6 +1467,19 @@
       }
 
       /* --- RESPONSIVE STYLE --- */
+      .action-circle-btn:active {
+        transform: scale(0.9);
+      }
+      .action-pill-btn:active {
+        transform: scale(0.96);
+      }
+      .talent-profile-container::-webkit-scrollbar {
+        display: none;
+      }
+      .talent-profile-container {
+        scrollbar-width: none;
+      }
+
       @media (max-width: 480px) {
         body {
           background-color: var(--bg-screen);
@@ -1710,7 +1723,92 @@
 
 
             <!-- SCREEN 2: ALL MY POSTED JOBS -->
-            <div id="screen-jobs" class="app-screen screen-hidden-right">
+            </div>
+
+
+            <!-- SCREEN 3: TALENT APPLICANTS LIST -->
+            <div id="screen-talent-list" class="app-screen screen-hidden-right">
+              <!-- Header -->
+              <header class="jobs-header">
+                <button class="back-arrow-btn" id="talent-list-back-btn" aria-label="Back to Jobs">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                </button>
+                <h1 class="jobs-header-title" id="talent-list-job-title">Job Applicants</h1>
+              </header>
+
+              <!-- Talent Status Tabs -->
+              <nav class="jobs-tabs">
+                <button class="tab-btn active" data-talent-tab="new" id="tab-talent-new">Pending (0)</button>
+                <button class="tab-btn" data-talent-tab="shortlisted" id="tab-talent-shortlisted">Shortlist (0)</button>
+                <button class="tab-btn" data-talent-tab="contacted" id="tab-talent-contacted">Contact (0)</button>
+                <button class="tab-btn" data-talent-tab="rejected" id="tab-talent-rejected">Rejected (0)</button>
+              </nav>
+
+              <!-- Applicants list container -->
+              <main class="jobs-content">
+                <div class="jobs-list" id="talent-list-container">
+                  <!-- Rendered dynamically -->
+                </div>
+              </main>
+            </div>
+
+
+            <!-- SCREEN 4: TALENT PROFILE REVIEW DETAIL -->
+            <div id="screen-talent-review" class="app-screen screen-hidden-right" style="background-color: #f8fafc;">
+              <!-- Header -->
+              <header class="jobs-header" style="margin-bottom: 8px;">
+                <button class="back-arrow-btn" id="talent-review-back-btn" aria-label="Back to List">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                </button>
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                  <h1 class="jobs-header-title" id="talent-review-job-title" style="font-size: 15px; line-height: 1.2;">Senior Head Chef</h1>
+                  <span id="talent-review-job-stats" style="font-size: 9.5px; color: var(--text-muted); margin-top: 1px;">24 Applied | 8 shortlisted...</span>
+                </div>
+              </header>
+
+              <!-- Review Progress Bar -->
+              <div style="width: 100%; height: 4px; background-color: #e2e8f0; border-radius: 2px; margin-bottom: 16px; position: relative; overflow: hidden;">
+                <div id="talent-review-progress-bar" style="height: 100%; width: 50%; background-color: var(--primary); transition: width 0.3s;"></div>
+              </div>
+
+              <!-- Profile Details scroll container -->
+              <main class="talent-profile-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 100px;">
+                <!-- Dynamically populated profile card -->
+                <div id="talent-profile-card"></div>
+              </main>
+
+              <!-- Action Sticky Bottom Bar -->
+              <div class="talent-review-action-bar" style="position: absolute; bottom: 20px; left: 0; width: 100%; padding: 0 20px; display: flex; align-items: center; gap: 14px; z-index: 50;">
+                <!-- Reject Button (Red circle cross) -->
+                <button class="action-circle-btn reject" id="btn-review-reject" style="width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid #ef4444; background: white; color: #ef4444; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm);">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+                
+                <!-- Call Button (Green pill) -->
+                <button class="action-pill-btn call" id="btn-review-call" style="flex: 1; height: 48px; border-radius: var(--radius-md); border: none; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(22,163,74,0.25);">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M6.62 10.79a15.15 15.15 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.27 11.72 11.72 0 003.79.6 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.72 11.72 0 00.6 3.79 1 1 0 01-.27 1.11z"/>
+                  </svg>
+                  <span>Call Talent</span>
+                </button>
+
+                <!-- Accept/Shortlist Button (Teal circle heart) -->
+                <button class="action-circle-btn accept" id="btn-review-accept" style="width: 48px; height: 48px; border-radius: 50%; border: none; background: #2dd4bf; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(45,212,191,0.25);">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
               <!-- Back Header -->
               <header class="jobs-header">
                 <button class="back-arrow-btn" id="jobs-back-btn" aria-label="Back to Dashboard">
@@ -1875,17 +1973,24 @@
         currentScreen: "dashboard",
         currentTab: "active",
         activeJobToClose: null,
-        activeJobForTalent: null
+        activeJobForTalent: null,
+        currentTalentTab: "new",
+        activeTalentIndex: 0,
+        activeTalentList: []
       };
 
       // --- DOM ELEMENTS ---
       const elements = {
         screenDashboard: document.getElementById("screen-dashboard"),
         screenJobs: document.getElementById("screen-jobs"),
+        screenTalentList: document.getElementById("screen-talent-list"),
+        screenTalentReview: document.getElementById("screen-talent-review"),
         
         btnMyJobs: document.getElementById("action-my-jobs"),
         btnPostJob: document.getElementById("action-post-job"),
         btnJobsBack: document.getElementById("jobs-back-btn"),
+        talentListBackBtn: document.getElementById("talent-list-back-btn"),
+        talentReviewBackBtn: document.getElementById("talent-review-back-btn"),
         
         tabActive: document.getElementById("tab-active"),
         tabPending: document.getElementById("tab-pending"),
@@ -1962,20 +2067,36 @@
 
       // --- SCREEN NAVIGATION ---
       function navigateTo(screenId) {
-        if (screenId === "jobs") {
-          elements.screenDashboard.classList.remove("active");
-          elements.screenDashboard.classList.add("screen-hidden-left");
-          
-          elements.screenJobs.classList.remove("screen-hidden-right");
-          elements.screenJobs.classList.add("active");
-          state.currentScreen = "jobs";
-        } else {
-          elements.screenJobs.classList.remove("active");
-          elements.screenJobs.classList.add("screen-hidden-right");
-          
-          elements.screenDashboard.classList.remove("screen-hidden-left");
-          elements.screenDashboard.classList.add("active");
-          state.currentScreen = "dashboard";
+        const screens = {
+          dashboard: elements.screenDashboard,
+          jobs: elements.screenJobs,
+          "talent-list": elements.screenTalentList,
+          "talent-review": elements.screenTalentReview
+        };
+
+        const order = ["dashboard", "jobs", "talent-list", "talent-review"];
+        const currentIndex = order.indexOf(state.currentScreen);
+        const targetIndex = order.indexOf(screenId);
+
+        if (targetIndex === -1) return;
+
+        for (const [key, el] of Object.entries(screens)) {
+          if (!el) continue;
+          if (key === screenId) {
+            el.className = "app-screen active";
+          } else {
+            const elIndex = order.indexOf(key);
+            if (elIndex < targetIndex) {
+              el.className = "app-screen screen-hidden-left";
+            } else {
+              el.className = "app-screen screen-hidden-right";
+            }
+          }
+        }
+
+        state.currentScreen = screenId;
+        
+        if (screenId === "dashboard") {
           updateDashboardMetrics();
         }
       }
@@ -2111,19 +2232,19 @@
             <div class="job-card-hiring">
               <div class="hiring-title">HIRING PROGRESS (${totalApps} TALENT APPLICATIONS RECEIVED)</div>
               <div class="hiring-grid">
-                <div class="hiring-col pending">
+                <div class="hiring-col pending" data-talent-tab="new" style="cursor: pointer;">
                   <span class="hiring-val">${pendingApps}</span>
                   <span class="hiring-lbl">Pending</span>
                 </div>
-                <div class="hiring-col shortlist">
+                <div class="hiring-col shortlist" data-talent-tab="shortlisted" style="cursor: pointer;">
                   <span class="hiring-val">${shortlistApps}</span>
                   <span class="hiring-lbl">Shortlist</span>
                 </div>
-                <div class="hiring-col contact">
+                <div class="hiring-col contact" data-talent-tab="contacted" style="cursor: pointer;">
                   <span class="hiring-val">${contactApps}</span>
                   <span class="hiring-lbl">Contact</span>
                 </div>
-                <div class="hiring-col reject">
+                <div class="hiring-col reject" data-talent-tab="rejected" style="cursor: pointer;">
                   <span class="hiring-val">${rejectApps}</span>
                   <span class="hiring-lbl">Rejected</span>
                 </div>
@@ -2138,6 +2259,16 @@
           
           card.querySelector(".btn-view-talent").addEventListener("click", () => {
             openTalentModal(job.id);
+          });
+
+          card.querySelectorAll(".hiring-col").forEach(col => {
+            col.addEventListener("click", () => {
+              state.activeJobForTalent = job.id;
+              const tab = col.getAttribute("data-talent-tab");
+              state.currentTalentTab = tab;
+              renderTalentList();
+              navigateTo("talent-list");
+            });
           });
           
           const closeBtn = card.querySelector(".btn-close-job");
@@ -2154,72 +2285,256 @@
 
       // --- AJAX VIEW TALENT DIALOG ---
       function openTalentModal(jobId) {
-        const job = state.jobs.find(j => j.id === jobId);
-        if (!job) return;
-        
         state.activeJobForTalent = jobId;
-        elements.talentModalTitle.textContent = `${job.title} Applicants`;
-        elements.talentModalSubtitle.textContent = `Hiring progress for job opening in ${job.location}`;
-        
-        renderTalentApplicantsList();
-        openModal(elements.modalViewTalent);
+        state.currentTalentTab = "new";
+        renderTalentList();
+        navigateTo("talent-list");
       }
 
-      function renderTalentApplicantsList() {
+      function renderTalentList() {
         const job = state.jobs.find(j => j.id === state.activeJobForTalent);
         if (!job) return;
+
+        // Update Job Title header
+        document.getElementById("talent-list-job-title").textContent = job.title;
+
+        // Count for each status tab
+        const pendingCount = job.applicants.filter(a => a.status === 'new' || a.status === 'pending').length;
+        const shortlistCount = job.applicants.filter(a => a.status === 'shortlisted').length;
+        const contactCount = job.applicants.filter(a => a.status === 'contacted').length;
+        const rejectCount = job.applicants.filter(a => a.status === 'rejected').length;
+
+        document.getElementById("tab-talent-new").textContent = `Pending (${pendingCount})`;
+        document.getElementById("tab-talent-shortlisted").textContent = `Shortlist (${shortlistCount})`;
+        document.getElementById("tab-talent-contacted").textContent = `Contact (${contactCount})`;
+        document.getElementById("tab-talent-rejected").textContent = `Rejected (${rejectCount})`;
+
+        // Active tab check
+        document.querySelectorAll("[data-talent-tab]").forEach(btn => {
+          const tab = btn.getAttribute("data-talent-tab");
+          btn.classList.toggle("active", tab === state.currentTalentTab);
+        });
+
+        // Filter applicants based on tab
+        let filteredApplicants = [];
+        if (state.currentTalentTab === 'new') {
+          filteredApplicants = job.applicants.filter(a => a.status === 'new' || a.status === 'pending');
+        } else {
+          filteredApplicants = job.applicants.filter(a => a.status === state.currentTalentTab);
+        }
+
+        state.activeTalentList = filteredApplicants;
+
+        const container = document.getElementById("talent-list-container");
+        container.innerHTML = "";
+
+        if (filteredApplicants.length === 0) {
+          container.innerHTML = `
+            <div class="jobs-empty-state">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+              </svg>
+              <h3>No candidates in this list</h3>
+              <p>Applicants under this category will show up here.</p>
+            </div>
+          `;
+          return;
+        }
+
+        filteredApplicants.forEach((app, idx) => {
+          const initials = app.name.split(" ").map(n => n[0]).join("").toUpperCase();
+          const card = document.createElement("div");
+          card.className = "job-card";
+          card.style.cursor = "pointer";
+          card.style.padding = "16px";
+          card.style.flexDirection = "row";
+          card.style.alignItems = "center";
+          card.style.gap = "14px";
+
+          card.innerHTML = `
+            <div style="width: 42px; height: 42px; border-radius: 50%; background-color: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 13px;">
+              ${initials}
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column;">
+              <h3 style="font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-main);">${app.name}</h3>
+              <span style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                ${app.experience_range} &bull; ${app.city}
+              </span>
+            </div>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--text-light)" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          `;
+
+          card.addEventListener("click", () => {
+            state.activeTalentIndex = idx;
+            renderTalentReview();
+            navigateTo("talent-review");
+          });
+
+          container.appendChild(card);
+        });
+      }
+
+      function renderTalentReview() {
+        const job = state.jobs.find(j => j.id === state.activeJobForTalent);
+        const app = state.activeTalentList[state.activeTalentIndex];
+        if (!job || !app) return;
+
+        // Set header stats
+        document.getElementById("talent-review-job-title").textContent = job.title;
         
+        const total = job.applicants.length;
         const pending = job.applicants.filter(a => a.status === 'new' || a.status === 'pending').length;
         const shortlist = job.applicants.filter(a => a.status === 'shortlisted').length;
         const contact = job.applicants.filter(a => a.status === 'contacted').length;
         const reject = job.applicants.filter(a => a.status === 'rejected').length;
         
-        document.getElementById("talent-sum-pending").textContent = pending;
-        document.getElementById("talent-sum-shortlist").textContent = shortlist;
-        document.getElementById("talent-sum-contact").textContent = contact;
-        document.getElementById("talent-sum-reject").textContent = reject;
+        document.getElementById("talent-review-job-stats").textContent = 
+          `${total} Applied | ${shortlist} shortlisted | ${contact} contacted | ${reject} rejected | ${pending} pending`;
+
+        // Update progress bar
+        const progressPercent = ((state.activeTalentIndex + 1) / state.activeTalentList.length) * 100;
+        document.getElementById("talent-review-progress-bar").style.width = `${progressPercent}%`;
+
+        // Match percentage calculation
+        const matchPercent = 80 + (app.id % 16);
+        const initials = app.name.split(" ").map(n => n[0]).join("").toUpperCase();
+
+        const experience = app.experience_range !== 'N/A' ? app.experience_range : 'No Experience info';
+        const currentEmployer = app.current_employer !== 'N/A' ? app.current_employer : 'Not Employed';
         
-        const container = document.getElementById("applicants-list-container");
-        container.innerHTML = "";
-        
-        if (job.applicants.length === 0) {
-          container.innerHTML = `<div class="applicant-card-empty">No candidates have applied yet for this job role.</div>`;
-          return;
+        let bio = app.bio;
+        if (!bio || bio.trim() === "") {
+          bio = `Experienced hospitality professional with ${experience.toLowerCase()} experience in premium hotels and restaurants. Fluent in English with strong coordination and operational capabilities.`;
         }
-        
-        job.applicants.forEach(app => {
-          const initials = app.name.split(" ").map(n => n[0]).join("").toUpperCase();
-          const card = document.createElement("div");
-          card.className = "applicant-card";
-          
-          card.innerHTML = `
-            <div class="applicant-card-top">
-              <div class="applicant-avatar-circle">${initials}</div>
-              <div class="applicant-info">
-                <span class="applicant-name">${app.name}</span>
-                <span class="applicant-meta">Applied on ${app.applied_date}</span>
+
+        const prefLocation = app.city !== 'N/A' ? `${app.city}, Mumbai, Dubai, Riyadh` : 'Mumbai, Kolkata, Dubai, Riyadh';
+        const callbackTime = '9:00 AM - 12:00 PM';
+        const prefLanguage = 'English';
+
+        let skillsTags = '';
+        if (app.skills && app.skills.length > 0) {
+          app.skills.forEach(skill => {
+            skillsTags += `<span style="background-color: #f1f5f9; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 11px; color: var(--text-muted); font-weight: 500;">${skill}</span>`;
+          });
+        } else {
+          skillsTags = '<span style="font-size: 11px; color: var(--text-muted); font-style: italic;">No skills listed</span>';
+        }
+
+        const categories = ['Restaurant Operations', 'Kitchen Production'];
+        let categoryTags = '';
+        categories.forEach(cat => {
+          categoryTags += `<span style="background-color: #f1f5f9; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 11px; color: var(--text-muted); font-weight: 500;">${cat}</span>`;
+        });
+
+        const specialties = [];
+        if (app.cuisine_specialty) {
+          specialties.push(app.cuisine_specialty);
+        }
+        specialties.push('Continental Cuisine', 'Bakery');
+        let specializationTags = '';
+        specialties.forEach(spec => {
+          specializationTags += `<span style="background-color: #f1f5f9; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 11px; color: var(--text-muted); font-weight: 500;">${spec}</span>`;
+        });
+
+        const profileCardContainer = document.getElementById("talent-profile-card");
+        profileCardContainer.innerHTML = `
+          <div style="background-color: white; border-radius: var(--radius-lg); border: 1px solid var(--border-color); padding: 20px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column;">
+            
+            <!-- Avatar & Match -->
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+              <div style="width: 58px; height: 58px; border-radius: 50%; background-color: #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 18px; text-transform: uppercase;">
+                ${initials}
               </div>
-              <span class="applicant-status-badge ${app.status === 'new' ? 'pending' : app.status}">
-                ${app.status === 'new' ? 'PENDING' : app.status.toUpperCase()}
+              <div style="flex: 1; display: flex; flex-direction: column;">
+                <h2 style="font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-main);">${app.name}</h2>
+                <span style="font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  ${app.city}
+                </span>
+              </div>
+              <span style="background-color: #d1fae5; color: #065f46; font-size: 10px; font-weight: 700; padding: 6px 12px; border-radius: 20px;">
+                ${matchPercent}% Match
               </span>
             </div>
-            <div class="applicant-actions">
-              ${app.status !== 'shortlisted' ? `<button class="applicant-action-btn btn-sh" data-id="${app.id}" data-action="shortlisted">Shortlist</button>` : ''}
-              ${app.status !== 'contacted' ? `<button class="applicant-action-btn btn-ct" data-id="${app.id}" data-action="contacted">Contact</button>` : ''}
-              ${app.status !== 'rejected' ? `<button class="applicant-action-btn btn-rj" data-id="${app.id}" data-action="rejected">Reject</button>` : ''}
+
+            <!-- Experience & Current Employer -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+              <div style="background-color: #f8fafc; border-radius: var(--radius-md); padding: 12px 14px; border: 1px solid var(--border-color);">
+                <span style="font-size: 8.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Experience</span>
+                <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-top: 4px;">${experience}</div>
+              </div>
+              <div style="background-color: #f8fafc; border-radius: var(--radius-md); padding: 12px 14px; border: 1px solid var(--border-color);">
+                <span style="font-size: 8.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Current Employer</span>
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${currentEmployer}">${currentEmployer}</div>
+              </div>
             </div>
-          `;
-          
-          card.querySelectorAll(".applicant-action-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-              const appId = parseInt(btn.getAttribute("data-id"));
-              const newStatus = btn.getAttribute("data-action");
-              ajaxUpdateApplicantStatus(appId, newStatus);
-            });
-          });
-          
-          container.appendChild(card);
-        });
+
+            <!-- Bio quotes -->
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 20px; font-style: italic; font-size: 12px; color: #166534; line-height: 1.5;">
+              "${bio}"
+            </div>
+
+            <!-- Details List -->
+            <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; padding-left: 2px;">
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <svg style="color: #94a3b8; flex-shrink: 0; margin-top: 1px;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 8.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Preferred Location</span>
+                  <span style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 1px;">${prefLocation}</span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <svg style="color: #94a3b8; flex-shrink: 0; margin-top: 1px;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 8.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Preferred Callback Time</span>
+                  <span style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 1px;">${callbackTime}</span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <svg style="color: #94a3b8; flex-shrink: 0; margin-top: 1px;" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 8.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Preferred Language</span>
+                  <span style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 1px;">${prefLanguage}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chips -->
+            <div style="margin-bottom: 16px;">
+              <h3 style="font-size: 9.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.3px;">Skills</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                ${skillsTags}
+              </div>
+            </div>
+            <div style="margin-bottom: 16px;">
+              <h3 style="font-size: 9.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.3px;">Job Category</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                ${categoryTags}
+              </div>
+            </div>
+            <div>
+              <h3 style="font-size: 9.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.3px;">Talent Specialization</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                ${specializationTags}
+              </div>
+            </div>
+
+          </div>
+        `;
       }
 
       // --- AJAX DATABASE PERSISTENCE CALLS ---
@@ -2249,9 +2564,32 @@
             showToast(data.message, "success");
             
             // Re-render components
-            renderTalentApplicantsList();
             renderJobs();
             updateDashboardMetrics();
+
+            // If we are currently in the talent review screen
+            if (state.currentScreen === "talent-review") {
+              const job = state.jobs.find(j => j.id === state.activeJobForTalent);
+              let filteredApplicants = [];
+              if (state.currentTalentTab === 'new') {
+                filteredApplicants = job.applicants.filter(a => a.status === 'new' || a.status === 'pending');
+              } else {
+                filteredApplicants = job.applicants.filter(a => a.status === state.currentTalentTab);
+              }
+              state.activeTalentList = filteredApplicants;
+
+              if (state.activeTalentList.length === 0) {
+                renderTalentList();
+                navigateTo("talent-list");
+              } else {
+                if (state.activeTalentIndex >= state.activeTalentList.length) {
+                  state.activeTalentIndex = state.activeTalentList.length - 1;
+                }
+                renderTalentReview();
+              }
+            } else if (state.currentScreen === "talent-list") {
+              renderTalentList();
+            }
           } else {
             showToast("Failed to update status.", "error");
           }
@@ -2370,6 +2708,16 @@
         navigateTo("dashboard");
       });
 
+      elements.talentListBackBtn.addEventListener("click", () => {
+        renderJobs();
+        navigateTo("jobs");
+      });
+
+      elements.talentReviewBackBtn.addEventListener("click", () => {
+        renderTalentList();
+        navigateTo("talent-list");
+      });
+
       // Tabs
       elements.tabActive.addEventListener("click", () => {
         state.currentTab = "active";
@@ -2384,6 +2732,46 @@
       elements.tabClosed.addEventListener("click", () => {
         state.currentTab = "closed";
         renderJobs();
+      });
+
+      // Talent List Tabs
+      document.getElementById("tab-talent-new").addEventListener("click", () => {
+        state.currentTalentTab = "new";
+        renderTalentList();
+      });
+
+      document.getElementById("tab-talent-shortlisted").addEventListener("click", () => {
+        state.currentTalentTab = "shortlisted";
+        renderTalentList();
+      });
+
+      document.getElementById("tab-talent-contacted").addEventListener("click", () => {
+        state.currentTalentTab = "contacted";
+        renderTalentList();
+      });
+
+      document.getElementById("tab-talent-rejected").addEventListener("click", () => {
+        state.currentTalentTab = "rejected";
+        renderTalentList();
+      });
+
+      // Talent Review Action Bar Clicks
+      document.getElementById("btn-review-reject").addEventListener("click", () => {
+        const app = state.activeTalentList[state.activeTalentIndex];
+        if (app) ajaxUpdateApplicantStatus(app.id, 'rejected');
+      });
+
+      document.getElementById("btn-review-call").addEventListener("click", () => {
+        const app = state.activeTalentList[state.activeTalentIndex];
+        if (app) {
+          window.location.href = `tel:${app.mobile_number}`;
+          ajaxUpdateApplicantStatus(app.id, 'contacted');
+        }
+      });
+
+      document.getElementById("btn-review-accept").addEventListener("click", () => {
+        const app = state.activeTalentList[state.activeTalentIndex];
+        if (app) ajaxUpdateApplicantStatus(app.id, 'shortlisted');
       });
 
       // FAB Buttons
