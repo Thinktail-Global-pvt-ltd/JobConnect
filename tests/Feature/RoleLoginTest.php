@@ -121,6 +121,39 @@ class RoleLoginTest extends TestCase
     }
 
     /**
+     * Test verify otp for chef redirects correctly.
+     */
+    public function test_verify_otp_for_chef_redirects_correctly(): void
+    {
+        // 1. Submit login to generate OTP
+        $this->post('/api/login', [
+            'mobile_number' => '9999999998',
+            'login_role' => 'chef',
+        ]);
+
+        $cachedOtp = Cache::get('web_otp_9999999998');
+        $this->assertNotNull($cachedOtp);
+
+        // 2. Submit OTP verify
+        $response = $this->post('/api/verify-otp', [
+            'mobile_number' => '9999999998',
+            'otp' => $cachedOtp,
+            'login_role' => 'chef',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'success' => true,
+        ]);
+        
+        // Assert user was created and has active chef role
+        $user = User::where('mobile_number', '9999999998')->first();
+        $this->assertNotNull($user);
+        $this->assertTrue($user->hasActiveRole(UserRole::ROLE_CHEF));
+        $this->assertFalse($user->hasActiveRole(UserRole::ROLE_EMPLOYER));
+    }
+
+    /**
      * Test JSON response format for submit login.
      */
     public function test_submit_login_returns_json_when_requested(): void

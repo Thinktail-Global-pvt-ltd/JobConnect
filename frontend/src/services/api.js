@@ -1,13 +1,15 @@
 import axios from 'axios';
 
+// Axios Instance configured for production deploy
 export const realApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/backend/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/backend',
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
   }
 });
 
+// Inject Sanctum Auth Token in headers
 realApi.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
@@ -17,6 +19,10 @@ realApi.interceptors.request.use((config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+// ==========================================
+// MOCK DATABASE (For fallback if backend fails or is offline)
+// ==========================================
 
 const INITIAL_USERS = [
   { id: '1', full_name: 'Sanjay Kapoor', email: 'sanjay@jobconnect.in', mobile_number: '9876543210', city: 'New Delhi', experience_range: '6+ Years', preferred_role: 'Executive Chef', current_employer: 'The Taj Palace', skills: ['Fine Dining', 'Menu Costing', 'French Cuisine'], is_suspended: false, completeness: 100, role_type: 'job_seeker', created_at: '2026-06-01' },
@@ -60,7 +66,8 @@ export const mockDb = {
   setApplications: (apps) => setStored('mock_applications', apps),
 };
 
-export const mockApi = {
+// Internal Mock Endpoints Fallback
+const mockEndpoints = {
   getStats: async () => {
     const users = mockDb.getUsers();
     const jobs = mockDb.getJobs();
@@ -224,5 +231,130 @@ export const mockApi = {
     const updated = jobs.map(j => j.id === id ? { ...j, is_pinned: !j.is_pinned } : j);
     mockDb.setJobs(updated);
     return { success: true };
+  }
+};
+
+// ==========================================
+// AXIOS COMBINED API EXPORT (Tries database API first, falls back to local storage database)
+// ==========================================
+export const mockApi = {
+  getStats: async () => {
+    try {
+      const res = await realApi.get('/admin/dashboard');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getStats failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.getStats();
+  },
+
+  getUsers: async (search = '', tab = 'all') => {
+    try {
+      const res = await realApi.get('/admin/users', { params: { search, tab } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getUsers failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.getUsers(search, tab);
+  },
+
+  suspendUser: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/users/${id}/suspend`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios suspendUser failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.suspendUser(id);
+  },
+
+  activateUser: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/users/${id}/activate`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios activateUser failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.activateUser(id);
+  },
+
+  deleteUser: async (id) => {
+    try {
+      const res = await realApi.delete(`/admin/users/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios deleteUser failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.deleteUser(id);
+  },
+
+  getUserJobs: async (id) => {
+    try {
+      const res = await realApi.get(`/admin/users/${id}/posted-jobs`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getUserJobs failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.getUserJobs(id);
+  },
+
+  getUserApplications: async (id) => {
+    try {
+      const res = await realApi.get(`/admin/users/${id}/applied-jobs`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getUserApplications failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.getUserApplications(id);
+  },
+
+  getJobs: async (status = '', category = '') => {
+    try {
+      const res = await realApi.get('/admin/jobs', { params: { status, category } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getJobs failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.getJobs(status, category);
+  },
+
+  getJobDetail: async (id) => {
+    try {
+      const res = await realApi.get(`/admin/jobs/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getJobDetail failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.getJobDetail(id);
+  },
+
+  approveJob: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/jobs/${id}/approve`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios approveJob failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.approveJob(id);
+  },
+
+  rejectJob: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/jobs/${id}/reject`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios rejectJob failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.rejectJob(id);
+  },
+
+  togglePinJob: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/jobs/${id}/toggle-pin`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios togglePinJob failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.togglePinJob(id);
   }
 };

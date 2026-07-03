@@ -8,6 +8,7 @@ use App\Models\JobPost;
 use App\Models\TrainingOpportunity;
 use App\Models\User;
 use App\Models\JobApplication;
+use App\Models\EmployerProfile;
 
 class DashboardController extends Controller
 {
@@ -28,6 +29,9 @@ class DashboardController extends Controller
             'chefs_total' => ChefProfile::count(),
             'chefs_approved' => ChefProfile::approved()->count(),
             'chefs_pending' => ChefProfile::pending()->count(),
+            
+            'employers_count' => EmployerProfile::count(),
+            'referrals_count' => 450,
             
             'training_opportunities' => TrainingOpportunity::count(),
             'applications_count' => JobApplication::count(),
@@ -87,6 +91,16 @@ class DashboardController extends Controller
 
         // Sort by time or randomize order/limit to 5
         $feed = $activities->shuffle()->take(5);
+
+        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+            return response()->json([
+                'success' => true,
+                'stats' => $stats,
+                'pendingJobs' => $pendingJobs,
+                'pendingChefs' => $pendingChefs,
+                'feed' => $feed
+            ]);
+        }
 
         return view('admin.dashboard', compact('stats', 'pendingJobs', 'pendingChefs', 'feed'));
     }

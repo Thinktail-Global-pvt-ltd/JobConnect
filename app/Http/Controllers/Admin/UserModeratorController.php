@@ -36,6 +36,19 @@ class UserModeratorController extends Controller
 
         $users = $query->latest()->paginate(15);
 
+        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+            return response()->json([
+                'success' => true,
+                'users' => $users->items(),
+                'pagination' => [
+                    'total' => $users->total(),
+                    'per_page' => $users->perPage(),
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                ]
+            ]);
+        }
+
         return view('admin.users', compact('users'));
     }
 
@@ -49,6 +62,13 @@ class UserModeratorController extends Controller
         // Revoke all existing Sanctum auth tokens to log them out immediately
         $user->tokens()->delete();
 
+        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "User account {$user->mobile_number} has been suspended successfully."
+            ]);
+        }
+
         return redirect()->back()->with('success', "User account {$user->mobile_number} has been suspended successfully.");
     }
 
@@ -58,6 +78,13 @@ class UserModeratorController extends Controller
     public function activate(User $user)
     {
         $user->update(['is_suspended' => false]);
+
+        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "User account {$user->mobile_number} has been activated successfully."
+            ]);
+        }
 
         return redirect()->back()->with('success', "User account {$user->mobile_number} has been activated successfully.");
     }
@@ -105,6 +132,13 @@ class UserModeratorController extends Controller
     {
         $userName = $user->full_name ?? $user->mobile_number;
         $user->delete(); // This deletes the user, cascading down to related tables
+
+        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "User account {$userName} has been permanently deleted from the database."
+            ]);
+        }
 
         return redirect()->back()->with('success', "User account {$userName} has been permanently deleted from the database.");
     }

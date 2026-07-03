@@ -1,8 +1,60 @@
-import React from 'react';
-import { Users, Briefcase, FileText, ArrowRight, Share2, ClipboardList, Clock } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, Briefcase, FileText, Share2, ClipboardList, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { mockApi } from '../services/api';
 
 export default function Dashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await mockApi.getStats();
+        setData(res);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadStats();
+  }, []);
+
+  const formatDescription = (text) => {
+    if (!text) return '';
+    // Highlight any text inside single quotes in emerald green
+    const parts = text.split(/'([^']+)'/g);
+    return parts.map((part, i) => {
+      if (i % 2 === 1) {
+        return <span key={i} className="font-bold text-[#059669]">{part}</span>;
+      }
+      return part;
+    });
+  };
+
+  const getInitials = (text) => {
+    if (!text) return 'AC';
+    return text
+      .split(' ')
+      .map(w => w[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  if (loading || !data) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-sm font-bold text-slate-400 animate-pulse">Loading Dashboard Analytics...</p>
+      </div>
+    );
+  }
+
+  const stats = data.stats;
+  const pendingJobs = data.pendingJobs || [];
+  const feed = data.feed || [];
+
   return (
     <div className="space-y-6">
       {/* Title & Topbar Actions */}
@@ -12,7 +64,7 @@ export default function Dashboard() {
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Real-time performance metrics for the JobConnect platform.</p>
         </div>
         <div className="flex items-center gap-2.5">
-          <button className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm">
+          <button className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-55 hover:bg-slate-50 transition-all shadow-sm">
             📅 Last 30 Days
           </button>
           <button className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 flex items-center gap-2 transition-all hover:-translate-y-0.5">
@@ -36,7 +88,9 @@ export default function Dashboard() {
           </div>
           <div className="mt-4">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Users</span>
-            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">12,450</span>
+            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
+              {Number(stats.users_count).toLocaleString()}
+            </span>
           </div>
           <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
             <div className="bg-[#10b981] h-full rounded-full w-[70%]"></div>
@@ -55,7 +109,9 @@ export default function Dashboard() {
           </div>
           <div className="mt-4">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Employers</span>
-            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">840</span>
+            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
+              {Number(stats.employers_count || 840).toLocaleString()}
+            </span>
           </div>
           <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
             <div className="bg-[#0f766e] h-full rounded-full w-[45%]"></div>
@@ -74,7 +130,9 @@ export default function Dashboard() {
           </div>
           <div className="mt-4">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Jobs</span>
-            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">1,200</span>
+            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
+              {Number(stats.jobs_total).toLocaleString()}
+            </span>
           </div>
           <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
             <div className="bg-[#b91c1c] h-full rounded-full w-[60%]"></div>
@@ -93,7 +151,9 @@ export default function Dashboard() {
           </div>
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Referrals</span>
-            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">450</span>
+            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
+              {Number(stats.referrals_count || 450).toLocaleString()}
+            </span>
           </div>
         </div>
 
@@ -104,7 +164,9 @@ export default function Dashboard() {
           </div>
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Chef Profiles</span>
-            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">2,100</span>
+            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
+              {Number(stats.chefs_total).toLocaleString()}
+            </span>
           </div>
         </div>
 
@@ -115,7 +177,9 @@ export default function Dashboard() {
           </div>
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Applications</span>
-            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">5,600</span>
+            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
+              {Number(stats.applications_count).toLocaleString()}
+            </span>
           </div>
         </div>
 
@@ -143,7 +207,7 @@ export default function Dashboard() {
                 <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-[#10b981] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
-                      14
+                      {pendingJobs.length || stats.jobs_pending || 0}
                     </div>
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">Jobs Awaiting Approval</span>
@@ -159,7 +223,7 @@ export default function Dashboard() {
                 <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-[#06b6d4] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
-                      8
+                      {stats.chefs_pending || 8}
                     </div>
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">Chef Profiles Awaiting Approval</span>
@@ -175,7 +239,7 @@ export default function Dashboard() {
                 <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-[#f97316] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
-                      3
+                      {stats.training_opportunities || 3}
                     </div>
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">Training & Overseas Drafts</span>
@@ -201,57 +265,23 @@ export default function Dashboard() {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Item 1 */}
-                <div className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-                    JS
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-                      Jordan Smith approved a new job listing: <span className="font-bold text-[#059669]">Executive Chef at Grand Plaza</span>
-                    </p>
-                    <span className="text-[10px] font-bold text-slate-400 block mt-1">2 minutes ago</span>
-                  </div>
-                </div>
-
-                {/* Item 2 */}
-                <div className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-                    SC
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-                      Sarah Chen rejected a Chef Profile application: <span className="font-bold text-rose-500">ID #22409 (Missing Docs)</span>
-                    </p>
-                    <span className="text-[10px] font-bold text-slate-400 block mt-1">15 minutes ago</span>
-                  </div>
-                </div>
-
-                {/* Item 3 */}
-                <div className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-                    MT
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-                      Marcus Thorne updated the <span className="font-bold text-amber-600">Overseas Hospitality Internship</span> banner.
-                    </p>
-                    <span className="text-[10px] font-bold text-slate-400 block mt-1">1 hour ago</span>
-                  </div>
-                </div>
-
-                {/* Item 4 */}
-                <div className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-                    EV
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-                      Elena Vance flagged a community post for <span className="font-bold text-slate-700">Policy Violation #882</span>.
-                    </p>
-                    <span className="text-[10px] font-bold text-slate-400 block mt-1">3 hours ago</span>
-                  </div>
-                </div>
+                {feed.length === 0 ? (
+                  <p className="text-xs font-semibold text-slate-400 text-center py-6">No recent actions logged.</p>
+                ) : (
+                  feed.map((act, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                        {getInitials(act.description?.split(':')[0] || act.title)}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                          {formatDescription(act.description)}
+                        </p>
+                        <span className="text-[10px] font-bold text-slate-400 block mt-1">{act.time}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

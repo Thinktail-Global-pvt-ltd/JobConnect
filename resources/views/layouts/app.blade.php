@@ -177,9 +177,20 @@
                     } else if (data.success) {
                         const action = form.getAttribute('action') || '';
                         if (action.includes('/api/login')) {
-                            const mobileVal = form.querySelector('[name="mobile_number"]')?.value || '';
-                            const roleVal = form.querySelector('[name="login_role"]:checked')?.value || 'job_seeker';
-                            window.location.href = '/verify-otp?mobile=' + encodeURIComponent(mobileVal) + '&login_role=' + encodeURIComponent(roleVal);
+                            if (data.message === 'Already logged in.' && data.user) {
+                                const roleVal = form.querySelector('[name="login_role"]:checked')?.value || 'job_seeker';
+                                if (roleVal === 'employer') {
+                                    window.location.href = data.user.employer_profile && data.user.employer_profile.is_completed ? '/profile?section=my_posted_jobs' : '/employer/onboarding';
+                                } else if (roleVal === 'chef') {
+                                    window.location.href = data.user.chef_profile ? '/profile' : '/chef/onboarding';
+                                } else {
+                                    window.location.href = '/';
+                                }
+                            } else {
+                                const mobileVal = form.querySelector('[name="mobile_number"]')?.value || '';
+                                const roleVal = form.querySelector('[name="login_role"]:checked')?.value || 'job_seeker';
+                                window.location.href = '/verify-otp?mobile=' + encodeURIComponent(mobileVal) + '&login_role=' + encodeURIComponent(roleVal);
+                            }
                         } else if (action.includes('/api/verify-otp')) {
                             const params = new URLSearchParams(window.location.search);
                             const roleVal = params.get('login_role') || 'job_seeker';
@@ -188,6 +199,12 @@
                                     window.location.href = '/profile?section=my_posted_jobs';
                                 } else {
                                     window.location.href = '/employer/onboarding';
+                                }
+                            } else if (roleVal === 'chef') {
+                                if (data.has_completed_onboarding) {
+                                    window.location.href = '/profile';
+                                } else {
+                                    window.location.href = '/chef/onboarding';
                                 }
                             } else {
                                 window.location.href = '/';
