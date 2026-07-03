@@ -19,6 +19,7 @@ import Employers from "./admin/Employers";
 import EmployerDetail from "./admin/EmployerDetail";
 import Enquiries from "./admin/Enquiries";
 import Settings from "./admin/Settings";
+import Applications from "./admin/Applications";
 import Layout from "./admin/Layout";
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
           <Route path="/admin/employers/:id" element={<Layout><EmployerDetail /></Layout>} />
           <Route path="/admin/enquiries" element={<Layout><Enquiries /></Layout>} />
           <Route path="/admin/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/admin/applications" element={<Layout><Applications /></Layout>} />
         </Routes>
       </BrowserRouter>
     </div>

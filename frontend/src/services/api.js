@@ -231,6 +231,31 @@ const mockEndpoints = {
     const updated = jobs.map(j => j.id === id ? { ...j, is_pinned: !j.is_pinned } : j);
     mockDb.setJobs(updated);
     return { success: true };
+  },
+
+  getApplications: async (status = '') => {
+    let apps = mockDb.getApplications();
+    const users = mockDb.getUsers();
+    const jobs = mockDb.getJobs();
+
+    if (status) {
+      apps = apps.filter(a => a.status === status);
+    }
+
+    const appsFull = apps.map(a => ({
+      ...a,
+      applicant: users.find(u => u.id === a.applicant_id) || { full_name: 'Unknown User', mobile_number: 'N/A', email: 'N/A' },
+      job_post: jobs.find(j => j.id === a.job_post_id) || { title: 'Unknown Job', company: 'Unknown Company' }
+    }));
+
+    return { success: true, applications: appsFull };
+  },
+
+  updateApplicationStatus: async (id, status) => {
+    const apps = mockDb.getApplications();
+    const updated = apps.map(a => a.id === id ? { ...a, status } : a);
+    mockDb.setApplications(updated);
+    return { success: true };
   }
 };
 
@@ -356,5 +381,25 @@ export const mockApi = {
       console.warn("Axios togglePinJob failed, fallback to mock DB", e);
     }
     return mockEndpoints.togglePinJob(id);
+  },
+
+  getApplications: async (status = '') => {
+    try {
+      const res = await realApi.get('/admin/applications', { params: { status } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getApplications failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.getApplications(status);
+  },
+
+  updateApplicationStatus: async (id, status) => {
+    try {
+      const res = await realApi.post(`/admin/applications/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios updateApplicationStatus failed, fallback to mock DB", e);
+    }
+    return mockEndpoints.updateApplicationStatus(id, status);
   }
 };
