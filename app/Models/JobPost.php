@@ -19,6 +19,8 @@ class JobPost extends Model
         'description',
         'status', // pending, approved, rejected
         'is_pinned',
+        'is_referral',          // true if submitted as a referral
+        'submitted_by_role',    // jobseeker, chef, employer, agency
         'country',
         'visa_assistance',
         'accommodation_available',
@@ -33,11 +35,12 @@ class JobPost extends Model
     ];
 
     protected $casts = [
-        'is_pinned' => 'boolean',
-        'visa_assistance' => 'boolean',
+        'is_pinned'               => 'boolean',
+        'is_referral'             => 'boolean',
+        'visa_assistance'         => 'boolean',
         'accommodation_available' => 'boolean',
-        'requirements' => 'array',
-        'benefits' => 'array',
+        'requirements'            => 'array',
+        'benefits'                => 'array',
     ];
 
     /**
