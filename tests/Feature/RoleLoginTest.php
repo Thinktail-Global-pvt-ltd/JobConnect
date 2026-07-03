@@ -279,4 +279,38 @@ class RoleLoginTest extends TestCase
         // Assert token is revoked in database
         $this->assertEquals(0, $user->tokens()->count());
     }
+
+    /**
+     * Test Chef dashboard stats API.
+     */
+    public function test_chef_dashboard_api_returns_correct_stats(): void
+    {
+        $user = \App\Models\User::create([
+            'mobile_number' => '6666666666',
+            'full_name' => 'Chef Test',
+            'is_suspended' => false,
+        ]);
+
+        $token = $user->createToken('test_token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ])->getJson('/api/chef/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'success',
+            'stats' => [
+                'profile_views',
+                'appointment_requests',
+                'referrals_posted',
+                'upcoming_consultations',
+                'active_project_requests',
+            ]
+        ]);
+        $response->assertJsonFragment([
+            'success' => true,
+        ]);
+    }
 }

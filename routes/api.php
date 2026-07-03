@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Submission Routes
     Route::post('/jobs', [JobPostController::class, 'store']);
     Route::post('/chefs', [ChefProfileController::class, 'store']);
+    Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);
 
     // Chef Connect Appointment Routes
     Route::post('/appointments/book', [AppointmentController::class, 'book']);
