@@ -401,5 +401,49 @@ export const mockApi = {
       console.warn("Axios updateApplicationStatus failed, fallback to mock DB", e);
     }
     return mockEndpoints.updateApplicationStatus(id, status);
+  },
+
+  // ==========================================
+  // REFERRAL MODERATION APIs (live Laravel backend)
+  // ==========================================
+  getReferrals: async (status = '', search = '') => {
+    try {
+      const res = await realApi.get('/admin/referrals', { params: { status, search } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getReferrals failed", e);
+    }
+    // fallback — empty list so UI stays consistent
+    return { success: true, referrals: [], stats: { total: 0, pending: 0, approved: 0, rejected: 0 } };
+  },
+
+  approveReferral: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/referrals/${id}/approve`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios approveReferral failed", e);
+    }
+    return { success: false };
+  },
+
+  rejectReferral: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/referrals/${id}/reject`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios rejectReferral failed", e);
+    }
+    return { success: false };
+  },
+
+  deleteReferral: async (id) => {
+    try {
+      const res = await realApi.delete(`/admin/referrals/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios deleteReferral failed", e);
+    }
+    return { success: false };
   }
 };

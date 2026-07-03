@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UserModeratorController;
 use App\Http\Controllers\Admin\JobModeratorController;
 use App\Http\Controllers\Admin\ChefModeratorController;
 use App\Http\Controllers\Admin\TrainingController;
+use App\Http\Controllers\Admin\ReferralController;
 use App\Http\Controllers\WebAuthController;
 use App\Http\Controllers\WebRoleController;
 use App\Http\Controllers\WebProfileController;
@@ -136,4 +137,10 @@ Route::prefix('admin')->group(function () {
     Route::post('/training', [TrainingController::class, 'store']);
     Route::put('/training/{program}', [TrainingController::class, 'update']);
     Route::delete('/training/{program}', [TrainingController::class, 'destroy']);
+
+    // Referral Moderation Routes
+    Route::get('/referrals', [ReferralController::class, 'index']);
+    Route::post('/referrals/{id}/approve', [ReferralController::class, 'approve']);
+    Route::post('/referrals/{id}/reject', [ReferralController::class, 'reject']);
+    Route::delete('/referrals/{id}', [ReferralController::class, 'destroy']);
 });
