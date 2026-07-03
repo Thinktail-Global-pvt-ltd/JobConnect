@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Submission Routes
     Route::post('/jobs', [JobPostController::class, 'store']);
+    Route::get('/my-jobs', [JobPostController::class, 'myJobs']);
     Route::post('/chefs', [ChefProfileController::class, 'store']);
     Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);
 

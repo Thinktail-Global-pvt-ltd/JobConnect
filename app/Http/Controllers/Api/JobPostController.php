@@ -115,4 +115,34 @@ class JobPostController extends Controller
             'job_post' => $jobPost,
         ], 201);
     }
+
+    /**
+     * GET /api/my-jobs
+     *
+     * Retrieve all job posts / referrals submitted by the authenticated user.
+     * Optional filter:
+     *   - is_referral  (boolean)  e.g. ?is_referral=true
+     *   - status       (pending | approved | rejected)
+     */
+    public function myJobs(Request $request)
+    {
+        $user = $request->user();
+
+        $query = JobPost::where('created_by', $user->id);
+
+        if ($request->has('is_referral')) {
+            $query->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $jobs = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'jobs'    => $jobs,
+        ]);
+    }
 }
