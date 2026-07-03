@@ -61,4 +61,13 @@ class JobModeratorController extends Controller
 
         return redirect()->back()->with('success', "Job posting '{$job->title}' has been {$statusMessage}.");
     }
+
+    /**
+     * Show a specific job post details for review.
+     */
+    public function show(JobPost $job)
+    {
+        $job->load('creator');
+        return view('admin.job_detail', compact('job'));
+    }
 }

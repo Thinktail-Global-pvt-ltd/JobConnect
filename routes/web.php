@@ -102,6 +102,11 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
 // Admin Panel Framework Routing Group (Views/APIs)
 // ==========================================
 Route::prefix('admin')->group(function () {
+    // Redirect admin root to dashboard
+    Route::get('/', function () {
+        return redirect('/admin/dashboard');
+    });
+
     // Dashboard Route
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
@@ -115,6 +120,7 @@ Route::prefix('admin')->group(function () {
 
     // Job Moderator Routes
     Route::get('/jobs', [JobModeratorController::class, 'index']);
+    Route::get('/jobs/{job}', [JobModeratorController::class, 'show']);
     Route::post('/jobs/{job}/approve', [JobModeratorController::class, 'approve']);
     Route::post('/jobs/{job}/reject', [JobModeratorController::class, 'reject']);
     Route::post('/jobs/{job}/toggle-pin', [JobModeratorController::class, 'togglePin']);

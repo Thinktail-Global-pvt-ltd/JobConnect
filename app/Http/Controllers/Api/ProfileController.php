@@ -13,7 +13,7 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        $user = $request->user();
+        $user = $request->user()->load('chefProfile');
         
         return response()->json([
             'success' => true,
@@ -30,6 +30,13 @@ class ProfileController extends Controller
                 'skills' => $user->skills,
                 'selected_language' => $user->selected_language ?? 'en',
                 'completeness' => $user->profile_completeness,
+                'chef_profile' => $user->chefProfile ? [
+                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty,
+                    'bio' => $user->chefProfile->bio,
+                    'calendly_link' => $user->chefProfile->calendly_link,
+                    'availability_info' => json_decode($user->chefProfile->availability_info, true) ?: [],
+                    'approval_status' => $user->chefProfile->approval_status,
+                ] : null
             ]
         ]);
     }
@@ -70,6 +77,8 @@ class ProfileController extends Controller
             'skills',
         ]));
 
+        $user->load('chefProfile');
+
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully.',
@@ -86,6 +95,13 @@ class ProfileController extends Controller
                 'skills' => $user->skills,
                 'selected_language' => $user->selected_language ?? 'en',
                 'completeness' => $user->profile_completeness,
+                'chef_profile' => $user->chefProfile ? [
+                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty,
+                    'bio' => $user->chefProfile->bio,
+                    'calendly_link' => $user->chefProfile->calendly_link,
+                    'availability_info' => json_decode($user->chefProfile->availability_info, true) ?: [],
+                    'approval_status' => $user->chefProfile->approval_status,
+                ] : null
             ]
         ]);
     }

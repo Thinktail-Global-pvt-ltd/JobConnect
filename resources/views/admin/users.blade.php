@@ -1,123 +1,178 @@
 @extends('layouts.admin')
 
 @section('title', 'User Accounts')
-@section('header-title', 'User Accounts')
-@section('header-subtitle', 'Manage registered users and active profiles')
+@section('header-title', 'User Management')
+@section('header-subtitle', 'Oversee system users, manage access, and track registration trends')
 
 @section('content')
-<div class="glass-panel">
-    <div class="panel-header">
-        <h2>👥 Platform Users ({{ $users->total() }})</h2>
-        
-        <!-- Search bar -->
-        <form action="{{ url('admin/users') }}" method="GET" style="display: flex; gap: 0.5rem;">
-            <input type="text" name="search" placeholder="Search by name, phone..." value="{{ request('search') }}" class="form-control" style="width: 250px; padding: 0.5rem 1rem;">
-            <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+<!-- Search, Filter & Add Button Top Bar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+    <!-- Tabs -->
+    <div class="flex items-center gap-2 border-b border-slate-100 md:border-none pb-3 md:pb-0">
+        @php $currentTab = request('tab', 'all'); @endphp
+        <a href="{{ url('admin/users?tab=all' . (request('search') ? '&search='.request('search') : '')) }}" 
+           class="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 {{ $currentTab === 'all' ? 'bg-brand-50 text-brand-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' }}">
+            All Users
+        </a>
+        <a href="{{ url('admin/users?tab=active' . (request('search') ? '&search='.request('search') : '')) }}" 
+           class="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 {{ $currentTab === 'active' ? 'bg-brand-55 bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' }}">
+            Active
+        </a>
+        <a href="{{ url('admin/users?tab=suspended' . (request('search') ? '&search='.request('search') : '')) }}" 
+           class="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 {{ $currentTab === 'suspended' ? 'bg-rose-50 text-rose-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' }}">
+            Suspended
+        </a>
+    </div>
+
+    <!-- Search & Actions -->
+    <div class="flex items-center gap-3 self-stretch md:self-auto">
+        <form action="{{ url('admin/users') }}" method="GET" class="relative flex-grow md:flex-grow-0 md:w-72">
+            @if(request('tab'))
+                <input type="hidden" name="tab" value="{{ request('tab') }}">
+            @endif
+            <input type="text" name="search" placeholder="Search by name, phone..." value="{{ request('search') }}" 
+                   class="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 pl-10 pr-10 text-xs font-medium text-slate-600 focus:outline-none focus:border-brand-500 focus:bg-white transition-all duration-200">
+            <span class="absolute left-3.5 top-3 text-slate-400 text-xs">🔍</span>
             @if(request('search'))
-                <a href="{{ url('admin/users') }}" class="btn btn-secondary btn-sm">Clear</a>
+                <a href="{{ url('admin/users' . (request('tab') ? '?tab='.request('tab') : '')) }}" class="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold p-1">✕</a>
             @endif
         </form>
+
+        <button class="bg-brand-500 hover:bg-brand-600 text-white rounded-xl px-5 py-2.5 text-xs font-bold shadow-sm shadow-brand-500/10 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
+            + Add New User
+        </button>
+    </div>
+</div>
+
+<!-- Main Table Card -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-slate-50 bg-slate-50/20">
+        <h2 class="font-outfit font-extrabold text-base text-slate-800">Platform Users ({{ $users->total() }})</h2>
     </div>
 
     @if($users->isEmpty())
-        <p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">No registered users found matching the criteria.</p>
+        <div class="p-12 text-center text-slate-400 text-sm font-medium">
+            No registered users found matching the criteria.
+        </div>
     @else
-        <div class="table-responsive">
-            <table class="admin-table">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr>
-                        <th>Details</th>
-                        <th>Mobile</th>
-                        <th>Registered Roles</th>
-                        <th>Activity Stats</th>
-                        <th>Profile Progress</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                    <tr class="bg-slate-50/50 border-b border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                        <th class="py-4 px-6">User Details</th>
+                        <th class="py-4 px-6">Mobile</th>
+                        <th class="py-4 px-6">Registered Roles</th>
+                        <th class="py-4 px-6 text-center">Activity Stats</th>
+                        <th class="py-4 px-6">Profile Completeness</th>
+                        <th class="py-4 px-6">Status</th>
+                        <th class="py-4 px-6 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
                     @foreach($users as $user)
-                        <tr>
-                            <td>
-                                <strong>{{ $user->full_name ?? 'Not Provided' }}</strong>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ $user->email ?? 'No email linked' }}</div>
+                        <tr class="hover:bg-slate-50/30 transition-colors duration-150">
+                            <!-- Details: Avatar, Name, Email -->
+                            <td class="py-4.5 px-6 flex items-center gap-3">
+                                @if($user->profile_photo_path)
+                                    <img src="{{ $user->profile_photo_path }}" alt="Avatar" class="w-9 h-9 rounded-xl object-cover border border-slate-100">
+                                @else
+                                    <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-bold font-outfit text-xs border border-slate-100">
+                                        {{ substr($user->full_name ?? 'N', 0, 2) }}
+                                    </div>
+                                @endif
+                                <div>
+                                    <span class="font-bold text-slate-800 block leading-tight">{{ $user->full_name ?? 'Not Provided' }}</span>
+                                    <span class="text-[11px] font-semibold text-slate-400 block mt-0.5">{{ $user->email ?? 'No email linked' }}</span>
+                                </div>
                             </td>
-                            <td><code>{{ $user->mobile_number }}</code></td>
+
+                            <!-- Mobile -->
+                            <td class="py-4.5 px-6 font-semibold text-slate-600">
+                                <code>{{ $user->mobile_number }}</code>
+                            </td>
+
                             <!-- Registered Roles -->
-                            <td>
-                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                            <td class="py-4.5 px-6">
+                                <div class="flex flex-wrap gap-1.5">
                                     @if($user->roles->isEmpty())
-                                        <span style="color: var(--text-muted); font-size: 0.8rem;">None</span>
+                                        <span class="text-xs text-slate-400 font-semibold italic">None</span>
                                     @else
                                         @foreach($user->roles as $role)
-                                            @php
-                                                $isActive = $role->is_active;
-                                                $roleLabel = ucfirst(str_replace('_', ' ', $role->role_type));
-                                                $bg = $isActive ? 'rgba(22, 163, 74, 0.1)' : 'rgba(255, 255, 255, 0.05)';
-                                                $color = $isActive ? '#16a34a' : 'var(--text-secondary)';
-                                                $border = $isActive ? '1px solid rgba(22, 163, 74, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)';
-                                            @endphp
-                                            <span class="badge" style="background: {{ $bg }}; color: {{ $color }}; border: {{ $border }}; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
-                                                {{ $roleLabel }} @if($isActive) (Active) @endif
+                                            @php $isActive = $role->is_active; @endphp
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border {{ $isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100' }}">
+                                                {{ str_replace('_', ' ', $role->role_type) }}
                                             </span>
                                         @endforeach
                                     @endif
                                 </div>
                             </td>
-                            <!-- Stats (Posted / Applied) -->
-                            <td>
-                                <div style="font-size: 0.8rem;">
-                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                                        <span style="color: var(--text-secondary);">Posted:</span> 
-                                        <button type="button" onclick="showPostedJobs('{{ $user->id }}', '{{ addslashes($user->full_name ?? 'Not Provided') }}')" 
-                                                class="badge-btn hover-scale"
-                                                style="background: rgba(147, 51, 234, 0.1); color: #a855f7; border: 1px solid rgba(147, 51, 234, 0.2); font-weight: 700; padding: 1px 6px; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
-                                            {{ $user->job_posts_count }} 🔍
-                                        </button>
-                                    </div>
-                                    <div style="font-weight: 600; display: flex; align-items: center; gap: 6px; margin-top: 6px;">
-                                        <span style="color: var(--text-secondary);">Applied:</span> 
-                                        <button type="button" onclick="showAppliedJobs('{{ $user->id }}', '{{ addslashes($user->full_name ?? 'Not Provided') }}')" 
-                                                class="badge-btn hover-scale"
-                                                style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); font-weight: 700; padding: 1px 6px; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
-                                            {{ $user->applications_count }} 🔍
-                                        </button>
-                                    </div>
+
+                            <!-- Activity Stats (Counts & Modals) -->
+                            <td class="py-4.5 px-6">
+                                <div class="flex items-center justify-center gap-2">
+                                    <!-- Posted Jobs -->
+                                    <button onclick="showPostedJobs('{{ $user->id }}', '{{ addslashes($user->full_name ?? $user->mobile_number) }}')" 
+                                            class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold hover:bg-indigo-500 hover:text-white transition-all duration-200 flex items-center gap-1">
+                                        <span>Posted:</span>
+                                        <span>{{ $user->job_posts_count }}</span>
+                                    </button>
+                                    <!-- Applied Jobs -->
+                                    <button onclick="showAppliedJobs('{{ $user->id }}', '{{ addslashes($user->full_name ?? $user->mobile_number) }}')" 
+                                            class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold hover:bg-blue-500 hover:text-white transition-all duration-200 flex items-center gap-1">
+                                        <span>Applied:</span>
+                                        <span>{{ $user->applications_count }}</span>
+                                    </button>
                                 </div>
                             </td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <div style="flex: 1; background: rgba(255,255,255,0.05); height: 8px; border-radius: 4px; overflow: hidden; max-width: 100px;">
-                                        <div style="background: var(--accent-gradient); width: {{ $user->profile_completeness }}%; height: 100%;"></div>
+
+                            <!-- Profile completeness -->
+                            <td class="py-4.5 px-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-grow bg-slate-100 h-2 rounded-full overflow-hidden max-w-[100px]">
+                                        <div class="bg-gradient-to-r from-brand-500 to-emerald-400 h-full rounded-full" style="width: {{ $user->profile_completeness }}%"></div>
                                     </div>
-                                    <span style="font-size: 0.8rem; font-weight: 600;">{{ $user->profile_completeness }}%</span>
+                                    <span class="text-xs font-bold text-slate-600">{{ $user->profile_completeness }}%</span>
                                 </div>
                             </td>
-                            <td>
+
+                            <!-- Status Badge -->
+                            <td class="py-4.5 px-6">
                                 @if($user->is_suspended)
-                                    <span class="badge badge-suspended">Suspended</span>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-100">
+                                        Suspended
+                                    </span>
                                 @else
-                                    <span class="badge badge-active">Active</span>
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                        Active
+                                    </span>
                                 @endif
                             </td>
-                            <td>
-                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+
+                            <!-- Actions -->
+                            <td class="py-4.5 px-6 text-right">
+                                <div class="flex items-center justify-end gap-2">
                                     @if($user->is_suspended)
-                                        <form action="{{ url('admin/users/' . $user->id . '/activate') }}" method="POST" style="display:inline;">
+                                        <form action="{{ url('admin/users/' . $user->id . '/activate') }}" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-success btn-sm">Activate</button>
+                                            <button type="submit" class="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:border-emerald-500 transition-colors duration-200">
+                                                Activate
+                                            </button>
                                         </form>
                                     @else
-                                        <form action="{{ url('admin/users/' . $user->id . '/suspend') }}" method="POST" style="display:inline;">
+                                        <form action="{{ url('admin/users/' . $user->id . '/suspend') }}" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-danger btn-sm">Suspend</button>
+                                            <button type="submit" class="bg-slate-50 hover:bg-rose-500 text-slate-500 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-100 hover:border-rose-500 transition-colors duration-200">
+                                                Suspend
+                                            </button>
                                         </form>
                                     @endif
 
-                                    <form action="{{ url('admin/users/' . $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to permanently delete this user ({{ $user->full_name ?? $user->mobile_number }}) and all their associated data? This action cannot be undone.');">
+                                    <form action="{{ url('admin/users/' . $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to permanently delete this user ({{ $user->full_name ?? $user->mobile_number }}) and all their associated data? This action cannot be undone.');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" style="background: var(--accent-red); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);">Hard Delete</button>
+                                        <button type="submit" class="bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold border border-rose-100 hover:border-rose-500 transition-colors duration-200">
+                                            Hard Delete
+                                        </button>
                                     </form>
                                 </div>
                             </td>
@@ -127,26 +182,56 @@
             </table>
         </div>
 
-        <!-- Standard pagination links wrapper -->
-        <div style="margin-top: 2rem;">
+        <!-- Pagination -->
+        <div class="px-6 py-5 border-t border-slate-50">
             {{ $users->appends(request()->query())->links() }}
         </div>
     @endif
 </div>
 
-<!-- Admin Stats Modal -->
-<div id="stats-detail-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1rem;">
-    <div style="background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; width: 100%; max-width: 500px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+<!-- Bottom KPI / Registration Trend Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Growth (MoM)</span>
+            <span class="font-outfit font-extrabold text-2xl text-emerald-600 block mt-1.5">+12.5%</span>
+        </div>
+        <div class="text-xl p-3 bg-emerald-50 rounded-xl text-emerald-600">📈</div>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Verified Users</span>
+            <span class="font-outfit font-extrabold text-2xl text-slate-800 block mt-1.5">88%</span>
+        </div>
+        <div class="text-xl p-3 bg-blue-50 rounded-xl text-blue-600">🛡️</div>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Today</span>
+            <span class="font-outfit font-extrabold text-2xl text-slate-800 block mt-1.5">432</span>
+        </div>
+        <div class="text-xl p-3 bg-indigo-50 rounded-xl text-indigo-600">⚡</div>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+        <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Safety Flags</span>
+            <span class="font-outfit font-extrabold text-2xl text-rose-600 block mt-1.5">2</span>
+        </div>
+        <div class="text-xl p-3 bg-rose-50 rounded-xl text-rose-600">🚨</div>
+    </div>
+</div>
+
+<!-- Modal Container (Used for dynamic AJAX Posted / Applied Jobs views) -->
+<div id="stats-detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white border border-slate-100 rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
         <!-- Header -->
-        <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-            <h3 id="modal-title" style="margin: 0; font-size: 1rem; font-weight: 700; color: #fff;">Jobs List</h3>
-            <button type="button" onclick="closeStatsModal()" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; padding: 4px; line-height: 1;">
-                ✕
-            </button>
+        <div class="px-6 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
+            <h3 id="modal-title" class="font-outfit font-extrabold text-slate-800 text-base">Details</h3>
+            <button type="button" onclick="closeStatsModal()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all">✕</button>
         </div>
         <!-- Body -->
-        <div id="modal-body" style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;">
-            <!-- Dynamic items -->
+        <div id="modal-body" class="p-6 overflow-y-auto space-y-4">
+            <!-- Dynamic components inject here -->
         </div>
     </div>
 </div>
@@ -156,7 +241,6 @@ function closeStatsModal() {
     document.getElementById('stats-detail-modal').style.display = 'none';
 }
 
-// Close modal when clicking outside content area
 document.getElementById('stats-detail-modal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeStatsModal();
@@ -168,8 +252,8 @@ async function showPostedJobs(userId, userName) {
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
     
-    modalTitle.textContent = `Jobs Posted by Chef ${userName}`;
-    modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">Loading job posts...</p>';
+    modalTitle.textContent = `Jobs Posted by ${userName}`;
+    modalBody.innerHTML = '<p class="text-xs font-semibold text-slate-400 text-center py-6">Loading job posts...</p>';
     modal.style.display = 'flex';
 
     try {
@@ -182,14 +266,13 @@ async function showPostedJobs(userId, userName) {
             modalBody.innerHTML = '';
             data.jobs.forEach(job => {
                 const item = document.createElement('div');
-                item.style.cssText = 'padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; text-align: left;';
+                item.className = 'p-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-left space-y-3';
                 
                 let appsHtml = '';
                 let actualAppCount = 0;
                 
                 if (job.applications && job.applications.length > 0) {
                     job.applications.forEach(app => {
-                        // Skip if applicant doesn't exist OR has no name (is 'null' or empty)
                         if (!app.applicant || !app.applicant.full_name || app.applicant.full_name.toLowerCase() === 'null' || app.applicant.full_name.trim() === '') {
                             return;
                         }
@@ -199,21 +282,20 @@ async function showPostedJobs(userId, userName) {
                         const applicantPhone = app.applicant.mobile_number || 'N/A';
                         const applicantEmail = app.applicant.email || 'N/A';
                         
-                        let statusColor = '#3b82f6';
-                        let statusBg = 'rgba(59, 130, 246, 0.15)';
-                        if (app.status === 'shortlisted') { statusColor = '#10b981'; statusBg = 'rgba(16, 185, 129, 0.15)'; }
-                        else if (app.status === 'rejected') { statusColor = '#ef4444'; statusBg = 'rgba(239, 68, 68, 0.15)'; }
+                        let statusColorClass = 'bg-blue-50 text-blue-600 border-blue-100';
+                        if (app.status === 'shortlisted') { statusColorClass = 'bg-emerald-50 text-emerald-600 border-emerald-100'; }
+                        else if (app.status === 'rejected') { statusColorClass = 'bg-rose-50 text-rose-600 border-rose-100'; }
                         
                         appsHtml += `
-                            <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.04); padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: start; margin-top: 4px;">
-                                <div style="font-size: 0.75rem;">
-                                    <div style="font-weight: 750; color: #eee;">${applicantName}</div>
-                                    <div style="color: #888; font-size: 0.7rem; margin-top: 2px;">
-                                        📞 <a href="tel:${applicantPhone}" style="color: #3b82f6; text-decoration: underline;">${applicantPhone}</a>
+                            <div class="bg-white border border-slate-100/60 p-3.5 rounded-xl flex justify-between items-start">
+                                <div class="space-y-0.5">
+                                    <div class="font-bold text-xs text-slate-800">${applicantName}</div>
+                                    <div class="text-[10px] font-semibold text-slate-400">
+                                        📞 <a href="tel:${applicantPhone}" class="text-brand-600 hover:underline">${applicantPhone}</a>
                                     </div>
-                                    <div style="color: #666; font-size: 0.65rem; margin-top: 1px;">📧 ${applicantEmail}</div>
+                                    <div class="text-[9px] font-semibold text-slate-400">📧 ${applicantEmail}</div>
                                 </div>
-                                <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; background: ${statusBg}; color: ${statusColor}; padding: 1px 4px; border-radius: 4px; margin-top: 2px;">
+                                <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider border ${statusColorClass}">
                                     ${app.status}
                                 </span>
                             </div>
@@ -222,37 +304,39 @@ async function showPostedJobs(userId, userName) {
                 }
                 
                 item.innerHTML = `
-                    <div style="font-weight: 700; color: #fff; font-size: 0.85rem;">${job.title}</div>
-                    <div style="color: #aaa; font-size: 0.75rem; margin-top: 4px;">📍 ${job.location} • 💼 ${job.job_type || 'Full-time'}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                        <span style="color: #16a34a; font-weight: 700; font-size: 0.75rem;">${job.salary || 'Salary Disclosed'}</span>
-                        <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: ${job.status === 'approved' ? 'rgba(22, 163, 74, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${job.status === 'approved' ? '#22c55e' : '#eab308'}; padding: 2px 6px; border-radius: 4px;">
+                    <div>
+                        <div class="font-bold text-slate-800 text-sm">${job.title}</div>
+                        <div class="text-[11px] font-semibold text-slate-400 mt-1">📍 ${job.location} • 💼 ${job.job_type || 'Full-time'}</div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-emerald-600 font-extrabold text-xs">${job.salary || 'Salary Disclosed'}</span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider border ${job.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}">
                             ${job.status}
                         </span>
                     </div>
                     
-                    <div style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 8px;">
+                    <div class="pt-3 border-t border-slate-100/60">
                         ${actualAppCount > 0 ? `
-                            <button type="button" onclick="const list = this.nextElementSibling; list.style.display = list.style.display === 'none' ? 'flex' : 'none';" 
-                                    style="background: rgba(22, 163, 74, 0.1); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; cursor: pointer; outline: none; transition: all 0.2s;">
+                            <button type="button" onclick="const list = this.nextElementSibling; list.classList.toggle('hidden');" 
+                                    class="bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-100 text-[10px] font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer">
                                 View Applicants (${actualAppCount}) 👇
                             </button>
-                            <div style="display: none; flex-direction: column; gap: 6px; margin-top: 8px;">
+                            <div class="hidden flex-col gap-2 mt-3 pl-2 border-l border-slate-100">
                                 ${appsHtml}
                             </div>
                         ` : `
-                            <span style="font-size: 0.7rem; color: #666; font-weight: bold; padding: 2px 0;">0 Applicants</span>
+                            <span class="text-[10px] font-bold text-slate-400">0 Applicants</span>
                         `}
                     </div>
                 `;
                 modalBody.appendChild(item);
             });
         } else {
-            modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">This user has not posted any jobs yet.</p>';
+            modalBody.innerHTML = '<p class="text-xs font-semibold text-slate-400 text-center py-6">This user has not posted any jobs yet.</p>';
         }
     } catch (err) {
         console.error(err);
-        modalBody.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; text-align: center; padding: 1rem;">Failed to load jobs list.</p>';
+        modalBody.innerHTML = '<p class="text-xs font-semibold text-rose-500 text-center py-6">Failed to load jobs list.</p>';
     }
 }
 
@@ -262,7 +346,7 @@ async function showAppliedJobs(userId, userName) {
     const modalBody = document.getElementById('modal-body');
     
     modalTitle.textContent = `Jobs Applied by ${userName}`;
-    modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">Loading applications...</p>';
+    modalBody.innerHTML = '<p class="text-xs font-semibold text-slate-400 text-center py-6">Loading applications...</p>';
     modal.style.display = 'flex';
 
     try {
@@ -278,19 +362,18 @@ async function showAppliedJobs(userId, userName) {
                 if (!job) return;
                 
                 const item = document.createElement('div');
-                item.style.cssText = 'padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; text-align: left;';
+                item.className = 'p-4 bg-slate-50/50 border border-slate-100 rounded-2xl text-left space-y-2';
                 
-                let statusColor = '#3b82f6';
-                let statusBg = 'rgba(59, 130, 246, 0.15)';
-                if (app.status === 'shortlisted') { statusColor = '#10b981'; statusBg = 'rgba(16, 185, 129, 0.15)'; }
-                else if (app.status === 'rejected') { statusColor = '#ef4444'; statusBg = 'rgba(239, 68, 68, 0.15)'; }
+                let statusColorClass = 'bg-blue-50 text-blue-600 border-blue-100';
+                if (app.status === 'shortlisted') { statusColorClass = 'bg-emerald-50 text-emerald-600 border-emerald-100'; }
+                else if (app.status === 'rejected') { statusColorClass = 'bg-rose-50 text-rose-600 border-rose-100'; }
                 
                 item.innerHTML = `
-                    <div style="font-weight: 700; color: #fff; font-size: 0.85rem;">${job.title}</div>
-                    <div style="color: #aaa; font-size: 0.75rem; margin-top: 4px;">📍 ${job.location} • 💼 ${job.company || 'Direct Hire'}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.7rem;">
-                        <span style="color: var(--text-secondary);">Applied: ${app.applied_at}</span>
-                        <span style="font-weight: 800; text-transform: uppercase; background: ${statusBg}; color: ${statusColor}; padding: 2px 6px; border-radius: 4px;">
+                    <div class="font-bold text-slate-800 text-sm">${job.title}</div>
+                    <div class="text-[11px] font-semibold text-slate-400">📍 ${job.location} • 💼 ${job.company || 'Direct Hire'}</div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100/60 text-[10px] font-bold">
+                        <span class="text-slate-400">Applied: ${app.applied_at}</span>
+                        <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider border ${statusColorClass}">
                             ${app.status}
                         </span>
                     </div>
@@ -298,19 +381,12 @@ async function showAppliedJobs(userId, userName) {
                 modalBody.appendChild(item);
             });
         } else {
-            modalBody.innerHTML = '<p style="color: #aaa; font-size: 0.85rem; text-align: center; padding: 1rem;">This user has not applied to any jobs yet.</p>';
+            modalBody.innerHTML = '<p class="text-xs font-semibold text-slate-400 text-center py-6">This user has not applied to any jobs yet.</p>';
         }
     } catch (err) {
         console.error(err);
-        modalBody.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; text-align: center; padding: 1rem;">Failed to load applications list.</p>';
+        modalBody.innerHTML = '<p class="text-xs font-semibold text-rose-500 text-center py-6">Failed to load applications list.</p>';
     }
 }
 </script>
-
-<style>
-.hover-scale:hover {
-    transform: scale(1.06);
-    filter: brightness(1.1);
-}
-</style>
 @endsection

@@ -25,6 +25,15 @@ class UserModeratorController extends Controller
             });
         }
 
+        // Optional Tab filter
+        if ($request->has('tab')) {
+            if ($request->tab === 'active') {
+                $query->where('is_suspended', false);
+            } elseif ($request->tab === 'suspended') {
+                $query->where('is_suspended', true);
+            }
+        }
+
         $users = $query->latest()->paginate(15);
 
         return view('admin.users', compact('users'));
