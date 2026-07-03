@@ -154,7 +154,7 @@ class AppointmentController extends Controller
             $chefs = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
             })
-            ->where('onboarding_completed', 1)
+            ->whereHas('chefProfile')
             ->with(['chefProfile'])
             ->get()
             ->map(function ($chef) {
