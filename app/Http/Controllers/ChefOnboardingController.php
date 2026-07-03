@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ChefProfile;
 use App\Models\UserRole;
 use App\Models\User;
+use App\Models\UserSocial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +53,12 @@ class ChefOnboardingController extends Controller
             'bio' => 'nullable|string',
             'calendly_link' => 'nullable|url|max:255',
             'profile_photo' => 'nullable|image|max:2048', // max 2MB
+
+            // Social media links
+            'linkedin' => 'nullable|string|url|max:255',
+            'instagram' => 'nullable|string|url|max:255',
+            'facebook' => 'nullable|string|url|max:255',
+            'twitter' => 'nullable|string|url|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -98,7 +105,18 @@ class ChefOnboardingController extends Controller
                     ]
                 );
 
-                // 5. Deactivate other roles and ensure chef role exists and is active
+                // 5. Update or create Social Profiles
+                UserSocial::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'linkedin'  => $request->linkedin,
+                        'instagram' => $request->instagram,
+                        'facebook'  => $request->facebook,
+                        'twitter'   => $request->twitter,
+                    ]
+                );
+
+                // 6. Deactivate other roles and ensure chef role exists and is active
                 $user->roles()->update(['is_active' => false]);
                 UserRole::updateOrCreate(
                     ['user_id' => $user->id, 'role_type' => 'chef'],
