@@ -82,7 +82,8 @@ class JobPostController extends Controller
 
             // Referral fields
             'is_referral'            => 'nullable|boolean',
-            'submitted_by_role'      => 'nullable|string|in:jobseeker,chef,employer,agency',
+            // Accept both: "job_seeker" (with underscore) and "jobseeker" (without)
+            'submitted_by_role'      => 'nullable|string|in:jobseeker,job_seeker,chef,employer,agency',
         ]);
 
         if ($validator->fails()) {
@@ -93,16 +94,19 @@ class JobPostController extends Controller
         }
 
         // Auto-detect submitted_by_role from the user's profile if not explicitly sent
-        $submittedByRole = $request->submitted_by_role
-            ?? $user->role_type   // column on the users table (jobseeker, chef, employer, agency)
-            ?? null;
+        $rawRole = $request->submitted_by_role ?? $user->role_type ?? null;
+
+        // Normalize: "job_seeker" → "jobseeker" for consistent DB storage
+        $submittedByRole = $rawRole
+            ? str_replace('_', '', strtolower(trim($rawRole)))
+            : null;
 
         // Default status is pending, is_pinned is false
         $jobPost = JobPost::create(array_merge($request->validated(), [
-            'created_by'       => $user->id,
-            'status'           => 'pending',
-            'is_pinned'        => false,
-            'submitted_by_role'=> $submittedByRole,
+            'created_by'        => $user->id,
+            'status'            => 'pending',
+            'is_pinned'         => false,
+            'submitted_by_role' => $submittedByRole,
         ]));
 
         return response()->json([

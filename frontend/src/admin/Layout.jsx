@@ -13,6 +13,7 @@ export default function Layout({ children }) {
     { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
     { name: 'Users', path: '/admin/users', icon: '👤' },
     { name: 'Jobs', path: '/admin/jobs', icon: '💼' },
+    { name: 'Live Feed', path: '/admin/live-feed', icon: '📡' },
     { name: 'Referrals', path: '/admin/referrals', icon: '🔗' },
     { name: 'Community Feed', path: '/admin/community', icon: '📶' },
     { name: 'Training & Overseas', path: '/admin/training', icon: '🎓' },

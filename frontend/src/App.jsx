@@ -12,6 +12,7 @@ import Jobs from "./admin/Jobs";
 import JobDetail from "./admin/JobDetail";
 import Referrals from "./admin/Referrals";
 import CommunityFeed from "./admin/CommunityFeed";
+import LiveFeed from "./admin/LiveFeed";
 import Training from "./admin/Training";
 import EditTraining from "./admin/EditTraining";
 import Chefs from "./admin/Chefs";
@@ -41,6 +42,7 @@ function App() {
           <Route path="/admin/jobs/:id" element={<Layout><JobDetail /></Layout>} />
           <Route path="/admin/referrals" element={<Layout><Referrals /></Layout>} />
           <Route path="/admin/community" element={<Layout><CommunityFeed /></Layout>} />
+          <Route path="/admin/live-feed" element={<Layout><LiveFeed /></Layout>} />
           <Route path="/admin/training" element={<Layout><Training /></Layout>} />
           <Route path="/admin/training/edit" element={<Layout><EditTraining /></Layout>} />
           <Route path="/admin/chefs" element={<Layout><Chefs /></Layout>} />

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\JobModeratorController;
 use App\Http\Controllers\Admin\ChefModeratorController;
 use App\Http\Controllers\Admin\TrainingController;
 use App\Http\Controllers\Admin\ReferralController;
+use App\Http\Controllers\Admin\AdminPostController;
 use App\Http\Controllers\WebAuthController;
 use App\Http\Controllers\WebRoleController;
 use App\Http\Controllers\WebProfileController;
@@ -143,4 +144,11 @@ Route::prefix('admin')->group(function () {
     Route::post('/referrals/{id}/approve', [ReferralController::class, 'approve']);
     Route::post('/referrals/{id}/reject', [ReferralController::class, 'reject']);
     Route::delete('/referrals/{id}', [ReferralController::class, 'destroy']);
+
+    // Admin Community Post (Feed Injection) Routes
+    Route::get('/community-posts', [AdminPostController::class, 'index']);
+    Route::post('/community-posts', [AdminPostController::class, 'store']);
+    Route::put('/community-posts/{id}', [AdminPostController::class, 'update']);
+    Route::delete('/community-posts/{id}', [AdminPostController::class, 'destroy']);
+    Route::post('/community-posts/{id}/publish', [AdminPostController::class, 'publish']);
 });
