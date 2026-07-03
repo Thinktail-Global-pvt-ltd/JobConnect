@@ -10,6 +10,15 @@ import Dashboard from "./admin/Dashboard";
 import Users from "./admin/Users";
 import Jobs from "./admin/Jobs";
 import JobDetail from "./admin/JobDetail";
+import Referrals from "./admin/Referrals";
+import CommunityFeed from "./admin/CommunityFeed";
+import Training from "./admin/Training";
+import EditTraining from "./admin/EditTraining";
+import Chefs from "./admin/Chefs";
+import Employers from "./admin/Employers";
+import EmployerDetail from "./admin/EmployerDetail";
+import Enquiries from "./admin/Enquiries";
+import Settings from "./admin/Settings";
 import Layout from "./admin/Layout";
 
 function App() {
@@ -29,6 +38,15 @@ function App() {
           <Route path="/admin/users" element={<Layout><Users /></Layout>} />
           <Route path="/admin/jobs" element={<Layout><Jobs /></Layout>} />
           <Route path="/admin/jobs/:id" element={<Layout><JobDetail /></Layout>} />
+          <Route path="/admin/referrals" element={<Layout><Referrals /></Layout>} />
+          <Route path="/admin/community" element={<Layout><CommunityFeed /></Layout>} />
+          <Route path="/admin/training" element={<Layout><Training /></Layout>} />
+          <Route path="/admin/training/edit" element={<Layout><EditTraining /></Layout>} />
+          <Route path="/admin/chefs" element={<Layout><Chefs /></Layout>} />
+          <Route path="/admin/employers" element={<Layout><Employers /></Layout>} />
+          <Route path="/admin/employers/:id" element={<Layout><EmployerDetail /></Layout>} />
+          <Route path="/admin/enquiries" element={<Layout><Enquiries /></Layout>} />
+          <Route path="/admin/settings" element={<Layout><Settings /></Layout>} />
         </Routes>
       </BrowserRouter>
     </div>

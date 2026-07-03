@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { mockApi } from '../services/api';
-import { Search, Shield, Activity, AlertTriangle, TrendingUp, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity } from 'lucide-react';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -8,6 +8,7 @@ export default function Users() {
   const [tab, setTab] = useState('all');
   const [loading, setLoading] = useState(true);
 
+  // Modal Detail State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalData, setModalData] = useState([]);
@@ -40,13 +41,6 @@ export default function Users() {
     loadUsers();
   };
 
-  const handleDelete = async (id, name) => {
-    if (confirm(`Are you sure you want to permanently delete user ${name}? This action is irreversible.`)) {
-      await mockApi.deleteUser(id);
-      loadUsers();
-    }
-  };
-
   const handleShowPosted = async (id, name) => {
     setModalOpen(true);
     setModalTitle(`Jobs Posted by ${name}`);
@@ -77,134 +71,134 @@ export default function Users() {
     }
   };
 
+  const getAvatarStyle = (name) => {
+    if (!name) return 'bg-[#dcfce7] text-[#15803d]';
+    const char = name.charCodeAt(0) % 4;
+    switch (char) {
+      case 0: return 'bg-[#dcfce7] text-[#15803d]'; // green
+      case 1: return 'bg-[#eff6ff] text-[#1d4ed8]'; // blue
+      case 2: return 'bg-[#fff7ed] text-[#c2410c]'; // orange
+      default: return 'bg-[#f3e8ff] text-[#7e22ce]'; // purple
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-        <div className="flex items-center gap-2 border-b border-slate-100 md:border-none pb-3 md:pb-0">
+    <div className="space-y-6">
+      {/* Title & Floating Right Button */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">User Management</h2>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Oversee system users, manage access levels, and track registration trends.</p>
+        </div>
+        <button className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 flex items-center gap-2">
+          👤 Add New User
+        </button>
+      </div>
+
+      {/* Filter tabs and search input row */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5.5 rounded-2xl border border-[#e2e8f0] shadow-sm">
+        {/* Tabs with Underlines */}
+        <div className="flex items-center gap-6 border-b border-slate-100 md:border-none pb-2 md:pb-0">
           <button onClick={() => setTab('all')} 
-                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${tab === 'all' ? 'bg-[#eff6ff] text-[#0f172a]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  className={`text-xs font-bold pb-2 transition-all relative ${tab === 'all' ? 'text-[#065f46] border-b-2 border-[#10b981]' : 'text-slate-400 hover:text-slate-700'}`}>
             All Users
           </button>
           <button onClick={() => setTab('active')} 
-                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${tab === 'active' ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  className={`text-xs font-bold pb-2 transition-all relative ${tab === 'active' ? 'text-[#065f46] border-b-2 border-[#10b981]' : 'text-slate-400 hover:text-slate-700'}`}>
             Active
           </button>
           <button onClick={() => setTab('suspended')} 
-                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${tab === 'suspended' ? 'bg-rose-50 text-rose-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>
+                  className={`text-xs font-bold pb-2 transition-all relative ${tab === 'suspended' ? 'text-[#065f46] border-b-2 border-[#10b981]' : 'text-slate-400 hover:text-slate-700'}`}>
             Suspended
           </button>
         </div>
 
-        <div className="flex items-center gap-3 self-stretch md:self-auto">
-          <div className="relative flex-grow md:flex-grow-0 md:w-72">
-            <input type="text" placeholder="Search by name, phone..." value={search} onChange={(e) => setSearch(e.target.value)}
-                   className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 pl-10 pr-10 text-xs font-medium text-slate-600 focus:outline-none focus:border-brand-500 focus:bg-white transition-all" />
-            <Search className="absolute left-3.5 top-3 text-slate-400 w-4 h-4" />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-bold p-1">✕</button>
-            )}
-          </div>
-          <button className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 whitespace-nowrap">
-            + Add New User
-          </button>
+        {/* Search */}
+        <div className="relative w-full md:w-72">
+          <input type="text" placeholder="Search Name, Phone, or City..." value={search} onChange={(e) => setSearch(e.target.value)}
+                 className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-lg py-2 pl-10 pr-10 text-xs font-medium text-slate-600 focus:outline-none focus:border-[#065f46] focus:bg-white transition-all" />
+          <Search className="absolute left-3.5 top-2.5 text-slate-400 w-4 h-4" />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1">✕</button>
+          )}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-50 bg-slate-50/20">
-          <h2 className="font-outfit font-extrabold text-base text-slate-800">Platform Users</h2>
-        </div>
-
+      {/* Users Table Card */}
+      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+        
         {loading ? (
-          <p className="text-center text-slate-400 text-xs font-medium py-12">Loading user accounts...</p>
+          <p className="text-center text-slate-400 text-xs font-medium py-16">Loading users list...</p>
         ) : users.length === 0 ? (
-          <p className="text-center text-slate-400 text-sm font-medium py-12">No registered users matching filters.</p>
+          <p className="text-center text-slate-400 text-sm font-medium py-16">No users matching search filters.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 px-6">User Details</th>
-                  <th className="py-4 px-6">Mobile</th>
-                  <th className="py-4 px-6">Registered Roles</th>
-                  <th className="py-4 px-6 text-center">Activity Stats</th>
-                  <th className="py-4 px-6">Profile Completeness</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
+                <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  <th className="py-4.5 px-6">User Name</th>
+                  <th className="py-4.5 px-6">Mobile Number</th>
+                  <th className="py-4.5 px-6">City</th>
+                  <th className="py-4.5 px-6">Join Date</th>
+                  <th className="py-4.5 px-6">Status</th>
+                  <th className="py-4.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700 text-sm">
+              <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
                 {users.map(user => (
                   <tr key={user.id} className="hover:bg-slate-50/30 transition-colors">
-                    <td className="py-4.5 px-6 flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 font-bold font-outfit text-xs border border-slate-100">
-                        {user.full_name ? user.full_name.substring(0, 2).toUpperCase() : 'U'}
+                    {/* User Name & Avatar */}
+                    <td className="py-4 px-6 flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-white shadow-sm ${getAvatarStyle(user.full_name)}`}>
+                        {user.full_name ? user.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
                       </div>
-                      <div>
-                        <span className="font-bold text-slate-800 block leading-tight">{user.full_name || 'Not Provided'}</span>
-                        <span className="text-[11px] font-semibold text-slate-400 block mt-0.5">{user.email || 'No email linked'}</span>
-                      </div>
+                      <span className="font-extrabold text-slate-800 text-[13px]">{user.full_name || 'Not Provided'}</span>
                     </td>
 
-                    <td className="py-4.5 px-6 font-semibold text-slate-600">
+                    {/* Mobile Number */}
+                    <td className="py-4 px-6 font-semibold text-slate-500">
                       <code>{user.mobile_number}</code>
                     </td>
 
-                    <td className="py-4.5 px-6">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border bg-slate-50 text-slate-500 border-slate-100">
-                        {user.role_type || 'job_seeker'}
-                      </span>
+                    {/* City */}
+                    <td className="py-4 px-6 text-slate-600 font-bold">
+                      {user.city || 'N/A'}
                     </td>
 
-                    <td className="py-4.5 px-6">
-                      <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => handleShowPosted(user.id, user.full_name || user.mobile_number)} 
-                                className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold hover:bg-indigo-500 hover:text-white transition-all flex items-center gap-1">
-                          Posted: {user.job_posts_count || 0}
-                        </button>
-                        <button onClick={() => handleShowApplied(user.id, user.full_name || user.mobile_number)} 
-                                className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold hover:bg-blue-500 hover:text-white transition-all flex items-center gap-1">
-                          Applied: {user.applications_count || 0}
-                        </button>
-                      </div>
+                    {/* Join Date */}
+                    <td className="py-4 px-6 text-slate-400 font-bold">
+                      {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 12, 2023'}
                     </td>
 
-                    <td className="py-4.5 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-grow bg-slate-100 h-2 rounded-full overflow-hidden max-w-[100px]">
-                          <div className="bg-gradient-to-r from-brand-500 to-emerald-400 h-full rounded-full" style={{ width: `${user.completeness || 50}%` }}></div>
-                        </div>
-                        <span className="text-xs font-bold text-slate-600">{user.completeness || 50}%</span>
-                      </div>
-                    </td>
-
-                    <td className="py-4.5 px-6">
+                    {/* Status badge */}
+                    <td className="py-4 px-6">
                       {user.is_suspended ? (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-100">
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#fee2e2] text-[#991b1b]">
                           Suspended
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#d1fae5] text-[#065f46]">
                           Active
                         </span>
                       )}
                     </td>
 
-                    <td className="py-4.5 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {user.is_suspended ? (
-                          <button onClick={() => handleActivate(user.id)} className="bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:border-emerald-500 transition-colors">
-                            Activate
-                          </button>
-                        ) : (
-                          <button onClick={() => handleSuspend(user.id)} className="bg-slate-50 hover:bg-rose-500 text-slate-500 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-100 hover:border-rose-500 transition-colors">
-                            Suspend
-                          </button>
-                        )}
-                        <button onClick={() => handleDelete(user.id, user.full_name || user.mobile_number)} className="bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold border border-rose-100 hover:border-rose-500 transition-colors">
-                          Hard Delete
+                    {/* Actions Links */}
+                    <td className="py-4 px-6 text-right space-x-3">
+                      <button onClick={() => handleShowPosted(user.id, user.full_name || user.mobile_number)} 
+                              className="text-slate-500 hover:text-brand-600 transition-colors">
+                        View Profile
+                      </button>
+
+                      {user.is_suspended ? (
+                        <button onClick={() => handleActivate(user.id)} className="text-[#059669] hover:underline">
+                          Activate
                         </button>
-                      </div>
+                      ) : (
+                        <button onClick={() => handleSuspend(user.id)} className="text-rose-600 hover:underline">
+                          Suspend
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -212,42 +206,54 @@ export default function Users() {
             </table>
           </div>
         )}
+
+        {/* Footer Pagination */}
+        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
+          <span className="text-xs text-slate-400 font-bold">Showing 5 of 1,248 Users</span>
+          <div className="flex items-center gap-1.5">
+            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronLeft className="w-4 h-4" /></button>
+            <button className="w-7 h-7 rounded-lg bg-[#065f46] text-white flex items-center justify-center text-xs font-bold">1</button>
+            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">2</button>
+            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">3</button>
+            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronRight className="w-4 h-4" /></button>
+          </div>
+        </div>
+
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Growth (MoM)</span>
-            <span className="font-outfit font-extrabold text-2xl text-emerald-600 block mt-1.5">+12.5%</span>
-          </div>
-          <div className="text-xl p-3 bg-emerald-50 rounded-xl text-emerald-600"><TrendingUp className="w-5 h-5" /></div>
+      {/* KPI indicator cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
+        
+        {/* Growth */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Growth (MoM)</span>
+          <span className="font-outfit font-extrabold text-2xl text-emerald-600 block mt-2">+12.5%</span>
         </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Verified Users</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-1.5">88%</span>
-          </div>
-          <div className="text-xl p-3 bg-blue-50 rounded-xl text-blue-600"><Shield className="w-5 h-5" /></div>
+
+        {/* Verified */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Verified</span>
+          <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">88%</span>
         </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Active Today</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-1.5">432</span>
-          </div>
-          <div className="text-xl p-3 bg-indigo-50 rounded-xl text-indigo-600"><Activity className="w-5 h-5" /></div>
+
+        {/* Active Today */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Today</span>
+          <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">432</span>
         </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Safety Flags</span>
-            <span className="font-outfit font-extrabold text-2xl text-rose-600 block mt-1.5">2</span>
-          </div>
-          <div className="text-xl p-3 bg-rose-50 rounded-xl text-rose-600"><AlertTriangle className="w-5 h-5" /></div>
+
+        {/* Safety Flag */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
+          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Safety Flag</span>
+          <span className="font-outfit font-extrabold text-2xl text-rose-600 block mt-2">2</span>
         </div>
+
       </div>
 
+      {/* AJAX Detail Modals */}
       {modalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-100 rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+          <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
             <div className="px-6 py-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
               <h3 className="font-outfit font-extrabold text-slate-800 text-base">{modalTitle}</h3>
               <button type="button" onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all">✕</button>
@@ -291,6 +297,7 @@ export default function Users() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
