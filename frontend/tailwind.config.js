@@ -1,0 +1,29 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  corePlugins: {
+    preflight: false, // Prevents breaking the existing landing page styles
+  },
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        outfit: ['Outfit', 'sans-serif'],
+      },
+      colors: {
+        brand: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          500: '#16a34a',
+          600: '#15803d',
+          700: '#166534',
+        }
+      }
+    },
+  },
+  plugins: [],
+}
