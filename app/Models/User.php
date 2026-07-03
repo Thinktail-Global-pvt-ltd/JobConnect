@@ -80,6 +80,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user socials profile.
+     */
+    public function socials()
+    {
+        return $this->hasOne(UserSocial::class);
+    }
+
+    /**
      * Get appointments received by the user as a chef.
      */
     public function chefAppointments()

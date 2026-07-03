@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ChefProfileController;
 use App\Http\Controllers\Api\FeedController;
 use App\Http\Controllers\Api\JobPostController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\UserSocialController;
 use App\Http\Controllers\AppointmentController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage']);
+    Route::get('/user/socials', [UserSocialController::class, 'show']);
+    Route::post('/user/socials', [UserSocialController::class, 'update']);
 
     // Unified Sorted Single Feed Route
     Route::get('/feed', [FeedController::class, 'index']);
