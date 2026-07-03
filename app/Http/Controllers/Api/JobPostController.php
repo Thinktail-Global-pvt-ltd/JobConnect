@@ -102,7 +102,7 @@ class JobPostController extends Controller
             : null;
 
         // Default status is pending, is_pinned is false
-        $jobPost = JobPost::create(array_merge($request->validated(), [
+        $jobPost = JobPost::create(array_merge($validator->validated(), [
             'created_by'        => $user->id,
             'status'            => 'pending',
             'is_pinned'         => false,
