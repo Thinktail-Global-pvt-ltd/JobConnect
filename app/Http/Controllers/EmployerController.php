@@ -38,48 +38,7 @@ class EmployerController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            // Auto-populate dummy applicants if a job has 0 applications
-            foreach ($jobs as $job) {
-                if ($job->applications->count() === 0) {
-                    $seekerRoles = \App\Models\UserRole::where('role_type', 'job_seeker')->get();
-                    
-                    if ($seekerRoles->count() < 5) {
-                        $names = ['Ramesh Kumar', 'Sunita Rao', 'Karan Mehta', 'Priya Deshmukh', 'Vikram Sen'];
-                        foreach ($names as $idx => $name) {
-                            $cUser = User::create([
-                                'mobile_number' => '91111111' . $idx,
-                                'full_name' => $name,
-                                'email' => strtolower(str_replace(' ', '.', $name)) . '@jobseeker.in',
-                                'city' => 'Mumbai',
-                                'experience_range' => '2-4 Years',
-                                'preferred_role' => 'F&B Associate',
-                                'skills' => ['Kitchen Assistance', 'Food Service'],
-                            ]);
-                            \App\Models\UserRole::create([
-                                'user_id' => $cUser->id,
-                                'role_type' => 'job_seeker',
-                                'is_active' => true
-                            ]);
-                        }
-                        $seekerRoles = \App\Models\UserRole::where('role_type', 'job_seeker')->get();
-                    }
-
-                    $seekers = $seekerRoles->shuffle()->take(5);
-                    $statuses = ['new', 'shortlisted', 'contacted', 'rejected', 'new'];
-
-                    foreach ($seekers as $idx => $role) {
-                        JobApplication::create([
-                            'applicant_id' => $role->user_id,
-                            'job_post_id' => $job->id,
-                            'employer_id' => $job->created_by,
-                            'status' => $statuses[$idx] ?? 'new',
-                        ]);
-                    }
-
-                    // Reload applications relation
-                    $job->load(['applications.applicant.chefProfile']);
-                }
-            }
+            // Auto-populate dummy applicants logic has been removed to prevent fake applications.
 
             // Calculate counts
             // Note: active matches 'approved', pending matches 'pending', closed matches 'closed'

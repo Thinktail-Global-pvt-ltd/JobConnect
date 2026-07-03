@@ -109,6 +109,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/users', [UserModeratorController::class, 'index']);
     Route::post('/users/{user}/suspend', [UserModeratorController::class, 'suspend']);
     Route::post('/users/{user}/activate', [UserModeratorController::class, 'activate']);
+    Route::delete('/users/{user}', [UserModeratorController::class, 'destroy']);
     Route::get('/users/{user}/posted-jobs', [UserModeratorController::class, 'postedJobsList']);
     Route::get('/users/{user}/applied-jobs', [UserModeratorController::class, 'appliedJobsList']);
 

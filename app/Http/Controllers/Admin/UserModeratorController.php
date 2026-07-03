@@ -88,4 +88,15 @@ class UserModeratorController extends Controller
             'applications' => $applications
         ]);
     }
+
+    /**
+     * Hard delete a user and all their associated data from the database.
+     */
+    public function destroy(User $user)
+    {
+        $userName = $user->full_name ?? $user->mobile_number;
+        $user->delete(); // This deletes the user, cascading down to related tables
+
+        return redirect()->back()->with('success', "User account {$userName} has been permanently deleted from the database.");
+    }
 }

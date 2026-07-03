@@ -101,17 +101,25 @@
                                 @endif
                             </td>
                             <td>
-                                @if($user->is_suspended)
-                                    <form action="{{ url('admin/users/' . $user->id . '/activate') }}" method="POST" style="display:inline;">
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    @if($user->is_suspended)
+                                        <form action="{{ url('admin/users/' . $user->id . '/activate') }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm">Activate</button>
+                                        </form>
+                                    @else
+                                        <form action="{{ url('admin/users/' . $user->id . '/suspend') }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger btn-sm">Suspend</button>
+                                        </form>
+                                    @endif
+
+                                    <form action="{{ url('admin/users/' . $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to permanently delete this user ({{ $user->full_name ?? $user->mobile_number }}) and all their associated data? This action cannot be undone.');">
                                         @csrf
-                                        <button type="submit" class="btn btn-success btn-sm">Activate</button>
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" style="background: var(--accent-red); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);">Hard Delete</button>
                                     </form>
-                                @else
-                                    <form action="{{ url('admin/users/' . $user->id . '/suspend') }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger btn-sm">Suspend</button>
-                                    </form>
-                                @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
