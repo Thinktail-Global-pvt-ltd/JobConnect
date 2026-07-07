@@ -100,11 +100,11 @@ const FindANewJob = () => {
                 alt="Close Icon"
               />
             </button>
-            <img
+            {/* <img
               className="h-13.5 mr-3 w-13.5"
               src="https://d1oulfd0tdws93.cloudfront.net/img/Icon_Member-App.71e4d0a37ae599db589d62a402265c5b.svg"
               alt="Seasoned App Logo"
-            />
+            /> */}
             <p className="font-bold mt-0 text-white text-base mb-0 w-39">
               Faster interviews, only in the app.
             </p>
@@ -459,7 +459,7 @@ const FindANewJob = () => {
                         aria-label="Be Successful"
                         href="https://www.seasoned.co/hiring-features.html"
                       >
-                        Hiring with Recruit
+                        Hiring with JobRito
                       </a>
                     </li>
                   </ul>

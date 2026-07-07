@@ -2,11 +2,11 @@ const Header = () => {
   const navLinks = [
     {
       title: "Find a Job",
-      href: "/jobs",
+      href: "/",
     },
     {
       title: "Post Your Jobs",
-      href: "/post-job",
+      href: "/",
     },
   ];
 

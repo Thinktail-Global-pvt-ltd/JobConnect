@@ -3,51 +3,51 @@ const footerColumns = [
     title: "Products",
     links: [
       { label: "Find a Restaurant Job", href: "/jobs" },
-      { label: "Discover the Community", href: "community.html" },
-      { label: "Hiring with Recruit", href: "hiring-features.html" },
+      // { label: "Discover the Community", href: "community.html" },
+      { label: "Hiring with JobRito", href: "/jobs" },
     ],
   },
   {
-    title: "Company",
-    links: [{ label: "About Us", href: "about.html" }],
+    title: "",
+    links: [],
   },
   {
     title: "Resources",
     links: [
-      { label: "Support", href: "https://support.seasoned.co", external: true },
+      { label: "Support", href: "", external: true },
       { label: "Privacy Policy", href: "privacy-policy" },
-      { label: "Terms & Condications", href: "/terms&conditions" },
+      { label: "Terms & Conditions", href: "/terms&conditions" },
       // { label: "Data Deletion", href: "/datadeletion" },
       // { label: "Site Map", href: "/restaurant-jobs" },
     ],
   },
 ];
 
-const socialLinks = [
-  {
-    label: "Facebook",
-    href: "https://www.facebook.com/beseasoned/",
-    src: "https://static.seasoned.co/images/facebook.svg",
-  },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/seasoned_community/",
-    src: "https://static.seasoned.co/images/instagram.svg",
-  },
-  {
-    label: "Twitter",
-    href: "https://twitter.com/beseasoned/",
-    src: "https://static.seasoned.co/images/twitter.svg",
-  },
-];
+// const socialLinks = [
+//   {
+//     label: "Facebook",
+//     href: "https://www.facebook.com/beseasoned/",
+//     src: "https://static.seasoned.co/images/facebook.svg",
+//   },
+//   {
+//     label: "Instagram",
+//     href: "https://www.instagram.com/seasoned_community/",
+//     src: "https://static.seasoned.co/images/instagram.svg",
+//   },
+//   {
+//     label: "Twitter",
+//     href: "https://twitter.com/beseasoned/",
+//     src: "https://static.seasoned.co/images/twitter.svg",
+//   },
+// ];
 
 const Footer = () => {
   return (
     <footer className="bg-[#0d0d0d] text-white">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
         <div className="flex flex-col gap-12 border-b border-white/10 pb-12 lg:flex-row lg:items-start lg:justify-between">
-          <a href="index.html" aria-label="Seasoned home" className="inline-flex items-center">
-            <img src="https://static.seasoned.co/images/Seasoned.svg" alt="Seasoned icon" className="h-10 w-auto" />
+          <a href="/" aria-label="Seasoned home" className="inline-flex items-center">
+           <span className="text-[#EB4B66] text-lg font-bold">Job Rito</span>
           </a>
 
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-14">
@@ -75,7 +75,7 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {socialLinks.map((social) => (
+            {/* {socialLinks.map((social) => (
               <a
                 key={social.label}
                 href={social.href}
@@ -86,7 +86,7 @@ const Footer = () => {
               >
                 <img src={social.src} alt="" className="h-5 w-5 object-contain" aria-hidden="true" />
               </a>
-            ))}
+            ))} */}
           </div>
         </div>
 

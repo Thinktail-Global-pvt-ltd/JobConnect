@@ -76,16 +76,16 @@ const Home = () => {
           </div>
           <div className="hero-img">
             <img
-              src="https://static.seasoned.co/images/admin_recruit.png"
+              src=""
               loading="lazy"
-              alt="Candidates tab in the JobRito Recruit app"
+              // alt="Candidates tab in the JobRito Recruit app"
               width={261}
               className="image-17"
             />
             <img
-              src="https://static.seasoned.co/images/member_jobs.png"
+              src=""
               loading="lazy"
-              alt="Jobs tab in the JobRito app"
+              // alt="Jobs tab in the JobRito app"
               width={384}
               className="image-18 img_shadow"
             />
@@ -193,10 +193,10 @@ const Home = () => {
                 Industry-only candidates, just for you.
               </h3>
               <img
-                src="https://static.seasoned.co/images/recruit_1.png"
+                src=""
                 loading="lazy"
                 width={375}
-                alt="Image of Candidates view from Recruit App"
+                // alt="Image of Candidates view from Recruit App"
                 className="img-shadow"
               />
             </div>
@@ -205,10 +205,10 @@ const Home = () => {
                 Turn applicants into interviews in one tap.
               </h3>
               <img
-                src="https://static.seasoned.co/images/recruit_2.png"
+                src=""
                 loading="lazy"
                 width={375}
-                alt="Image of applicant card from Recruit App"
+                // alt="Image of applicant card from Recruit App"
                 className="img-shadow"
               />
             </div>
@@ -217,10 +217,10 @@ const Home = () => {
                 Hire in as little as 24 hours, for half the cost.
               </h3>
               <img
-                src="https://static.seasoned.co/images/recruit_3.png"
+                src=""
                 loading="lazy"
                 width={375}
-                alt="Image of post interview candidate view from Recruit App"
+                // alt="Image of post interview candidate view from Recruit App"
                 className="img-shadow"
               />
             </div>
@@ -305,7 +305,7 @@ const Home = () => {
                   className="brandimg"
                 />
               </div>
-              <div className="brand-wrapper">
+             <div className="brand-wrapper">
                 <img
                   src="https://static.seasoned.co/images/img_brand_41x.png"
                   loading="lazy"
@@ -313,7 +313,7 @@ const Home = () => {
                   className="brandimg"
                 />
               </div>
-              <div className="brand-wrapper">
+                {/*<div className="brand-wrapper">
                 <img
                   src="https://static.seasoned.co/images/img_brand_51x.png"
                   loading="lazy"
@@ -396,7 +396,7 @@ const Home = () => {
                   alt="Ihop logo"
                   className="brandimg"
                 />
-              </div>
+              </div> */}
               {/* <div className="brand-wrapper">
                 <img
                   src="https://static.seasoned.co/images/img_brand_371x.png"
