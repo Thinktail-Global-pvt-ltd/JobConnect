@@ -22,6 +22,7 @@ import Enquiries from "./admin/Enquiries";
 import Settings from "./admin/Settings";
 import Applications from "./admin/Applications";
 import Layout from "./admin/Layout";
+import ComingSoon from "./component/CommingSoon";
 
 function App() {
   return (
@@ -29,7 +30,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Customer Facing Web Routes */}
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<ComingSoon />} />
           <Route path="/jobs" element={<FindANewJob />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
           <Route path="/terms&conditions" element={<Term/>}/>
