@@ -428,11 +428,19 @@
 
                              <!-- Actions -->
                              <div class="flex flex-col gap-2 mt-1">
-                                 <button onclick="openBookingDrawer('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}', '{{ addslashes($chef->chefProfile->cuisine_specialty ?? 'Specialist') }}', '{{ $chef->experience_range }}', '{{ $chef->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120' }}', '{{ $chef->chefProfile->calendly_link }}')"
-                                         class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-2xl shadow-sm shadow-green-500/10 transition-colors flex items-center justify-center gap-1.5">
-                                     <span class="material-symbols-outlined text-sm">event</span>
-                                     Book Consultation
-                                 </button>
+                                 @if($chef->chefProfile && $chef->chefProfile->calendly_link && trim($chef->chefProfile->calendly_link) !== '' && strtolower($chef->chefProfile->calendly_link) !== 'null')
+                                     <button onclick="openBookingDrawer('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}', '{{ addslashes($chef->chefProfile->cuisine_specialty ?? 'Specialist') }}', '{{ $chef->experience_range }}', '{{ $chef->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120' }}', '{{ $chef->chefProfile->calendly_link }}')"
+                                             class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2.5 rounded-2xl shadow-sm shadow-blue-500/10 transition-colors flex items-center justify-center gap-1.5">
+                                         <span class="material-symbols-outlined text-sm">calendar_month</span>
+                                         Book via Calendly
+                                     </button>
+                                 @else
+                                     <button onclick="openBookingDrawer('{{ $chef->id }}', '{{ addslashes($chef->full_name) }}', '{{ addslashes($chef->chefProfile->cuisine_specialty ?? 'Specialist') }}', '{{ $chef->experience_range }}', '{{ $chef->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=120&h=120' }}', '{{ $chef->chefProfile->calendly_link }}')"
+                                             class="w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-2.5 rounded-2xl shadow-sm shadow-green-500/10 transition-colors flex items-center justify-center gap-1.5">
+                                         <span class="material-symbols-outlined text-sm">event</span>
+                                         Book Consultation
+                                     </button>
+                                 @endif
                                  <button onclick="openChefDetailsDrawer({{ json_encode($chef) }})"
                                          class="w-full border border-gray-100 hover:bg-gray-50 text-gray-500 hover:text-gray-800 font-extrabold text-[10px] py-2 rounded-2xl transition">
                                      View Full Profile
@@ -1014,7 +1022,13 @@ function openChefDetailsDrawer(chef) {
 
     // Update button action
     const actionBtn = document.getElementById('detail-action-btn');
-    actionBtn.textContent = 'Get Appointment';
+    if (chef.chef_profile && chef.chef_profile.calendly_link && chef.chef_profile.calendly_link.trim() !== '' && chef.chef_profile.calendly_link.toLowerCase() !== 'null') {
+        actionBtn.textContent = 'Book via Calendly';
+        actionBtn.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-2xl shadow-lg shadow-blue-500/10 transition-colors flex items-center justify-center gap-1.5';
+    } else {
+        actionBtn.textContent = 'Get Appointment';
+        actionBtn.className = 'w-full bg-green-500 hover:bg-green-600 text-white font-extrabold text-xs py-3 rounded-2xl shadow-lg shadow-green-500/10 transition-colors flex items-center justify-center gap-1.5';
+    }
     actionBtn.setAttribute('onclick', `closeChefDetailsDrawer(); openBookingDrawer('${chef.id}', '${chef.full_name.replace(/'/g, "\\'")}', '${chef.chef_profile ? chef.chef_profile.cuisine_specialty : 'Specialist'}', '${chef.experience_range}', '${chef.profile_photo_path}', '${chef.chef_profile ? chef.chef_profile.calendly_link : ''}')`);
 
     drawer.classList.remove('hidden');
@@ -1026,6 +1040,11 @@ function closeChefDetailsDrawer() {
 }
 
 function openBookingDrawer(id, name, specialty, experience, avatar, calendly) {
+    if (calendly && calendly.trim() !== '' && calendly.toLowerCase() !== 'null') {
+        window.open(calendly, '_blank');
+        return;
+    }
+
     selectedChefId = id;
     selectedChefName = name;
     selectedTimeSlotText = '';

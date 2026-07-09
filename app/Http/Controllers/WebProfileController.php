@@ -338,4 +338,48 @@ class WebProfileController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Save/update Chef's Calendly Link.
+     */
+    public function saveCalendlyLink(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'calendly_link' => 'nullable|url|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $chefProfile = $user->chefProfile;
+        if (!$chefProfile) {
+            $chefProfile = \App\Models\ChefProfile::create([
+                'user_id' => $user->id,
+                'cuisine_specialty' => 'Multi-Cuisine',
+                'approval_status' => 'pending',
+            ]);
+        }
+
+        $chefProfile->update([
+            'calendly_link' => $request->calendly_link,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Calendly link updated successfully!',
+            'calendly_link' => $request->calendly_link,
+        ]);
+    }
 }

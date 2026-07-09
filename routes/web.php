@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/profile/personal', [WebProfileController::class, 'updatePersonal'])->name('profile.personal.update');
     Route::post('/profile/update', [WebProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/calendly/save', [WebProfileController::class, 'saveCalendlyLink'])->name('api.profile.calendly.save');
     Route::get('/profile/saved', [WebProfileController::class, 'getSavedJobsJson'])->name('api.profile.saved');
     Route::get('/profile/applications', [WebProfileController::class, 'getApplications'])->name('api.profile.applications');
     

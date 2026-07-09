@@ -146,7 +146,7 @@
             <h4 class="font-outfit font-bold text-gray-400 text-[10px] uppercase tracking-wider text-left">Professional Tools</h4>
             <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm divide-y divide-gray-50">
                 <!-- Calendly -->
-                <div class="p-3.5 flex items-center justify-between hover:bg-gray-50/50 transition cursor-pointer">
+                <div onclick="openChefCalendlyModal()" class="p-3.5 flex items-center justify-between hover:bg-gray-50/50 transition cursor-pointer">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-blue-600 text-[18px]">calendar_month</span>
                         <span class="text-xs font-bold text-gray-700">Calendly Integration</span>
@@ -242,15 +242,172 @@
     </div>
 </div>
 
+<!-- Chef Calendly Modal -->
+<div id="chef-calendly-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[80vh] border border-gray-100 transition-all transform scale-95 opacity-0 duration-300" id="chef-calendly-content">
+        <!-- Header -->
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h3 class="font-outfit font-extrabold text-xs text-gray-800 uppercase tracking-wider">Calendly Integration</h3>
+            <button type="button" onclick="closeChefCalendlyModal()" class="text-gray-400 hover:text-gray-600 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full transition">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <!-- Body -->
+        <div class="p-5 space-y-4 text-left">
+            <p class="text-[11px] text-gray-500 font-semibold leading-relaxed">
+                Connect your Calendly page to allow employers to book directly using your custom scheduling link.
+            </p>
+            
+            <div class="space-y-2">
+                <label for="calendly_link_input" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Calendly Booking Link</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-3.5 text-blue-600 font-medium text-sm">
+                        <span class="material-symbols-outlined text-[18px]">link</span>
+                    </span>
+                    <input type="url" id="calendly_link_input" 
+                           class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-xs"
+                           placeholder="https://calendly.com/your-username" 
+                           value="{{ $user->chefProfile->calendly_link ?? '' }}">
+                </div>
+                <span id="calendly-error-msg" class="text-red-500 text-[10px] font-semibold mt-1 hidden"></span>
+            </div>
+            
+            <button type="button" id="btn-save-calendly" onclick="saveCalendlyLink()"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+                Save Link
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 function closeChefAppointmentsModal() {
     document.getElementById('chef-appointments-modal').classList.add('hidden');
+}
+
+function openChefCalendlyModal() {
+    const modal = document.getElementById('chef-calendly-modal');
+    const content = document.getElementById('chef-calendly-content');
+    if (!modal || !content) return;
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 20);
+}
+
+function closeChefCalendlyModal() {
+    const modal = document.getElementById('chef-calendly-modal');
+    const content = document.getElementById('chef-calendly-content');
+    if (!modal || !content) return;
+    
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 200);
+}
+
+function showToastMessage(message, type = 'success') {
+    const container = document.createElement('div');
+    container.className = "fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] max-w-sm w-full mx-auto px-4";
+    const bgClass = type === 'success' ? 'bg-green-600' : 'bg-red-600';
+    const iconName = type === 'success' ? 'check_circle' : 'error';
+    container.innerHTML = `
+        <div class="${bgClass} text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between transition-all transform translate-y-[-20px] opacity-0 duration-300">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">${iconName}</span>
+                <span class="text-sm font-semibold">${message}</span>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:opacity-80">
+                <span class="material-symbols-outlined !text-[18px]">close</span>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(container);
+    setTimeout(() => {
+        const inner = container.querySelector('div');
+        inner.classList.remove('translate-y-[-20px]', 'opacity-0');
+        inner.classList.add('translate-y-0', 'opacity-100');
+    }, 20);
+    setTimeout(() => {
+        const inner = container.querySelector('div');
+        if (inner) {
+            inner.classList.remove('translate-y-0', 'opacity-100');
+            inner.classList.add('translate-y-[-20px]', 'opacity-0');
+            setTimeout(() => container.remove(), 300);
+        }
+    }, 3000);
+}
+
+async function saveCalendlyLink() {
+    const input = document.getElementById('calendly_link_input');
+    const errorEl = document.getElementById('calendly-error-msg');
+    const saveBtn = document.getElementById('btn-save-calendly');
+    
+    if (!input || !saveBtn || !errorEl) return;
+    
+    errorEl.classList.add('hidden');
+    
+    const value = input.value.trim();
+    if (value !== '' && !value.startsWith('http://') && !value.startsWith('https://')) {
+        errorEl.textContent = 'Please enter a valid URL starting with http:// or https://';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+    
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = 'Saving...';
+    
+    try {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const response = await fetch("{{ url('/api/profile/calendly/save') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token
+            },
+            body: JSON.stringify({ calendly_link: value })
+        });
+        
+        const data = await response.json();
+        
+        if (response.status === 422) {
+            const errText = data.errors && data.errors.calendly_link ? data.errors.calendly_link[0] : 'Validation failed.';
+            errorEl.textContent = errText;
+            errorEl.classList.remove('hidden');
+        } else if (data.success) {
+            showToastMessage(data.message, 'success');
+            closeChefCalendlyModal();
+            input.value = data.calendly_link || '';
+        } else {
+            errorEl.textContent = data.message || 'An error occurred.';
+            errorEl.classList.remove('hidden');
+        }
+    } catch (err) {
+        console.error(err);
+        errorEl.textContent = 'Failed to save link. Please check network connection.';
+        errorEl.classList.remove('hidden');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'Save Link';
+    }
 }
 
 // Close modal when clicking outside content area
 document.getElementById('chef-appointments-modal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeChefAppointmentsModal();
+    }
+});
+
+// Close calendly modal when clicking outside content area
+document.getElementById('chef-calendly-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeChefCalendlyModal();
     }
 });
 
