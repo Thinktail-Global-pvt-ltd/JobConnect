@@ -27,6 +27,7 @@ class User extends Authenticatable
         'skills',
         'is_suspended',
         'selected_language',
+        'fcm_token',
     ];
 
     /**
