@@ -23,7 +23,6 @@ const ComingSoon = () => {
             Chef Connect experts on one powerful platform.
           </p>
 
-
           <div className="mt-12">
             <p className="text-sm text-gray-500">
               Launching Soon • Stay Tuned
