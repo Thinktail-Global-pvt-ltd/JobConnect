@@ -41,4 +41,31 @@ class FirebaseController extends Controller
             'message' => 'FCM token updated successfully!',
         ]);
     }
+
+    /**
+     * Send a test push notification to a specific FCM token.
+     */
+    public function sendTestNotification(Request $request, \App\Services\FirebaseService $firebaseService)
+    {
+        $validator = Validator::make($request->all(), [
+            'fcm_token' => 'required|string',
+            'title' => 'required|string',
+            'body' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $result = $firebaseService->sendPushNotification(
+            $request->fcm_token,
+            $request->title,
+            $request->body
+        );
+
+        return response()->json($result);
+    }
 }
