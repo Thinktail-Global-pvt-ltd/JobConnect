@@ -16,6 +16,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\ChefOnboardingController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\FirebaseController;
 use Illuminate\Support\Facades\Route;
 
 /*
