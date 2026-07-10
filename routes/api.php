@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage']);
+    Route::post('/user/fcm-token', [\App\Http\Controllers\FirebaseController::class, 'saveFcmToken']);
     Route::get('/user/socials', [UserSocialController::class, 'show']);
     Route::post('/user/socials', [UserSocialController::class, 'update']);
 

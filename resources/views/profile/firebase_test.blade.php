@@ -70,7 +70,7 @@
                     <label for="fcm_token_input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Device FCM Token</label>
                     <textarea id="fcm_token_input" rows="2" 
                               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-xs font-mono placeholder-gray-400 resize-none"
-                              placeholder="Paste FCM Device Token here..."></textarea>
+                              placeholder="Paste FCM Device Token here...">{{ $user->fcm_token ?? '' }}</textarea>
                 </div>
 
                 <!-- Title -->
@@ -89,10 +89,16 @@
                               placeholder="Enter message body...">This is a test push notification to verify FCM working state!</textarea>
                 </div>
 
-                <button type="button" id="btn-send-fcm" onclick="sendTestNotification()"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
-                    Send Test Push
-                </button>
+                <div class="flex flex-col gap-2">
+                    <button type="button" id="btn-register-fcm" onclick="registerDeviceToken()"
+                            class="w-full border border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs">
+                        Register Device Token
+                    </button>
+                    <button type="button" id="btn-send-fcm" onclick="sendTestNotification()"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+                        Send Test Push
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -134,6 +140,52 @@
         
         // Auto scroll to bottom
         consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight;
+    }
+
+    async function registerDeviceToken() {
+        const tokenInput = document.getElementById('fcm_token_input');
+        const regBtn = document.getElementById('btn-register-fcm');
+        
+        if (!tokenInput || !regBtn) return;
+        
+        const token = tokenInput.value.trim();
+        if (!token) {
+            printToConsole('FCM Device Token is required to register.', 'error');
+            return;
+        }
+        
+        regBtn.disabled = true;
+        regBtn.innerHTML = 'Registering...';
+        
+        printToConsole(`Initiating POST request to /api/user/fcm-token...`);
+        
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const response = await fetch("{{ url('/api/user/fcm-token') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    fcm_token: token
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                printToConsole(`Token saved successfully in Database: ${data.message}`, 'success');
+            } else {
+                printToConsole(`Token save failed: ${data.message || JSON.stringify(data.errors)}`, 'error');
+            }
+        } catch (err) {
+            printToConsole(`Network request failed: ${err.message}`, 'error');
+        } finally {
+            regBtn.disabled = false;
+            regBtn.innerHTML = 'Register Device Token';
+        }
     }
 
     async function sendTestNotification() {
