@@ -42,6 +42,7 @@ class AuthController extends Controller
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
             'otp' => 'required|string|size:6',
             'selected_language' => 'nullable|string|max:10',
+            'fcm_token' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -69,6 +70,7 @@ class AuthController extends Controller
                 'mobile_number' => $request->mobile_number,
                 'is_suspended' => false,
                 'selected_language' => $request->selected_language ?? 'en',
+                'fcm_token' => $request->fcm_token,
             ]);
 
             // Automatically register default profile (Job Seeker)
@@ -78,10 +80,15 @@ class AuthController extends Controller
                 'is_active' => true,
             ]);
         } else {
+            $updateData = [];
             if ($request->filled('selected_language')) {
-                $user->update([
-                    'selected_language' => $request->selected_language
-                ]);
+                $updateData['selected_language'] = $request->selected_language;
+            }
+            if ($request->filled('fcm_token')) {
+                $updateData['fcm_token'] = $request->fcm_token;
+            }
+            if (!empty($updateData)) {
+                $user->update($updateData);
             }
         }
 
