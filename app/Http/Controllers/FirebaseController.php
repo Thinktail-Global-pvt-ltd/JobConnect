@@ -43,9 +43,18 @@ class FirebaseController extends Controller
     }
 
     /**
+     * Show the Firebase FCM test page.
+     */
+    public function showTestPage()
+    {
+        $user = Auth::user();
+        return view('profile.firebase_test', compact('user'));
+    }
+
+    /**
      * Send a test push notification to a specific FCM token.
      */
-    public function sendTestNotification(Request $request, \App\Services\FirebaseService $firebaseService)
+    public function sendTestNotification(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'fcm_token' => 'required|string',
@@ -60,11 +69,19 @@ class FirebaseController extends Controller
             ], 422);
         }
 
-        $result = $firebaseService->sendPushNotification(
-            $request->fcm_token,
-            $request->title,
-            $request->body
-        );
+        try {
+            $firebaseService = app(\App\Services\FirebaseService::class);
+            $result = $firebaseService->sendPushNotification(
+                $request->fcm_token,
+                $request->title,
+                $request->body
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Firebase Initialization Error: ' . $e->getMessage() . '. Please verify that your credentials file exists and is valid in storage/app/firebase/firebase_credentials.json',
+            ], 200); // Return 200 with success = false so the UI can capture and print the message cleanly
+        }
 
         return response()->json($result);
     }

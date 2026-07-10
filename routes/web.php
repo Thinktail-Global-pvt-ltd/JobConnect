@@ -54,6 +54,7 @@ Route::prefix('api')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [WebAuthController::class, 'logout'])->name('logout');
     Route::get('/profile', [WebProfileController::class, 'index'])->name('profile');
+    Route::get('/profile/firebase-test', [FirebaseController::class, 'showTestPage'])->name('profile.firebase-test');
     Route::get('/profile/personal', [WebProfileController::class, 'editPersonal'])->name('profile.personal.edit');
     Route::get('/profile/applications', [WebProfileController::class, 'applications'])->name('profile.applications');
     Route::get('/profile/saved', [WebProfileController::class, 'savedJobs'])->name('profile.saved');

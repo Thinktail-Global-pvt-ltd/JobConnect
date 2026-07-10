@@ -180,6 +180,21 @@
             </div>
         </div>
 
+        <!-- Developer Tools (FCM Tester) -->
+        <div class="space-y-2">
+            <h4 class="font-outfit font-bold text-gray-400 text-[10px] uppercase tracking-wider text-left">Developer Tools</h4>
+            <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm divide-y divide-gray-50">
+                <!-- Firebase FCM Test -->
+                <a href="{{ route('profile.firebase-test') }}" class="p-3.5 flex items-center justify-between hover:bg-gray-50/50 transition cursor-pointer block text-left">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-orange-500 text-[18px]">campaign</span>
+                        <span class="text-xs font-bold text-gray-700">Firebase FCM Tester</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[16px] text-gray-400">chevron_right</span>
+                </a>
+            </div>
+        </div>
+
         <!-- Settings & Support -->
         <div class="space-y-2">
             <h4 class="font-outfit font-bold text-gray-400 text-[10px] uppercase tracking-wider text-left">Settings &amp; Support</h4>
