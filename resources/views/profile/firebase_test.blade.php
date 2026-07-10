@@ -67,7 +67,10 @@
             <div class="space-y-4 bg-white border border-gray-100 p-5 rounded-3xl shadow-xs text-left">
                 <!-- Device Token -->
                 <div class="space-y-1.5">
-                    <label for="fcm_token_input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Device FCM Token</label>
+                    <div class="flex justify-between items-center">
+                        <label for="fcm_token_input" class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider">Device FCM Token</label>
+                        <button type="button" onclick="generateMockToken()" class="text-[9px] text-blue-600 hover:text-blue-700 font-bold hover:underline">Generate Mock Token</button>
+                    </div>
                     <textarea id="fcm_token_input" rows="2" 
                               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-xs font-mono placeholder-gray-400 resize-none"
                               placeholder="Paste FCM Device Token here...">{{ $user->fcm_token ?? '' }}</textarea>
@@ -147,6 +150,13 @@
         
         // Auto scroll to bottom
         consoleEl.parentElement.scrollTop = consoleEl.parentElement.scrollHeight;
+    }
+
+    function generateMockToken() {
+        const randStr = Array.from({length: 120}, () => Math.random().toString(36)[2]).join('');
+        const mockToken = `fcm_mock_token_${randStr}`;
+        document.getElementById('fcm_token_input').value = mockToken;
+        printToConsole(`Generated simulated mock FCM token. Click "Register Device Token" to save it to database.`, 'info');
     }
 
     async function registerDeviceToken() {
