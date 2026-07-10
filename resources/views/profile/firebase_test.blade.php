@@ -71,6 +71,13 @@
                     <textarea id="fcm_token_input" rows="2" 
                               class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition text-xs font-mono placeholder-gray-400 resize-none"
                               placeholder="Paste FCM Device Token here...">{{ $user->fcm_token ?? '' }}</textarea>
+                    <p class="text-[9px] mt-1 font-medium" id="fcm-status-msg">
+                        @if($user->fcm_token)
+                            <span class="text-emerald-600 font-bold flex items-center gap-0.5">✓ Token loaded from your profile database.</span>
+                        @else
+                            <span class="text-orange-500 font-bold flex items-center gap-0.5">⚠ No token saved in your database profile yet. Paste one and register it.</span>
+                        @endif
+                    </p>
                 </div>
 
                 <!-- Title -->
@@ -177,6 +184,10 @@
             
             if (data.success) {
                 printToConsole(`Token saved successfully in Database: ${data.message}`, 'success');
+                const statusMsg = document.getElementById('fcm-status-msg');
+                if (statusMsg) {
+                    statusMsg.innerHTML = `<span class="text-emerald-600 font-bold flex items-center gap-0.5">✓ Token loaded from your profile database.</span>`;
+                }
             } else {
                 printToConsole(`Token save failed: ${data.message || JSON.stringify(data.errors)}`, 'error');
             }
