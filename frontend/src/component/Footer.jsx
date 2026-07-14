@@ -7,11 +7,18 @@ const FacebookIcon = (props) => (
   </svg>
 );
 
-const LinkedinIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-    <rect x="2" y="9" width="4" height="12" />
-    <circle cx="4" cy="4" r="2" />
+const YouTubeIcon = (props) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29.94 29.94 0 0 0 1 12a29.94 29.94 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29.94 29.94 0 0 0 23 12a29.94 29.94 0 0 0-.46-5.58Z" />
+    <polygon points="10 15 16 12 10 9 10 15" fill="currentColor" stroke="none" />
   </svg>
 );
 
@@ -42,8 +49,8 @@ const Footer = () => {
     {
       title: "Platform",
       links: [
-        { label: "Talent Feed", href: "/" },
-        { label: "Hire Talent", href: "/jobs" },
+        { label: "Talent Feed", href: "/#talent" },
+        { label: "Hire Talent", href: "/#find-talent" },
         { label: "Chef Connect", href: "/#chef-connect" },
         { label: "Download App", href: "/#find-talent" },
       ],
@@ -70,28 +77,28 @@ const Footer = () => {
             </Link>
 
             <p className="max-w-[304px] text-[16px] leading-[24px] text-[#43474F] font-bold">
-              Built for Hospitality. Made for You. Follow Jobrito for hospitality opportunities, hiring updates, Chef Connect, training, industry news, and inspiring community stories.
+              Built for Hospitality. Made for You. <span className="font-normal">Follow Jobrito for hospitality opportunities, hiring updates, Chef Connect, training, industry news, and inspiring community stories.</span>
             </p>
 
             {/* Social Icons (rgba(0, 40, 76, 0.05) bg, 12px rounding, #211A18 icon) */}
             <div className="mt-2 flex items-center gap-4">
               <a
                 href="#"
-                className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#00284C]/5 text-[#211A18] transition-all duration-300 hover:text-[#F57F20] hover:bg-[#00284C]/10 shadow-sm"
+                className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#00284C]/5 text-[#211A18] transition-all duration-300 hover:text-[#001E3B] hover:bg-[#00284C]/10 shadow-sm"
                 aria-label="Facebook"
               >
                 <FacebookIcon className="w-[15px] h-[16.67px]" />
               </a>
               <a
                 href="#"
-                className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#00284C]/5 text-[#211A18] transition-all duration-300 hover:text-[#F57F20] hover:bg-[#00284C]/10 shadow-sm"
+                className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#00284C]/5 text-[#211A18] transition-all duration-300 hover:text-[#001E3B] hover:bg-[#00284C]/10 shadow-sm"
                 aria-label="LinkedIn"
               >
-                <LinkedinIcon className="w-[16.67px] h-[15px]" />
+                <YouTubeIcon className="w-[16.67px] h-[15px]" />
               </a>
               <a
                 href="#"
-                className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#00284C]/5 text-[#211A18] transition-all duration-300 hover:text-[#F57F20] hover:bg-[#00284C]/10 shadow-sm"
+                className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#00284C]/5 text-[#211A18] transition-all duration-300 hover:text-[#001E3B] hover:bg-[#00284C]/10 shadow-sm"
                 aria-label="Instagram"
               >
                 <InstagramIcon className="w-[16.67px] h-[16.67px]" />

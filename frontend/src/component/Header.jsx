@@ -108,7 +108,7 @@ const Header = () => {
                     {/* Join Button (Desktop - Deep Blue color matched) */}
                     <div className="hidden lg:flex items-center">
                         <Link
-                            to="/jobs"
+                            to="/"
                             className="inline-flex items-center justify-center rounded-lg bg-[#00284C] w-[161px] h-[48px] text-[16px] font-medium text-white shadow-sm hover:bg-[#001c36] hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
                         >
                             Join Now
@@ -147,7 +147,7 @@ const Header = () => {
                     <img
                         src={fullLogo}
                         alt="Jobrito"
-                        className="h-10 w-10 object-contain"
+                        className="h-20 w-20 object-contain"
                     />
                     <button
                         onClick={() => setMenuOpen(false)}

@@ -56,10 +56,10 @@ const HomeScreen = () => {
                 {/* Buttons row (Figma dimensions, brand orange shadow, app store and play store images restored) */}
                 <div className="flex items-center gap-4 flex-wrap">
                   <Link
-                    to="/jobs"
+                    to="/"
                     className="inline-flex items-center justify-center rounded-lg bg-[#00284C] w-[213.44px] h-[67.5px] text-[16px] font-bold text-white shadow-[0_20px_25px_-5px_rgba(245,127,32,0.2),0_8px_10px_-6px_rgba(245,127,32,0.2)] transition-all duration-300 hover:bg-[#001e3b]"
                   >
-                    Find Your Job
+                    Download App
                   </Link>
                   
                   <div className="flex items-center gap-2">
@@ -369,10 +369,10 @@ const HomeScreen = () => {
             
             {/* Contact button (figma size: w-298px h-76px, bg: #00284C, rounded: 16px) */}
             <Link
-              to="/jobs"
+              to="/"
               className="inline-flex items-center justify-center rounded-[16px] bg-[#00284C] w-[298.23px] h-[76px] text-[20px] font-medium text-white shadow-[0px_25px_50px_-12px_rgba(0,40,76,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#001c36]"
             >
-              Contact Us Now
+              Download the App
             </Link>
 
             {/* Figma-styled Download Buttons (Scan QR Removed, SVG Logos Used) */}
