@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import PrivacyPolicy from "./PrivacyPolicy";
 import "./App.css";
 import FindANewJob from "./component/FindANewJob";
 import HomeScreen from "./component/HomeScreen";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Term from "./Term";
 
 // Admin Panel Components
@@ -24,10 +25,29 @@ import Applications from "./admin/Applications";
 import Layout from "./admin/Layout";
 import ComingSoon from "./component/CommingSoon";
 
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [pathname, hash]);
+
+  return null;
+}
+
 function App() {
   return (
     <div>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Customer Facing Web Routes */}
           <Route path="/" element={<HomeScreen />} />
