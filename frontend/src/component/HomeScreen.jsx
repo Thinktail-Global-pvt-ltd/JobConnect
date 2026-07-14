@@ -74,7 +74,7 @@ const HomeScreen = () => {
               </div>
 
               {/* Right Mockup Phone & Floaty Cards */}
-              <div className="relative mx-auto w-full max-w-[528px] h-[566px] flex items-center justify-center isolation-isolate mt-8 lg:mt-0">
+              <div className="relative mx-auto w-full max-w-[528px] h-[550px] flex items-center justify-center isolation-isolate mt-8 lg:mt-0">
                 {/* Background glow decoration */}
                 <div className="absolute w-[600px] h-[600px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#00284C]/5 blur-[32px] rounded-full z-0" />
                 
@@ -106,13 +106,13 @@ const HomeScreen = () => {
                 </div>
 
                 {/* Floating Snippet 1 (left: 81px, top: 80px) */}
-                <div className="absolute w-[218px] h-[80px] left-[81px] top-[80px] z-20 bg-white rounded-[16px] p-4 shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] flex items-center gap-3 border border-[#efe0d6]/30">
+                <div className="absolute w-[218px] h-[80px] left-[81px] top-[150px] z-20 bg-white rounded-[16px] p-4 shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] flex items-center gap-3 border border-[#efe0d6]/30">
                   <div className="w-[32px] h-[32px] bg-[#FFD484] rounded-[12px] flex-shrink-0" />
                   <div className="w-[142px] h-[8px] bg-[#EEDFDC] rounded-[12px]" />
                 </div>
 
                 {/* Floating Snippet 2 (right: 32.5px, top: 270px) */}
-                <div className="absolute w-[288px] h-[104px] right-[32.5px] top-[270px] z-20 bg-white rounded-[16px] p-4 shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] border border-[#efe0d6]/30 text-left flex flex-col justify-between">
+                <div className="absolute w-[288px] h-[94px] right-[32.5px] top-[320px] z-20 bg-white rounded-[16px] p-4 shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] border border-[#efe0d6]/30 text-left flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <span className="text-[12px] font-bold text-[#00284C]">New job opportunity</span>
                     <span className="text-[10px] font-bold text-[#F57F20]">New</span>
@@ -122,7 +122,7 @@ const HomeScreen = () => {
                 </div>
 
                 {/* Floating Snippet 3 (left: 75px, bottom: 95px) */}
-                <div className="absolute w-[240px] h-[52px] left-[75px] bottom-[95px] z-20 bg-[#00284C] rounded-[16px] p-4 shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] flex items-center gap-2 border border-white/10 text-left">
+                <div className="absolute w-[240px] h-[52px] left-[75px] bottom-[45px] z-20 bg-[#00284C] rounded-[16px] p-4 shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] flex items-center gap-2 border border-white/10 text-left">
                   <div className="w-[20px] h-[20px] bg-[#F2C879] rounded-full flex-shrink-0" />
                   <span className="text-[12px] font-bold text-white">Executive Chef</span>
                 </div>
@@ -132,7 +132,7 @@ const HomeScreen = () => {
         </section>
 
         {/* Discover Jobrito Section */}
-        <section className="mx-auto max-w-[1280px] px-[40px] pt-[80px] pb-[43px]">
+        <section className="mx-auto max-w-[1280px] px-[40px] pt-[50px] pb-[33px] bg-white">
           <div className="grid gap-[96px] lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
             <h2 className="text-[48px] font-bold tracking-tight text-[#00284C] sm:text-[64px] lg:leading-[48px] text-left">
               Discover jobrito
@@ -147,8 +147,8 @@ const HomeScreen = () => {
 
               <div className="flex items-center gap-12 mt-[48px]">
                 {metrics.map((item) => (
-                  <div key={item.label} className="text-left border-l-2 border-[#F57F20] pl-4">
-                    <div className="text-[36px] font-extrabold text-[#F57F20] leading-[40px]">{item.value}</div>
+                  <div key={item.label} className="text-left border-l-2 border-[#00284C] pl-4">
+                    <div className="text-[36px] font-extrabold text-[#00284C] leading-[40px]">{item.value}</div>
                     <div className="mt-2 text-[15px] font-normal uppercase tracking-wide text-black font-heading">
                       {item.label}
                     </div>
@@ -163,7 +163,7 @@ const HomeScreen = () => {
         <section className="w-full flex flex-col space-y-0 bg-[#FFF8F6]">
           
           {/* Chef Connect */}
-          <div id="chef-connect" className="relative h-[600px] w-full overflow-hidden flex items-center">
+          <div id="chef-connect" className="relative h-[550px] w-full overflow-hidden flex items-center">
             <img 
               src={chefImage} 
               alt="Chef Connect" 
@@ -189,7 +189,7 @@ const HomeScreen = () => {
           </div>
 
           {/* Talent */}
-          <div id="talent" className="relative h-[600px] w-full overflow-hidden flex items-center border-t border-b border-[#C3C6D0]">
+          <div id="talent" className="relative h-[550px] w-full overflow-hidden flex items-center border-t border-b border-[#C3C6D0]">
             <img 
               src={talentImage} 
               alt="Talent Opportunities" 
@@ -215,7 +215,7 @@ const HomeScreen = () => {
           </div>
 
           {/* Find Talent */}
-          <div id="find-talent" className="relative h-[600px] w-full overflow-hidden flex items-center">
+          <div id="find-talent" className="relative h-[550px] w-full overflow-hidden flex items-center">
             <img 
               src={findTalentImage} 
               alt="Find Talent" 
@@ -354,7 +354,7 @@ const HomeScreen = () => {
         </section>
 
         {/* Built for Hospitality Section */}
-        <section className="bg-[#0A0504] text-white py-[128px] border-t border-[#F57F20]/10">
+        <section className="bg-[#0A0504] text-white py-[58px] border-t border-[#F57F20]/10">
           <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-8">
             <div className="mx-auto max-w-3xl text-center flex flex-col gap-[24px]">
               <h2 className="text-[40px] font-black tracking-[-1.8px] sm:text-[56px] lg:text-[64px] lg:leading-[80px] leading-tight text-white">
@@ -382,7 +382,9 @@ const HomeScreen = () => {
                 href="#"
                 className="box-border inline-flex items-center justify-center gap-3 bg-black/50 border border-white/20 backdrop-blur-[6px] rounded-[8px] w-[192px] h-[56px] text-white transition-all duration-300 hover:-translate-y-0.5 shadow-md"
               >
-                <AppleIcon className="w-6 h-6 text-white" />
+                {/* <AppleIcon className="w-6 h-6 text-white" /> */}
+                      <img src={appstore} alt="App Store" className="w-[40px] h-full object-contain" />
+
                 <div className="text-left">
                   <p className="text-[9px] font-semibold uppercase tracking-wider text-white/50 leading-none">Download on the</p>
                   <p className="text-sm font-bold text-white mt-1 leading-none">App Store</p>
@@ -394,7 +396,8 @@ const HomeScreen = () => {
                 href="#"
                 className="box-border inline-flex items-center justify-center gap-3 bg-black/50 border border-white/20 backdrop-blur-[6px] rounded-[8px] w-[192px] h-[56px] text-white transition-all duration-300 hover:-translate-y-0.5 shadow-md"
               >
-                <PlayStoreIcon className="w-6 h-6 text-white" />
+                {/* <PlayStoreIcon className="w-6 h-6 text-white" /> */}
+                <img src={playstore} alt="Google Play" className="w-[40px] h-full object-contain" />
                 <div className="text-left">
                   <p className="text-[9px] font-semibold uppercase tracking-wider text-white/50 leading-none">GET IT ON</p>
                   <p className="text-sm font-bold text-white mt-1 leading-none">Google Play</p>

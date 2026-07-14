@@ -61,10 +61,10 @@ const Footer = () => {
 
   return (
     <footer id="footer" className="border-t border-[#efe0d6] bg-white text-[#00284C]">
-      <div className="mx-auto max-w-[1160px] px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-start text-left">
+      <div className="mx-auto max-w-[1060px] px-4  sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-start text-left">
           {/* Brand Info */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <Link to="/" className="inline-flex items-center">
               <img src={fullLogo} alt="Jobrito" className="h-[80px] w-auto" />
             </Link>
@@ -100,7 +100,7 @@ const Footer = () => {
           </div>
 
           {/* Navigation Links Columns */}
-          <div className="grid gap-10 grid-cols-2">
+          <div className="grid gap-8 grid-cols-2">
             {footerColumns.map((column) => (
               <div key={column.title} className="flex flex-col gap-6">
                 <h2 className="text-[16px] font-normal leading-[24px] text-[#00284C] font-heading">
@@ -134,7 +134,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 border-t border-[#efe0d6] pt-8 flex flex-col sm:flex-row items-center justify-between text-[14px] leading-[20px] text-[#43474F] gap-4">
+        <div className="mt-8 border-t border-[#efe0d6] pt-8 flex flex-col sm:flex-row items-center justify-between text-[14px] leading-[20px] text-[#43474F] gap-4">
           <div>
             2026 Jobrito. All rights reserved - An Initiative by Hoss Global Inc.
           </div>
