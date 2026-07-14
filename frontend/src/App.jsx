@@ -1,7 +1,7 @@
 import PrivacyPolicy from "./PrivacyPolicy";
 import "./App.css";
 import FindANewJob from "./component/FindANewJob";
-import Home from "./component/Home";
+import HomeScreen from "./component/HomeScreen";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Term from "./Term";
 
@@ -30,10 +30,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Customer Facing Web Routes */}
-          <Route path="/" element={<ComingSoon />} />
+          <Route path="/" element={<HomeScreen />} />
           <Route path="/jobs" element={<FindANewJob />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
-          <Route path="/terms&conditions" element={<Term/>}/>
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms&conditions" element={<Term />} />
 
           {/* Admin Panel Control Mappings */}
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

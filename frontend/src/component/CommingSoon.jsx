@@ -1,5 +1,5 @@
 import React from "react";
-import construction from "../assets/construction.png"; // Replace with your illustration
+import construction from "../assets/construction.png";
 
 const ComingSoon = () => {
   return (

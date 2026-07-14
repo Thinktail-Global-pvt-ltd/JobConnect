@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=Work+Sans:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -27,9 +27,13 @@ html {
 
 body {
   margin: 0;
-  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  background: #ffffff;
-  color: #0f172a;
+  font-family: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  background: #FFF8F6;
+  color: #43474F;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
 * {
