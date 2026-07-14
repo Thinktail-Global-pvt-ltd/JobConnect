@@ -10,20 +10,21 @@ const Header = () => {
     const currentHash = location.hash;
 
     const navItems = [
+       
         { 
-            label: "Find Job", 
-            href: "/jobs", 
-            active: currentPath === "/jobs" 
-        },
-        { 
-            label: "Talent", 
+            label: "Talent Feed", 
             href: "/#talent", 
             active: currentPath === "/" && (currentHash === "#talent" || !currentHash) 
         },
         { 
-            label: "Find Talent", 
+            label: "Hire Talent", 
             href: "/#find-talent", 
             active: currentPath === "/" && currentHash === "#find-talent" 
+        },
+         { 
+            label: "Chef Connect", 
+            href: "/#chef-connect", 
+            active: currentPath === "/" && currentHash === "#chef-connect" 
         },
     ];
 
@@ -91,7 +92,7 @@ const Header = () => {
                             key={item.label}
                             to={item.href}
                             onClick={(e) => handleNavClick(item.href, e)}
-                            className={`relative text-[16px] font-medium tracking-wide transition-all duration-300 py-1.5 ${
+                            className={`relative text-[14px] font-medium tracking-wide transition-all duration-300 py-1.5 ${
                                 item.active
                                     ? "text-[#00284C] border-b-2 border-[#00284C] font-bold"
                                     : "text-[#43474F] hover:text-[#00284C]"
