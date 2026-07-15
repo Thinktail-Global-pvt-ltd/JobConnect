@@ -2239,7 +2239,7 @@ textarea.w-select {
 
 body {
   color: #333;
-  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+  font-family: "Inter", Arial, Helvetica Neue, Helvetica, sans-serif;
   font-size: 14px;
   line-height: 20px;
 }
@@ -2254,7 +2254,7 @@ h2 {
 
 .body {
   color: var(--black);
-  font-family: Open Sans, sans-serif;
+  font-family: "Inter", Open Sans, sans-serif;
   font-size: 16px;
   line-height: 24px;
 }
