@@ -6,6 +6,8 @@ import chefImage from "../assets/chef.png";
 import findTalentImage from "../assets/find talent.png";
 import appstore from "../assets/appstore.png";
 import playstore from "../assets/playstore.png";
+import appstore1 from "../assets/app-store1.png";
+import playstore1 from "../assets/play1.png";
 
 const AppleIcon = (props) => (
   <svg viewBox="0 0 24 24" className="fill-current" {...props}>
@@ -64,10 +66,10 @@ const HomeScreen = () => {
                   
                   <div className="flex items-center gap-2">
                     <a href="#" className="w-[50px] h-[43px] transition-transform duration-300 hover:scale-105">
-                      <img src={appstore} alt="App Store" className="w-full h-full object-contain" />
+                      <img src={appstore1} alt="App Store" className="w-full h-full object-contain" />
                     </a>
                     <a href="#" className="w-[50px] h-[43px] transition-transform duration-300 hover:scale-105">
-                      <img src={playstore} alt="Google Play" className="w-full h-full object-contain" />
+                      <img src={playstore1} alt="Google Play" className="w-[50px] h-[43px] object-contain" />
                     </a>
                   </div>
                 </div>

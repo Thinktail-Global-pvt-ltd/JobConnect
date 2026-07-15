@@ -6,25 +6,25 @@ import fullLogo from "../assets/Jobrito full logo.png";
 const Header = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const location = useLocation();
+    const [activeHash, setActiveHash] = useState(location.hash);
     const currentPath = location.pathname;
-    const currentHash = location.hash;
 
     const navItems = [
        
         { 
             label: "Talent Feed", 
             href: "/#talent", 
-            active: currentPath === "/" && (currentHash === "#talent" || !currentHash) 
+            active: currentPath === "/" && activeHash === "#talent"
         },
         { 
             label: "Hire Talent", 
             href: "/#find-talent", 
-            active: currentPath === "/" && currentHash === "#find-talent" 
+            active: currentPath === "/" && activeHash === "#find-talent" 
         },
          { 
             label: "Chef Connect", 
             href: "/#chef-connect", 
-            active: currentPath === "/" && currentHash === "#chef-connect" 
+            active: currentPath === "/" && activeHash === "#chef-connect" 
         },
     ];
 
@@ -39,6 +39,7 @@ const Header = () => {
                     element.scrollIntoView({ behavior: "smooth", block: "start" });
                     // Update URL hash without standard page jump
                     window.history.pushState(null, null, href);
+                    setActiveHash(href.substring(href.indexOf("#")));
                 }
                 setMenuOpen(false);
             }
@@ -49,17 +50,25 @@ const Header = () => {
 
     // Auto scroll on initial page load if hash exists
     useEffect(() => {
-        if (currentHash && currentPath === "/") {
-            const id = currentHash.replace("#", "");
+        if (location.hash && currentPath === "/") {
+            const id = location.hash.replace("#", "");
             const element = document.getElementById(id);
             if (element) {
                 const timer = setTimeout(() => {
                     element.scrollIntoView({ behavior: "smooth", block: "start" });
                 }, 300);
+                setActiveHash(location.hash);
                 return () => clearTimeout(timer);
             }
         }
-    }, [currentHash, currentPath]);
+    }, [location.hash, currentPath]);
+
+    // Listen for popstate events (browser back/forward buttons)
+    useEffect(() => {
+        const handlePopState = () => setActiveHash(window.location.hash);
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     // Prevent background page scrolling when mobile menu drawer is open
     useEffect(() => {
@@ -92,13 +101,16 @@ const Header = () => {
                             key={item.label}
                             to={item.href}
                             onClick={(e) => handleNavClick(item.href, e)}
-                            className={`relative text-[14px] font-medium tracking-wide transition-all duration-300 py-1.5 ${
-                                item.active
-                                    ? "text-[#00284C] border-b-2 border-[#00284C] font-bold"
-                                    : "text-[#43474F] hover:text-[#00284C]"
+                            className={`group relative text-[14px] font-medium tracking-wide transition-colors duration-300 py-1.5 ${
+                                item.active ? "text-[#00284C] font-bold" : "text-[#43474F] hover:text-[#00284C]"
                             }`}
                         >
-                            {item.label}
+                            <span>{item.label}</span>
+                            <span
+                                className={`absolute bottom-0 left-0 block h-0.5 bg-[#00284C] transition-all duration-300 ${
+                                    item.active ? "w-full" : "w-0 group-hover:w-full"
+                                }`}
+                            ></span>
                         </Link>
                     ))}
                 </nav>
