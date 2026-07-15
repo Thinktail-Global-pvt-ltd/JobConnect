@@ -19,7 +19,7 @@ const FindANewJob = () => {
         <link
           rel="shortcut icon"
           type="image/png"
-          href="https://www.seasoned.co/favicon.png"
+          href="/src/assets/Jobrito%20full%20logo.png"
         />
         <title>All jobs near Jabalpur, MP @ Seasoned</title>
         <svg xmlns="http://www.w3.org/2000/svg" className="hidden">
