@@ -145,9 +145,6 @@ const Footer = () => {
           <div>
             2026 Jobrito. All rights reserved - An Initiative by Hoss Global Inc.
           </div>
-          <div className="flex gap-4">
-            <span>Made for hospitality, built for local teams.</span>
-          </div>
         </div>
       </div>
     </footer>
