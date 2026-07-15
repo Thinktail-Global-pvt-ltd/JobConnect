@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import axios from "axios";
 
 const HelpSupport = () => {
   const [formData, setFormData] = useState({
@@ -78,25 +79,44 @@ const HelpSupport = () => {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
-    // Simulate API request
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        userType: "Professional",
-        subject: "Account Support",
-        message: "",
+    try {
+      const response = await axios.post("/api/support-ticket", {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        userType: formData.userType,
+        subject: formData.subject,
+        message: formData.message
       });
-    }, 1500);
+
+      if (response.data.success) {
+        setIsSuccess(true);
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          userType: "Professional",
+          subject: "Account Support",
+          message: "",
+        });
+      } else {
+        alert(response.data.message || "Failed to submit enquiry.");
+      }
+    } catch (err) {
+      console.error(err);
+      const errMsg = err.response?.data?.errors 
+        ? Object.values(err.response.data.errors).flat().join(" ") 
+        : (err.response?.data?.message || "Something went wrong. Please try again.");
+      alert(errMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

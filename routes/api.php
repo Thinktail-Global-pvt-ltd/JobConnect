@@ -48,3 +48,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/employer/appointments', [AppointmentController::class, 'employerAppointmentsList']);
     Route::get('/employer/chefs', [AppointmentController::class, 'registeredChefsList']);
 });
+
+Route::post('/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store']);
