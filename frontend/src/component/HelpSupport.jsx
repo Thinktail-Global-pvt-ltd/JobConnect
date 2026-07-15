@@ -135,45 +135,6 @@ const HelpSupport = () => {
                     </div>
                   </div>
 
-                  {/* Phone */}
-                  <div className="flex gap-4 items-start">
-                    <div className="w-10 h-10 rounded-xl bg-[#00284C]/5 flex items-center justify-center text-[#00284C] flex-shrink-0">
-                      <Phone className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-[14px] font-bold text-[#00284C]">Call/WhatsApp</h4>
-                      <p className="text-[15px] text-[#43474F] mt-0.5">+91 98765 43210</p>
-                    </div>
-                  </div>
-
-                  {/* Office address */}
-                  <div className="flex gap-4 items-start">
-                    <div className="w-10 h-10 rounded-xl bg-[#00284C]/5 flex items-center justify-center text-[#00284C] flex-shrink-0">
-                      <MapPin className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-[14px] font-bold text-[#00284C]">Headquarters</h4>
-                      <p className="text-[15px] text-[#43474F] mt-0.5">
-                        Hoss Global Inc.<br />
-                        Civic Center, Jabalpur,<br />
-                        Madhya Pradesh, 482001
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Timings */}
-                  <div className="flex gap-4 items-start">
-                    <div className="w-10 h-10 rounded-xl bg-[#00284C]/5 flex items-center justify-center text-[#00284C] flex-shrink-0">
-                      <Clock className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-[14px] font-bold text-[#00284C]">Support Hours</h4>
-                      <p className="text-[15px] text-[#43474F] mt-0.5">
-                        Monday - Saturday<br />
-                        09:00 AM - 06:00 PM IST
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
 
