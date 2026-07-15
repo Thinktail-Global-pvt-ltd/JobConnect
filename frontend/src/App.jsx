@@ -3,6 +3,8 @@ import PrivacyPolicy from "./PrivacyPolicy";
 import "./App.css";
 import FindANewJob from "./component/FindANewJob";
 import HomeScreen from "./component/HomeScreen";
+import HelpSupport from "./component/HelpSupport";
+import DataDeletion from "./component/DataDeletion";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Term from "./Term";
 
@@ -36,7 +38,22 @@ function ScrollToTop() {
 
   useEffect(() => {
     if (!hash) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
+      const scroll = () => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        document.documentElement.scrollTo({ top: 0, behavior: 'instant' });
+        document.body.scrollTo({ top: 0, behavior: 'instant' });
+      };
+
+      scroll();
+      const t1 = setTimeout(scroll, 50);
+      const t2 = setTimeout(scroll, 150);
+      const t3 = setTimeout(scroll, 300);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
     }
   }, [pathname, hash]);
 
@@ -54,6 +71,8 @@ function App() {
           <Route path="/jobs" element={<FindANewJob />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms&conditions" element={<Term />} />
+          <Route path="/help-support" element={<HelpSupport />} />
+          <Route path="/data-deletion" element={<DataDeletion />} />
 
           {/* Admin Panel Control Mappings */}
           <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

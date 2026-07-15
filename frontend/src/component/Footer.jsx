@@ -58,10 +58,10 @@ const Footer = () => {
     {
       title: "Support",
       links: [
-        { label: "Help Center", href: "/privacy-policy" },
+        { label: "Help & Support", href: "/help-support" },
         { label: "Privacy Policy", href: "/privacy-policy" },
         { label: "Terms of Service", href: "/terms&conditions" },
-        { label: "Unsubscribe", href: "/privacy-policy" },
+        { label: "Data Deletion", href: "/data-deletion" },
       ],
     },
   ];
