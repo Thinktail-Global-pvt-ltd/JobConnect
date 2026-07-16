@@ -10,7 +10,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', '"Plus Jakarta Sans"', 'sans-serif'],
+        sans: ['"Instrument Sans"', '"Plus Jakarta Sans"', 'sans-serif'],
         outfit: ['Outfit', 'sans-serif'],
       },
       colors: {

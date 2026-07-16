@@ -68,7 +68,7 @@ const DataDeletion = () => {
     }
 
     if (!formData.confirm) {
-      tempErrors.confirm = "You must confirm that you understand the terms of data deletion";
+      tempErrors.confirm = "You must confirm that you understand the terms of UnSubscribe";
     }
 
     setErrors(tempErrors);
@@ -104,7 +104,7 @@ const DataDeletion = () => {
           {/* Header text */}
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h1 className="text-[36px] sm:text-[48px] font-black leading-tight text-[#00284C]">
-              Request Account & Data Deletion
+              Request Account & UnSubscribe
             </h1>
             <p className="mt-4 text-base sm:text-lg text-[#43474F]/90">
               We value your privacy. If you wish to delete your Jobrito account and permanently erase your data from our servers, please review the conditions and submit the request.
@@ -124,7 +124,7 @@ const DataDeletion = () => {
 
                 <div className="space-y-4 text-[15px] leading-relaxed text-[#43474F]">
                   <p>
-                    Please read these conditions carefully before submitting your data deletion request:
+                    Please read these conditions carefully before submitting your UnSubscribe request:
                   </p>
                   <ul className="list-disc pl-5 space-y-2.5">
                     <li>

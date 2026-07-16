@@ -416,6 +416,7 @@ fieldset {
 html {
   -webkit-text-size-adjust: 100%;
   font-family:
+    Instrument Sans,
     Inter,
     Open Sans,
     OpenSans-Regular,
@@ -3487,6 +3488,7 @@ body.easy-apply
   color: #000;
   cursor: pointer;
   font-family:
+    Instrument Sans,
     Inter,
     Open Sans,
     sans-serif;
