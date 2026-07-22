@@ -16,7 +16,7 @@ const staggerContainer = {
 
 export default function About() {
   return (
-    <div className="min-h-screen pt-20 pb-24 px-6 bg-background">
+    <div className="min-h-screen pt-32 pb-24 px-6 bg-background">
       <div className="max-w-4xl mx-auto">
         <motion.header
           initial="hidden"

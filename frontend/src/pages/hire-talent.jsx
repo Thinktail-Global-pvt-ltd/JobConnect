@@ -16,7 +16,7 @@ const staggerContainer = {
 
 export default function HireTalent() {
   return (
-    <div className="min-h-screen pt-20 pb-24 px-6 bg-background overflow-hidden relative">
+    <div className="min-h-screen pt-32 pb-24 px-6 bg-background overflow-hidden relative">
       {/* Warm ember/amber ambient background — brand color tones, not navy */}
       <div className="absolute top-0 right-0 w-2/3 h-[700px] bg-[radial-gradient(ellipse_at_top_right,hsl(29_91%_20%/0.45),transparent_70%)] pointer-events-none"></div>
       <div className="absolute top-0 right-0 w-1/3 h-[500px] bg-[radial-gradient(ellipse_at_top_right,hsl(40_83%_30%/0.25),transparent_60%)] pointer-events-none"></div>

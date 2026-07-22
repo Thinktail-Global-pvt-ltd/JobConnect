@@ -20,7 +20,7 @@ const staggerContainer = {
 
 export default function FindJobs() {
   return (
-    <div className="min-h-screen pt-20 pb-24 px-6 bg-background">
+    <div className="min-h-screen pt-32 pb-24 px-6 bg-background">
       <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
         <motion.header
           initial="hidden"
