@@ -61,7 +61,7 @@ const Footer = () => {
         { label: "Help & Support", href: "/help-support" },
         { label: "Privacy Policy", href: "/privacy-policy" },
         { label: "Terms of Service", href: "/terms&conditions" },
-        { label: "Data Deletion", href: "/data-deletion" },
+        { label: "UnSubscribe", href: "/data-deletion" },
       ],
     },
   ];
@@ -144,9 +144,6 @@ const Footer = () => {
         <div className="mt-8 border-t border-[#efe0d6] pt-8 flex flex-col sm:flex-row items-center justify-between text-[14px] leading-[20px] text-[#43474F] gap-4">
           <div>
             2026 Jobrito. All rights reserved - An Initiative by Hoss Global Inc.
-          </div>
-          <div className="flex gap-4">
-            <span>Made for hospitality, built for local teams.</span>
           </div>
         </div>
       </div>

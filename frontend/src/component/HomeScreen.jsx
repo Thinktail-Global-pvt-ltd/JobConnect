@@ -6,8 +6,6 @@ import chefImage from "../assets/chef.png";
 import findTalentImage from "../assets/find talent.png";
 import appstore from "../assets/appstore.png";
 import playstore from "../assets/playstore.png";
-import appstore1 from "../assets/app-store1.png";
-import playstore1 from "../assets/play1.png";
 
 const AppleIcon = (props) => (
   <svg viewBox="0 0 24 24" className="fill-current" {...props}>
@@ -16,8 +14,8 @@ const AppleIcon = (props) => (
 );
 
 const PlayStoreIcon = (props) => (
-  <svg viewBox="0 0 24 24" className="fill-current" {...props}>
-    <path d="M3 5.277c0-.986.666-1.745 1.545-1.921L14.7 12 4.545 20.644C3.666 20.468 3 19.709 3 18.723V5.277zm12.9 6.723L5.455 5.03l10.445 6.97-10.445 6.97L15.9 12zm1.2-1.2l4.545-3.03c.534-.356.534-.984 0-1.34L17.1 9.4z" />
+  <svg viewBox="0 0 16 16" className="fill-current" {...props}>
+    <path d="M14.222 9.374c1.037-.61 1.037-2.137 0-2.748L11.528 5.04 8.32 8l3.207 2.96zm-3.595 2.116L7.583 8.68 1.03 14.73c.201 1.029 1.36 1.61 2.303 1.055zM1 13.396V2.603L6.846 8zM1.03 1.27l6.553 6.05 3.044-2.81L3.333.215C2.39-.341 1.231.24 1.03 1.27" />
   </svg>
 );
 
@@ -28,12 +26,12 @@ const metrics = [
 
 const HomeScreen = () => {
   return (
-    <div className="min-h-screen bg-[#FFF8F6] text-[#43474F] overflow-x-hidden pt-16 sm:pt-20">
+    <div className="min-h-screen bg-white text-[#43474F] overflow-x-hidden pt-16 sm:pt-20">
       <Header />
 
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-[#FFF8F6] border-b border-[#efe0d6]/50">
+        <section className="relative overflow-hidden bg-white border-b border-[#efe0d6]/50">
           <div className="relative mx-auto max-w-[1280px] px-[40px] pb-16 sm:pb-20 lg:pb-24 ">
             <div className="grid items-center gap-[44px] lg:grid-cols-[1.05fr_0.95fr]">
               {/* Left Content */}
@@ -64,12 +62,29 @@ const HomeScreen = () => {
                     Download App
                   </Link>
                   
-                  <div className="flex items-center gap-2">
-                    <a href="#" className="w-[50px] h-[43px] transition-transform duration-300 hover:scale-105">
-                      <img src={appstore1} alt="App Store" className="w-full h-full object-contain" />
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {/* App Store Download */}
+                    <a
+                      href="#"
+                      className="box-border inline-flex items-center justify-center gap-3 bg-[#0c1420] border border-white/10 rounded-[8px] w-[180px] h-[54px] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-black shadow-md"
+                    >
+                      <AppleIcon className="w-7 h-7 text-white flex-shrink-0" />
+                      <div className="text-left">
+                        <p className="text-[8px] font-semibold uppercase tracking-wider text-white/50 leading-none">Download on the</p>
+                        <p className="text-sm font-bold text-white mt-1 leading-none">App Store</p>
+                      </div>
                     </a>
-                    <a href="#" className="w-[50px] h-[43px] transition-transform duration-300 hover:scale-105">
-                      <img src={playstore1} alt="Google Play" className="w-[50px] h-[43px] object-contain" />
+
+                    {/* Google Play Download */}
+                    <a
+                      href="#"
+                      className="box-border inline-flex items-center justify-center gap-3 bg-[#0c1420] border border-white/10 rounded-[8px] w-[180px] h-[54px] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-black shadow-md"
+                    >
+                      <PlayStoreIcon className="w-7 h-7 text-white flex-shrink-0" />
+                      <div className="text-left">
+                        <p className="text-[8px] font-semibold uppercase tracking-wider text-white/50 leading-none">GET IT ON</p>
+                        <p className="text-sm font-bold text-white mt-1 leading-none">Google Play</p>
+                      </div>
                     </a>
                   </div>
                 </div>
@@ -161,90 +176,108 @@ const HomeScreen = () => {
           </div>
         </section>
 
-        {/* Full-width Banners (Contiguous layout with zero spacing, h-[600px]) */}
-        <section className="w-full flex flex-col space-y-0 bg-[#FFF8F6]">
+        {/* Zig-Zag 50/50 Split Banners */}
+        <section className="w-full bg-white">
           
-          {/* Chef Connect */}
-          <div id="chef-connect" className="relative h-[550px] w-full overflow-hidden flex items-center">
-            <img 
-              src={chefImage} 
-              alt="Chef Connect" 
-              className="absolute inset-0 w-full h-full object-cover object-center" 
-            />
-            {/* Figma gold gradient */}
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(242,200,121,0.9)_0%,rgba(242,200,121,0.4)_50%,rgba(242,200,121,0)_100%)] z-10" />
-            
-            <div className="mx-auto max-w-[1280px] w-full px-[40px] relative z-20 flex justify-start">
-              <div className="text-left max-w-xl">
-                <h3 className="text-[64px] font-normal leading-[96px] text-[#00284C]">Chef Connect</h3>
-                <p className="mt-4 text-[18px] leading-[32px] text-[#00284C]/90">
-                  Connect with experienced chefs and culinary experts for consulting, menu development, kitchen setup, staff training, and business growth.
-                </p>
-                <Link
-                  to="/jobs"
-                  className="mt-8 inline-flex items-center justify-center rounded-[4px] bg-[#00284C] w-[222px] h-[48px] text-[16px] font-medium text-white shadow-sm hover:bg-[#001e3b] transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Explore Chef Connect
-                </Link>
+          {/* Chef Connect: Image Left, Text Right */}
+          <div id="chef-connect" className="w-full  border-b border-[#efe0d6]/30">
+            <div className="mx-auto max-w-[1280px] px-[40px]">
+              <div className="grid items-center gap-[32px] lg:gap-[56px] lg:grid-cols-2">
+                {/* Left Image */}
+                <div className="relative h-[320px] sm:h-[480px] overflow-hidden rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.05)] group">
+                  <img 
+                    src={chefImage} 
+                    alt="Chef Connect" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                </div>
+                {/* Right Text */}
+                <div className="text-left flex flex-col gap-[16px] lg:pl-4">
+                  <h3 className="text-[32px] sm:text-[44px] font-black tracking-[-1px] leading-tight text-[#00284C]">
+                    Chef Connect
+                  </h3>
+                  <p className="text-[17px] sm:text-[18px] leading-[28px] sm:leading-[32px] text-[#43474F]">
+                    Connect with experienced chefs and culinary experts for consulting, menu development, kitchen setup, staff training, and business growth.
+                  </p>
+                  <Link
+                    to="/jobs"
+                    className="mt-4 inline-flex items-center justify-center rounded-[4px] bg-[#00284C] w-[222px] h-[48px] text-[16px] font-medium text-white shadow-sm hover:bg-[#001e3b] transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    Explore Chef Connect
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Talent */}
-          <div id="talent" className="relative h-[550px] w-full overflow-hidden flex items-center border-t border-b border-[#C3C6D0]">
-            <img 
-              src={talentImage} 
-              alt="Talent Opportunities" 
-              className="absolute inset-0 w-full h-full object-cover object-center" 
-            />
-            {/* Figma dark gradient */}
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,5,4,0.9)_0%,rgba(10,5,4,0.4)_50%,rgba(10,5,4,0)_100%)] z-10" />
-            
-            <div className="mx-auto max-w-[1280px] w-full px-[40px] relative z-20 flex justify-start">
-              <div className="text-left max-w-xl">
-                <h3 className="text-[64px] font-normal leading-[96px] text-white">Talent</h3>
-                <p className="mt-4 text-[18px] leading-[32px] text-white/90">
-                  Discover local and overseas opportunities, connect with employers, earn referrals, and access training—all in one platform built exclusively for hospitality professionals.
-                </p>
-                <Link
-                  to="/jobs"
-                  className="mt-8 inline-flex items-center justify-center rounded-[4px] bg-[#00284C] w-[222px] h-[48px] text-[16px] font-medium text-white shadow-sm hover:bg-[#001e3b] transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Explore Opportunities
-                </Link>
+          {/* Talent: Text Left, Image Right */}
+          <div id="talent" className="w-full  bg-slate-50/40 border-b border-[#efe0d6]/30">
+            <div className="mx-auto max-w-[1280px] px-[40px]">
+              <div className="grid items-center gap-[32px] lg:gap-[56px] lg:grid-cols-2">
+                {/* Left Text */}
+                <div className="text-left flex flex-col gap-[16px] order-2 lg:order-1 lg:pr-4">
+                  <h3 className="text-[32px] sm:text-[44px] font-black tracking-[-1px] leading-tight text-[#00284C]">
+                    Talent
+                  </h3>
+                  <p className="text-[17px] sm:text-[18px] leading-[28px] sm:leading-[32px] text-[#43474F]">
+                    Discover local and overseas opportunities, connect with employers, earn referrals, and access training—all in one platform built exclusively for hospitality professionals.
+                  </p>
+                  <Link
+                    to="/jobs"
+                    className="mt-4 inline-flex items-center justify-center rounded-[4px] bg-[#00284C] w-[222px] h-[48px] text-[16px] font-medium text-white shadow-sm hover:bg-[#001e3b] transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    Explore Opportunities
+                  </Link>
+                </div>
+                {/* Right Image */}
+                <div className="relative h-[320px] sm:h-[480px] overflow-hidden rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.05)] order-1 lg:order-2 group">
+                  <img 
+                    src={talentImage} 
+                    alt="Talent Opportunities" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Find Talent */}
-          <div id="find-talent" className="relative h-[550px] w-full overflow-hidden flex items-center">
-            <img 
-              src={findTalentImage} 
-              alt="Find Talent" 
-              className="absolute inset-0 w-full h-full object-cover object-center" 
-            />
-            {/* Figma blue gradient */}
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,40,76,0.8)_0%,rgba(0,40,76,0.4)_50%,rgba(0,40,76,0)_100%)] z-10" />
-            
-            <div className="mx-auto max-w-[1280px] w-full px-[40px] relative z-20 flex justify-start">
-              <div className="text-left max-w-xl">
-                <h3 className="text-[64px] font-normal leading-[96px] text-white">Find Talent</h3>
-                <p className="mt-4 text-[18px] leading-[32px] text-white/90">
-                  Find skilled hospitality professionals, post opportunities, and build exceptional teams through India's dedicated hospitality hiring platform.
-                </p>
-                <Link
-                  to="/jobs"
-                  className="mt-8 inline-flex items-center justify-center rounded-[4px] bg-[#F2F2F7] w-[149px] h-[48px] text-[16px] font-medium text-[#00284C] shadow-sm hover:bg-slate-100 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Start Hiring.
-                </Link>
+          {/* Find Talent: Image Left, Text Right */}
+          <div id="find-talent" className="w-full border-b border-[#efe0d6]/30">
+            <div className="mx-auto max-w-[1280px] px-[40px]">
+              <div className="grid items-center gap-[32px] lg:gap-[56px] lg:grid-cols-2">
+                {/* Left Image */}
+                <div className="relative h-[320px] sm:h-[480px] overflow-hidden rounded-2xl shadow-[0_15px_30px_rgba(0,0,0,0.05)] group">
+                  <img 
+                    src={findTalentImage} 
+                    alt="Find Talent" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                </div>
+                {/* Right Text */}
+                <div className="text-left flex flex-col gap-[16px] lg:pl-4">
+                  <h3 className="text-[32px] sm:text-[44px] font-black tracking-[-1px] leading-tight text-[#00284C]">
+                    Find Talent
+                  </h3>
+                  <p className="text-[17px] sm:text-[18px] leading-[28px] sm:leading-[32px] text-[#43474F]">
+                    Find skilled hospitality professionals, post opportunities, and build exceptional teams through India's dedicated hospitality hiring platform.
+                  </p>
+                  <Link
+                    to="/jobs"
+                    className="mt-4 inline-flex items-center justify-center rounded-[4px] bg-[#00284C] w-[149px] h-[48px] text-[16px] font-medium text-white shadow-sm hover:bg-[#001e3b] transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    Start Hiring.
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Community Section */}
-        <section className="w-full bg-[#FFF8F6] pt-[120px]">
+        <section className="w-full bg-white pt-[120px]">
           {/* Header */}
           <div className="text-center px-[40px] pb-[64px] max-w-[1280px] mx-auto flex flex-col gap-[24px]">
             <h2 className="text-[32px] font-bold tracking-tight text-[#00284C] sm:text-[40px] leading-tight">
@@ -384,9 +417,7 @@ const HomeScreen = () => {
                 href="#"
                 className="box-border inline-flex items-center justify-center gap-3 bg-black/50 border border-white/20 backdrop-blur-[6px] rounded-[8px] w-[192px] h-[56px] text-white transition-all duration-300 hover:-translate-y-0.5 shadow-md"
               >
-                {/* <AppleIcon className="w-6 h-6 text-white" /> */}
-                      <img src={appstore} alt="App Store" className="w-[40px] h-full object-contain" />
-
+                <AppleIcon className="w-8 h-8 text-white flex-shrink-0" />
                 <div className="text-left">
                   <p className="text-[9px] font-semibold uppercase tracking-wider text-white/50 leading-none">Download on the</p>
                   <p className="text-sm font-bold text-white mt-1 leading-none">App Store</p>
@@ -398,8 +429,7 @@ const HomeScreen = () => {
                 href="#"
                 className="box-border inline-flex items-center justify-center gap-3 bg-black/50 border border-white/20 backdrop-blur-[6px] rounded-[8px] w-[192px] h-[56px] text-white transition-all duration-300 hover:-translate-y-0.5 shadow-md"
               >
-                {/* <PlayStoreIcon className="w-6 h-6 text-white" /> */}
-                <img src={playstore} alt="Google Play" className="w-[40px] h-full object-contain" />
+                <PlayStoreIcon className="w-8 h-8 text-white flex-shrink-0" />
                 <div className="text-left">
                   <p className="text-[9px] font-semibold uppercase tracking-wider text-white/50 leading-none">GET IT ON</p>
                   <p className="text-sm font-bold text-white mt-1 leading-none">Google Play</p>
