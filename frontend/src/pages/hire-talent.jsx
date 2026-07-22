@@ -33,13 +33,13 @@ export default function HireTalent() {
             className="flex items-center gap-4 mb-8"
           >
             <span className="w-12 h-px bg-accent"></span>
-            <span className="text-base md:text-xl font-sans tracking-wide text-accent uppercase">
+            <span className="text-lg md:text-xl font-sans tracking-wide text-accent uppercase">
               Hire Talent — Employers
             </span>
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="text-6xl md:text-8xl lg:text-9xl font-display font-light tracking-tight text-white mb-8 leading-[0.9]"
+            className="text-7xl md:text-8xl lg:text-9xl font-display font-light tracking-tight text-white mb-8 leading-[0.9]"
           >
             The right person.
             <br />
@@ -56,11 +56,16 @@ export default function HireTalent() {
             they reach out to you directly. No searching. No sifting. Just the
             right fit.
           </motion.p>
-          <motion.div variants={fadeUp}>
-            <button className="text-sm font-sans tracking-widest uppercase px-10 py-4 border border-accent text-accent hover:bg-accent hover:text-background transition-all duration-500">
-              Post a Role
-            </button>
-          </motion.div>
+<motion.div
+  variants={fadeUp}
+  className="group inline-flex p-2 border border-accent transition-all duration-500 hover:bg-accent cursor-pointer"
+>
+  <button
+    className="px-6 py-2 text-sm font-sans uppercase tracking-[0.2em] border border-accent text-accent transition-all duration-500 group-hover:bg-accent group-hover:text-background"
+  >
+    Post a Role
+  </button>
+</motion.div>
         </motion.header>
 
         <motion.div
