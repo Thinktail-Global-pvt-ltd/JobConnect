@@ -41,53 +41,6 @@ class WebAuthController extends Controller
             ], 422);
         }
 
-        if (Auth::check()) {
-            $user = Auth::user();
-            if ($request->mobile_number === $user->mobile_number) {
-                $targetRole = $request->login_role;
-                
-                // Deactivate all user's roles
-                $user->roles()->update(['is_active' => false]);
-
-                // Find or create the selected role and set it active
-                UserRole::updateOrCreate(
-                    ['user_id' => $user->id, 'role_type' => $targetRole],
-                    ['is_active' => true]
-                );
-
-                // Generate Sanctum auth token
-                $user->load(['employerProfile', 'chefProfile', 'roles']);
-                $token = $user->createToken('auth_token')->plainTextToken;
- 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Already logged in.',
-                    'token' => $token,
-                    'user' => [
-                        'id' => $user->id,
-                        'mobile_number' => $user->mobile_number,
-                        'full_name' => $user->full_name,
-                        'email' => $user->email,
-                        'profile_photo_path' => $user->profile_photo_path,
-                        'city' => $user->city,
-                        'experience_range' => $user->experience_range,
-                        'preferred_role' => $user->preferred_role,
-                        'current_employer' => $user->current_employer,
-                        'skills' => $user->skills,
-                        'selected_language' => $user->selected_language ?? 'en',
-                        'active_role' => $targetRole,
-                        'employer_profile' => $user->employerProfile,
-                        'chef_profile' => $user->chefProfile,
-                        'registered_roles' => $user->roles,
-                    ],
-                ]);
-            } else {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-            }
-        }
-
         $mobile = $request->mobile_number;
         
         // Generate random 6-digit OTP
@@ -97,72 +50,100 @@ class WebAuthController extends Controller
         Cache::put("web_otp_{$mobile}", $otp, now()->addMinutes(5));
 
         // Dispatch WhatsApp OTP using login_auth_code template
-        $this->sendWhatsappOtp($mobile, $otp);
+        $whatsappResult = $this->sendWhatsappOtp($mobile, $otp, $request->input('phone_number_id'));
 
         // Flash to Session for development/testing visibility
         session()->flash('demo_otp', $otp);
 
-        return response()->json([
+        $responsePayload = [
             'success' => true,
-            'message' => 'OTP sent successfully to your mobile via WhatsApp.',
-            'demo_otp' => $otp,
+            'message' => 'OTP generated and sent to your mobile via WhatsApp.',
+            'otp' => $otp,
             'mobile' => $mobile,
             'login_role' => $request->login_role,
-        ]);
+        ];
+
+        if (!$whatsappResult['success']) {
+            $responsePayload['whatsapp_status'] = $whatsappResult['message'];
+        } else {
+            $responsePayload['whatsapp_status'] = 'Message dispatched via Meta Cloud API';
+        }
+
+        return response()->json($responsePayload);
     }
 
     /**
      * Dispatch WhatsApp OTP using preapproved login_auth_code template.
      */
-    private function sendWhatsappOtp($mobile, $otp)
+    private function sendWhatsappOtp($mobile, $otp, $customPhoneNumberId = null)
     {
         try {
             $formattedPhone = (strlen($mobile) === 10) ? '91' . $mobile : $mobile;
-            $phoneNumberId = env('WHATSAPP_PHONE_NUMBER_ID');
+            $phoneNumberId = $customPhoneNumberId ?? env('WHATSAPP_PHONE_NUMBER_ID');
             $accessToken = env('WHATSAPP_ACCESS_TOKEN');
 
-            if (!empty($phoneNumberId) && !empty($accessToken)) {
-                $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
-                $payload = [
-                    'messaging_product' => 'whatsapp',
-                    'to' => $formattedPhone,
-                    'type' => 'template',
-                    'template' => [
-                        'name' => 'login_auth_code',
-                        'language' => [
-                            'code' => 'en_US'
-                        ],
-                        'components' => [
-                            [
-                                'type' => 'body',
-                                'parameters' => [
-                                    [
-                                        'type' => 'text',
-                                        'text' => (string) $otp
-                                    ]
+            if (empty($phoneNumberId)) {
+                return [
+                    'success' => false,
+                    'message' => 'WHATSAPP_PHONE_NUMBER_ID is not configured in .env or request body.'
+                ];
+            }
+
+            if (empty($accessToken)) {
+                return [
+                    'success' => false,
+                    'message' => 'WHATSAPP_ACCESS_TOKEN is not configured in .env.'
+                ];
+            }
+
+            $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
+            $payload = [
+                'messaging_product' => 'whatsapp',
+                'to' => $formattedPhone,
+                'type' => 'template',
+                'template' => [
+                    'name' => 'login_auth_code',
+                    'language' => [
+                        'code' => 'en_US'
+                    ],
+                    'components' => [
+                        [
+                            'type' => 'body',
+                            'parameters' => [
+                                [
+                                    'type' => 'text',
+                                    'text' => (string) $otp
                                 ]
-                            ],
-                            [
-                                'type' => 'button',
-                                'sub_type' => 'url',
-                                'index' => '0',
-                                'parameters' => [
-                                    [
-                                        'type' => 'text',
-                                        'text' => (string) $otp
-                                    ]
+                            ]
+                        ],
+                        [
+                            'type' => 'button',
+                            'sub_type' => 'url',
+                            'index' => '0',
+                            'parameters' => [
+                                [
+                                    'type' => 'text',
+                                    'text' => (string) $otp
                                 ]
                             ]
                         ]
                     ]
-                ];
+                ]
+            ];
 
-                \Illuminate\Support\Facades\Http::withToken($accessToken)
-                    ->asJson()
-                    ->post($url, $payload);
+            $response = \Illuminate\Support\Facades\Http::withToken($accessToken)
+                ->asJson()
+                ->post($url, $payload);
+
+            if ($response->successful()) {
+                return ['success' => true, 'message' => 'Dispatched successfully', 'data' => $response->json()];
             }
+
+            return ['success' => false, 'message' => 'Meta API Error: ' . json_encode($response->json())];
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('WhatsApp OTP Dispatch Error: ' . $e->getMessage());
+            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 
