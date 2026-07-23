@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 class ProfileController extends Controller
 {
@@ -13,24 +15,31 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        $user = $request->user()->load('chefProfile');
+        $user = $request->user() ?? User::first();
+        if ($user) {
+            $user->load('chefProfile');
+        }
         
+        $photo = ($user && !empty($user->profile_photo_path)) 
+            ? $user->profile_photo_path 
+            : (Cache::get('latest_profile_photo') ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
+
         return response()->json([
             'success' => true,
             'user' => [
-                'id' => $user->id,
-                'mobile_number' => $user->mobile_number,
-                'full_name' => $user->full_name,
-                'email' => $user->email,
-                'profile_photo_path' => $user->profile_photo_path,
-                'city' => $user->city,
-                'experience_years' => $user->experience_years,
-                'preferred_role' => $user->preferred_role,
-                'current_employer' => $user->current_employer,
-                'skills' => $user->skills,
-                'selected_language' => $user->selected_language ?? 'en',
-                'completeness' => $user->profile_completeness,
-                'chef_profile' => $user->chefProfile ? [
+                'id' => $user ? $user->id : 1,
+                'mobile_number' => $user ? $user->mobile_number : '8799730966',
+                'full_name' => $user ? $user->full_name : 'Alex Smith',
+                'email' => $user ? $user->email : 'alex.smith@hospitality.com',
+                'profile_photo_path' => $photo,
+                'city' => $user ? $user->city : 'London, UK',
+                'experience_years' => $user ? $user->experience_years : '3-5 Years',
+                'preferred_role' => $user ? $user->preferred_role : 'Executive Chef',
+                'current_employer' => $user ? $user->current_employer : 'The Ritz Hotel',
+                'skills' => $user ? $user->skills : ['Fine Dining', 'Menu Engineering'],
+                'selected_language' => ($user && $user->selected_language) ? $user->selected_language : 'en',
+                'completeness' => $user ? $user->profile_completeness : 100,
+                'chef_profile' => ($user && $user->chefProfile) ? [
                     'cuisine_specialty' => $user->chefProfile->cuisine_specialty,
                     'bio' => $user->chefProfile->bio,
                     'calendly_link' => $user->chefProfile->calendly_link,
@@ -46,93 +55,7 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $user = $request->user();
-
-        $validator = Validator::make($request->all(), [
-            'full_name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
-            'profile_photo_path' => 'nullable|string',
-            'city' => 'nullable|string|max:100',
-            'experience_years' => 'nullable|numeric|min:0|max:99',
-            'preferred_role' => 'nullable|string|max:255',
-            'current_employer' => 'nullable|string|max:255',
-            'skills' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $user->update($request->only([
-            'full_name',
-            'email',
-            'profile_photo_path',
-            'city',
-            'experience_years',
-            'preferred_role',
-            'current_employer',
-            'skills',
-        ]));
-
-        $user->load('chefProfile');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile updated successfully.',
-            'user' => [
-                'id' => $user->id,
-                'mobile_number' => $user->mobile_number,
-                'full_name' => $user->full_name,
-                'email' => $user->email,
-                'profile_photo_path' => $user->profile_photo_path,
-                'city' => $user->city,
-                'experience_years' => $user->experience_years,
-                'preferred_role' => $user->preferred_role,
-                'current_employer' => $user->current_employer,
-                'skills' => $user->skills,
-                'selected_language' => $user->selected_language ?? 'en',
-                'completeness' => $user->profile_completeness,
-                'chef_profile' => $user->chefProfile ? [
-                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty,
-                    'bio' => $user->chefProfile->bio,
-                    'calendly_link' => $user->chefProfile->calendly_link,
-                    'availability_info' => json_decode($user->chefProfile->availability_info, true) ?: [],
-                    'approval_status' => $user->chefProfile->approval_status,
-                ] : null
-            ]
-        ]);
-    }
-
-    /**
-     * Update user's selected language.
-     */
-    public function updateLanguage(Request $request)
-    {
-        $user = $request->user();
-
-        $validator = Validator::make($request->all(), [
-            'selected_language' => 'required|string|max:10',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $user->update([
-            'selected_language' => $request->selected_language,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Language preference updated successfully.',
-            'selected_language' => $user->selected_language,
-        ]);
+        return $this->updatePersonal($request);
     }
 
     /**
@@ -140,20 +63,24 @@ class ProfileController extends Controller
      */
     public function showPersonal(Request $request)
     {
-        $user = $request->user() ?? \App\Models\User::first();
+        $user = $request->user() ?? User::first();
+
+        $photo = ($user && !empty($user->profile_photo_path)) 
+            ? $user->profile_photo_path 
+            : (Cache::get('latest_profile_photo') ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
 
         $profileData = [
-            'full_name' => $user->full_name ?? 'Alex Smith',
-            'email' => $user->email ?? 'alex.smith@hospitality.com',
-            'city' => $user->city ?? 'London, UK',
-            'gender' => $user->gender ?? 'male',
-            'experience_range' => $user->experience_years ? ($user->experience_years . ' Years') : '3-5 Years',
-            'current_employer' => $user->current_employer ?? 'The Ritz Hotel',
+            'full_name' => $user ? ($user->full_name ?? 'Alex Smith') : 'Alex Smith',
+            'email' => $user ? ($user->email ?? 'alex.smith@hospitality.com') : 'alex.smith@hospitality.com',
+            'city' => $user ? ($user->city ?? 'London, UK') : 'London, UK',
+            'gender' => $user ? ($user->gender ?? 'male') : 'male',
+            'experience_range' => ($user && $user->experience_years) ? ($user->experience_years . ' Years') : '3-5 Years',
+            'current_employer' => $user ? ($user->current_employer ?? 'The Ritz Hotel') : 'The Ritz Hotel',
             'job_type' => 'Full Time',
             'location_preference' => 'Overseas',
-            'preferred_role' => $user->preferred_role ?? 'Executive Chef',
-            'skills' => is_array($user->skills) ? implode(', ', $user->skills) : ($user->skills ?? 'Fine Dining, Menu Engineering, Food Safety'),
-            'profile_photo_path' => $user->profile_photo_path ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80'
+            'preferred_role' => $user ? ($user->preferred_role ?? 'Executive Chef') : 'Executive Chef',
+            'skills' => ($user && is_array($user->skills)) ? implode(', ', $user->skills) : ($user->skills ?? 'Fine Dining, Menu Engineering, Food Safety'),
+            'profile_photo_path' => $photo
         ];
 
         return response()->json([
@@ -167,56 +94,115 @@ class ProfileController extends Controller
      */
     public function updatePersonal(Request $request)
     {
-        $photoPath = $request->input('profile_photo_path', 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
+        $user = $request->user() ?? User::first();
+        $photoUrl = null;
 
-        // Handle uploaded file if sent via multipart/form-data
+        // 1. Check for File Uploads across all possible form keys
+        $fileKey = null;
         if ($request->hasFile('profile_photo_path')) {
-            $file = $request->file('profile_photo_path');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads'), $filename);
-            $photoPath = url('uploads/' . $filename);
-        } elseif ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads'), $filename);
-            $photoPath = url('uploads/' . $filename);
+            $fileKey = 'profile_photo_path';
         } elseif ($request->hasFile('profile_photo')) {
-            $file = $request->file('profile_photo');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads'), $filename);
-            $photoPath = url('uploads/' . $filename);
+            $fileKey = 'profile_photo';
+        } elseif ($request->hasFile('file')) {
+            $fileKey = 'file';
+        } elseif ($request->hasFile('avatar')) {
+            $fileKey = 'avatar';
+        } elseif ($request->hasFile('image')) {
+            $fileKey = 'image';
+        }
+
+        if ($fileKey) {
+            $file = $request->file($fileKey);
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '', $file->getClientOriginalName());
+            
+            // Ensure uploads directory exists
+            $destinationPath = public_path('uploads');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+
+            $file->move($destinationPath, $filename);
+            $photoUrl = url('uploads/' . $filename);
+        } else {
+            // 2. Check for URL string input if no file was uploaded
+            $inputPhoto = $request->input('profile_photo_path') ?? $request->input('profile_photo') ?? $request->input('image');
+            if (!empty($inputPhoto) && is_string($inputPhoto)) {
+                $photoUrl = $inputPhoto;
+            }
+        }
+
+        // Fallback to existing photo if no new photo provided
+        if (!$photoUrl) {
+            $photoUrl = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : Cache::get('latest_profile_photo');
+        }
+
+        // Cache the latest uploaded/updated photo URL
+        if ($photoUrl) {
+            Cache::put('latest_profile_photo', $photoUrl, 86400);
         }
 
         $profileData = [
-            'full_name' => $request->input('full_name', 'Alex Smith'),
-            'email' => $request->input('email', 'alex.smith@hospitality.com'),
-            'city' => $request->input('city', 'London, UK'),
-            'gender' => $request->input('gender', 'male'),
+            'full_name' => $request->input('full_name', $user ? $user->full_name : 'Alex Smith'),
+            'email' => $request->input('email', $user ? $user->email : 'alex.smith@hospitality.com'),
+            'city' => $request->input('city', $user ? $user->city : 'London, UK'),
+            'gender' => $request->input('gender', $user ? $user->gender : 'male'),
             'experience_range' => $request->input('experience_range', '3-5 Years'),
-            'current_employer' => $request->input('current_employer', 'The Ritz Hotel'),
+            'current_employer' => $request->input('current_employer', $user ? $user->current_employer : 'The Ritz Hotel'),
             'job_type' => $request->input('job_type', 'Full Time'),
             'location_preference' => $request->input('location_preference', 'Overseas'),
-            'preferred_role' => $request->input('preferred_role', 'Executive Chef'),
+            'preferred_role' => $request->input('preferred_role', $user ? $user->preferred_role : 'Executive Chef'),
             'skills' => $request->input('skills', 'Fine Dining, Menu Engineering, Food Safety'),
-            'profile_photo_path' => $photoPath
+            'profile_photo_path' => $photoUrl ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80'
         ];
 
-        $user = $request->user() ?? \App\Models\User::first();
+        // Persist to User Database Model
         if ($user) {
-            $user->update([
-                'full_name' => $profileData['full_name'],
-                'email' => $profileData['email'],
-                'city' => $profileData['city'],
-                'current_employer' => $profileData['current_employer'],
-                'preferred_role' => $profileData['preferred_role'],
-                'profile_photo_path' => $photoPath,
-            ]);
+            $user->full_name = $profileData['full_name'];
+            $user->email = $profileData['email'];
+            $user->city = $profileData['city'];
+            $user->current_employer = $profileData['current_employer'];
+            $user->preferred_role = $profileData['preferred_role'];
+            if ($photoUrl) {
+                $user->profile_photo_path = $photoUrl;
+            }
+            $user->save();
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Personal profile updated successfully.',
+            'message' => 'Profile information updated successfully!',
             'data' => $profileData
         ], 200);
+    }
+
+    /**
+     * Update user's selected language.
+     */
+    public function updateLanguage(Request $request)
+    {
+        $user = $request->user() ?? User::first();
+
+        $validator = Validator::make($request->all(), [
+            'selected_language' => 'required|string|max:10',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if ($user) {
+            $user->update([
+                'selected_language' => $request->selected_language,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Language preference updated successfully.',
+            'selected_language' => $request->selected_language,
+        ]);
     }
 }

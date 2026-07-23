@@ -79,6 +79,10 @@ class WebProfileController extends Controller
             $photoPath = url('uploads/' . $filename);
         }
 
+        if ($photoPath) {
+            \Illuminate\Support\Facades\Cache::put('latest_profile_photo', $photoPath, 86400);
+        }
+
         // Process skills string to array
         $skillsArray = [];
         if ($request->filled('skills')) {
