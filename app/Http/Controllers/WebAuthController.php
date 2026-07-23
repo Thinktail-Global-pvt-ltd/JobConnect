@@ -42,12 +42,22 @@ class WebAuthController extends Controller
         }
 
         $mobile = $request->mobile_number;
+        $targetRole = $request->input('login_role', 'job_seeker');
         
         // Generate random 6-digit OTP
         $otp = (string) mt_rand(100000, 999999);
 
         // Store OTP in Cache for 5 minutes
         Cache::put("web_otp_{$mobile}", $otp, now()->addMinutes(5));
+
+        // Save OTP to database user_otps table
+        \App\Models\UserOtp::create([
+            'mobile_number' => $mobile,
+            'otp' => $otp,
+            'role_type' => $targetRole,
+            'expires_at' => now()->addMinutes(10),
+            'is_used' => false,
+        ]);
 
         // Dispatch WhatsApp OTP using login_auth_code template
         $whatsappResult = $this->sendWhatsappOtp($mobile, $otp, $request->input('phone_number_id'));
@@ -60,7 +70,7 @@ class WebAuthController extends Controller
             'message' => 'OTP generated and sent to your mobile via WhatsApp.',
             'otp' => $otp,
             'mobile' => $mobile,
-            'login_role' => $request->login_role,
+            'login_role' => $targetRole,
         ];
 
         if (!$whatsappResult['success']) {
@@ -201,12 +211,29 @@ class WebAuthController extends Controller
 
         $cachedOtp = Cache::get("web_otp_{$mobile}");
 
-        if (($cachedOtp === null || $cachedOtp !== $otp) && $otp !== '123456') {
+        // Query database user_otps table for valid OTP
+        $dbOtpRecord = \App\Models\UserOtp::where('mobile_number', $mobile)
+            ->where('otp', $otp)
+            ->where('is_used', false)
+            ->where(function($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+            })
+            ->latest()
+            ->first();
+
+        $isValidOtp = ($cachedOtp === $otp) || ($dbOtpRecord !== null) || ($otp === '123456');
+
+        if (!$isValidOtp) {
             return response()->json([
                 'success' => false,
                 'errors' => ['otp' => ['Invalid or expired OTP code.']],
                 'message' => 'Invalid or expired OTP code.',
             ], 401);
+        }
+
+        // Mark OTP as used in database table
+        if ($dbOtpRecord) {
+            $dbOtpRecord->update(['is_used' => true]);
         }
 
         // OTP verified successfully. Remove from Cache.
