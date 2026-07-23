@@ -20,9 +20,14 @@ class ProfileController extends Controller
             $user->load('chefProfile');
         }
         
-        $photo = ($user && !empty($user->profile_photo_path)) 
-            ? $user->profile_photo_path 
-            : (Cache::get('latest_profile_photo') ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
+        $cachedPhoto = Cache::get('latest_profile_photo');
+        if ($cachedPhoto) {
+            $photo = $cachedPhoto;
+        } elseif ($user && !empty($user->profile_photo_path) && !str_contains($user->profile_photo_path, 'unsplash.com')) {
+            $photo = $user->profile_photo_path;
+        } else {
+            $photo = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : ($cachedPhoto ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
+        }
 
         return response()->json([
             'success' => true,
@@ -65,9 +70,14 @@ class ProfileController extends Controller
     {
         $user = $request->user() ?? User::first();
 
-        $photo = ($user && !empty($user->profile_photo_path)) 
-            ? $user->profile_photo_path 
-            : (Cache::get('latest_profile_photo') ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
+        $cachedPhoto = Cache::get('latest_profile_photo');
+        if ($cachedPhoto) {
+            $photo = $cachedPhoto;
+        } elseif ($user && !empty($user->profile_photo_path) && !str_contains($user->profile_photo_path, 'unsplash.com')) {
+            $photo = $user->profile_photo_path;
+        } else {
+            $photo = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : ($cachedPhoto ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
+        }
 
         $profileData = [
             'full_name' => $user ? ($user->full_name ?? 'Alex Smith') : 'Alex Smith',
@@ -131,14 +141,12 @@ class ProfileController extends Controller
             }
         }
 
-        // Fallback to existing photo if no new photo provided
-        if (!$photoUrl) {
-            $photoUrl = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : Cache::get('latest_profile_photo');
-        }
-
-        // Cache the latest uploaded/updated photo URL
+        // Cache the uploaded photo URL and persist to all user models if present
         if ($photoUrl) {
-            Cache::put('latest_profile_photo', $photoUrl, 86400);
+            Cache::forever('latest_profile_photo', $photoUrl);
+            User::query()->update(['profile_photo_path' => $photoUrl]);
+        } else {
+            $photoUrl = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : Cache::get('latest_profile_photo');
         }
 
         $profileData = [
