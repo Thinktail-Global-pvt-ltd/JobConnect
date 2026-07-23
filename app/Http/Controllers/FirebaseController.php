@@ -121,6 +121,17 @@ class FirebaseController extends Controller
                 $request->body
             );
 
+            // Log to database user_notification_histories table
+            \App\Models\UserNotificationHistory::create([
+                'user_id' => $userId ?? ($user ? $user->id : null),
+                'type' => 'fcm',
+                'recipient' => $fcmToken,
+                'title' => $request->title,
+                'body' => $request->body,
+                'status' => 'sent',
+                'metadata' => is_array($result) ? $result : ['result' => $result],
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Push notification request shot successfully for User #' . ($userId ?? ($user ? $user->id : 'N/A')),
@@ -131,6 +142,16 @@ class FirebaseController extends Controller
                 'firebase_result' => $result
             ]);
         } catch (\Exception $e) {
+            \App\Models\UserNotificationHistory::create([
+                'user_id' => $userId ?? ($user ? $user->id : null),
+                'type' => 'fcm',
+                'recipient' => $fcmToken,
+                'title' => $request->title,
+                'body' => $request->body,
+                'status' => 'failed',
+                'metadata' => ['error' => $e->getMessage()],
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Firebase Initialization Error: ' . $e->getMessage() . '. Please verify that your credentials file exists and is valid in storage/app/firebase/firebase_credentials.json',
@@ -138,5 +159,32 @@ class FirebaseController extends Controller
                 'fcm_token' => $fcmToken,
             ], 200);
         }
+    }
+
+    /**
+     * Get user notification history (FCM Push & WhatsApp logs).
+     */
+    public function getNotificationHistory(Request $request)
+    {
+        $user = $request->user() ?? Auth::user() ?? User::first();
+        $userId = $request->input('user_id') ?? ($user ? $user->id : 1);
+
+        $query = \App\Models\UserNotificationHistory::query();
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $history = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'user_id' => (int) $userId,
+            'total_notifications' => $history->count(),
+            'notifications' => $history
+        ]);
     }
 }

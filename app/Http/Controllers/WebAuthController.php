@@ -135,6 +135,17 @@ class WebAuthController extends Controller
                 ->asJson()
                 ->post($url, $payload);
 
+            $targetUser = \App\Models\User::where('mobile_number', $mobile)->first();
+            \App\Models\UserNotificationHistory::create([
+                'user_id' => $targetUser ? $targetUser->id : null,
+                'type' => 'whatsapp',
+                'recipient' => $formattedPhone,
+                'title' => 'login_auth_code (WhatsApp OTP)',
+                'body' => "Your WhatsApp login verification code is {$otp}.",
+                'status' => $response->successful() ? 'sent' : 'failed',
+                'metadata' => $response->json(),
+            ]);
+
             if ($response->successful()) {
                 return ['success' => true, 'message' => 'Dispatched successfully', 'data' => $response->json()];
             }

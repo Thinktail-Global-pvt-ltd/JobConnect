@@ -84,6 +84,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user notification history logs (FCM & WhatsApp).
+     */
+    public function notificationHistory()
+    {
+        return $this->hasMany(UserNotificationHistory::class);
+    }
+
+    /**
      * Get chef profile.
      */
     public function chefProfile()

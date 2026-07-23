@@ -157,6 +157,18 @@ class WhatsAppController extends Controller
             $logEntry = '[' . date('Y-m-d H:i:s') . '] Send Message Response (' . $statusCode . '): ' . json_encode($body, JSON_PRETTY_PRINT) . PHP_EOL;
             file_put_contents(storage_path('logs/whatsapp.log'), $logEntry, FILE_APPEND);
 
+            // Log to database user_notification_histories table
+            $targetUser = \App\Models\User::where('mobile_number', 'LIKE', '%' . substr($to, -10))->first();
+            \App\Models\UserNotificationHistory::create([
+                'user_id' => $targetUser ? $targetUser->id : null,
+                'type' => 'whatsapp',
+                'recipient' => $to,
+                'title' => $templateName ?? 'WhatsApp Text Message',
+                'body' => $textMessage ?? ($templateName ? "Template: {$templateName}" : 'WhatsApp Notification'),
+                'status' => $response->successful() ? 'sent' : 'failed',
+                'metadata' => $body,
+            ]);
+
             if ($response->successful()) {
                 return response()->json([
                     'success' => true,
