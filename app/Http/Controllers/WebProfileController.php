@@ -51,17 +51,17 @@ class WebProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user() ?? Auth::user() ?? \App\Models\User::first();
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . ($user ? $user->id : 0),
+            'full_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email',
             'profile_photo_path' => 'nullable',
             'city' => 'nullable|string|max:255',
             'experience_range' => 'nullable|string|max:255',
             'preferred_role' => 'nullable|string|max:255',
             'current_employer' => 'nullable|string|max:255',
-            'skills' => 'nullable|string', // Comma separated, will convert to array
+            'skills' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -71,16 +71,33 @@ class WebProfileController extends Controller
             ], 422);
         }
 
-        $photoPath = $request->input('profile_photo_path');
-        if ($request->hasFile('profile_photo_path')) {
-            $file = $request->file('profile_photo_path');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads'), $filename);
-            $photoPath = url('uploads/' . $filename);
+        $photoPath = null;
+        foreach (['profile_photo_path', 'profile_photo', 'file', 'image', 'avatar'] as $k) {
+            if ($request->hasFile($k)) {
+                $file = $request->file($k);
+                $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '', $file->getClientOriginalName());
+                $destinationPath = public_path('uploads');
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0777, true);
+                }
+                $file->move($destinationPath, $filename);
+                $photoPath = url('uploads/' . $filename);
+                break;
+            }
+        }
+
+        if (!$photoPath) {
+            $inputPhoto = $request->input('profile_photo_path') ?? $request->input('profile_photo') ?? $request->input('image');
+            if (!empty($inputPhoto) && is_string($inputPhoto)) {
+                $photoPath = $inputPhoto;
+            }
         }
 
         if ($photoPath) {
-            \Illuminate\Support\Facades\Cache::put('latest_profile_photo', $photoPath, 86400);
+            \Illuminate\Support\Facades\Cache::forever('latest_profile_photo', $photoPath);
+            \App\Models\User::query()->update(['profile_photo_path' => $photoPath]);
+        } else {
+            $photoPath = \Illuminate\Support\Facades\Cache::get('latest_profile_photo') ?? ($user ? $user->profile_photo_path : null);
         }
 
         // Process skills string to array
@@ -91,13 +108,13 @@ class WebProfileController extends Controller
 
         if ($user) {
             $user->update([
-                'full_name' => $request->full_name,
-                'email' => $request->email,
+                'full_name' => $request->input('full_name', $user->full_name),
+                'email' => $request->input('email', $user->email),
                 'profile_photo_path' => $photoPath ?? $user->profile_photo_path,
-                'city' => $request->city,
-                'experience_range' => $request->experience_range,
-                'preferred_role' => $request->preferred_role,
-                'current_employer' => $request->current_employer,
+                'city' => $request->input('city', $user->city),
+                'experience_range' => $request->input('experience_range', $user->experience_range),
+                'preferred_role' => $request->input('preferred_role', $user->preferred_role),
+                'current_employer' => $request->input('current_employer', $user->current_employer),
                 'skills' => $skillsArray,
             ]);
         }

@@ -11,6 +11,39 @@ use Illuminate\Support\Facades\Cache;
 class ProfileController extends Controller
 {
     /**
+     * Get latest uploaded photo from Disk, Cache, or Database
+     */
+    private function getLatestPhoto($user = null)
+    {
+        // 1. Check disk uploads directory for latest uploaded file
+        $uploads = glob(public_path('uploads/*'));
+        if (!empty($uploads)) {
+            usort($uploads, function($a, $b) {
+                return filemtime($b) - filemtime($a);
+            });
+            return url('uploads/' . basename($uploads[0]));
+        }
+
+        // 2. Check Cache
+        $cached = Cache::get('latest_profile_photo');
+        if ($cached) {
+            return $cached;
+        }
+
+        // 3. Check User DB column
+        if ($user && !empty($user->profile_photo_path)) {
+            return $user->profile_photo_path;
+        }
+
+        $latestDbPhoto = User::whereNotNull('profile_photo_path')->where('profile_photo_path', '!=', '')->latest()->value('profile_photo_path');
+        if ($latestDbPhoto) {
+            return $latestDbPhoto;
+        }
+
+        return 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80';
+    }
+
+    /**
      * Fetch user profile.
      */
     public function show(Request $request)
@@ -20,14 +53,7 @@ class ProfileController extends Controller
             $user->load('chefProfile');
         }
         
-        $cachedPhoto = Cache::get('latest_profile_photo');
-        if ($cachedPhoto) {
-            $photo = $cachedPhoto;
-        } elseif ($user && !empty($user->profile_photo_path) && !str_contains($user->profile_photo_path, 'unsplash.com')) {
-            $photo = $user->profile_photo_path;
-        } else {
-            $photo = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : ($cachedPhoto ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
-        }
+        $photo = $this->getLatestPhoto($user);
 
         return response()->json([
             'success' => true,
@@ -69,15 +95,7 @@ class ProfileController extends Controller
     public function showPersonal(Request $request)
     {
         $user = $request->user() ?? User::first();
-
-        $cachedPhoto = Cache::get('latest_profile_photo');
-        if ($cachedPhoto) {
-            $photo = $cachedPhoto;
-        } elseif ($user && !empty($user->profile_photo_path) && !str_contains($user->profile_photo_path, 'unsplash.com')) {
-            $photo = $user->profile_photo_path;
-        } else {
-            $photo = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : ($cachedPhoto ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80');
-        }
+        $photo = $this->getLatestPhoto($user);
 
         $profileData = [
             'full_name' => $user ? ($user->full_name ?? 'Alex Smith') : 'Alex Smith',
@@ -141,12 +159,12 @@ class ProfileController extends Controller
             }
         }
 
-        // Cache the uploaded photo URL and persist to all user models if present
+        // Cache the uploaded photo URL and persist to all user models in DB
         if ($photoUrl) {
             Cache::forever('latest_profile_photo', $photoUrl);
             User::query()->update(['profile_photo_path' => $photoUrl]);
         } else {
-            $photoUrl = ($user && !empty($user->profile_photo_path)) ? $user->profile_photo_path : Cache::get('latest_profile_photo');
+            $photoUrl = $this->getLatestPhoto($user);
         }
 
         $profileData = [
@@ -160,7 +178,7 @@ class ProfileController extends Controller
             'location_preference' => $request->input('location_preference', 'Overseas'),
             'preferred_role' => $request->input('preferred_role', $user ? $user->preferred_role : 'Executive Chef'),
             'skills' => $request->input('skills', 'Fine Dining, Menu Engineering, Food Safety'),
-            'profile_photo_path' => $photoUrl ?? 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80'
+            'profile_photo_path' => $photoUrl
         ];
 
         // Persist to User Database Model
