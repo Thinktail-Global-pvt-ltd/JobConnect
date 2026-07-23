@@ -55,11 +55,11 @@ class WebProfileController extends Controller
 
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
-            'profile_photo_path' => 'nullable|url|max:255',
-            'city' => 'required|string|max:255',
-            'experience_range' => 'required|string|max:255',
-            'preferred_role' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . ($user ? $user->id : 0),
+            'profile_photo_path' => 'nullable',
+            'city' => 'nullable|string|max:255',
+            'experience_range' => 'nullable|string|max:255',
+            'preferred_role' => 'nullable|string|max:255',
             'current_employer' => 'nullable|string|max:255',
             'skills' => 'nullable|string', // Comma separated, will convert to array
         ]);
@@ -71,22 +71,32 @@ class WebProfileController extends Controller
             ], 422);
         }
 
+        $photoPath = $request->input('profile_photo_path');
+        if ($request->hasFile('profile_photo_path')) {
+            $file = $request->file('profile_photo_path');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $filename);
+            $photoPath = url('uploads/' . $filename);
+        }
+
         // Process skills string to array
         $skillsArray = [];
         if ($request->filled('skills')) {
             $skillsArray = array_filter(array_map('trim', explode(',', $request->skills)));
         }
 
-        $user->update([
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'profile_photo_path' => $request->profile_photo_path,
-            'city' => $request->city,
-            'experience_range' => $request->experience_range,
-            'preferred_role' => $request->preferred_role,
-            'current_employer' => $request->current_employer,
-            'skills' => $skillsArray,
-        ]);
+        if ($user) {
+            $user->update([
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'profile_photo_path' => $photoPath ?? $user->profile_photo_path,
+                'city' => $request->city,
+                'experience_range' => $request->experience_range,
+                'preferred_role' => $request->preferred_role,
+                'current_employer' => $request->current_employer,
+                'skills' => $skillsArray,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -119,11 +129,11 @@ class WebProfileController extends Controller
 
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
-            'profile_photo_path' => 'nullable|url|max:255',
-            'city' => 'required|string|max:255',
-            'experience_range' => 'required|string|max:255',
-            'preferred_role' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . ($user ? $user->id : 0),
+            'profile_photo_path' => 'nullable',
+            'city' => 'nullable|string|max:255',
+            'experience_range' => 'nullable|string|max:255',
+            'preferred_role' => 'nullable|string|max:255',
             'current_employer' => 'nullable|string|max:255',
             'skills' => 'nullable|string',
         ]);
@@ -135,22 +145,32 @@ class WebProfileController extends Controller
             ], 422);
         }
 
+        $photoPath = $request->input('profile_photo_path');
+        if ($request->hasFile('profile_photo_path')) {
+            $file = $request->file('profile_photo_path');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $filename);
+            $photoPath = url('uploads/' . $filename);
+        }
+
         // Process skills string to array
         $skillsArray = [];
         if ($request->filled('skills')) {
             $skillsArray = array_filter(array_map('trim', explode(',', $request->skills)));
         }
 
-        $user->update([
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'profile_photo_path' => $request->profile_photo_path,
-            'city' => $request->city,
-            'experience_range' => $request->experience_range,
-            'preferred_role' => $request->preferred_role,
-            'current_employer' => $request->current_employer,
-            'skills' => $skillsArray,
-        ]);
+        if ($user) {
+            $user->update([
+                'full_name' => $request->full_name,
+                'email' => $request->email,
+                'profile_photo_path' => $photoPath ?? $user->profile_photo_path,
+                'city' => $request->city,
+                'experience_range' => $request->experience_range,
+                'preferred_role' => $request->preferred_role,
+                'current_employer' => $request->current_employer,
+                'skills' => $skillsArray,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
