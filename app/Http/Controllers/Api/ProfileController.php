@@ -233,4 +233,51 @@ class ProfileController extends Controller
             'selected_language' => $request->selected_language,
         ]);
     }
+
+    /**
+     * Delete user account permanently.
+     */
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+            if ($tokenObj) {
+                $user = $tokenObj->tokenable;
+            }
+        }
+
+        if (!$user && ($request->filled('user_id') || $request->filled('mobile_number'))) {
+            $query = User::query();
+            if ($request->filled('user_id')) {
+                $query->where('id', $request->user_id);
+            }
+            if ($request->filled('mobile_number')) {
+                $query->where('mobile_number', $request->mobile_number);
+            }
+            $user = $query->first();
+        }
+
+        if ($user) {
+            $userId = $user->id;
+            if (method_exists($user, 'tokens')) {
+                $user->tokens()->delete();
+            }
+
+            \App\Models\ChefProfileView::where('chef_id', $userId)->orWhere('employer_id', $userId)->delete();
+            \App\Models\UserRole::where('user_id', $userId)->delete();
+            \App\Models\ChefProfile::where('user_id', $userId)->delete();
+            \App\Models\EmployerProfile::where('user_id', $userId)->delete();
+            \App\Models\UserSocial::where('user_id', $userId)->delete();
+
+            $user->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account deleted permanently.'
+        ], 200);
+    }
 }

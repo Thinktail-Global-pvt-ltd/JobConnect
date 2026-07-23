@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile/personal', [ProfileController::class, 'showPersonal']);
     Route::post('/profile/personal', [ProfileController::class, 'updatePersonal']);
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage']);
+    Route::delete('/profile/delete', [ProfileController::class, 'deleteAccount']);
+    Route::post('/profile/delete', [ProfileController::class, 'deleteAccount']);
     Route::post('/user/fcm-token', [\App\Http\Controllers\FirebaseController::class, 'saveFcmToken']);
     Route::get('/user/socials', [UserSocialController::class, 'show']);
     Route::post('/user/socials', [UserSocialController::class, 'update']);
@@ -75,3 +77,6 @@ Route::post('/chef-views/history', [ChefProfileViewController::class, 'getViews'
 Route::get('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
 // Chef Availability Toggle Routes
 Route::match(['get', 'post'], '/chef/availability/toggle', [ChefProfileController::class, 'toggleAvailability']);
+
+// Account Deletion Route
+Route::match(['delete', 'post'], '/profile/delete', [ProfileController::class, 'deleteAccount']);
