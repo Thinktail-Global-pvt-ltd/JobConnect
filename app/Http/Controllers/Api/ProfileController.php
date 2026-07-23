@@ -169,8 +169,10 @@ class ProfileController extends Controller
         }
 
         return response()->json([
+            'success' => true,
             'status' => 'success',
             'message' => 'Profile information updated successfully!',
+            'profile_photo_path' => $profileData['profile_photo_path'],
             'data' => $profileData
         ], 200);
     }

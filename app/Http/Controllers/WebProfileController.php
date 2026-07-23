@@ -105,6 +105,7 @@ class WebProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile information updated! Your profile progress has been recalculated.',
+            'profile_photo_path' => $photoPath ?? ($user ? $user->profile_photo_path : null),
         ]);
     }
 
@@ -179,6 +180,7 @@ class WebProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile information updated successfully!',
+            'profile_photo_path' => $photoPath ?? ($user ? $user->profile_photo_path : null),
         ]);
     }
 
