@@ -76,6 +76,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user device FCM tokens.
+     */
+    public function deviceTokens()
+    {
+        return $this->hasMany(UserDeviceToken::class);
+    }
+
+    /**
      * Get chef profile.
      */
     public function chefProfile()

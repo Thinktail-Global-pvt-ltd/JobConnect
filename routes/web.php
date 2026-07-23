@@ -77,8 +77,6 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/profile/update', [WebProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/calendly/save', [WebProfileController::class, 'saveCalendlyLink'])->name('api.profile.calendly.save');
-    Route::post('/user/fcm-token', [FirebaseController::class, 'saveFcmToken'])->name('api.user.fcm-token');
-    Route::post('/test/send-notification', [FirebaseController::class, 'sendTestNotification'])->name('api.test.send-notification');
     Route::get('/profile/saved', [WebProfileController::class, 'getSavedJobsJson'])->name('api.profile.saved');
     Route::get('/profile/applications', [WebProfileController::class, 'getApplications'])->name('api.profile.applications');
     

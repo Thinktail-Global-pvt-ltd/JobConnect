@@ -209,13 +209,35 @@ class WebAuthController extends Controller
                 'mobile_number' => $mobile,
                 'is_suspended' => false,
                 'selected_language' => $request->selected_language ?? 'en',
+                'fcm_token' => $request->fcm_token,
             ]);
         } else {
+            $updateData = [];
             if ($request->filled('selected_language')) {
-                $user->update([
-                    'selected_language' => $request->selected_language
-                ]);
+                $updateData['selected_language'] = $request->selected_language;
             }
+            if ($request->filled('fcm_token')) {
+                $updateData['fcm_token'] = $request->fcm_token;
+            }
+            if (!empty($updateData)) {
+                $user->update($updateData);
+            }
+        }
+
+        // Persist FCM Token to user_device_tokens table if provided
+        $fcmTokenInput = $request->input('fcm_token');
+        if ($fcmTokenInput) {
+            \App\Models\UserDeviceToken::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'fcm_token' => $fcmTokenInput,
+                ],
+                [
+                    'device_type' => $request->input('device_type', 'android'),
+                    'device_name' => $request->input('device_name', 'Mobile Device'),
+                    'is_active' => true,
+                ]
+            );
         }
 
         // Verify user state

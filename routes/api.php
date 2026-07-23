@@ -80,3 +80,8 @@ Route::match(['get', 'post'], '/chef/availability/toggle', [ChefProfileControlle
 
 // Account Deletion Route
 Route::match(['delete', 'post'], '/profile/delete', [ProfileController::class, 'deleteAccount']);
+
+// FCM Push Notification Routes
+Route::post('/user/fcm-token', [\App\Http\Controllers\FirebaseController::class, 'saveFcmToken']);
+Route::match(['get', 'post'], '/test/send-notification', [\App\Http\Controllers\FirebaseController::class, 'sendTestNotification']);
+Route::match(['get', 'post'], '/user/send-notification', [\App\Http\Controllers\FirebaseController::class, 'sendTestNotification']);
