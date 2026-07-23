@@ -40,7 +40,7 @@ export default function ChefConnect() {
 
           <motion.h1
             variants={fadeUp}
-            className="text-7xl md:text-8xl lg:text-9xl font-display font-bold tracking-tight text-white mb-12 leading-[0.9]"
+            className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold tracking-tight text-white mb-12 leading-[0.9]"
           >
             The Right Expert for
             <br />
@@ -51,7 +51,7 @@ export default function ChefConnect() {
 
           <motion.p
             variants={fadeUp}
-            className="text-lg md:text-2xl font-sans text-white/55 leading-relaxed max-w-3xl mx-auto mb-16"
+            className="text-[1rem] md:text-[1.5rem] lg:text-[2rem] font-sans text-white/55 max-w-3xl mx-auto mb-16 leading-[1.1]" 
           >
             Connect with verified hospitality experts from India & Middle East
             for restaurant setup, operations, branding, training, technology,

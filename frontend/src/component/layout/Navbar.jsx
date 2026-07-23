@@ -18,11 +18,6 @@ export default function Navbar() {
           {/* Logo: Side-by-side icon and wordmark */}
           <Link to="/" data-testid="link-logo" className="flex items-center gap-0 flex-shrink-0" onClick={() => setIsOpen(false)}>
             <img
-              src={`${import.meta.env.BASE_URL}images/jobrito-icon.png`}
-              alt="Jobrito Icon"
-              className="h-16 w-auto object-contain"
-            />
-            <img
               src={`${import.meta.env.BASE_URL}images/jobrito-wordmark.png`}
               alt="Jobrito Wordmark"
               className="h-[200px] -my-50 -ml-8 w-auto object-contain brightness-0 invert"
@@ -144,11 +139,6 @@ export default function Navbar() {
         {/* Drawer Header */}
         <div className="flex items-center justify-between mb-10 h-16 border-b border-white/[0.07] pb-4">
           <Link to="/" className="flex items-center gap-0 flex-shrink-0" onClick={() => setIsOpen(false)}>
-            <img
-              src={`${import.meta.env.BASE_URL}images/jobrito-icon.png`}
-              alt="Jobrito Icon"
-              className="h-16 w-auto object-contain"
-            />
             <img
               src={`${import.meta.env.BASE_URL}images/jobrito-wordmark.png`}
               alt="Jobrito Wordmark"

@@ -70,7 +70,7 @@ export default function Home() {
           >
             <motion.h1
               variants={fadeUp}
-              className="text-7xl md:text-8xl lg:text-9xl font-display font-bold tracking-tight text-white leading-[0.9]"
+              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold tracking-tight text-white leading-[0.9]"
             >
               Connecting
               <br />
@@ -81,7 +81,7 @@ export default function Home() {
 
             <motion.p
               variants={fadeUp}
-              className="max-w-xl mx-auto text-lg md:text-xl text-white/65 font-sans leading-relaxed"
+              className="max-w-2xl text-[1.25rem] md:text-[1.5rem] text-white/65 font-sans leading-[1.1]"
             >
               Discover opportunities. Hire with confidence. Connect with
               culinary experts — all from one app.
@@ -229,13 +229,13 @@ export default function Home() {
           >
             <motion.p
               variants={fadeUp}
-              className="text-base md:text-xl font-sans tracking-wide text-accent uppercase mb-5 text-center"
+              className="text-[1.25rem] md:text-xl font-sans tracking-wide text-accent uppercase mb-5 text-center"
             >
               Discover Jobrito
             </motion.p>
             <motion.h2
               variants={fadeUp}
-              className="text-5xl md:text-7xl font-display font-bold text-white leading-tight text-center mb-10"
+              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white leading-tight text-center mb-10"
             >
               One Community.
               <br />
@@ -326,7 +326,7 @@ export default function Home() {
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-7xl md:text-8xl font-display font-bold text-white mb-6 leading-[1.0]"
+              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-6 leading-[1.0]"
             >
               Opportunities
               <br />
@@ -411,7 +411,7 @@ export default function Home() {
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-7xl md:text-8xl font-display font-bold text-white mb-6 leading-[1.0]"
+              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-6 leading-[1.0]"
             >
               The right person.
               <br />
@@ -421,7 +421,7 @@ export default function Home() {
             </motion.h2>
             <motion.p
               variants={fadeUp}
-              className="text-white/55 font-sans leading-relaxed mb-10"
+              className="text-white/55 font-sans leading-[1.1] mb-10"
             >
               Post a role and let Jobrito do the work. Our smart matching engine
               notifies the right talent — and if they're interested, they come
@@ -494,7 +494,7 @@ export default function Home() {
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-7xl md:text-8xl lg:text-9xl font-display font-bold text-white mb-8 leading-[1.0] max-w-5xl"
+              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-8 leading-[1.0] max-w-5xl"
             >
               The Right Expert for
               <br />

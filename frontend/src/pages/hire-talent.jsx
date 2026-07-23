@@ -39,7 +39,7 @@ export default function HireTalent() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="text-7xl md:text-8xl lg:text-9xl font-display font-light tracking-tight text-white mb-8 leading-[0.9]"
+            className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-light tracking-tight text-white mb-8 leading-[0.9]"
           >
             The right person.
             <br />
@@ -49,7 +49,7 @@ export default function HireTalent() {
           </motion.h1>
           <motion.p
             variants={fadeUp}
-            className="text-lg md:text-xl text-white/55 font-sans leading-relaxed max-w-2xl mb-12"
+            className="text-[1.25rem] md:text-[1.5rem] text-white/55 font-sans leading-[1.1] max-w-2xl mb-12"
           >
             Post a role and let Jobrito's smart matching engine take over. We
             notify the right talent from our pool — and if they're interested,

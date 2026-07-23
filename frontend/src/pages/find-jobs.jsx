@@ -40,7 +40,7 @@ export default function FindJobs() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="text-7xl md:text-8xl lg:text-9xl font-display font-bold tracking-tight text-white mb-10 leading-[0.9]"
+            className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold tracking-tight text-white mb-10 leading-[0.9]"
           >
             Opportunities near you —<br />
             <span className="italic font-semibold text-accent">
@@ -49,7 +49,7 @@ export default function FindJobs() {
           </motion.h1>
           <motion.p
             variants={fadeUp}
-            className="text-lg md:text-2xl text-white/55 font-sans leading-relaxed max-w-2xl mx-auto"
+            className="text-[1rem] md:text-[1.25rem] lg:text-[1.5rem] text-white/55 font-sans leading-[1.1] max-w-2xl mx-auto"
           >
             Discover local and overseas hospitality roles — chefs, managers,
             front-of-house, and more — across India and the Middle East,

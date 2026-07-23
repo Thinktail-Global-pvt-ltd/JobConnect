@@ -16,13 +16,13 @@ const staggerContainer = {
 
 export default function About() {
   return (
-    <div className="min-h-screen pt-32 pb-24 px-6 bg-background">
+    <div className="min-h-screen pt-24 pb-24 px-6 bg-background">
       <div className="max-w-4xl mx-auto">
         <motion.header
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="mb-32"
+          className="mb-16"
         >
           <motion.div
             variants={fadeUp}
@@ -35,7 +35,7 @@ export default function About() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="text-5xl md:text-7xl lg:text-8xl font-display font-light tracking-tight text-white leading-[1.1]"
+            className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-light tracking-tight text-white leading-[1.1]"
           >
             Hospitality hiring,
             <br />
@@ -50,7 +50,7 @@ export default function About() {
   variants={staggerContainer}
   className="
     max-w-6xl
-    space-y-20
+    space-y-10
     text-3xl
     md:text-5xl
     lg:text-[3.8rem]
@@ -87,7 +87,7 @@ export default function About() {
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={staggerContainer}
-          className="mt-32 pt-16 border-t border-white/10 flex flex-col md:flex-row gap-16"
+          className="mt-16 pt-12 border-t border-white/10 flex flex-col md:flex-row gap-12"
         >
           <motion.div variants={fadeUp}>
             <div className="text-xs font-sans tracking-widest text-white/30 uppercase mb-4">
