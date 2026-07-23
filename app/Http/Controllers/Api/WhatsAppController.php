@@ -92,12 +92,51 @@ class WhatsAppController extends Controller
 
         if ($templateName) {
             $payload['type'] = 'template';
-            $payload['template'] = [
+            $templateData = [
                 'name' => $templateName,
                 'language' => [
                     'code' => $languageCode
                 ]
             ];
+
+            $otpCode = $request->input('otp') ?? $request->input('code');
+            if ($otpCode) {
+                $templateData['components'] = [
+                    [
+                        'type' => 'body',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => (string) $otpCode
+                            ]
+                        ]
+                    ],
+                    [
+                        'type' => 'button',
+                        'sub_type' => 'url',
+                        'index' => '0',
+                        'parameters' => [
+                            [
+                                'type' => 'text',
+                                'text' => (string) $otpCode
+                            ]
+                        ]
+                    ]
+                ];
+            } elseif ($request->has('parameters') && is_array($request->parameters)) {
+                $componentsParams = array_map(function($p) {
+                    return ['type' => 'text', 'text' => (string)$p];
+                }, $request->parameters);
+
+                $templateData['components'] = [
+                    [
+                        'type' => 'body',
+                        'parameters' => $componentsParams
+                    ]
+                ];
+            }
+
+            $payload['template'] = $templateData;
         } else {
             $payload['type'] = 'text';
             $payload['text'] = [
