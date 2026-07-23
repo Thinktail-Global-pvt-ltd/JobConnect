@@ -27,6 +27,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // User Profile Routes
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
+    Route::get('/profile/personal', [ProfileController::class, 'showPersonal']);
+    Route::post('/profile/personal', [ProfileController::class, 'updatePersonal']);
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage']);
     Route::post('/user/fcm-token', [\App\Http\Controllers\FirebaseController::class, 'saveFcmToken']);
     Route::get('/user/socials', [UserSocialController::class, 'show']);
@@ -50,3 +52,13 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store']);
+Route::get('/support-tickets', [\App\Http\Controllers\SupportTicketController::class, 'index']);
+
+// WhatsApp API Integration Routes
+Route::get('/webhook/whatsapp', [\App\Http\Controllers\Api\WhatsAppController::class, 'verifyWebhook']);
+Route::post('/webhook/whatsapp', [\App\Http\Controllers\Api\WhatsAppController::class, 'handleWebhook']);
+Route::post('/whatsapp/send-message', [\App\Http\Controllers\Api\WhatsAppController::class, 'sendMessage']);
+
+// Public Personal Profile Routes
+Route::get('/profile/personal', [ProfileController::class, 'showPersonal']);
+Route::post('/profile/personal', [ProfileController::class, 'updatePersonal']);

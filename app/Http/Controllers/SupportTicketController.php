@@ -44,4 +44,17 @@ class SupportTicketController extends Controller
             'ticket' => $ticket
         ], 201);
     }
+
+    /**
+     * Display a listing of support tickets.
+     */
+    public function index()
+    {
+        $tickets = SupportTicket::latest()->get();
+
+        return response()->json([
+            'success' => true,
+            'tickets' => $tickets
+        ]);
+    }
 }
