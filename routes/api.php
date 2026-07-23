@@ -59,6 +59,14 @@ Route::get('/webhook/whatsapp', [\App\Http\Controllers\Api\WhatsAppController::c
 Route::post('/webhook/whatsapp', [\App\Http\Controllers\Api\WhatsAppController::class, 'handleWebhook']);
 Route::post('/whatsapp/send-message', [\App\Http\Controllers\Api\WhatsAppController::class, 'sendMessage']);
 
+use App\Http\Controllers\Api\ChefProfileViewController;
+
 // Public Personal Profile Routes
 Route::get('/profile/personal', [ProfileController::class, 'showPersonal']);
 Route::post('/profile/personal', [ProfileController::class, 'updatePersonal']);
+
+// Chef Profile View Tracking Routes
+Route::post('/chef/view-profile', [ChefProfileViewController::class, 'recordView']);
+Route::post('/chef-views/record', [ChefProfileViewController::class, 'recordView']);
+Route::post('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
+Route::get('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
