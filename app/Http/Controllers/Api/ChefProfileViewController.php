@@ -12,15 +12,15 @@ class ChefProfileViewController extends Controller
     /**
      * Record an employer viewing a chef's profile.
      */
-    public function recordView(Request $request)
+    public function recordView(Request $request, $chef_id = null)
     {
-        $chefId = $request->input('chef_id') ?? $request->input('user_id');
+        $chefId = $chef_id ?? $request->input('chef_id') ?? $request->input('user_id');
         $employerId = $request->input('employer_id') ?? ($request->user() ? $request->user()->id : 1);
 
         if (!$chefId) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'The chef_id (or user_id) field is required.'
+                'message' => 'The chef_id parameter is required.'
             ], 422);
         }
 
