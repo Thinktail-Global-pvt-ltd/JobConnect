@@ -154,6 +154,9 @@ class AppointmentController extends Controller
             $chefs = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
             })
+            ->where(function($q) {
+                $q->whereNull('is_available')->orWhere('is_available', true);
+            })
             ->whereHas('chefProfile')
             ->with(['chefProfile'])
             ->get()

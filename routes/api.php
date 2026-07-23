@@ -73,3 +73,5 @@ Route::post('/chef/profile-views', [ChefProfileViewController::class, 'getChefPr
 Route::post('/chef-views/record', [ChefProfileViewController::class, 'recordView']);
 Route::post('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
 Route::get('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
+// Chef Availability Toggle Routes
+Route::match(['get', 'post'], '/chef/availability/toggle', [ChefProfileController::class, 'toggleAvailability']);

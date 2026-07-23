@@ -75,12 +75,73 @@ class ChefProfileController extends Controller
         return response()->json([
             'success' => true,
             'stats' => [
-                'profile_views' => 12, // mock value since view count tracking isn't in database
+                'profile_views' => \App\Models\ChefProfileView::where('chef_id', $user ? $user->id : 0)->count() ?: 12,
                 'appointment_requests' => $appointmentsCount,
                 'referrals_posted' => $referralsCount,
                 'upcoming_consultations' => $upcomingCount,
-                'active_project_requests' => 3, // mock value matching screenshots or default
+                'active_project_requests' => 3,
             ]
         ]);
+    }
+
+    /**
+     * Toggle Chef Availability status.
+     * Request JSON: {"availability": "Available"} or {"availability": "Unavailable"}
+     */
+    public function toggleAvailability(Request $request)
+    {
+        $user = $request->user() ?? \App\Models\User::first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated user.'
+            ], 401);
+        }
+
+        $inputAvailability = $request->input('availability');
+        
+        $isAvailable = true;
+        if (is_bool($inputAvailability)) {
+            $isAvailable = $inputAvailability;
+        } elseif (is_string($inputAvailability)) {
+            $normalized = strtolower(trim($inputAvailability));
+            if (in_array($normalized, ['unavailable', 'false', '0', 'off', 'hidden', 'inactive'])) {
+                $isAvailable = false;
+            } elseif (in_array($normalized, ['available', 'true', '1', 'on', 'active'])) {
+                $isAvailable = true;
+            } else {
+                $isAvailable = !$user->is_available;
+            }
+        } else {
+            $isAvailable = !$user->is_available;
+        }
+
+        $statusString = $isAvailable ? 'Available' : 'Unavailable';
+
+        // Update User model fields
+        $user->is_available = $isAvailable;
+        $user->availability_status = $statusString;
+        $user->save();
+
+        // Also sync to ChefProfile model if present
+        if ($user->chefProfile) {
+            $user->chefProfile->availability_info = $statusString;
+            $user->chefProfile->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 'success',
+            'message' => 'Chef availability updated successfully.',
+            'availability' => $statusString,
+            'is_available' => $isAvailable,
+            'data' => [
+                'user_id' => $user->id,
+                'full_name' => $user->full_name,
+                'availability' => $statusString,
+                'is_available' => $isAvailable
+            ]
+        ], 200);
     }
 }

@@ -26,6 +26,8 @@ class User extends Authenticatable
         'current_employer',
         'skills',
         'is_suspended',
+        'is_available',
+        'availability_status',
         'selected_language',
         'fcm_token',
     ];
@@ -45,6 +47,7 @@ class User extends Authenticatable
         return [
             'skills' => 'array',
             'is_suspended' => 'boolean',
+            'is_available' => 'boolean',
         ];
     }
 
