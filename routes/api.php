@@ -68,6 +68,8 @@ Route::post('/profile/personal', [ProfileController::class, 'updatePersonal']);
 // Chef Profile View Tracking Routes
 Route::post('/chefs/{chef_id}/view', [ChefProfileViewController::class, 'recordView']);
 Route::post('/chef/view-profile', [ChefProfileViewController::class, 'recordView']);
+Route::get('/chef/profile-views', [ChefProfileViewController::class, 'getChefProfileViews']);
+Route::post('/chef/profile-views', [ChefProfileViewController::class, 'getChefProfileViews']);
 Route::post('/chef-views/record', [ChefProfileViewController::class, 'recordView']);
 Route::post('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
 Route::get('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
