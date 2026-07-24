@@ -50,8 +50,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments/book', [AppointmentController::class, 'book']);
     Route::get('/chef/appointments', [AppointmentController::class, 'chefAppointmentsList']);
     Route::get('/employer/appointments', [AppointmentController::class, 'employerAppointmentsList']);
-    Route::get('/employer/chefs', [AppointmentController::class, 'registeredChefsList']);
 });
+
+// Public Candidate / Chef Connect Discovery Routes
+Route::get('/employer/chefs', [AppointmentController::class, 'registeredChefsList']);
+Route::get('/chefs', [AppointmentController::class, 'registeredChefsList']);
 
 Route::post('/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store']);
 Route::get('/support-tickets', [\App\Http\Controllers\SupportTicketController::class, 'index']);
