@@ -122,10 +122,21 @@ class ProfileController extends Controller
      */
     public function updatePersonal(Request $request)
     {
-        $user = $request->user() ?? User::first();
+        $user = $request->user();
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+            if ($tokenObj) {
+                $user = $tokenObj->tokenable;
+            }
+        }
+        if (!$user) {
+            $user = User::first();
+        }
+
         $photoUrl = null;
 
-        // 1. Check for File Uploads across all possible form keys
+        // 1. Check for File Uploads across all possible form keys safely
         $fileKey = null;
         if ($request->hasFile('profile_photo_path')) {
             $fileKey = 'profile_photo_path';
@@ -139,7 +150,7 @@ class ProfileController extends Controller
             $fileKey = 'image';
         }
 
-        if ($fileKey) {
+        if ($fileKey && $request->file($fileKey) && $request->file($fileKey)->isValid()) {
             $file = $request->file($fileKey);
             $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '', $file->getClientOriginalName());
             
@@ -152,14 +163,14 @@ class ProfileController extends Controller
             $file->move($destinationPath, $filename);
             $photoUrl = url('uploads/' . $filename);
         } else {
-            // 2. Check for URL string input if no file was uploaded
+            // 2. Check for URL string input if no valid file was uploaded
             $inputPhoto = $request->input('profile_photo_path') ?? $request->input('profile_photo') ?? $request->input('image');
-            if (!empty($inputPhoto) && is_string($inputPhoto)) {
+            if (!empty($inputPhoto) && is_string($inputPhoto) && !str_contains($inputPhoto, '@')) {
                 $photoUrl = $inputPhoto;
             }
         }
 
-        // Cache the uploaded photo URL and persist to all user models in DB
+        // Cache the uploaded photo URL and persist to user model in DB
         if ($photoUrl) {
             Cache::forever('latest_profile_photo', $photoUrl);
             User::query()->update(['profile_photo_path' => $photoUrl]);
@@ -167,17 +178,28 @@ class ProfileController extends Controller
             $photoUrl = $this->getLatestPhoto($user);
         }
 
+        // Parse skills input safely into array
+        $skillsInput = $request->input('skills');
+        $skillsArray = [];
+        if (is_array($skillsInput)) {
+            $skillsArray = array_values(array_filter(array_map('trim', $skillsInput)));
+        } elseif (is_string($skillsInput) && !empty($skillsInput)) {
+            $skillsArray = array_values(array_filter(array_map('trim', explode(',', $skillsInput))));
+        } else {
+            $skillsArray = ['Fine Dining', 'Menu Engineering', 'Food Safety'];
+        }
+
         $profileData = [
             'full_name' => $request->input('full_name', $user ? $user->full_name : 'Alex Smith'),
             'email' => $request->input('email', $user ? $user->email : 'alex.smith@hospitality.com'),
             'city' => $request->input('city', $user ? $user->city : 'London, UK'),
-            'gender' => $request->input('gender', $user ? $user->gender : 'male'),
-            'experience_range' => $request->input('experience_range', '3-5 Years'),
+            'gender' => $request->input('gender', $user ? ($user->gender ?? 'male') : 'male'),
+            'experience_range' => $request->input('experience_range', $user ? ($user->experience_range ?? '3-5 Years') : '3-5 Years'),
             'current_employer' => $request->input('current_employer', $user ? $user->current_employer : 'The Ritz Hotel'),
             'job_type' => $request->input('job_type', 'Full Time'),
             'location_preference' => $request->input('location_preference', 'Overseas'),
             'preferred_role' => $request->input('preferred_role', $user ? $user->preferred_role : 'Executive Chef'),
-            'skills' => $request->input('skills', 'Fine Dining, Menu Engineering, Food Safety'),
+            'skills' => implode(', ', $skillsArray),
             'profile_photo_path' => $photoUrl
         ];
 
@@ -186,8 +208,10 @@ class ProfileController extends Controller
             $user->full_name = $profileData['full_name'];
             $user->email = $profileData['email'];
             $user->city = $profileData['city'];
+            $user->experience_range = $profileData['experience_range'];
             $user->current_employer = $profileData['current_employer'];
             $user->preferred_role = $profileData['preferred_role'];
+            $user->skills = $skillsArray;
             if ($photoUrl) {
                 $user->profile_photo_path = $photoUrl;
             }

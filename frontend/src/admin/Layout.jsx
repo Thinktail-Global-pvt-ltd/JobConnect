@@ -13,7 +13,6 @@ export default function Layout({ children }) {
     { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
     { name: 'Users', path: '/admin/users', icon: '👤' },
     { name: 'Jobs', path: '/admin/jobs', icon: '💼' },
-    { name: 'Live Feed', path: '/admin/live-feed', icon: '📡' },
     { name: 'Referrals', path: '/admin/referrals', icon: '🔗' },
     { name: 'Community Feed', path: '/admin/community', icon: '📶' },
     { name: 'Training & Overseas', path: '/admin/training', icon: '🎓' },
@@ -21,7 +20,6 @@ export default function Layout({ children }) {
     { name: 'Applications', path: '/admin/applications', icon: '📄' },
     { name: 'Employers', path: '/admin/employers', icon: '🏢' },
     { name: 'Enquiries', path: '/admin/enquiries', icon: '❓' },
-    { name: 'Banners', path: '/admin/banners', icon: '📱' },
     { name: 'Settings', path: '/admin/settings', icon: '⚙️' },
   ];
 
