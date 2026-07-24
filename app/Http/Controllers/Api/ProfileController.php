@@ -186,10 +186,9 @@ class ProfileController extends Controller
                 }
             }
 
-            // Cache the uploaded photo URL and persist to user model in DB
+            // Cache the uploaded photo URL
             if ($photoUrl) {
                 Cache::forever('latest_profile_photo', $photoUrl);
-                User::query()->update(['profile_photo_path' => $photoUrl]);
             } else {
                 $photoUrl = $this->getLatestPhoto($user);
             }
@@ -205,9 +204,22 @@ class ProfileController extends Controller
                 $skillsArray = ['Fine Dining', 'Menu Engineering', 'Food Safety'];
             }
 
+            $requestedEmail = $request->input('email');
+            $finalEmail = $user ? $user->email : 'alex.smith@hospitality.com';
+
+            if ($requestedEmail) {
+                $isEmailTakenByOther = User::where('email', $requestedEmail)
+                    ->where('id', '!=', $user ? $user->id : 0)
+                    ->exists();
+
+                if (!$isEmailTakenByOther) {
+                    $finalEmail = $requestedEmail;
+                }
+            }
+
             $profileData = [
                 'full_name' => $request->input('full_name', $user ? $user->full_name : 'Alex Smith'),
-                'email' => $request->input('email', $user ? $user->email : 'alex.smith@hospitality.com'),
+                'email' => $finalEmail,
                 'city' => $request->input('city', $user ? $user->city : 'London, UK'),
                 'gender' => $request->input('gender', $user ? ($user->gender ?? 'male') : 'male'),
                 'experience_range' => $request->input('experience_range', $user ? ($user->experience_range ?? '3-5 Years') : '3-5 Years'),
