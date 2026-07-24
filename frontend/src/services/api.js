@@ -472,20 +472,32 @@ export const mockApi = {
 
   approveChef: async (id) => {
     try {
-      const res = await realApi.post(`/admin/chefs/${id}/approve`);
+      const res = await realApi.post(`/api/admin/chefs/${id}/approve`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios approveChef failed", e);
+      console.warn("Axios approveChef /api/admin/chefs failed", e);
+    }
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/chefs/${id}/approve`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct approveChef failed", e);
     }
     return { success: true };
   },
 
   rejectChef: async (id) => {
     try {
-      const res = await realApi.post(`/admin/chefs/${id}/reject`);
+      const res = await realApi.post(`/api/admin/chefs/${id}/reject`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios rejectChef failed", e);
+      console.warn("Axios rejectChef /api/admin/chefs failed", e);
+    }
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/chefs/${id}/reject`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct rejectChef failed", e);
     }
     return { success: true };
   }

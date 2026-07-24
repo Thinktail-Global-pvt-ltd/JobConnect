@@ -30,20 +30,20 @@ export default function Chefs() {
   }, [statusFilter]);
 
   const handleApprove = async (id) => {
+    setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
     try {
       await mockApi.approveChef(id);
-      loadChefs();
     } catch (err) {
-      console.error(err);
+      console.error('Approve failed:', err);
     }
   };
 
   const handleReject = async (id) => {
+    setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
     try {
       await mockApi.rejectChef(id);
-      loadChefs();
     } catch (err) {
-      console.error(err);
+      console.error('Reject failed:', err);
     }
   };
 
