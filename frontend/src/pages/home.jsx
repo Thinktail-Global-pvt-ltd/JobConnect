@@ -347,7 +347,7 @@ export default function Home() {
                 <motion.li
                   key={f}
                   variants={fadeUp}
-                  className="flex items-center gap-3 text-sm font-sans text-white/75"
+                  className="flex items-center gap-3 text-[16px] font-sans text-white/75"
                 >
                   <CheckIcon />
                   {f}
@@ -363,7 +363,7 @@ export default function Home() {
                     .getElementById("download")
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-md bg-accent text-background hover:bg-accent/90 transition-colors duration-200 cursor-pointer"
+                className="inline-flex items-center gap-2 text-[16px] font-semibold px-6 py-3 rounded-md bg-accent text-background hover:bg-accent/90 transition-colors duration-200 cursor-pointer"
               >
                 Join Today
               </a>
