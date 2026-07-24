@@ -20,7 +20,7 @@ class ChefModeratorController extends Controller
             $query->where('approval_status', $request->status);
         }
 
-        $chefs = $query->latest()->paginate(15);
+        $chefs = $query->latest()->get();
 
         // Fetch dynamic stats for dashboard cards
         $pendingCount = ChefProfile::where('approval_status', 'pending')->count();

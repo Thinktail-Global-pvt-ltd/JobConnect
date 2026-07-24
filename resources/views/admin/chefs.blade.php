@@ -1,204 +1,344 @@
 @extends('layouts.admin')
 
-@section('title', 'Chef Screening')
-@section('header-title', 'Chef Screening')
+@section('title', 'ChefConnect Moderation')
+@section('header-title', 'ChefConnect Moderation')
+@section('header-subtitle', 'Review and manage professional chef applications for the platform.')
+
 @section('content')
-<!-- Stats Overview Header -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
-    <div class="glass-panel" style="padding: 1.25rem;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Pending Review</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #f59e0b; margin-top: 0.25rem;">{{ $pendingCount }}</div>
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Awaiting moderation</div>
-    </div>
-    <div class="glass-panel" style="padding: 1.25rem;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Calendly Sync</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 0.25rem;">{{ $calendlySyncPercentage }}%</div>
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Active synchronization</div>
-    </div>
-    <div class="glass-panel" style="padding: 1.25rem;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Approved Chefs</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 0.25rem;">{{ $approvedCount }}</div>
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Active pool</div>
-    </div>
-    <div class="glass-panel" style="padding: 1.25rem;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Total Registrations</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 0.25rem;">{{ $totalChefs }}</div>
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Total chef profiles</div>
-    </div>
-</div>
+<div class="space-y-6">
 
-<!-- Filter Section -->
-<div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
-    <form action="{{ url('admin/chefs') }}" method="GET" style="display: flex; gap: 1rem; align-items: center;">
-        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-            <label class="form-label" style="margin-bottom: 0;">Approval Status</label>
-            <select name="status" class="form-control" style="width: 180px; padding: 0.4rem 0.8rem; font-size: 0.9rem;">
-                <option value="">All Statuses</option>
-                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
-                <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
-            </select>
+    <!-- Top Action Bar & Header Stats -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <div>
+            <div class="flex items-center gap-3">
+                <h2 class="text-2xl font-outfit font-extrabold text-slate-800 tracking-tight">ChefConnect Moderation</h2>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    OPERATIONAL STATUS
+                </span>
+            </div>
+            <p class="text-xs text-slate-400 font-medium mt-1">Review and manage professional chef applications for the platform.</p>
         </div>
 
-        <div style="display: flex; align-items: flex-end; height: 100%; padding-top: 1.2rem;">
-            <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.55rem 1.25rem;">Filter</button>
-            @if(request('status'))
-                <a href="{{ url('admin/chefs') }}" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem; padding: 0.55rem 1.25rem;">Reset</a>
-            @endif
-        </div>
-    </form>
-</div>
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-3">
+            <!-- Filter Dropdown Form -->
+            <form action="{{ url('admin/chefs') }}" method="GET" class="flex items-center gap-2">
+                <div class="relative">
+                    <select name="status" onchange="this.form.submit()" class="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold py-2.5 pl-4 pr-9 rounded-xl focus:outline-none focus:border-brand-500 focus:bg-white transition-all cursor-pointer">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending Only</option>
+                        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved Only</option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected Only</option>
+                    </select>
+                    <span class="absolute right-3 top-3 text-slate-400 text-xs pointer-events-none">▼</span>
+                </div>
+                @if(request('status'))
+                    <a href="{{ url('admin/chefs') }}" class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition-all">
+                        Reset
+                    </a>
+                @endif
+            </form>
 
-<div class="glass-panel">
-    <div class="panel-header">
-        <h2>👩‍🍳 Culinary Specialists ({{ $chefs->total() }})</h2>
+            <a href="{{ route('chef.onboarding') }}" target="_blank" class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-brand-500/20 transition-all">
+                <span>+</span> Onboard New Chef
+            </a>
+        </div>
     </div>
 
-    @if($chefs->isEmpty())
-        <p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">No chef profiles found matching the criteria.</p>
-    @else
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Chef Details</th>
-                        <th>Mobile</th>
-                        <th>Cuisine Specialty</th>
-                        <th>Availability / Bio</th>
-                        <th>Calendly Link</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($chefs as $chef)
-                        <tr>
-                            <td>
-                                <strong>{{ $chef->user->full_name ?? 'Unnamed Chef' }}</strong>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ $chef->user->email ?? 'No email linked' }}</div>
-                            </td>
-                            <td><code>{{ $chef->user->mobile_number }}</code></td>
-                            <td><span class="badge badge-category">{{ $chef->cuisine_specialty }}</span></td>
-                            <td>
-                                <div style="font-size: 0.9rem; max-width: 250px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="{{ $chef->bio }}">
-                                    {{ $chef->bio ?? 'No bio details' }}
-                                </div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                                    ⏰ {{ $chef->availability_info ?? 'No availability info' }}
-                                </div>
-                            </td>
-                            <td>
-                                @if($chef->calendly_link)
-                                    <a href="{{ $chef->calendly_link }}" target="_blank" style="color: var(--accent-blue); text-decoration: none; font-weight: 500;">
-                                        Calendly 🔗
-                                    </a>
-                                @else
-                                    <span style="color: var(--text-muted);">Not Linked</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($chef->approval_status === 'approved')
-                                    <span class="badge badge-approved">Approved</span>
-                                @elseif($chef->approval_status === 'rejected')
-                                    <span class="badge badge-rejected">Rejected</span>
-                                @else
-                                    <span class="badge badge-pending">Pending</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="action-row" style="gap: 0.5rem;">
-                                    @if($chef->approval_status !== 'approved')
-                                        <form action="{{ url('admin/chefs/' . $chef->id . '/approve') }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                        </form>
-                                    @endif
+    <!-- 4 Dynamic Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card 1: Pending Review -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-amber-200 transition-all">
+            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">PENDING REVIEW</span>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-outfit font-extrabold text-slate-800">{{ number_format($pendingCount) }}</span>
+                <span class="text-xs font-bold text-amber-500">↗ +12% from last week</span>
+            </div>
+            <span class="text-xs text-slate-400 mt-2 block font-medium">Awaiting administrator moderation</span>
+        </div>
 
-                                    @if($chef->approval_status !== 'rejected')
-                                        <form action="{{ url('admin/chefs/' . $chef->id . '/reject') }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                        </form>
-                                    @endif
+        <!-- Card 2: Calendly Sync -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-blue-200 transition-all">
+            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">CALENDLY SYNC</span>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-outfit font-extrabold text-slate-800">{{ $calendlySyncPercentage }}%</span>
+            </div>
+            <span class="text-xs text-slate-400 mt-2 block font-medium">Active synchronization</span>
+        </div>
 
-                                    <button type="button" onclick="openAdminAppointmentModal('{{ $chef->user->id }}', '{{ addslashes($chef->user->full_name) }}')" class="btn btn-sm" style="background-color: var(--accent-blue, #3b82f6); color: white; border-color: var(--accent-blue, #3b82f6); padding: 0.35rem 0.85rem;">
-                                        Schedule
-                                    </button>
-                                </div>
-                            </td>
+        <!-- Card 3: Active Chefs -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-all">
+            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">ACTIVE CHEFS</span>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-outfit font-extrabold text-slate-800">{{ number_format($approvedCount) }}</span>
+            </div>
+            <span class="text-xs text-slate-400 mt-2 block font-medium">Global hospitality pool</span>
+        </div>
+
+        <!-- Card 4: Moderation Rate -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-purple-200 transition-all">
+            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">MODERATION RATE</span>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-outfit font-extrabold text-slate-800">4.2h</span>
+            </div>
+            <span class="text-xs text-slate-400 mt-2 block font-medium">Average response time</span>
+        </div>
+    </div>
+
+    <!-- Chef Moderation Table -->
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        @if($chefs->isEmpty())
+            <div class="p-12 text-center">
+                <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mx-auto mb-3">
+                    👨‍🍳
+                </div>
+                <h3 class="text-base font-bold text-slate-700">No Chef Applications Found</h3>
+                <p class="text-xs text-slate-400 mt-1">There are no chef profiles matching your selected criteria.</p>
+            </div>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50/50 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                            <th class="py-4 px-6">CHEF NAME</th>
+                            <th class="py-4 px-6">EXPERIENCE</th>
+                            <th class="py-4 px-6">CUISINE SPECIALTIES</th>
+                            <th class="py-4 px-6 text-center">CALENDLY</th>
+                            <th class="py-4 px-6 text-center">STATUS</th>
+                            <th class="py-4 px-6 text-right">ACTIONS</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        @foreach($chefs as $chef)
+                            @php
+                                $fullName = $chef->user->full_name ?? 'Unnamed Chef';
+                                $words = explode(' ', trim($fullName));
+                                $initials = strtoupper(substr($words[0] ?? 'C', 0, 1) . substr($words[1] ?? 'H', 0, 1));
+                                
+                                // Color badges for avatar
+                                $avatarBgColors = ['bg-emerald-100 text-emerald-700', 'bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700'];
+                                $avatarColor = $avatarBgColors[$chef->id % count($avatarBgColors)];
+                            @endphp
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <!-- Chef Name & Avatar -->
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full {{ $avatarColor }} flex items-center justify-center font-bold text-xs font-outfit shadow-sm">
+                                            {{ $initials }}
+                                        </div>
+                                        <div>
+                                            <span class="font-bold text-slate-800 block text-sm leading-snug">{{ $fullName }}</span>
+                                            <span class="text-xs text-slate-400 font-medium block">{{ $chef->user->email ?? 'No email' }}</span>
+                                        </div>
+                                    </div>
+                                </td>
 
-        <div style="margin-top: 2rem;">
-            {{ $chefs->appends(request()->query())->links() }}
-        </div>
-    @endif
+                                <!-- Experience -->
+                                <td class="py-4 px-6 font-semibold text-slate-700">
+                                    {{ $chef->user->experience_range ?? ($chef->experience_range ?: 'N/A') }}
+                                </td>
+
+                                <!-- Cuisine Specialties -->
+                                <td class="py-4 px-6 font-medium text-slate-700">
+                                    <span class="inline-block bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1 rounded-lg">
+                                        {{ $chef->cuisine_specialty ?: 'Multi-Cuisine' }}
+                                    </span>
+                                </td>
+
+                                <!-- Calendly Badge -->
+                                <td class="py-4 px-6 text-center">
+                                    @if($chef->calendly_link)
+                                        <a href="{{ $chef->calendly_link }}" target="_blank" class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200/60 hover:bg-emerald-100 transition-colors">
+                                            ✓ Yes
+                                        </a>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-400 text-xs font-bold px-3 py-1 rounded-full">
+                                            ✕ No
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <!-- Status Badge -->
+                                <td class="py-4 px-6 text-center">
+                                    @if($chef->approval_status === 'approved')
+                                        <span class="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                                            APPROVED
+                                        </span>
+                                    @elseif($chef->approval_status === 'rejected')
+                                        <span class="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 uppercase tracking-wider">
+                                            REJECTED
+                                        </span>
+                                    @else
+                                        <span class="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 uppercase tracking-wider">
+                                            PENDING
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="py-4 px-6 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <!-- View Details Modal Trigger Button -->
+                                        <button type="button" 
+                                                onclick="openChefDetailsModal('{{ $chef->id }}', '{{ addslashes($fullName) }}', '{{ addslashes($chef->user->email ?? '') }}', '{{ addslashes($chef->user->mobile_number ?? '') }}', '{{ addslashes($chef->user->city ?? '') }}', '{{ addslashes($chef->user->experience_range ?? '') }}', '{{ addslashes($chef->cuisine_specialty ?? '') }}', '{{ addslashes($chef->bio ?? '') }}', '{{ addslashes($chef->calendly_link ?? '') }}')" 
+                                                class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors" 
+                                                title="View Details">
+                                            👁️
+                                        </button>
+
+                                        <!-- Approve Button -->
+                                        @if($chef->approval_status !== 'approved')
+                                            <form action="{{ url('admin/chefs/' . $chef->id . '/approve') }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="w-8 h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors border border-emerald-200/60" title="Approve Chef">
+                                                    ✓
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        <!-- Reject Button -->
+                                        @if($chef->approval_status !== 'rejected')
+                                            <form action="{{ url('admin/chefs/' . $chef->id . '/reject') }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="w-8 h-8 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors border border-rose-200/60" title="Reject Chef">
+                                                    ✕
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        <!-- Schedule Appointment Button -->
+                                        <button type="button" 
+                                                onclick="openAdminAppointmentModal('{{ $chef->user->id }}', '{{ addslashes($fullName) }}')" 
+                                                class="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold transition-colors">
+                                            Schedule
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer -->
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50 text-xs font-semibold text-slate-500">
+                <span>Showing all {{ $chefs->count() }} chef application(s)</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    All Chefs Loaded
+                </span>
+            </div>
+        @endif
+    </div>
 </div>
 
-<!-- Schedule Appointment Modal -->
-<div id="admin-schedule-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div class="glass-panel" style="width: 100%; max-width: 500px; padding: 2rem; margin: 1rem; position: relative; border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; background: var(--bg-secondary, #151f32);">
-        
-        <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.75rem;">
-            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary, #ffffff); font-family: 'Outfit', sans-serif; font-weight: 700;">
-                📅 Schedule Chef Connect Appointment
-            </h3>
-            <button type="button" onclick="closeAdminAppointmentModal()" style="background: none; border: none; color: var(--text-secondary, #94a3b8); cursor: pointer; font-size: 1.5rem; font-weight: 700; line-height: 1;">
-                &times;
+<!-- Modal 1: Chef Details View Modal -->
+<div id="chef-details-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 border border-slate-100 shadow-2xl space-y-5 animate-scale-up">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+                <h3 id="modal-detail-name" class="font-outfit font-extrabold text-lg text-slate-800">Chef Details</h3>
+                <span id="modal-detail-email" class="text-xs text-slate-400 font-medium"></span>
+            </div>
+            <button onclick="closeChefDetailsModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center text-lg font-bold">
+                ✕
             </button>
         </div>
 
-        <!-- Form -->
-        <form action="{{ url('admin/chefs/schedule-appointment') }}" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
-            @csrf
-            
-            <input type="hidden" name="chef_id" id="modal-chef-id">
-            
-            <!-- Chef Name display (read-only) -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem; text-align: left;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-align: left;">Chef Profile</label>
-                <input type="text" id="modal-chef-name" readonly class="form-control" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05); color: var(--text-secondary); cursor: not-allowed; padding: 0.5rem 0.75rem; font-size: 0.9rem;">
+        <div class="space-y-4 text-xs font-medium text-slate-600">
+            <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl">
+                <div>
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Mobile</span>
+                    <span id="modal-detail-mobile" class="font-bold text-slate-700"></span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">City</span>
+                    <span id="modal-detail-city" class="font-bold text-slate-700"></span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Experience</span>
+                    <span id="modal-detail-exp" class="font-bold text-slate-700"></span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold">Cuisine</span>
+                    <span id="modal-detail-cuisine" class="font-bold text-slate-700"></span>
+                </div>
             </div>
 
-            <!-- Employer Dropdown -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem; text-align: left;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-align: left;">Select Employer *</label>
-                <select name="employer_id" required class="form-control" style="padding: 0.5rem 0.75rem; font-size: 0.9rem; background: var(--bg-primary, #0c1424); border-color: rgba(255,255,255,0.05); color: var(--text-primary, #ffffff);">
-                    <option value="" style="background: var(--bg-primary);">-- Select an Employer --</option>
+            <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold mb-1">Bio / Profile Summary</span>
+                <p id="modal-detail-bio" class="bg-slate-50 p-3 rounded-xl text-slate-700 leading-relaxed"></p>
+            </div>
+
+            <div id="modal-detail-calendly-wrapper" class="hidden">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold mb-1">Calendly Scheduling Link</span>
+                <a id="modal-detail-calendly" href="#" target="_blank" class="text-blue-600 underline font-bold truncate block"></a>
+            </div>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+            <button onclick="closeChefDetailsModal()" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Schedule Appointment Modal -->
+<div id="admin-schedule-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 border border-slate-100 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-outfit font-extrabold text-base text-slate-800">
+                📅 Schedule Chef Connect Appointment
+            </h3>
+            <button onclick="closeAdminAppointmentModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center text-lg font-bold">
+                ✕
+            </button>
+        </div>
+
+        <form action="{{ url('admin/chefs/schedule-appointment') }}" method="POST" class="space-y-4">
+            @csrf
+            <input type="hidden" name="chef_id" id="modal-chef-id">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Chef Profile</label>
+                <input type="text" id="modal-chef-name" readonly class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-bold text-slate-700 cursor-not-allowed">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Select Employer *</label>
+                <select name="employer_id" required class="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-500">
+                    <option value="">-- Select an Employer --</option>
                     @foreach($employers as $emp)
-                        <option value="{{ $emp->id }}" style="background: var(--bg-primary);">
+                        <option value="{{ $emp->id }}">
                             {{ $emp->full_name }} ({{ $emp->mobile_number ?? 'No Mobile' }})
                         </option>
                     @endforeach
                 </select>
             </div>
 
-            <!-- Date and Time Inputs -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div style="display: flex; flex-direction: column; gap: 0.25rem; text-align: left;">
-                    <label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-align: left;">Meeting Date *</label>
-                    <input type="text" name="meeting_date" placeholder="e.g. Monday, Oct 23" required class="form-control" style="padding: 0.5rem 0.75rem; font-size: 0.9rem; background: var(--bg-primary, #0c1424); border-color: rgba(255,255,255,0.05); color: var(--text-primary, #ffffff);">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Meeting Date *</label>
+                    <input type="text" name="meeting_date" placeholder="e.g. Monday, Oct 23" required class="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-500">
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.25rem; text-align: left;">
-                    <label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-align: left;">Meeting Time *</label>
-                    <input type="text" name="meeting_time" placeholder="e.g. 10:00 AM" required class="form-control" style="padding: 0.5rem 0.75rem; font-size: 0.9rem; background: var(--bg-primary, #0c1424); border-color: rgba(255,255,255,0.05); color: var(--text-primary, #ffffff);">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Meeting Time *</label>
+                    <input type="text" name="meeting_time" placeholder="e.g. 10:00 AM" required class="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-500">
                 </div>
             </div>
 
-            <!-- Meeting Purpose -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem; text-align: left;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary, #94a3b8); text-align: left;">Meeting Agenda / Purpose (Optional)</label>
-                <textarea name="purpose" placeholder="Describe the purpose of this call..." class="form-control" style="padding: 0.5rem 0.75rem; font-size: 0.9rem; min-height: 80px; resize: vertical; background: var(--bg-primary, #0c1424); border-color: rgba(255,255,255,0.05); color: var(--text-primary, #ffffff);"></textarea>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Meeting Agenda (Optional)</label>
+                <textarea name="purpose" placeholder="Describe purpose of call..." class="w-full bg-white border border-slate-200 rounded-xl py-2 px-3 text-xs font-medium text-slate-700 focus:outline-none focus:border-brand-500 h-20 resize-none"></textarea>
             </div>
 
-            <!-- Footer Actions -->
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem; margin-top: 0.5rem;">
-                <button type="button" onclick="closeAdminAppointmentModal()" class="btn btn-secondary btn-sm" style="padding: 0.55rem 1.25rem;">Cancel</button>
-                <button type="submit" class="btn btn-sm" style="padding: 0.55rem 1.25rem; background-color: var(--accent-blue, #3b82f6); border-color: var(--accent-blue, #3b82f6); color: white;">
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeAdminAppointmentModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20">
                     Create Appointment
                 </button>
             </div>
@@ -207,21 +347,50 @@
 </div>
 
 <script>
+function openChefDetailsModal(id, name, email, mobile, city, exp, cuisine, bio, calendly) {
+    document.getElementById('modal-detail-name').innerText = name;
+    document.getElementById('modal-detail-email').innerText = email;
+    document.getElementById('modal-detail-mobile').innerText = mobile || 'Not Provided';
+    document.getElementById('modal-detail-city').innerText = city || 'Not Provided';
+    document.getElementById('modal-detail-exp').innerText = exp || 'Not Provided';
+    document.getElementById('modal-detail-cuisine').innerText = cuisine || 'Multi-Cuisine';
+    document.getElementById('modal-detail-bio').innerText = bio || 'No bio specified';
+
+    const calendlyWrapper = document.getElementById('modal-detail-calendly-wrapper');
+    const calendlyLink = document.getElementById('modal-detail-calendly');
+
+    if (calendly) {
+        calendlyLink.href = calendly;
+        calendlyLink.innerText = calendly;
+        calendlyWrapper.classList.remove('hidden');
+    } else {
+        calendlyWrapper.classList.add('hidden');
+    }
+
+    const modal = document.getElementById('chef-details-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeChefDetailsModal() {
+    const modal = document.getElementById('chef-details-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
 function openAdminAppointmentModal(chefId, chefName) {
     document.getElementById('modal-chef-id').value = chefId;
     document.getElementById('modal-chef-name').value = chefName;
-    document.getElementById('admin-schedule-modal').style.display = 'flex';
+    
+    const modal = document.getElementById('admin-schedule-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 function closeAdminAppointmentModal() {
-    document.getElementById('admin-schedule-modal').style.display = 'none';
+    const modal = document.getElementById('admin-schedule-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
-
-// Close on clicking overlay
-document.getElementById('admin-schedule-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeAdminAppointmentModal();
-    }
-});
 </script>
 @endsection
