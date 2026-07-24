@@ -2,9 +2,31 @@
 
 @section('title', 'Chef Screening')
 @section('header-title', 'Chef Screening')
-@section('header-subtitle', 'Moderate and approve specialist chef portfolios')
-
 @section('content')
+<!-- Stats Overview Header -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+    <div class="glass-panel" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Pending Review</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #f59e0b; margin-top: 0.25rem;">{{ $pendingCount }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Awaiting moderation</div>
+    </div>
+    <div class="glass-panel" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Calendly Sync</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6; margin-top: 0.25rem;">{{ $calendlySyncPercentage }}%</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Active synchronization</div>
+    </div>
+    <div class="glass-panel" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Approved Chefs</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #10b981; margin-top: 0.25rem;">{{ $approvedCount }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Active pool</div>
+    </div>
+    <div class="glass-panel" style="padding: 1.25rem;">
+        <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Total Registrations</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin-top: 0.25rem;">{{ $totalChefs }}</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">Total chef profiles</div>
+    </div>
+</div>
+
 <!-- Filter Section -->
 <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
     <form action="{{ url('admin/chefs') }}" method="GET" style="display: flex; gap: 1rem; align-items: center;">

@@ -22,12 +22,19 @@ class ChefModeratorController extends Controller
 
         $chefs = $query->latest()->paginate(15);
 
+        // Fetch dynamic stats for dashboard cards
+        $pendingCount = ChefProfile::where('approval_status', 'pending')->count();
+        $approvedCount = ChefProfile::where('approval_status', 'approved')->count();
+        $totalChefs = ChefProfile::count();
+        $calendlyLinkedCount = ChefProfile::whereNotNull('calendly_link')->where('calendly_link', '!=', '')->count();
+        $calendlySyncPercentage = $totalChefs > 0 ? round(($calendlyLinkedCount / $totalChefs) * 100) : 0;
+
         // Fetch all employers for coordination appointments
         $employers = \App\Models\User::whereHas('roles', function($q) {
             $q->where('role_type', 'employer');
         })->orderBy('full_name', 'asc')->get();
 
-        return view('admin.chefs', compact('chefs', 'employers'));
+        return view('admin.chefs', compact('chefs', 'employers', 'pendingCount', 'approvedCount', 'totalChefs', 'calendlySyncPercentage'));
     }
 
     /**
