@@ -445,5 +445,40 @@ export const mockApi = {
       console.warn("Axios deleteReferral failed", e);
     }
     return { success: false };
+  },
+
+  // ==========================================
+  // CHEF MODERATION APIs (live Laravel backend)
+  // ==========================================
+  getChefs: async (status = '') => {
+    try {
+      const res = await realApi.get('/employer/chefs', { params: { status } });
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+        return res.data;
+      }
+    } catch (e) {
+      console.warn("Axios getChefs failed", e);
+    }
+    return { success: true, chefs: [] };
+  },
+
+  approveChef: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/chefs/${id}/approve`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios approveChef failed", e);
+    }
+    return { success: true };
+  },
+
+  rejectChef: async (id) => {
+    try {
+      const res = await realApi.post(`/admin/chefs/${id}/reject`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios rejectChef failed", e);
+    }
+    return { success: true };
   }
 };
