@@ -70,7 +70,7 @@ export default function Home() {
           >
             <motion.h1
               variants={fadeUp}
-              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold tracking-tight text-white leading-[0.9]"
+              className="text-[2.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold tracking-tight text-white leading-[1.15]"
             >
               Connecting
               <br />
@@ -143,7 +143,7 @@ export default function Home() {
             </motion.p>
             <motion.h2
               variants={fadeUp}
-              className="text-5xl md:text-7xl font-display font-bold text-white mb-4 leading-tight"
+              className="text-3xl sm:text-5xl md:text-7xl font-display font-bold text-white mb-4 leading-tight"
             >
               Get Jobrito on
               <br />
@@ -235,7 +235,7 @@ export default function Home() {
             </motion.p>
             <motion.h2
               variants={fadeUp}
-              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white leading-tight text-center mb-10"
+              className="text-[2.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white leading-tight text-center mb-10"
             >
               One Community.
               <br />
@@ -326,7 +326,7 @@ export default function Home() {
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-6 leading-[1.0]"
+              className="text-[2.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-6 leading-[1.15]"
             >
               Opportunities
               <br />
@@ -411,7 +411,7 @@ export default function Home() {
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-6 leading-[1.0]"
+              className="text-[2.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-6 leading-[1.15]"
             >
               The right person.
               <br />
@@ -494,7 +494,7 @@ export default function Home() {
             </motion.div>
             <motion.h2
               variants={fadeUp}
-              className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-8 leading-[1.0] max-w-5xl"
+              className="text-[2.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-bold text-white mb-8 leading-[1.15] max-w-5xl"
             >
               The Right Expert for
               <br />

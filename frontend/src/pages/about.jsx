@@ -35,7 +35,7 @@ export default function About() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-light tracking-tight text-white leading-[1.1]"
+            className="text-[2.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-light tracking-tight text-white leading-[1.15]"
           >
             Hospitality hiring,
             <br />
@@ -51,7 +51,8 @@ export default function About() {
   className="
     max-w-6xl
     space-y-10
-    text-3xl
+    text-2xl
+    sm:text-3xl
     md:text-5xl
     lg:text-[3.8rem]
     font-display

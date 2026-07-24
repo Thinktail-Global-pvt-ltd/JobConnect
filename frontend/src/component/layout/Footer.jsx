@@ -135,8 +135,8 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex gap-16 sm:gap-24 md:gap-32 lg:gap-40 flex-shrink-0">
-            <div className="min-w-[140px]">
+          <div className="grid grid-cols-2 gap-8 sm:flex sm:gap-24 md:gap-32 lg:gap-40 flex-shrink-0">
+            <div className="min-w-0 sm:min-w-[140px]">
               <h4 className="font-sans text-xs tracking-widest text-white/30 uppercase mb-6">
                 Platform
               </h4>
@@ -168,7 +168,7 @@ export default function Footer() {
               </ul>
             </div>
 
-            <div className="min-w-[180px]">
+            <div className="min-w-0 sm:min-w-[180px]">
               <h4 className="font-sans text-xs tracking-widest text-white/30 uppercase mb-6">
                 Company
               </h4>

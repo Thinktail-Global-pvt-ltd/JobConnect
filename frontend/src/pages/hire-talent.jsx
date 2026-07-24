@@ -39,7 +39,7 @@ export default function HireTalent() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-light tracking-tight text-white mb-8 leading-[0.9]"
+            className="text-[2.2rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] font-display font-light tracking-tight text-white mb-8 leading-[1.15]"
           >
             The right person.
             <br />

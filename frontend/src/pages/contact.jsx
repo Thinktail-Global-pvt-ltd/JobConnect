@@ -37,7 +37,7 @@ export default function Contact() {
           </motion.div>
           <motion.h1
             variants={fadeUp}
-            className="text-6xl md:text-8xl font-display font-bold tracking-tight text-white mb-12 leading-[1]"
+            className="text-[2.2rem] sm:text-6xl md:text-8xl font-display font-bold tracking-tight text-white mb-12 leading-[1.15]"
           >
             Start the
             <br />
