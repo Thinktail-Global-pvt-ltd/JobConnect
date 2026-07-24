@@ -23,7 +23,9 @@ class WebProfileController extends Controller
         $registeredChefs = \App\Models\User::whereHas('roles', function($q) {
                 $q->where('role_type', 'chef');
             })
-            ->whereHas('chefProfile')
+            ->whereHas('chefProfile', function ($q) {
+                $q->where('approval_status', 'approved');
+            })
             ->with('chefProfile')
             ->latest()
             ->get()

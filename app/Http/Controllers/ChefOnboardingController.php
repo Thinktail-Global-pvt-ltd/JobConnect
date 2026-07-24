@@ -35,7 +35,17 @@ class ChefOnboardingController extends Controller
      */
     public function save(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+            if ($tokenObj) {
+                $user = $tokenObj->tokenable;
+            }
+        }
+        if (!$user) {
+            $user = Auth::user();
+        }
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -43,16 +53,23 @@ class ChefOnboardingController extends Controller
             ], 401);
         }
 
+        // Normalize skills input to array if passed as string or array
+        $skillsInput = $request->input('skills');
+        if (is_string($skillsInput)) {
+            $skillsArray = array_values(array_filter(array_map('trim', explode(',', $skillsInput))));
+            $request->merge(['skills' => $skillsArray]);
+        }
+
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'preferred_role' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'experience_range' => 'required|string|max:255',
-            'skills' => 'required|array',
+            'skills' => 'nullable',
             'cuisine_specialty' => 'required|string|max:255',
             'bio' => 'nullable|string',
             'calendly_link' => 'nullable|url|max:255',
-            'profile_photo' => 'nullable|image|max:2048', // max 2MB
+            'profile_photo' => 'nullable',
 
             // Social media links
             'linkedin' => 'nullable|string|url|max:255',
@@ -71,7 +88,7 @@ class ChefOnboardingController extends Controller
         try {
             DB::transaction(function () use ($user, $request) {
                 // 1. Process profile photo upload if provided
-                if ($request->hasFile('profile_photo')) {
+                if ($request->hasFile('profile_photo') && $request->file('profile_photo') && $request->file('profile_photo')->isValid()) {
                     $path = $request->file('profile_photo')->store('profile_photos', 'public');
                     $user->profile_photo_path = '/storage/' . $path;
                 }

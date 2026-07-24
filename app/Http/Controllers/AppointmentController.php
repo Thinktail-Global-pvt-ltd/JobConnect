@@ -157,7 +157,9 @@ class AppointmentController extends Controller
             ->where(function($q) {
                 $q->whereNull('is_available')->orWhere('is_available', true);
             })
-            ->whereHas('chefProfile')
+            ->whereHas('chefProfile', function ($q) {
+                $q->where('approval_status', 'approved');
+            })
             ->with(['chefProfile'])
             ->get()
             ->map(function ($chef) {
