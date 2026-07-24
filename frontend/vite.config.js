@@ -11,4 +11,17 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
+  server: {
+    port: 5173,
+    proxy: {
+      '/backend': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+      }
+    }
+  }
 })

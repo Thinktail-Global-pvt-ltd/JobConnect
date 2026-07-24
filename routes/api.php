@@ -53,8 +53,11 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Public Candidate / Chef Connect Discovery Routes
-Route::get('/employer/chefs', [AppointmentController::class, 'registeredChefsList']);
-Route::get('/chefs', [AppointmentController::class, 'registeredChefsList']);
+Route::get('/employer/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
+Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
+Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
+Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);
+Route::post('/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
 
 Route::post('/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store']);
 Route::get('/support-tickets', [\App\Http\Controllers\SupportTicketController::class, 'index']);
