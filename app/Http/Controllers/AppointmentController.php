@@ -170,18 +170,25 @@ class AppointmentController extends Controller
                 }
 
                 return [
-                    'id' => $chef->id,
+                    'id' => $chef->chefProfile ? $chef->chefProfile->id : $chef->id,
+                    'user_id' => $chef->id,
                     'full_name' => $chef->full_name,
+                    'name' => $chef->full_name,
                     'email' => $chef->email,
                     'mobile_number' => $chef->mobile_number,
                     'city' => $chef->city,
                     'profile_photo_path' => $chef->profile_photo_path,
                     'experience_range' => $chef->experience_range ?: '0',
+                    'experience' => $chef->experience_range ?: '0',
                     'cuisine_specialty' => $chef->chefProfile ? $chef->chefProfile->cuisine_specialty : 'Multi-Cuisine',
+                    'specialties' => $chef->chefProfile ? $chef->chefProfile->cuisine_specialty : 'Multi-Cuisine',
                     'bio' => $chef->chefProfile ? $chef->chefProfile->bio : '',
                     'calendly_link' => $chef->chefProfile ? $chef->chefProfile->calendly_link : '',
+                    'calendly' => !empty($chef->chefProfile ? $chef->chefProfile->calendly_link : ''),
+                    'approval_status' => 'approved',
+                    'status' => 'approved',
                     'availability_info' => $availability,
-                    'skills' => $chef->skills ?: [],
+                    'skills' => is_array($chef->skills) ? $chef->skills : [],
                 ];
             });
 
