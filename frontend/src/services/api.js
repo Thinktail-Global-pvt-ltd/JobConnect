@@ -561,6 +561,26 @@ export const mockApi = {
     return { success: true, chefs: [] };
   },
 
+  getEmployerChefs: async () => {
+    try {
+      const res = await realApi.get('/api/employer/chefs');
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+        return res.data;
+      }
+    } catch (e) {
+      console.warn("Axios getEmployerChefs /api/employer/chefs failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/employer/chefs');
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+        return res.data;
+      }
+    } catch (e) {
+      console.warn("Axios direct getEmployerChefs failed", e);
+    }
+    return { success: true, chefs: [] };
+  },
+
   approveChef: async (id) => {
     try {
       const res = await realApi.post(`/api/admin/chefs/${id}/approve`);
