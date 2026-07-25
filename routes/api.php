@@ -157,6 +157,82 @@ Route::post('/admin/referrals/{id}/approve', [\App\Http\Controllers\Admin\Referr
 Route::post('/admin/referrals/{id}/reject', [\App\Http\Controllers\Admin\ReferralController::class, 'reject']);
 Route::delete('/admin/referrals/{id}', [\App\Http\Controllers\Admin\ReferralController::class, 'destroy']);
 
+// Admin Training & Overseas Opportunities API Routes
+Route::get('/admin/training-opportunities', function() {
+    $trainings = \App\Models\TrainingOpportunity::latest()->get();
+    
+    if ($trainings->isEmpty()) {
+        $initials = [
+            ['program_name' => 'Advanced Culinary Arts - London', 'provider_name' => 'Michelin Prep', 'location' => 'UK, Ireland', 'duration' => '12 Months', 'status' => 'Published', 'created_at' => now()],
+            ['program_name' => 'Hospitality Leadership - Dubai', 'provider_name' => 'Operations Mgmt', 'location' => 'UAE, Qatar', 'duration' => '24 Months', 'status' => 'Active', 'created_at' => now()->subDays(2)],
+            ['program_name' => 'Luxury Resort Management', 'provider_name' => 'Guest Experience', 'location' => 'Maldives, Seychelles', 'duration' => '18 Months', 'status' => 'Draft', 'created_at' => now()->subDays(5)],
+            ['program_name' => 'Sommelier Certification', 'provider_name' => 'Wine Science', 'location' => 'France, Italy', 'duration' => '6 Months', 'status' => 'Reviewing', 'created_at' => now()->subDays(10)],
+        ];
+        foreach ($initials as $init) {
+            \App\Models\TrainingOpportunity::create($init);
+        }
+        $trainings = \App\Models\TrainingOpportunity::latest()->get();
+    }
+
+    $allCountries = [];
+    foreach ($trainings as $t) {
+        if ($t->location) {
+            $parts = array_map('trim', explode(',', $t->location));
+            foreach ($parts as $p) {
+                if ($p && !in_array($p, $allCountries)) $allCountries[] = $p;
+            }
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'programs' => $trainings->map(function($t) {
+            return [
+                'id' => $t->id,
+                'name' => $t->program_name,
+                'curriculum' => $t->provider_name ?? 'Hospitality Curricula',
+                'countries' => array_map('trim', explode(',', $t->location ?? 'Overseas')),
+                'duration' => $t->duration ?? '12 Months',
+                'status' => ucfirst($t->status ?? 'Published'),
+                'date' => $t->created_at ? $t->created_at->format('M d, Y') : 'Recently',
+            ];
+        }),
+        'stats' => [
+            'total' => $trainings->count(),
+            'active' => $trainings->filter(fn($t) => in_array(strtolower($t->status), ['published', 'active']))->count(),
+            'pending' => $trainings->filter(fn($t) => in_array(strtolower($t->status), ['draft', 'reviewing', 'pending']))->count(),
+            'countries_count' => count($allCountries),
+            'countries_list' => $allCountries,
+        ]
+    ]);
+});
+
+Route::post('/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'curriculum' => 'nullable|string|max:255',
+        'countries' => 'required|string|max:255',
+        'duration' => 'required|string|max:255',
+        'status' => 'nullable|string',
+    ]);
+
+    $t = \App\Models\TrainingOpportunity::create([
+        'program_name' => $validated['name'],
+        'provider_name' => $validated['curriculum'] ?? 'JobConnect Curricula',
+        'location' => $validated['countries'],
+        'duration' => $validated['duration'],
+        'status' => $validated['status'] ?? 'Published',
+    ]);
+
+    return response()->json(['success' => true, 'message' => 'Training program created successfully.', 'program' => $t], 201);
+});
+
+Route::post('/admin/training-opportunities/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    $t = \App\Models\TrainingOpportunity::findOrFail($id);
+    $t->update(['status' => $request->status]);
+    return response()->json(['success' => true, 'message' => "Program status updated to {$request->status}."]);
+});
+
 // Admin Community Feed Post Management Routes (Unified Feed Stream of Jobs, Community Posts, & Training)
 Route::get('/admin/community-posts', function() {
     $feedItems = collect();

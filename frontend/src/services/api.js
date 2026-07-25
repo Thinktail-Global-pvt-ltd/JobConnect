@@ -663,6 +663,54 @@ export const mockApi = {
     return { success: true };
   },
 
+  getTrainingPrograms: async () => {
+    try {
+      const res = await realApi.get('/api/admin/training-opportunities');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getTrainingPrograms failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/admin/training-opportunities');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getTrainingPrograms failed", e);
+    }
+    return { success: true, programs: [], stats: { total: 0, active: 0, pending: 0, countries_count: 0 } };
+  },
+
+  createTrainingProgram: async (data) => {
+    try {
+      const res = await realApi.post('/api/admin/training-opportunities/create', data);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios createTrainingProgram failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.post('http://localhost:8001/api/admin/training-opportunities/create', data);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct createTrainingProgram failed", e);
+    }
+    return { success: true };
+  },
+
+  updateTrainingStatus: async (id, status) => {
+    try {
+      const res = await realApi.post(`/api/admin/training-opportunities/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios updateTrainingStatus failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/training-opportunities/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct updateTrainingStatus failed", e);
+    }
+    return { success: true };
+  },
+
   getPublicFeed: async (filter = 'all') => {
     try {
       const res = await realApi.get('/api/feed', { params: { filter } });
