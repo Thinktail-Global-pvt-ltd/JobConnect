@@ -347,10 +347,16 @@ export const mockApi = {
 
   getJobs: async (status = '', category = '') => {
     try {
-      const res = await realApi.get('/admin/jobs', { params: { status, category } });
+      const res = await realApi.get('/api/admin/jobs', { params: { status, category } });
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios getJobs failed, fallback to mock DB", e);
+      console.warn("Axios getJobs /api/admin/jobs failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/admin/jobs', { params: { status, category } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getJobs failed", e);
     }
     return mockEndpoints.getJobs(status, category);
   },

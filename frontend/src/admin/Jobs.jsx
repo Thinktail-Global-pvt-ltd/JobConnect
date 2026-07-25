@@ -1,20 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
-import { Eye, Check, X, Filter } from 'lucide-react';
+import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin } from 'lucide-react';
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, pinned: 0 });
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Load real jobs from backend API
+  // Load real jobs and dynamic stats from backend API
   const loadJobs = async () => {
     setLoading(true);
     try {
       const data = await mockApi.getJobs(status, category);
       setJobs(data.jobs || []);
+      if (data.stats) {
+        setStats(data.stats);
+      } else {
+        // Fallback dynamic computation from jobs array if backend stats field is missing
+        const allJobs = data.jobs || [];
+        setStats({
+          total: allJobs.length,
+          pending: allJobs.filter(j => j.status === 'pending').length,
+          approved: allJobs.filter(j => j.status === 'approved').length,
+          rejected: allJobs.filter(j => j.status === 'rejected').length,
+          pinned: allJobs.filter(j => j.is_pinned).length
+        });
+      }
     } catch (err) {
       console.error('Failed to load jobs:', err);
     } finally {
@@ -28,6 +42,11 @@ export default function Jobs() {
 
   const handleApprove = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
+    setStats(prev => ({
+      ...prev,
+      pending: Math.max(0, prev.pending - 1),
+      approved: prev.approved + 1
+    }));
     try {
       await mockApi.approveJob(id);
     } catch (err) {
@@ -37,6 +56,11 @@ export default function Jobs() {
 
   const handleReject = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'rejected' } : j));
+    setStats(prev => ({
+      ...prev,
+      pending: Math.max(0, prev.pending - 1),
+      rejected: prev.rejected + 1
+    }));
     try {
       await mockApi.rejectJob(id);
     } catch (err) {
@@ -45,7 +69,13 @@ export default function Jobs() {
   };
 
   const handleTogglePin = async (id) => {
-    setJobs(prev => prev.map(j => (j.id === id) ? { ...j, is_pinned: !j.is_pinned } : j));
+    const job = jobs.find(j => j.id === id);
+    const newPinnedState = !job?.is_pinned;
+    setJobs(prev => prev.map(j => (j.id === id) ? { ...j, is_pinned: newPinnedState } : j));
+    setStats(prev => ({
+      ...prev,
+      pinned: newPinnedState ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
+    }));
     try {
       await mockApi.togglePinJob(id);
     } catch (err) {
@@ -62,23 +92,27 @@ export default function Jobs() {
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Review and approve hospitality job listings across India and overseas.</p>
         </div>
 
-        {/* Dynamic Tab Filters without static numbers */}
+        {/* Dynamic Tab Filters with Live Badge Counts */}
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setStatus('')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${status === '' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
-            All
+                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${status === '' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+            <span>All</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === '' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-500'}`}>{stats.total}</span>
           </button>
           <button onClick={() => setStatus('pending')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${status === 'pending' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
-            Pending
+                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${status === 'pending' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+            <span>Pending</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === 'pending' ? 'bg-emerald-700 text-emerald-100' : 'bg-amber-100 text-amber-700'}`}>{stats.pending}</span>
           </button>
           <button onClick={() => setStatus('approved')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${status === 'approved' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
-            Approved
+                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${status === 'approved' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+            <span>Approved</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === 'approved' ? 'bg-emerald-700 text-emerald-100' : 'bg-emerald-100 text-emerald-700'}`}>{stats.approved}</span>
           </button>
           <button onClick={() => setStatus('rejected')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${status === 'rejected' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
-            Rejected
+                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${status === 'rejected' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+            <span>Rejected</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === 'rejected' ? 'bg-emerald-700 text-emerald-100' : 'bg-rose-100 text-rose-700'}`}>{stats.rejected}</span>
           </button>
 
           {/* Category Dropdown */}
@@ -93,6 +127,59 @@ export default function Jobs() {
             <Filter className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
           </div>
         </div>
+      </div>
+
+      {/* 100% REAL DYNAMIC KPI STATS CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+        
+        {/* Total Jobs */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[95px]">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+            <Briefcase className="w-3.5 h-3.5 text-blue-500" />
+            <span>TOTAL LISTINGS</span>
+          </div>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="font-outfit font-extrabold text-2xl text-slate-800">{stats.total}</span>
+            <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">All categories</span>
+          </div>
+        </div>
+
+        {/* Pending Review */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[95px]">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+            <Clock className="w-3.5 h-3.5 text-amber-500" />
+            <span>PENDING REVIEW</span>
+          </div>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="font-outfit font-extrabold text-2xl text-amber-600">{stats.pending}</span>
+            <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Requires Approval</span>
+          </div>
+        </div>
+
+        {/* Approved Jobs */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[95px]">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <span>APPROVED & LIVE</span>
+          </div>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="font-outfit font-extrabold text-2xl text-emerald-600">{stats.approved}</span>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Visible on Feed</span>
+          </div>
+        </div>
+
+        {/* Pinned & Featured */}
+        <div className="bg-gradient-to-br from-[#065f46] to-[#047857] p-5 rounded-2xl shadow-sm flex flex-col justify-between min-h-[95px] text-white">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest">
+            <Pin className="w-3.5 h-3.5 text-emerald-300" />
+            <span>FEATURED & PINNED</span>
+          </div>
+          <div className="flex items-baseline justify-between mt-2">
+            <span className="font-outfit font-extrabold text-2xl text-white">{stats.pinned}</span>
+            <span className="text-[11px] font-bold text-emerald-900 bg-emerald-200 px-2 py-0.5 rounded-full">Top Feed Priority</span>
+          </div>
+        </div>
+
       </div>
 
       {/* Jobs Submissions Table Card */}
