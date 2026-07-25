@@ -186,8 +186,8 @@ export default function CommunityFeed() {
         </button>
       </div>
 
-      {/* KPI Stats Row (4 Dynamic Columns) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+      {/* KPI Stats Row (2 Columns on Half-Screen, 4 on Full-Screen) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         
         {/* Card 1 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">

@@ -129,8 +129,8 @@ export default function Jobs() {
         </div>
       </div>
 
-      {/* 100% REAL DYNAMIC KPI STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+      {/* 100% REAL DYNAMIC KPI STATS CARDS (2 Columns on Half-Screen, 4 on Full-Screen) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         
         {/* Total Jobs */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[95px]">

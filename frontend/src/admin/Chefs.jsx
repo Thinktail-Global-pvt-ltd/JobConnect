@@ -106,8 +106,8 @@ export default function Chefs() {
         </div>
       </div>
 
-      {/* KPI Cards (4 Columns) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* KPI Cards (2 Columns on Half-Screen, 4 on Full-Screen) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         
         {/* Card 1 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px] text-left">
