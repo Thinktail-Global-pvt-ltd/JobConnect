@@ -77,6 +77,7 @@ Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserModeratorC
 Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);
+Route::post('/admin/chefs/{chef}/unpublish', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'unpublish']);
 Route::post('/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
 
 Route::get('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'index']);

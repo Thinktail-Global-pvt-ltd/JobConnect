@@ -593,6 +593,22 @@ export const mockApi = {
     return { success: true };
   },
 
+  unpublishChef: async (id) => {
+    try {
+      const res = await realApi.post(`/api/admin/chefs/${id}/unpublish`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios unpublishChef /api/admin/chefs failed", e);
+    }
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/chefs/${id}/unpublish`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct unpublishChef failed", e);
+    }
+    return { success: true };
+  },
+
   getPublicFeed: async (filter = 'all') => {
     try {
       const res = await realApi.get('/api/feed', { params: { filter } });

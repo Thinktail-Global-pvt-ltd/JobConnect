@@ -102,11 +102,25 @@ class ChefModeratorController extends Controller
     {
         $chef->update(['approval_status' => 'approved']);
 
-        if ($request->wantsJson() || $request->is('api/*')) {
+        if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Chef approved successfully.']);
         }
 
         return redirect()->back()->with('success', "Chef profile for {$chef->user->full_name} has been approved successfully.");
+    }
+
+    /**
+     * Unpublish a chef profile (reverts approval_status to pending).
+     */
+    public function unpublish(ChefProfile $chef, Request $request)
+    {
+        $chef->update(['approval_status' => 'pending']);
+
+        if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Chef unpublished successfully.']);
+        }
+
+        return redirect()->back()->with('success', "Chef profile for {$chef->user->full_name} has been unpublished.");
     }
 
     /**
