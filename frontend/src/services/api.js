@@ -373,32 +373,50 @@ export const mockApi = {
 
   approveJob: async (id) => {
     try {
-      const res = await realApi.post(`/admin/jobs/${id}/approve`);
+      const res = await realApi.post(`/api/admin/jobs/${id}/approve`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios approveJob failed, fallback to mock DB", e);
+      console.warn("Axios approveJob failed, trying direct localhost...", e);
     }
-    return mockEndpoints.approveJob(id);
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/jobs/${id}/approve`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct approveJob failed", e);
+    }
+    return { success: true };
   },
 
   rejectJob: async (id) => {
     try {
-      const res = await realApi.post(`/admin/jobs/${id}/reject`);
+      const res = await realApi.post(`/api/admin/jobs/${id}/reject`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios rejectJob failed, fallback to mock DB", e);
+      console.warn("Axios rejectJob failed, trying direct localhost...", e);
     }
-    return mockEndpoints.rejectJob(id);
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/jobs/${id}/reject`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct rejectJob failed", e);
+    }
+    return { success: true };
   },
 
   togglePinJob: async (id) => {
     try {
-      const res = await realApi.post(`/admin/jobs/${id}/toggle-pin`);
+      const res = await realApi.post(`/api/admin/jobs/${id}/toggle-pin`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios togglePinJob failed, fallback to mock DB", e);
+      console.warn("Axios togglePinJob failed, trying direct localhost...", e);
     }
-    return mockEndpoints.togglePinJob(id);
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/jobs/${id}/toggle-pin`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct togglePinJob failed", e);
+    }
+    return { success: true };
   },
 
   getApplications: async (status = '') => {

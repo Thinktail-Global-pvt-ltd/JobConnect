@@ -90,9 +90,11 @@ class JobModeratorController extends Controller
 
         $statusMessage = $job->is_pinned ? "pinned to the top of feed" : "unpinned from top";
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
             return response()->json([
                 'success' => true,
+                'is_pinned' => (bool)$job->is_pinned,
+                'job' => $job,
                 'message' => "Job posting '{$job->title}' has been {$statusMessage}."
             ]);
         }
