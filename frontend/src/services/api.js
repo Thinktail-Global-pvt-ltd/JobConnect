@@ -420,10 +420,16 @@ export const mockApi = {
   // ==========================================
   getReferrals: async (status = '', search = '') => {
     try {
-      const res = await realApi.get('/admin/referrals', { params: { status, search } });
+      const res = await realApi.get('/api/admin/referrals', { params: { status, search } });
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios getReferrals failed", e);
+      console.warn("Axios getReferrals /api/admin/referrals failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/admin/referrals', { params: { status, search } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getReferrals failed", e);
     }
     // fallback — empty list so UI stays consistent
     return { success: true, referrals: [], stats: { total: 0, pending: 0, approved: 0, rejected: 0 } };

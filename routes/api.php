@@ -84,6 +84,11 @@ Route::post('/admin/jobs/{job}/approve', [\App\Http\Controllers\Admin\JobModerat
 Route::post('/admin/jobs/{job}/reject', [\App\Http\Controllers\Admin\JobModeratorController::class, 'reject']);
 Route::post('/admin/jobs/{job}/toggle-pin', [\App\Http\Controllers\Admin\JobModeratorController::class, 'togglePin']);
 
+Route::get('/admin/referrals', [\App\Http\Controllers\Admin\ReferralController::class, 'index']);
+Route::post('/admin/referrals/{id}/approve', [\App\Http\Controllers\Admin\ReferralController::class, 'approve']);
+Route::post('/admin/referrals/{id}/reject', [\App\Http\Controllers\Admin\ReferralController::class, 'reject']);
+Route::delete('/admin/referrals/{id}', [\App\Http\Controllers\Admin\ReferralController::class, 'destroy']);
+
 Route::post('/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store']);
 Route::get('/support-tickets', [\App\Http\Controllers\SupportTicketController::class, 'index']);
 
