@@ -23,6 +23,13 @@ export default function Layout({ children }) {
     { name: 'Settings', path: '/admin/settings', icon: '⚙️' },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem('admin_authenticated');
+    localStorage.removeItem('admin_user_id');
+    sessionStorage.removeItem('admin_authenticated');
+    window.location.href = '/admin/login';
+  };
+
   return (
     <div className="bg-[#f8f9fc] font-sans text-slate-800 min-h-screen flex w-full text-left">
       
@@ -54,13 +61,20 @@ export default function Layout({ children }) {
         </nav>
 
         <div className="p-4 border-t border-slate-100 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
-            AR
+          <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+            JA
           </div>
           <div className="overflow-hidden flex-grow">
-            <span className="text-xs font-bold text-slate-700 block truncate">Alex Rivera</span>
+            <span className="text-xs font-bold text-slate-700 block truncate">jobconnect_admin</span>
             <span className="text-[10px] font-semibold text-slate-400 block truncate">Super Admin</span>
           </div>
+          <button 
+            onClick={handleLogout}
+            className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+            title="Sign Out Admin"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </aside>
 
@@ -78,7 +92,7 @@ export default function Layout({ children }) {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="relative w-8 h-8 rounded-full bg-slate-55 bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+            <button className="relative w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
               <Bell className="w-4 h-4" />
               <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-red-500"></span>
             </button>
@@ -87,12 +101,20 @@ export default function Layout({ children }) {
 
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <span className="text-xs font-bold text-slate-700 block">Alex Rivera</span>
+                <span className="text-xs font-bold text-slate-700 block">jobconnect_admin</span>
                 <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">Super Admin</span>
               </div>
               <div className="w-8 h-8 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#1e40af] font-bold text-xs border border-blue-100">
-                AR
+                JA
               </div>
+              <button 
+                onClick={handleLogout} 
+                className="ml-2 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+                title="Logout Admin"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Logout
+              </button>
             </div>
           </div>
         </header>

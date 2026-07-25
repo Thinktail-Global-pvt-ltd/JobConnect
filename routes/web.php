@@ -103,9 +103,40 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
 });
 
 // ==========================================
-// Admin Panel Framework Routing Group (Views/APIs)
+// Admin Panel Authentication & Protected Routes Group
 // ==========================================
-Route::prefix('admin')->group(function () {
+Route::get('/admin/login', function () {
+    if (session('admin_authenticated')) {
+        return redirect('/admin/dashboard');
+    }
+    return view('admin.login');
+})->name('admin.login');
+
+Route::post('/admin/login', function (\Illuminate\Http\Request $request) {
+    $id = trim($request->input('admin_id'));
+    $password = trim($request->input('password'));
+
+    if ($id === 'jobconnect_admin' && $password === '123456') {
+        session(['admin_authenticated' => true, 'admin_user_id' => 'jobconnect_admin']);
+        return redirect('/admin/dashboard');
+    }
+    return back()->withErrors(['error' => 'Invalid Admin ID or Password.']);
+});
+
+Route::get('/admin/logout', function () {
+    session()->forget(['admin_authenticated', 'admin_user_id']);
+    return redirect('/admin/login');
+});
+
+Route::prefix('admin')->middleware(function ($request, $next) {
+    if ($request->is('admin/login')) {
+        return $next($request);
+    }
+    if (!session('admin_authenticated') && !$request->wantsJson()) {
+        return redirect('/admin/login');
+    }
+    return $next($request);
+})->group(function () {
     // Redirect admin root to dashboard
     Route::get('/', function () {
         return redirect('/admin/dashboard');
