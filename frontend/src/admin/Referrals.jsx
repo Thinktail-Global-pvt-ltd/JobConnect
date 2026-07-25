@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Filter, Download, Plus, Check, X, Trash2, MapPin, ChevronLeft, ChevronRight, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Filter, Download, Plus, Check, X, Trash2, MapPin, RefreshCw, Pin, Sparkles, CheckCircle2, Clock, FileText } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 // Avatar color based on role
@@ -30,7 +30,7 @@ const getJobTypeMeta = (type) => {
 
 export default function Referrals() {
   const [referrals, setReferrals]   = useState([]);
-  const [stats, setStats]           = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats]           = useState({ total: 0, pending: 0, approved: 0, rejected: 0, pinned: 0 });
   const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab]               = useState('all');
@@ -42,8 +42,15 @@ export default function Referrals() {
 
     const res = await mockApi.getReferrals();
     if (res.success) {
-      setReferrals(res.referrals);
-      setStats(res.stats);
+      const allRefs = res.referrals || [];
+      setReferrals(allRefs);
+      setStats({
+        total: res.stats?.total ?? allRefs.length,
+        pending: res.stats?.pending ?? allRefs.filter(r => r.status === 'pending').length,
+        approved: res.stats?.approved ?? allRefs.filter(r => r.status === 'approved').length,
+        rejected: res.stats?.rejected ?? allRefs.filter(r => r.status === 'rejected').length,
+        pinned: res.stats?.pinned ?? allRefs.filter(r => Boolean(r.is_pinned)).length,
+      });
     }
 
     setLoading(false);
@@ -53,18 +60,42 @@ export default function Referrals() {
   useEffect(() => { loadReferrals(); }, [loadReferrals]);
 
   const handleApprove = async (id) => {
+    setReferrals(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
     await mockApi.approveReferral(id);
     loadReferrals(true);
   };
 
   const handleReject = async (id) => {
+    setReferrals(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
     await mockApi.rejectReferral(id);
     loadReferrals(true);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this referral?')) {
+      setReferrals(prev => prev.filter(r => r.id !== id));
       await mockApi.deleteReferral(id);
+      loadReferrals(true);
+    }
+  };
+
+  const handleTogglePin = async (id) => {
+    const ref = referrals.find(r => r.id === id);
+    const newPinnedState = !ref?.is_pinned;
+
+    // 1. Optimistic state mutation
+    setReferrals(prev => prev.map(r => (r.id === id) ? { ...r, is_pinned: newPinnedState } : r));
+    setStats(prev => ({
+      ...prev,
+      pinned: newPinnedState ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
+    }));
+
+    // 2. Call backend toggle pin API
+    try {
+      await mockApi.togglePinJob(id);
+    } catch (err) {
+      console.error('Toggle referral pin failed:', err);
+    } finally {
       loadReferrals(true);
     }
   };
@@ -89,30 +120,24 @@ export default function Referrals() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => loadReferrals(true)}
-            className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition-all shadow-sm"
+            className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition-all shadow-sm">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            Filters
-          </button>
-          <button className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition-all shadow-sm">
-            <Download className="w-3.5 h-3.5 text-slate-400" />
-            Export CSV
-          </button>
         </div>
       </div>
 
-      {/* KPI Cards (3 Columns) — Live stats from database */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* KPI Cards (4 Columns cleanly wrapped for half-screen) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Card 1 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-lg">📁</div>
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Review</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-1">
+            <span className="font-outfit font-extrabold text-2xl text-amber-600 block mt-0.5">
               {loading ? '—' : stats.pending}
             </span>
           </div>
@@ -120,10 +145,12 @@ export default function Referrals() {
 
         {/* Card 2 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">✓</div>
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Approved Total</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-1">
+            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-0.5">
               {loading ? '—' : stats.approved}
             </span>
           </div>
@@ -131,11 +158,26 @@ export default function Referrals() {
 
         {/* Card 3 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center text-lg">⚠️</div>
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5" />
+          </div>
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Referrals</span>
-            <span className="font-outfit font-extrabold text-2xl text-rose-600 block mt-1">
+            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-0.5">
               {loading ? '—' : stats.total}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4 - Featured & Pinned */}
+        <div className="bg-[#065f46] p-5 rounded-2xl shadow-sm flex items-center gap-4 text-white">
+          <div className="w-11 h-11 rounded-xl bg-emerald-800/60 text-emerald-200 flex items-center justify-center shrink-0">
+            <Pin className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="text-[9px] font-extrabold text-emerald-200 uppercase tracking-widest block">Featured & Pinned</span>
+            <span className="font-outfit font-extrabold text-2xl block mt-0.5">
+              {loading ? '—' : (stats.pinned || referrals.filter(r => r.is_pinned).length)}
             </span>
           </div>
         </div>
@@ -148,12 +190,12 @@ export default function Referrals() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 pt-5 pb-0 border-b border-[#e2e8f0]">
           <div className="flex items-center gap-6">
             {[
-              { key: 'all',      label: 'All Referrals' },
-              { key: 'pending',  label: 'Pending' },
-              { key: 'archived', label: 'Archived' },
+              { key: 'all',      label: `All Referrals (${referrals.length})` },
+              { key: 'pending',  label: `Pending (${referrals.filter(r => r.status === 'pending').length})` },
+              { key: 'archived', label: `Archived (${referrals.filter(r => r.status === 'rejected').length})` },
             ].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                      className={`text-xs font-bold pb-3 transition-all relative ${tab === t.key ? 'text-[#065f46] border-b-2 border-[#10b981]' : 'text-slate-400 hover:text-slate-700'}`}>
+                      className={`text-xs font-bold pb-3 transition-all relative cursor-pointer ${tab === t.key ? 'text-[#065f46] border-b-2 border-[#10b981]' : 'text-slate-400 hover:text-slate-700'}`}>
                 {t.label}
               </button>
             ))}
@@ -190,14 +232,14 @@ export default function Referrals() {
               </thead>
               <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
                 {filteredReferrals.map(ref => {
-                  const creatorName = ref.creator?.name || ref.creator?.full_name || 'Unknown User';
+                  const creatorName = ref.creator?.name || ref.creator?.full_name || 'Chef / Jobseeker';
                   const role = ref.submitted_by_role || 'jobseeker';
                   const initials = getInitials(creatorName);
                   const avatarColor = getRoleColor(role);
                   const jobTypeMeta = getJobTypeMeta(ref.job_type);
 
                   return (
-                    <tr key={ref.id} className="hover:bg-slate-50/30 transition-colors">
+                    <tr key={ref.id} className={`hover:bg-slate-50/50 transition-colors ${ref.is_pinned ? 'bg-purple-50/40' : ''}`}>
 
                       {/* Posted By */}
                       <td className="py-4.5 px-6">
@@ -215,14 +257,19 @@ export default function Referrals() {
                       </td>
 
                       {/* Employer / Company */}
-                      <td className="py-4.5 px-6 text-slate-700 font-bold">{ref.company}</td>
+                      <td className="py-4.5 px-6 text-slate-700 font-bold">{ref.company || 'Hospitality Referral'}</td>
 
-                      {/* Job Title + type badge */}
+                      {/* Job Title + Pin Badge + type badge */}
                       <td className="py-4.5 px-6">
                         <div className="space-y-1">
-                          <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider border ${jobTypeMeta}`}>
-                            {ref.job_type || 'Full-time'}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider border ${jobTypeMeta}`}>
+                              {ref.job_type || 'Full-time'}
+                            </span>
+                            {ref.is_pinned && (
+                              <span className="text-rose-500 text-xs" title="Pinned to top feed priority">📌 Pinned</span>
+                            )}
+                          </div>
                           <span className="font-extrabold text-slate-800 block text-[13px]">{ref.title}</span>
                         </div>
                       </td>
@@ -243,19 +290,19 @@ export default function Referrals() {
                         })}
                       </td>
 
-                      {/* Actions */}
+                      {/* Actions (Approve, Reject, Delete, and PIN) */}
                       <td className="py-4.5 px-6 text-center">
                         <div className="flex items-center justify-center gap-2">
                           {ref.status === 'pending' ? (
                             <>
                               <button onClick={() => handleApprove(ref.id)}
-                                      className="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center border border-emerald-100 hover:border-emerald-500 transition-colors"
-                                      title="Approve">
+                                      className="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center border border-emerald-100 hover:border-emerald-500 transition-colors cursor-pointer"
+                                      title="Approve Referral">
                                 <Check className="w-4 h-4" />
                               </button>
                               <button onClick={() => handleReject(ref.id)}
-                                      className="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white flex items-center justify-center border border-rose-100 hover:border-rose-500 transition-colors"
-                                      title="Reject">
+                                      className="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white flex items-center justify-center border border-rose-100 hover:border-rose-500 transition-colors cursor-pointer"
+                                      title="Reject Referral">
                                 <X className="w-4 h-4" />
                               </button>
                             </>
@@ -264,9 +311,19 @@ export default function Referrals() {
                               {ref.status}
                             </span>
                           )}
+
+                          {/* Toggle Pin Button */}
+                          <button 
+                            onClick={() => handleTogglePin(ref.id)} 
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${ref.is_pinned ? 'bg-purple-600 text-white border-purple-600 shadow-xs' : 'bg-purple-50 text-purple-600 border-purple-100 hover:bg-purple-600 hover:text-white'}`} 
+                            title={ref.is_pinned ? "Unpin Referral" : "Pin Referral to Top Feed Priority"}
+                          >
+                            <Pin className="w-3.5 h-3.5" />
+                          </button>
+
                           <button onClick={() => handleDelete(ref.id)}
-                                  className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center border border-[#e2e8f0] hover:border-rose-200 transition-colors"
-                                  title="Delete">
+                                  className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center border border-[#e2e8f0] hover:border-rose-200 transition-colors cursor-pointer"
+                                  title="Delete Referral">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -280,28 +337,18 @@ export default function Referrals() {
           </div>
         )}
 
-        {/* Footer */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
-          <div>
-            <select className="bg-white border border-[#e2e8f0] rounded-lg px-2 py-1 text-xs font-bold text-slate-500 focus:outline-none">
-              <option>10 per page</option>
-              <option>20 per page</option>
-              <option>50 per page</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronLeft className="w-4 h-4" /></button>
-            <button className="w-7 h-7 rounded-lg bg-[#065f46] text-white flex items-center justify-center text-xs font-bold">1</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronRight className="w-4 h-4" /></button>
-          </div>
+        {/* Footer info (ALL LOADED AT ONCE - NO HARDCODED PAGINATION) */}
+        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
+          <span className="text-xs text-slate-500 font-bold">
+            Showing all {filteredReferrals.length} Referral Entries
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            All Referrals Loaded At Once
+          </span>
         </div>
 
       </div>
-
-      {/* Floating Green Plus Button */}
-      <button className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-[#059669] hover:bg-[#047857] text-white flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95 z-40">
-        <Plus className="w-6 h-6" />
-      </button>
 
     </div>
   );

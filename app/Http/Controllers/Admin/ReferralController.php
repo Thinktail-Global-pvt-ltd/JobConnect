@@ -48,6 +48,7 @@ class ReferralController extends Controller
                 'pending'  => JobPost::where('is_referral', true)->where('status', 'pending')->count(),
                 'approved' => JobPost::where('is_referral', true)->where('status', 'approved')->count(),
                 'rejected' => JobPost::where('is_referral', true)->where('status', 'rejected')->count(),
+                'pinned'   => JobPost::where('is_referral', true)->where('is_pinned', true)->count(),
             ],
         ]);
     }
