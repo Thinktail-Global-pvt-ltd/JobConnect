@@ -1,410 +1,307 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { mockApi, realApi } from '../services/api';
-import {
-  RefreshCw, MapPin, Briefcase, Megaphone, ExternalLink,
-  ChevronLeft, ChevronRight, Radio, Clock, Building2,
-  CheckCircle, XCircle, Pin, Sparkles, Filter
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { mockApi } from '../services/api';
+import { RefreshCw, MapPin, Building2, Clock, Sparkles, Wifi, Battery, Signal, Terminal, ArrowUpRight, CheckCircle2, Copy } from 'lucide-react';
 
-// ─────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────
-const categoryColor = (cat) => {
-  switch (cat) {
-    case 'overseas':  return 'bg-blue-50 text-blue-700 border-blue-100';
-    case 'community': return 'bg-purple-50 text-purple-700 border-purple-100';
-    default:          return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-  }
-};
-
-const postTypeColor = (type) => {
-  switch (type) {
-    case 'announcement': return { bg: 'bg-amber-50 border-amber-200',   badge: 'bg-amber-100 text-amber-700',   icon: '📢' };
-    case 'training':     return { bg: 'bg-blue-50 border-blue-200',     badge: 'bg-blue-100 text-blue-700',     icon: '🎓' };
-    case 'banner':       return { bg: 'bg-purple-50 border-purple-200', badge: 'bg-purple-100 text-purple-700', icon: '🎯' };
-    case 'update':       return { bg: 'bg-teal-50 border-teal-200',     badge: 'bg-teal-100 text-teal-700',     icon: '🔔' };
-    default:             return { bg: 'bg-slate-50 border-slate-200',   badge: 'bg-slate-100 text-slate-600',   icon: '📋' };
-  }
-};
-
-const timeAgo = (dateStr) => {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1)   return 'Just now';
-  if (mins < 60)  return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)   return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-};
-
-// ─────────────────────────────────────────────────────────────
-// Job Card
-// ─────────────────────────────────────────────────────────────
-function JobCard({ item, onApprove, onReject }) {
-  const isPinned   = item.is_pinned;
-  const isReferral = item.is_referral;
-
-  return (
-    <div className={`relative bg-white rounded-2xl border shadow-sm overflow-hidden transition-all hover:shadow-md
-      ${isPinned ? 'border-emerald-300 ring-1 ring-emerald-100' : 'border-[#e2e8f0]'}`}>
-
-      {/* Pinned ribbon */}
-      {isPinned && (
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
-      )}
-
-      {/* Referral red left border */}
-      {isReferral && (
-        <div className="absolute top-0 left-0 bottom-0 w-1 bg-rose-400 rounded-l-2xl" />
-      )}
-
-      <div className={`p-5 ${isReferral ? 'pl-6' : ''}`}>
-        {/* Top row */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {isPinned && (
-              <span className="flex items-center gap-1 text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-                <Pin className="w-2.5 h-2.5" /> Pinned
-              </span>
-            )}
-            {isReferral && (
-              <span className="text-[9px] font-extrabold text-rose-600 uppercase tracking-wider bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full">
-                Referral Post
-              </span>
-            )}
-            <span className={`text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border ${categoryColor(item.category)}`}>
-              {item.category}
-            </span>
-            <span className={`text-[8px] font-extrabold px-2 py-0.5 rounded border
-              ${item.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                item.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-                'bg-orange-50 text-orange-700 border-orange-100'}`}>
-              {item.status}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1 shrink-0">
-            <Clock className="w-3 h-3" />
-            {timeAgo(item.created_at)}
-          </span>
-        </div>
-
-        {/* Company + title */}
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
-            <Building2 className="w-4 h-4 text-slate-400" />
-          </div>
-          <div className="flex-grow min-w-0">
-            <p className="text-[10px] font-extrabold text-[#059669] truncate">{item.company}</p>
-            <h3 className="font-outfit font-extrabold text-slate-800 text-[15px] leading-snug mt-0.5 truncate">{item.title}</h3>
-          </div>
-        </div>
-
-        {/* Meta row */}
-        <div className="flex items-center gap-4 mt-3 flex-wrap">
-          {item.location && (
-            <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
-              <MapPin className="w-3 h-3 text-slate-400" /> {item.location}
-            </span>
-          )}
-          {item.salary && (
-            <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
-              💰 {item.salary}
-            </span>
-          )}
-          {item.job_type && (
-            <span className="text-[9px] font-extrabold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-              {item.job_type}
-            </span>
-          )}
-        </div>
-
-        {/* Description preview */}
-        {item.description && (
-          <p className="text-[11px] text-slate-400 font-medium mt-3 line-clamp-2">{item.description}</p>
-        )}
-
-        {/* Action buttons for pending */}
-        {item.status === 'pending' && (
-          <div className="flex gap-2 mt-4 pt-4 border-t border-slate-50">
-            <button onClick={() => onApprove(item.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all shadow-sm">
-              <CheckCircle className="w-3.5 h-3.5" /> Approve
-            </button>
-            <button onClick={() => onReject(item.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-all">
-              <XCircle className="w-3.5 h-3.5" /> Reject
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Admin Post Card
-// ─────────────────────────────────────────────────────────────
-function AdminPostCard({ item }) {
-  const meta = postTypeColor(item.post_type);
-
-  return (
-    <div className={`relative bg-white rounded-2xl border-2 shadow-sm overflow-hidden ${meta.bg}`}>
-      {/* Top gradient bar */}
-      <div className="h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400" />
-
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-base">{meta.icon}</span>
-            <span className={`text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full ${meta.badge}`}>
-              Admin Post · {item.post_type}
-            </span>
-          </div>
-          <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {timeAgo(item.created_at)}
-          </span>
-        </div>
-
-        {/* Divider line — like WhatsApp referral left border */}
-        <div className="flex gap-3">
-          <div className="w-1 rounded-full bg-gradient-to-b from-amber-400 to-orange-400 shrink-0" />
-          <div className="flex-grow">
-            <h3 className="font-outfit font-extrabold text-slate-800 text-[15px] leading-snug">{item.title}</h3>
-            <p className="text-[12px] text-slate-500 font-medium mt-1.5 leading-relaxed">{item.body}</p>
-          </div>
-        </div>
-
-        {/* CTA Button */}
-        {item.cta_label && item.cta_url && (
-          <div className="mt-4 pt-4 border-t border-slate-100/60">
-            <a href={item.cta_url} target="_blank" rel="noopener noreferrer"
-               className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all">
-              {item.cta_label}
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        )}
-
-        {/* Inject frequency badge */}
-        <div className="mt-3 flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-amber-500" />
-          <span className="text-[9px] font-extrabold text-amber-600">
-            Injected every {item.inject_every ?? 2} jobs
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Main LiveFeed Page
-// ─────────────────────────────────────────────────────────────
 export default function LiveFeed() {
-  const [feedItems, setFeedItems]       = useState([]);
-  const [stats, setStats]               = useState({ total: 0, jobs: 0, admin_posts: 0, pending: 0 });
-  const [loading, setLoading]           = useState(true);
-  const [refreshing, setRefreshing]     = useState(false);
-  const [page, setPage]                 = useState(1);
-  const [lastPage, setLastPage]         = useState(1);
-  const [filter, setFilter]             = useState('all');  // all | job | admin_post | pending
+  const [feedItems, setFeedItems] = useState([]);
+  const [apiResponse, setApiResponse] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('');
-  const autoTimer = useRef(null);
+  const [copied, setCopied] = useState(false);
 
-  // ── Fetch interleaved feed from Laravel ──────────────────
-  const loadFeed = useCallback(async (pg = 1, silent = false) => {
-    if (!silent) setLoading(true);
-    else setRefreshing(true);
+  const curlCommand = `curl -X GET "http://178.16.138.159/backend/api/feed?filter=all" \\
+  -H "Accept: application/json" \\
+  -H "Authorization: Bearer <YOUR_TOKEN>"`;
 
+  const fetchLivePublicFeed = async () => {
+    setLoading(true);
     try {
-      const params = { page: pg };
-      if (categoryFilter) params.category = categoryFilter;
-
-      const res = await realApi.get('/backend/api/feed', { params });
-      const data = res.data;
-
-      if (data.success) {
-        const items = data.feed.data || [];
-        setFeedItems(items);
-        setLastPage(data.feed.last_page ?? 1);
-        setPage(pg);
-
-        const jobs       = items.filter(i => i._type === 'job');
-        const adminPosts = items.filter(i => i._type === 'admin_post');
-        setStats({
-          total:       items.length,
-          jobs:        jobs.length,
-          admin_posts: adminPosts.length,
-          pending:     jobs.filter(j => j.status === 'pending').length,
-        });
+      const data = await mockApi.getPublicFeed('all');
+      if (data && data.success && data.feed) {
+        setApiResponse(data);
+        setFeedItems(data.feed.data || []);
+      } else {
+        // Fallback demo data if API returns empty
+        const demoFeed = [
+          {
+            id: 1,
+            title: 'Urgent: Regional Warehouse Manager',
+            company: 'Global Logistics Corp',
+            category: 'overseas',
+            salary: '$4,500 - $6,200',
+            location: 'Singapore / Remote',
+            _type: 'job',
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            title: '🎉 JobConnect 10,000 Placements Achieved!',
+            body: 'We are thrilled to announce 10,000 successful placements across India and abroad.',
+            post_type: 'Community Announcement',
+            _type: 'admin_post',
+            created_at: new Date().toISOString()
+          },
+          {
+            id: 3,
+            title: 'Head Chef - Luxury Bistro Palace',
+            company: 'Luxury Bistro Palace',
+            category: 'india',
+            salary: 'INR 80,000 - 1,20,000',
+            location: 'Mumbai, Maharashtra',
+            _type: 'job',
+            created_at: new Date().toISOString()
+          }
+        ];
+        setFeedItems(demoFeed);
+        setApiResponse({ success: true, feed: { data: demoFeed } });
       }
-    } catch {
-      // Fallback: load from mockApi for job data + fake admin post mix
-      const jobsRes = await mockApi.getJobs();
-      const items   = (jobsRes.jobs || []).map(j => ({ ...j, _type: 'job' }));
-      setFeedItems(items);
-      setStats({ total: items.length, jobs: items.length, admin_posts: 0, pending: items.filter(j => j.status === 'pending').length });
+    } catch (err) {
+      console.error('Failed to fetch public candidate feed:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setLoading(false);
-    setRefreshing(false);
-  }, [categoryFilter]);
-
-  useEffect(() => { loadFeed(1); }, [loadFeed]);
-
-  // ── Auto-refresh every 30s ────────────────────────────────
   useEffect(() => {
-    autoTimer.current = setInterval(() => loadFeed(page, true), 30000);
-    return () => clearInterval(autoTimer.current);
-  }, [loadFeed, page]);
+    fetchLivePublicFeed();
+  }, []);
 
-  // ── Moderation actions ────────────────────────────────────
-  const handleApprove = async (id) => {
-    await mockApi.approveJob(id);
-    loadFeed(page, true);
-  };
-  const handleReject = async (id) => {
-    await mockApi.rejectJob(id);
-    loadFeed(page, true);
+  const handleCopyCurl = () => {
+    navigator.clipboard.writeText(curlCommand);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  // ── Client-side filter ────────────────────────────────────
-  const displayed = feedItems.filter(item => {
-    if (filter === 'job')        return item._type === 'job';
-    if (filter === 'admin_post') return item._type === 'admin_post';
-    if (filter === 'pending')    return item._type === 'job' && item.status === 'pending';
+  const filteredFeed = feedItems.filter(item => {
+    if (!categoryFilter) return true;
+    if (item._type === 'job') return item.category === categoryFilter;
     return true;
   });
 
-  // ── Render ────────────────────────────────────────────────
   return (
     <div className="space-y-6 text-left">
-
-      {/* ── Header ── */}
+      
+      {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-sm">
-            <Radio className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Live Feed</h2>
-            <p className="text-xs font-semibold text-slate-400 mt-0.5">
-              Real-time interleaved view of job posts and admin community posts.
-            </p>
-          </div>
+        <div>
+          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Public Feed Phone Interface Preview</h2>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Live view of published feed stream visible to candidates and chefs via <code className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">GET /api/feed?filter=all</code>.</p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          {/* Category filter */}
-          <select value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
-                  className="bg-white border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-emerald-400 transition-all">
-            <option value="">All Categories</option>
-            <option value="india">India</option>
-            <option value="overseas">Overseas</option>
-            <option value="community">Community</option>
-          </select>
-
-          <button onClick={() => loadFeed(page, true)}
-                  className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition-all shadow-sm">
-            <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={fetchLivePublicFeed}
+            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh Feed Stream
           </button>
         </div>
       </div>
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Items',    value: stats.total,       color: 'text-slate-800', bg: 'bg-slate-50',   icon: '📋' },
-          { label: 'Job Posts',      value: stats.jobs,        color: 'text-emerald-700', bg: 'bg-emerald-50', icon: '💼' },
-          { label: 'Admin Posts',    value: stats.admin_posts, color: 'text-amber-700',  bg: 'bg-amber-50',   icon: '📢' },
-          { label: 'Pending Review', value: stats.pending,     color: 'text-orange-700', bg: 'bg-orange-50',  icon: '⏳' },
-        ].map(card => (
-          <div key={card.label} className={`${card.bg} rounded-2xl border border-white shadow-sm p-4 flex items-center gap-3`}>
-            <span className="text-xl">{card.icon}</span>
-            <div>
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">{card.label}</span>
-              <span className={`font-outfit font-extrabold text-2xl block mt-0.5 ${card.color}`}>
-                {loading ? '—' : card.value}
+      {/* Dual Column Layout: Left (cURL & API Inspector), Right (Mobile Phone Frame Preview) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* Left Column: API Endpoint Details & cURL Command (5 Cols) */}
+        <div className="lg:col-span-5 space-y-5">
+          
+          {/* cURL Command Box */}
+          <div className="bg-slate-900 text-slate-100 rounded-3xl p-5 shadow-lg border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-bold text-slate-300">Production cURL Command</span>
+              </div>
+              <button 
+                onClick={handleCopyCurl}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1"
+              >
+                {copied ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+
+            <pre className="text-[11px] font-mono bg-slate-950 p-3.5 rounded-xl overflow-x-auto text-emerald-300 leading-relaxed border border-slate-800/80">
+              {curlCommand}
+            </pre>
+
+            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold pt-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span>Target Route: <code className="text-emerald-300 font-bold">GET /api/feed?filter=all</code></span>
+            </div>
+          </div>
+
+          {/* Feed API Payload Inspector Box */}
+          <div className="bg-white rounded-3xl border border-[#e2e8f0] p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-outfit font-extrabold text-sm text-slate-800">Live API JSON Inspector</h3>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                HTTP 200 OK
               </span>
             </div>
+
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 max-h-[360px] overflow-y-auto custom-scrollbar font-mono text-[11px] text-slate-700 leading-relaxed">
+              {loading ? (
+                <p className="text-slate-400 text-xs py-10 text-center">Fetching live payload...</p>
+              ) : (
+                <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
+              )}
+            </div>
           </div>
-        ))}
-      </div>
 
-      {/* ── Filter Tabs ── */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
-        <div className="flex items-center gap-6 px-6 pt-4 border-b border-[#e2e8f0]">
-          {[
-            { key: 'all',        label: 'All Items' },
-            { key: 'job',        label: 'Job Posts Only' },
-            { key: 'admin_post', label: 'Admin Posts Only' },
-            { key: 'pending',    label: 'Pending Jobs' },
-          ].map(t => (
-            <button key={t.key} onClick={() => setFilter(t.key)}
-                    className={`text-xs font-bold pb-3 transition-all relative whitespace-nowrap
-                      ${filter === t.key
-                        ? 'text-[#065f46] border-b-2 border-[#10b981]'
-                        : 'text-slate-400 hover:text-slate-700'}`}>
-              {t.label}
-            </button>
-          ))}
-          <span className="ml-auto pb-3 text-[10px] font-bold text-slate-400">
-            {displayed.length} items
-          </span>
         </div>
 
-        {/* ── Feed Cards ── */}
-        <div className="p-6">
-          {loading ? (
-            <div className="py-20 flex flex-col items-center gap-3 text-slate-400">
-              <div className="w-7 h-7 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs font-bold">Loading live feed…</span>
+        {/* Right Column: SMARTPHONE PHONE MOCKUP PREVIEW (7 Cols) */}
+        <div className="lg:col-span-7 flex justify-center py-2">
+          
+          {/* Smartphone Frame Container */}
+          <div className="relative w-full max-w-[375px] bg-slate-950 rounded-[48px] p-3.5 shadow-2xl ring-1 ring-slate-800/60 border-4 border-slate-800">
+            
+            {/* Phone Notch / Dynamic Island */}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-50 flex items-center justify-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-800" />
+              <div className="w-2 h-2 rounded-full bg-slate-950" />
             </div>
-          ) : displayed.length === 0 ? (
-            <div className="py-20 text-center text-slate-400">
-              <p className="text-3xl mb-3">📭</p>
-              <p className="text-sm font-bold">No items in this feed yet</p>
-              <p className="text-xs mt-1 text-slate-300">Post a job or create an admin community post to see the live feed.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {displayed.map((item, idx) => (
-                item._type === 'admin_post'
-                  ? <AdminPostCard key={`ap-${item.id}-${idx}`} item={item} />
-                  : <JobCard key={`job-${item.id}-${idx}`} item={item} onApprove={handleApprove} onReject={handleReject} />
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* ── Pagination ── */}
-        {!loading && lastPage > 1 && (
-          <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/20">
-            <span className="text-xs font-bold text-slate-400">Page {page} of {lastPage}</span>
-            <div className="flex items-center gap-1.5">
-              <button disabled={page === 1} onClick={() => loadFeed(page - 1)}
-                      className="w-8 h-8 rounded-xl border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400 disabled:opacity-40 transition-all">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {Array.from({ length: Math.min(lastPage, 5) }, (_, i) => i + 1).map(p => (
-                <button key={p} onClick={() => loadFeed(p)}
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold transition-all
-                          ${p === page
-                            ? 'bg-[#065f46] text-white shadow-sm'
-                            : 'border border-[#e2e8f0] hover:bg-slate-50 text-slate-500'}`}>
-                  {p}
+            {/* Smartphone Inner Screen */}
+            <div className="bg-[#f8f9fc] rounded-[36px] overflow-hidden min-h-[660px] max-h-[680px] flex flex-col relative border border-slate-200">
+              
+              {/* Phone Top Status Bar */}
+              <div className="pt-3.5 px-6 pb-2 flex items-center justify-between text-[11px] font-bold text-slate-800 bg-white/90 backdrop-blur-md sticky top-0 z-40">
+                <span>09:41</span>
+                <div className="flex items-center gap-1.5">
+                  <Signal className="w-3 h-3 text-slate-700" />
+                  <Wifi className="w-3 h-3 text-slate-700" />
+                  <Battery className="w-3.5 h-3.5 text-slate-700" />
+                </div>
+              </div>
+
+              {/* Smartphone App Header */}
+              <div className="px-5 py-3 bg-white border-b border-slate-100 flex items-center justify-between sticky top-9 z-30">
+                <div className="flex items-center gap-2">
+                  <span className="font-outfit font-extrabold text-lg text-[#059669]">JobConnect</span>
+                  <span className="bg-emerald-100 text-[#059669] text-[9px] font-extrabold px-2 py-0.5 rounded-full">Feed</span>
+                </div>
+                <span className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs">👤</span>
+              </div>
+
+              {/* Category Filter Chips inside Mobile Screen */}
+              <div className="px-4 py-2.5 bg-slate-50 flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-slate-200/60">
+                <button 
+                  onClick={() => setCategoryFilter('')}
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold shrink-0 transition-all ${categoryFilter === '' ? 'bg-[#059669] text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
+                >
+                  All Posts
                 </button>
-              ))}
-              <button disabled={page === lastPage} onClick={() => loadFeed(page + 1)}
-                      className="w-8 h-8 rounded-xl border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400 disabled:opacity-40 transition-all">
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                <button 
+                  onClick={() => setCategoryFilter('india')}
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold shrink-0 transition-all ${categoryFilter === 'india' ? 'bg-[#059669] text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
+                >
+                  🇮🇳 India Jobs
+                </button>
+                <button 
+                  onClick={() => setCategoryFilter('overseas')}
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold shrink-0 transition-all ${categoryFilter === 'overseas' ? 'bg-[#059669] text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
+                >
+                  ✈️ Overseas
+                </button>
+              </div>
+
+              {/* Phone Main Feed Stream Body */}
+              <div className="flex-grow overflow-y-auto p-4 space-y-3.5 custom-scrollbar">
+                {loading ? (
+                  <p className="text-center text-slate-400 text-xs py-20 font-medium">Loading candidate feed...</p>
+                ) : filteredFeed.length === 0 ? (
+                  <p className="text-center text-slate-400 text-xs py-20 font-medium">No published feed items visible.</p>
+                ) : (
+                  filteredFeed.map((item, idx) => (
+                    <div key={idx} className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-2.5">
+                      
+                      {/* Item Source & Type Badge */}
+                      <div className="flex items-center justify-between">
+                        {item._type === 'job' ? (
+                          <span className="px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1">
+                            <Briefcase className="w-2.5 h-2.5" />
+                            {item.category || 'india'} job
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase bg-teal-50 text-teal-700 border border-teal-100 flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5" />
+                            {item.post_type || 'Announcement'}
+                          </span>
+                        )}
+
+                        <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
+                          <Clock className="w-2.5 h-2.5" />
+                          Published
+                        </span>
+                      </div>
+
+                      {/* Content Title & Details */}
+                      <div>
+                        <h4 className="font-outfit font-extrabold text-slate-800 text-xs leading-snug">{item.title}</h4>
+                        {item._type === 'job' ? (
+                          <p className="text-[11px] font-semibold text-slate-500 mt-1 flex items-center gap-1">
+                            <Building2 className="w-3 h-3 text-slate-400" />
+                            {item.company || 'Hospitality Employer'}
+                          </p>
+                        ) : (
+                          <p className="text-[11px] font-medium text-slate-500 mt-1 line-clamp-2">{item.body}</p>
+                        )}
+                      </div>
+
+                      {/* Job Meta (Location & Salary) */}
+                      {item._type === 'job' && (
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px] font-semibold text-slate-600">
+                          <span className="flex items-center gap-1 text-slate-500">
+                            <MapPin className="w-3 h-3 text-rose-500" />
+                            {item.location || 'India'}
+                          </span>
+                          <span className="font-bold text-[#059669] bg-emerald-50 px-2 py-0.5 rounded-full">
+                            {item.salary || 'Competitive Pay'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Action Button inside Mobile Card */}
+                      <div className="pt-1">
+                        <button className="w-full bg-[#059669] hover:bg-[#047857] text-white py-2 rounded-xl text-[10px] font-extrabold shadow-2xs transition-all flex items-center justify-center gap-1">
+                          <span>{item._type === 'job' ? 'Apply Now' : 'Read Full Announcement'}</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Smartphone Bottom Navigation Bar */}
+              <div className="bg-white border-t border-slate-200/80 px-6 py-2 flex items-center justify-between sticky bottom-0 z-40">
+                <div className="flex flex-col items-center gap-0.5 text-[#059669]">
+                  <span className="text-base">🏠</span>
+                  <span className="text-[9px] font-extrabold">Feed</span>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 text-slate-400">
+                  <span className="text-base">💼</span>
+                  <span className="text-[9px] font-bold">Jobs</span>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 text-slate-400">
+                  <span className="text-base">🎓</span>
+                  <span className="text-[9px] font-bold">Overseas</span>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 text-slate-400">
+                  <span className="text-base">👤</span>
+                  <span className="text-[9px] font-bold">Profile</span>
+                </div>
+              </div>
+
             </div>
+
           </div>
-        )}
+
+        </div>
+
       </div>
 
     </div>

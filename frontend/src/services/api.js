@@ -591,5 +591,21 @@ export const mockApi = {
       console.warn("Axios direct rejectChef failed", e);
     }
     return { success: true };
+  },
+
+  getPublicFeed: async (filter = 'all') => {
+    try {
+      const res = await realApi.get('/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getPublicFeed /api/feed failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getPublicFeed failed", e);
+    }
+    return { success: false };
   }
 };
