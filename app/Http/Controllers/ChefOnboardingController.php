@@ -53,6 +53,17 @@ class ChefOnboardingController extends Controller
             ], 401);
         }
 
+        // Check Role Conflict: Block onboarding as chef if user is registered with a different role
+        $activeRole = $user->activeRole()->first();
+        $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
+        if ($existingRoleType && !in_array($existingRoleType, ['chef', 'cook'])) {
+            $displayExisting = str_replace('_', ' ', $existingRoleType);
+            return response()->json([
+                'success' => false,
+                'message' => "Role conflict error: Mobile number {$user->mobile_number} is registered as '{$displayExisting}'. You cannot onboard or switch to chef.",
+            ], 400);
+        }
+
         // Normalize skills input to array if passed as string or array
         $skillsInput = $request->input('skills');
         if (is_string($skillsInput)) {

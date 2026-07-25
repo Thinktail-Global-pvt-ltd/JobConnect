@@ -11,12 +11,36 @@ use Illuminate\Support\Facades\Validator;
 class AuthController extends Controller
 {
     /**
-     * Request OTP mock endpoint.
+     * Helper method to normalize input role strings.
+     */
+    private function normalizeRole(?string $role): ?string
+    {
+        if (!$role) return null;
+        $r = strtolower(trim($role));
+        if (in_array($r, ['jobseeker', 'job_seeker', 'talent', 'candidate'])) {
+            return 'job_seeker';
+        }
+        if (in_array($r, ['employer', 'recruiter', 'hirer'])) {
+            return 'employer';
+        }
+        if (in_array($r, ['chef', 'cook'])) {
+            return 'chef';
+        }
+        if (in_array($r, ['agency', 'referrer'])) {
+            return 'agency';
+        }
+        return $r;
+    }
+
+    /**
+     * Request OTP endpoint.
      */
     public function requestOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
+            'role'          => 'nullable|string',
+            'role_type'     => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -26,7 +50,26 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Standard response showing OTP sent to user (OTP is locked to '123456' for local XAMPP sandbox)
+        $requestedRole = $this->normalizeRole($request->role ?? $request->role_type);
+
+        if ($requestedRole) {
+            $user = User::where('mobile_number', $request->mobile_number)->first();
+            if ($user) {
+                $activeRole = $user->activeRole()->first();
+                $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
+                $existingRoleType = $this->normalizeRole($existingRoleType);
+
+                if ($existingRoleType && $existingRoleType !== $requestedRole) {
+                    $displayExisting = str_replace('_', ' ', $existingRoleType);
+                    $displayRequested = str_replace('_', ' ', $requestedRole);
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Role conflict error: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+                    ], 400);
+                }
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'OTP sent successfully. Use 123456 for testing.',
@@ -34,15 +77,17 @@ class AuthController extends Controller
     }
 
     /**
-     * Verify OTP mock endpoint.
+     * Verify OTP endpoint.
      */
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
-            'otp' => 'required|string|size:6',
+            'mobile_number'     => 'required|string|regex:/^[0-9]{10}$/',
+            'otp'               => 'required|string|size:6',
             'selected_language' => 'nullable|string|max:10',
-            'fcm_token' => 'nullable|string',
+            'fcm_token'          => 'nullable|string',
+            'role'              => 'nullable|string',
+            'role_type'         => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -60,26 +105,27 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Fetch or create user
+        $requestedRole = $this->normalizeRole($request->role ?? $request->role_type);
+
+        // Fetch user
         $user = User::where('mobile_number', $request->mobile_number)->first();
         $isNewUser = false;
 
-        if (!$user) {
-            $isNewUser = true;
-            $user = User::create([
-                'mobile_number' => $request->mobile_number,
-                'is_suspended' => false,
-                'selected_language' => $request->selected_language ?? 'en',
-                'fcm_token' => $request->fcm_token,
-            ]);
+        if ($user) {
+            // Check for Role Mismatch/Conflict on existing user
+            $activeRole = $user->activeRole()->first();
+            $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
+            $existingRoleType = $this->normalizeRole($existingRoleType);
 
-            // Automatically register default profile (Job Seeker)
-            UserRole::create([
-                'user_id' => $user->id,
-                'role_type' => 'job_seeker',
-                'is_active' => true,
-            ]);
-        } else {
+            if ($requestedRole && $existingRoleType && $existingRoleType !== $requestedRole) {
+                $displayExisting = str_replace('_', ' ', $existingRoleType);
+                $displayRequested = str_replace('_', ' ', $requestedRole);
+                return response()->json([
+                    'success' => false,
+                    'message' => "Role conflict error: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot log in or change role to '{$displayRequested}'.",
+                ], 400);
+            }
+
             $updateData = [];
             if ($request->filled('selected_language')) {
                 $updateData['selected_language'] = $request->selected_language;
@@ -90,6 +136,23 @@ class AuthController extends Controller
             if (!empty($updateData)) {
                 $user->update($updateData);
             }
+        } else {
+            // Create New User with requested role or default to job_seeker
+            $isNewUser = true;
+            $userRoleType = $requestedRole ?? 'job_seeker';
+
+            $user = User::create([
+                'mobile_number' => $request->mobile_number,
+                'is_suspended' => false,
+                'selected_language' => $request->selected_language ?? 'en',
+                'fcm_token' => $request->fcm_token,
+            ]);
+
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_type' => $userRoleType,
+                'is_active' => true,
+            ]);
         }
 
         // Check if user is suspended
@@ -100,18 +163,17 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // If it's an existing user, make sure they have at least one active profile
+        // Make sure user has active profile
         if (!$isNewUser) {
             $activeRole = $user->activeRole()->first();
             if (!$activeRole) {
-                // If no active profile, activate the first role or default to job_seeker
                 $firstRole = $user->roles()->first();
                 if ($firstRole) {
                     $firstRole->update(['is_active' => true]);
                 } else {
                     UserRole::create([
                         'user_id' => $user->id,
-                        'role_type' => 'job_seeker',
+                        'role_type' => $requestedRole ?? 'job_seeker',
                         'is_active' => true,
                     ]);
                 }
@@ -154,12 +216,12 @@ class AuthController extends Controller
     }
 
     /**
-     * Switch active profile.
+     * Switch active profile (Blocked if trying to change registered locked role).
      */
     public function toggleProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'role_type' => 'required|string|in:job_seeker,employer,referrer',
+            'role_type' => 'required|string|in:job_seeker,employer,chef,referrer,agency',
         ]);
 
         if ($validator->fails()) {
@@ -170,33 +232,25 @@ class AuthController extends Controller
         }
 
         $user = $request->user();
+        $targetRole = $this->normalizeRole($request->role_type);
 
-        // Check if role already exists in database
-        $role = UserRole::where('user_id', $user->id)
-            ->where('role_type', $request->role_type)
-            ->first();
+        $activeRole = $user->activeRole()->first();
+        $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
+        $existingRoleType = $this->normalizeRole($existingRoleType);
 
-        if (!$role) {
-            // Activate and create since single-user has multi-profile flexibility
-            $role = UserRole::create([
-                'user_id' => $user->id,
-                'role_type' => $request->role_type,
-                'is_active' => true,
-            ]);
+        if ($existingRoleType && $existingRoleType !== $targetRole) {
+            $displayExisting = str_replace('_', ' ', $existingRoleType);
+            $displayTarget = str_replace('_', ' ', $targetRole);
+            return response()->json([
+                'success' => false,
+                'message' => "Role conflict error: Mobile number {$user->mobile_number} is locked to role '{$displayExisting}'. Role change to '{$displayTarget}' is not allowed.",
+            ], 400);
         }
-
-        // Toggle all other profiles to inactive
-        UserRole::where('user_id', $user->id)
-            ->where('id', '!=', $role->id)
-            ->update(['is_active' => false]);
-
-        // Explicitly set target profile active
-        $role->update(['is_active' => true]);
 
         return response()->json([
             'success' => true,
             'message' => 'Profile profile toggled successfully.',
-            'active_profile' => $role->role_type,
+            'active_profile' => $existingRoleType,
             'profiles' => $user->roles()->get()->map(function ($r) {
                 return [
                     'role_type' => $r->role_type,
