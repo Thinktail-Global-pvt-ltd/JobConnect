@@ -128,15 +128,7 @@ Route::get('/admin/logout', function () {
     return redirect('/admin/login');
 });
 
-Route::prefix('admin')->middleware(function ($request, $next) {
-    if ($request->is('admin/login')) {
-        return $next($request);
-    }
-    if (!session('admin_authenticated') && !$request->wantsJson()) {
-        return redirect('/admin/login');
-    }
-    return $next($request);
-})->group(function () {
+Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::class])->group(function () {
     // Redirect admin root to dashboard
     Route::get('/', function () {
         return redirect('/admin/dashboard');
