@@ -63,15 +63,16 @@ class ChefProfileViewController extends Controller
     /**
      * Get profile views for chef side GET /api/chef/profile-views
      */
-    public function getChefProfileViews(Request $request)
+    public function getChefProfileViews(Request $request, $chef_id = null)
     {
-        $user = $request->user() ?? User::first();
-        $chefId = $user ? $user->id : 1;
+        $chefId = $chef_id ?? $request->query('chef_id') ?? ($request->user() ? $request->user()->id : null);
 
-        $views = ChefProfileView::with('employer')
-            ->where('chef_id', $chefId)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = ChefProfileView::with('employer');
+        if ($chefId) {
+            $query->where('chef_id', $chefId);
+        }
+
+        $views = $query->orderBy('created_at', 'desc')->get();
 
         $formattedViews = $views->map(function ($v) {
             $employer = $v->employer;
