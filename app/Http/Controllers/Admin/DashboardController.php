@@ -17,6 +17,15 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $employersCount = EmployerProfile::count();
+        if ($employersCount === 0) {
+            $employersCount = User::whereHas('roles', function($q) {
+                $q->where('role_type', 'employer');
+            })->count();
+        }
+
+        $referralsCount = JobPost::where('is_referral', true)->count();
+
         $stats = [
             'users_count' => User::count(),
             'users_active' => User::active()->count(),
@@ -30,8 +39,8 @@ class DashboardController extends Controller
             'chefs_approved' => ChefProfile::approved()->count(),
             'chefs_pending' => ChefProfile::pending()->count(),
             
-            'employers_count' => EmployerProfile::count(),
-            'referrals_count' => 450,
+            'employers_count' => $employersCount,
+            'referrals_count' => $referralsCount,
             
             'training_opportunities' => TrainingOpportunity::count(),
             'applications_count' => JobApplication::count(),
@@ -47,12 +56,13 @@ class DashboardController extends Controller
         $activities = collect();
 
         // 1. Recent job postings
-        $recentJobs = JobPost::with('creator')->latest()->take(3)->get();
+        $recentJobs = JobPost::with('creator')->latest()->take(5)->get();
         foreach ($recentJobs as $job) {
-            $creatorName = $job->creator->full_name ?? 'Employer';
+            $creatorName = $job->creator->full_name ?? ($job->company ?: 'Employer');
             $activities->push((object)[
                 'title' => 'New job post submitted',
-                'description' => "{$creatorName} submitted a new listing: '{$job->title}' at '{$job->company}'",
+                'description' => "{$creatorName} submitted a new listing: '{$job->title}'",
+                'timestamp' => $job->created_at ? $job->created_at->timestamp : 0,
                 'time' => $job->created_at ? $job->created_at->diffForHumans() : 'recently',
                 'badge_color' => 'bg-blue-50 text-blue-600',
                 'icon' => '💼'
@@ -60,13 +70,14 @@ class DashboardController extends Controller
         }
 
         // 2. Recent chef profiles
-        $recentChefs = ChefProfile::with('user')->latest()->take(3)->get();
+        $recentChefs = ChefProfile::with('user')->latest()->take(5)->get();
         foreach ($recentChefs as $chef) {
             if ($chef->user) {
                 $chefName = $chef->user->full_name ?? 'Chef';
                 $activities->push((object)[
                     'title' => 'Chef profile submitted',
-                    'description' => "Chef {$chefName} completed their onboarding with specialty: '{$chef->cuisine_specialty}'",
+                    'description' => "Chef {$chefName} completed onboarding for '{$chef->cuisine_specialty}'",
+                    'timestamp' => $chef->created_at ? $chef->created_at->timestamp : 0,
                     'time' => $chef->created_at ? $chef->created_at->diffForHumans() : 'recently',
                     'badge_color' => 'bg-emerald-50 text-emerald-600',
                     'icon' => '👨‍🍳'
@@ -75,13 +86,14 @@ class DashboardController extends Controller
         }
 
         // 3. Recent applications
-        $recentApps = JobApplication::with(['applicant', 'jobPost'])->latest()->take(3)->get();
+        $recentApps = JobApplication::with(['applicant', 'jobPost'])->latest()->take(5)->get();
         foreach ($recentApps as $app) {
             if ($app->applicant && $app->jobPost) {
                 $applicantName = $app->applicant->full_name ?? 'Candidate';
                 $activities->push((object)[
                     'title' => 'New application received',
                     'description' => "{$applicantName} applied for '{$app->jobPost->title}' listing",
+                    'timestamp' => $app->created_at ? $app->created_at->timestamp : 0,
                     'time' => $app->created_at ? $app->created_at->diffForHumans() : 'recently',
                     'badge_color' => 'bg-indigo-50 text-indigo-600',
                     'icon' => '📝'
@@ -89,10 +101,10 @@ class DashboardController extends Controller
             }
         }
 
-        // Sort by time or randomize order/limit to 5
-        $feed = $activities->shuffle()->take(5);
+        // Sort by timestamp DESC
+        $feed = $activities->sortByDesc('timestamp')->values()->take(5);
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
             return response()->json([
                 'success' => true,
                 'stats' => $stats,

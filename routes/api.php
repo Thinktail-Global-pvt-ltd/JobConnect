@@ -55,7 +55,8 @@ Route::middleware('auth:sanctum')->group(function () {
 // Public Candidate / Chef Connect Discovery Routes (Approved Chefs Only)
 Route::get('/employer/chefs', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
 
-// Admin Chef Moderation Routes (All Chefs: pending, approved, rejected)
+// Admin Dashboard & Moderation Routes
+Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
 Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);

@@ -110,7 +110,7 @@ export default function Dashboard() {
           <div className="mt-4">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Employers</span>
             <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
-              {Number(stats.employers_count || 840).toLocaleString()}
+              {Number(stats.employers_count || 0).toLocaleString()}
             </span>
           </div>
           <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
@@ -131,7 +131,7 @@ export default function Dashboard() {
           <div className="mt-4">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Jobs</span>
             <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
-              {Number(stats.jobs_total).toLocaleString()}
+              {Number(stats.jobs_total || 0).toLocaleString()}
             </span>
           </div>
           <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
@@ -152,7 +152,7 @@ export default function Dashboard() {
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Referrals</span>
             <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
-              {Number(stats.referrals_count || 450).toLocaleString()}
+              {Number(stats.referrals_count || 0).toLocaleString()}
             </span>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function Dashboard() {
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Chef Profiles</span>
             <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
-              {Number(stats.chefs_total).toLocaleString()}
+              {Number(stats.chefs_total || 0).toLocaleString()}
             </span>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function Dashboard() {
           <div>
             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Applications</span>
             <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
-              {Number(stats.applications_count).toLocaleString()}
+              {Number(stats.applications_count || 0).toLocaleString()}
             </span>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function Dashboard() {
                 <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-[#06b6d4] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
-                      {stats.chefs_pending || 8}
+                      {stats.chefs_pending || 0}
                     </div>
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">Chef Profiles Awaiting Approval</span>
@@ -239,7 +239,7 @@ export default function Dashboard() {
                 <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-[#f97316] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
-                      {stats.training_opportunities || 3}
+                      {stats.training_opportunities || 0}
                     </div>
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">Training & Overseas Drafts</span>

@@ -265,10 +265,16 @@ const mockEndpoints = {
 export const mockApi = {
   getStats: async () => {
     try {
-      const res = await realApi.get('/admin/dashboard');
+      const res = await realApi.get('/api/admin/dashboard');
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios getStats failed, fallback to mock DB", e);
+      console.warn("Axios getStats /api/admin/dashboard failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/admin/dashboard');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getStats failed", e);
     }
     return mockEndpoints.getStats();
   },
