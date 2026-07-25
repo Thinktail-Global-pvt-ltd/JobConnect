@@ -13,7 +13,8 @@ export default function Layout({ children }) {
 
   const isUsersGroupActive = location.pathname.startsWith('/admin/users') || 
                              location.pathname.startsWith('/admin/employers') || 
-                             location.pathname.startsWith('/admin/chefs');
+                             location.pathname.startsWith('/admin/chefs') ||
+                             location.pathname.startsWith('/admin/chef-views');
 
   const mainNavItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
@@ -23,6 +24,7 @@ export default function Layout({ children }) {
     { name: 'Talent / Jobseeker', path: '/admin/users', icon: '👤' },
     { name: 'Employer', path: '/admin/employers', icon: '🏢' },
     { name: 'Chef', path: '/admin/chefs', icon: '👨‍🍳' },
+    { name: 'Chef Profile Views', path: '/admin/chef-views', icon: '👁️' },
   ];
 
   const secondaryNavItems = [

@@ -711,6 +711,22 @@ export const mockApi = {
     return { success: true };
   },
 
+  getChefProfileViews: async () => {
+    try {
+      const res = await realApi.get('/api/chef/profile-views');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getChefProfileViews failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/chef/profile-views');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getChefProfileViews failed", e);
+    }
+    return { success: true, total_views: 42, views: [] };
+  },
+
   getPublicFeed: async (filter = 'all') => {
     try {
       const res = await realApi.get('/api/feed', { params: { filter } });
