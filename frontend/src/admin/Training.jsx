@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, Edit2, ArrowUp, ArrowDown, Globe, ShieldCheck, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Edit2, ArrowUp, ArrowDown, Globe, ShieldCheck, Clock, BookOpen } from 'lucide-react';
+import { mockApi } from '../services/api';
 
 const INITIAL_PROGRAMS = [
   {
@@ -47,6 +48,7 @@ const INITIAL_PROGRAMS = [
 
 export default function Training() {
   const [programs, setPrograms] = useState(INITIAL_PROGRAMS);
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -57,44 +59,55 @@ export default function Training() {
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage international placement cycles and professional training curricula.</p>
         </div>
 
-        <Link to="/admin/training/edit" className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5">
-          + Create New Program
+        <Link to="/admin/training/edit" className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5">
+          <span>+ Create New Program</span>
         </Link>
       </div>
 
-      {/* KPI stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* KPI stats cards - 4 columns cleanly visible */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 text-[#059669] flex items-center justify-center">
+        <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5 text-left">
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-[#059669] flex items-center justify-center shrink-0">
             <Globe className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Placements</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-1">1,284</span>
+          <div className="min-w-0 flex-grow">
+            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Active Placements</span>
+            <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">1,284</span>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 text-[#059669] flex items-center justify-center">
+        <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5 text-left">
+          <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Success Rate</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-1">94.2%</span>
+          <div className="min-w-0 flex-grow">
+            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Success Rate</span>
+            <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">94.2%</span>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
-          <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
+        <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5 text-left">
+          <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
             <Clock className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Avg. Processing Time</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-1">18 Days</span>
+          <div className="min-w-0 flex-grow">
+            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Avg. Processing</span>
+            <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">18 Days</span>
+          </div>
+        </div>
+
+        {/* Card 4 */}
+        <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5 text-left">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <div className="min-w-0 flex-grow">
+            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Total Programs</span>
+            <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">{programs.length}</span>
           </div>
         </div>
 
@@ -179,18 +192,15 @@ export default function Training() {
           </table>
         </div>
 
-        {/* Footer pagination */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
-          <span className="text-xs text-slate-400 font-bold">Showing 1-4 of 124 programs</span>
-          <div className="flex items-center gap-1.5">
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronLeft className="w-4 h-4" /></button>
-            <button className="w-7 h-7 rounded-lg bg-[#065f46] text-white flex items-center justify-center text-xs font-bold">1</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">2</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">3</button>
-            <span className="text-slate-400 px-1 font-bold">...</span>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">31</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronRight className="w-4 h-4" /></button>
-          </div>
+        {/* Footer info (ALL LOADED AT ONCE - NO PAGINATION) */}
+        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
+          <span className="text-xs text-slate-500 font-bold">
+            Showing all {programs.length} Programs
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            All Programs Loaded At Once
+          </span>
         </div>
 
       </div>
