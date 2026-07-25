@@ -281,10 +281,16 @@ export const mockApi = {
 
   getUsers: async (search = '', tab = 'all') => {
     try {
-      const res = await realApi.get('/admin/users', { params: { search, tab } });
-      if (res.data && res.data.success) return res.data;
+      const res = await realApi.get('/api/admin/users', { params: { search, tab } });
+      if (res.data && res.data.success && Array.isArray(res.data.users)) return res.data;
     } catch (e) {
-      console.warn("Axios getUsers failed, fallback to mock DB", e);
+      console.warn("Axios getUsers /api/admin/users failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/admin/users', { params: { search, tab } });
+      if (res.data && res.data.success && Array.isArray(res.data.users)) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getUsers failed", e);
     }
     return mockEndpoints.getUsers(search, tab);
   },

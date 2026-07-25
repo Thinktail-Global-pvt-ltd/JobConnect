@@ -70,6 +70,10 @@ Route::get('/employer/chefs', [\App\Http\Controllers\AppointmentController::clas
 
 // Admin Dashboard & Moderation Routes
 Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
+Route::get('/admin/users', [\App\Http\Controllers\Admin\UserModeratorController::class, 'index']);
+Route::post('/admin/users/{user}/suspend', [\App\Http\Controllers\Admin\UserModeratorController::class, 'suspend']);
+Route::post('/admin/users/{user}/activate', [\App\Http\Controllers\Admin\UserModeratorController::class, 'activate']);
+Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserModeratorController::class, 'destroy']);
 Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);

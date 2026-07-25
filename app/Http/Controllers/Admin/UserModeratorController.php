@@ -34,18 +34,13 @@ class UserModeratorController extends Controller
             }
         }
 
-        $users = $query->latest()->paginate(15);
+        $users = $query->latest()->get();
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
             return response()->json([
                 'success' => true,
-                'users' => $users->items(),
-                'pagination' => [
-                    'total' => $users->total(),
-                    'per_page' => $users->perPage(),
-                    'current_page' => $users->currentPage(),
-                    'last_page' => $users->lastPage(),
-                ]
+                'users' => $users,
+                'total' => $users->count()
             ]);
         }
 

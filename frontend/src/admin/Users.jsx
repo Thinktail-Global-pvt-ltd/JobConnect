@@ -207,45 +207,15 @@ export default function Users() {
           </div>
         )}
 
-        {/* Footer Pagination */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
-          <span className="text-xs text-slate-400 font-bold">Showing 5 of 1,248 Users</span>
-          <div className="flex items-center gap-1.5">
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronLeft className="w-4 h-4" /></button>
-            <button className="w-7 h-7 rounded-lg bg-[#065f46] text-white flex items-center justify-center text-xs font-bold">1</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">2</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">3</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronRight className="w-4 h-4" /></button>
-          </div>
-        </div>
-
-      </div>
-
-      {/* KPI indicator cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4">
-        
-        {/* Growth */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Growth (MoM)</span>
-          <span className="font-outfit font-extrabold text-2xl text-emerald-600 block mt-2">+12.5%</span>
-        </div>
-
-        {/* Verified */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Verified</span>
-          <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">88%</span>
-        </div>
-
-        {/* Active Today */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Today</span>
-          <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">432</span>
-        </div>
-
-        {/* Safety Flag */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[90px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Safety Flag</span>
-          <span className="font-outfit font-extrabold text-2xl text-rose-600 block mt-2">2</span>
+        {/* Footer info (ALL LOADED AT ONCE - NO PAGINATION) */}
+        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
+          <span className="text-xs text-slate-500 font-bold">
+            Showing all {users.length} Talent
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            All Talent Loaded At Once
+          </span>
         </div>
 
       </div>
