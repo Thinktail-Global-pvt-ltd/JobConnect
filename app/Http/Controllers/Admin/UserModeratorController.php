@@ -15,6 +15,15 @@ class UserModeratorController extends Controller
     {
         $query = User::with(['roles', 'activeRole'])->withCount(['jobPosts', 'applications']);
 
+        // Strictly filter for users whose active role is job_seeker / talent
+        $query->where(function ($q) {
+            $q->whereHas('activeRole', function ($rq) {
+                $rq->whereIn('role_type', ['job_seeker', 'jobseeker', 'talent']);
+            })->orWhereDoesntHave('roles');
+        })->whereDoesntHave('roles', function ($rq) {
+            $rq->whereIn('role_type', ['employer', 'chef']);
+        });
+
         // Optional Search filter
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
