@@ -29,19 +29,24 @@ class FeedController extends Controller
     public function index(Request $request)
     {
         // ----------------------------------------------------------------
-        // 1.  Fetch paginated job posts
+        // 1.  Fetch paginated job posts (Employer jobs & Referral jobs)
         // ----------------------------------------------------------------
         $query = JobPost::with('creator')->approved();
 
-        // Optional category filter
-        if ($request->filled('category') && !in_null($request->category)) {
-            $category = $request->category;
-            if (in_array($category, ['india', 'overseas', 'community'])) {
-                $query->where('category', $category);
+        // Optional category or filter query parameter
+        $filter = $request->input('filter') ?? $request->input('category');
+        if (!empty($filter) && $filter !== 'all') {
+            if (in_array($filter, ['community', 'referral', 'referrals'])) {
+                $query->where(function($q) {
+                    $q->where('category', 'community')
+                      ->orWhere('is_referral', true);
+                });
+            } else if (in_array($filter, ['india', 'overseas'])) {
+                $query->where('category', $filter);
             }
         }
 
-        $perPage     = 15;
+        $perPage       = 15;
         $jobsPaginated = $query->sortedFeed()->paginate($perPage);
         $jobs          = $jobsPaginated->getCollection();
 
@@ -58,7 +63,7 @@ class FeedController extends Controller
 
         $jobs->transform(function ($job) use ($appliedJobIds) {
             $job->applied = in_array($job->id, $appliedJobIds);
-            $job->_type   = 'job';
+            $job->_type   = $job->is_referral ? 'referral_job' : 'job';
             return $job;
         });
 

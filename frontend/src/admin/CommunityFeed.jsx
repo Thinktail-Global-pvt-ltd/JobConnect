@@ -311,11 +311,17 @@ export default function CommunityFeed() {
                         
                         {/* Item Source & Type Badge */}
                         <div className="flex items-center justify-between">
-                          {item._type === 'job' ? (
-                            <span className="px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1">
-                              <Briefcase className="w-2.5 h-2.5" />
-                              {item.category || 'india'} job
-                            </span>
+                          {item._type === 'job' || item._type === 'referral_job' ? (
+                            item.is_referral || item._type === 'referral_job' ? (
+                              <span className="px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center gap-1">
+                                🤝 Referral Job
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1">
+                                <Briefcase className="w-2.5 h-2.5" />
+                                {item.category || 'india'} job
+                              </span>
+                            )
                           ) : (
                             <span className="px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase bg-teal-50 text-teal-700 border border-teal-100 flex items-center gap-1">
                               <Sparkles className="w-2.5 h-2.5" />
