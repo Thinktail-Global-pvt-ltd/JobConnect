@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Sparkles, CheckCircle2, Bookmark, Briefcase, Terminal, Signal, Wifi, Battery, MapPin, Building2, Clock, Copy, RefreshCw, Smartphone, List } from 'lucide-react';
+import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Sparkles, CheckCircle2, Bookmark, Briefcase, Signal, Wifi, Battery, MapPin, Building2, Clock, RefreshCw, Smartphone, List, Eye } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 export default function CommunityFeed() {
   const [viewMode, setViewMode] = useState('phone'); // 'phone' or 'table'
   const [posts, setPosts] = useState([]);
   const [publicFeed, setPublicFeed] = useState([]);
-  const [apiResponse, setApiResponse] = useState(null);
   const [stats, setStats] = useState({ total: 0, published: 0, drafts: 0, archived: 0 });
   const [tab, setTab] = useState('all');
   const [phoneCategory, setPhoneCategory] = useState('');
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,16 +23,11 @@ export default function CommunityFeed() {
     status: 'published',
   });
 
-  const curlCommand = `curl -X GET "http://178.16.138.159/backend/api/feed?filter=all" \\
-  -H "Accept: application/json" \\
-  -H "Authorization: Bearer <YOUR_TOKEN>"`;
-
-  // Fetch Public Candidate Feed (GET /api/feed?filter=all)
+  // Fetch Public Candidate Feed (GET /api/feed)
   const fetchPublicCandidateFeed = async () => {
     try {
       const data = await mockApi.getPublicFeed('all');
       if (data && data.success && data.feed) {
-        setApiResponse(data);
         setPublicFeed(data.feed.data || []);
       }
     } catch (err) {
@@ -71,12 +64,6 @@ export default function CommunityFeed() {
   useEffect(() => {
     loadPosts();
   }, []);
-
-  const handleCopyCurl = () => {
-    navigator.clipboard.writeText(curlCommand);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
@@ -179,7 +166,7 @@ export default function CommunityFeed() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Community Feed Manager</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage feed posts and preview exact candidate view returned by <code className="text-emerald-700 bg-emerald-50 px-1 rounded font-bold">GET /api/feed?filter=all</code>.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, job posts, and preview live candidate mobile view.</p>
         </div>
 
         {/* View Mode Switcher + Create Post Button */}
@@ -187,17 +174,17 @@ export default function CommunityFeed() {
           <div className="bg-slate-200/80 p-1 rounded-xl flex items-center gap-1">
             <button 
               onClick={() => setViewMode('phone')} 
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${viewMode === 'phone' ? 'bg-[#059669] text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'}`}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${viewMode === 'phone' ? 'bg-[#059669] text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'}`}
             >
               <Smartphone className="w-3.5 h-3.5" />
-              📱 Phone Interface Preview
+              <span>📱 Phone Interface Preview</span>
             </button>
             <button 
               onClick={() => setViewMode('table')} 
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${viewMode === 'table' ? 'bg-[#059669] text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'}`}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${viewMode === 'table' ? 'bg-[#059669] text-white shadow-xs' : 'text-slate-600 hover:bg-white/60'}`}
             >
               <List className="w-3.5 h-3.5" />
-              📋 Feed Stream Table
+              <span>📋 Feed Stream Table</span>
             </button>
           </div>
 
@@ -211,61 +198,47 @@ export default function CommunityFeed() {
         </div>
       </div>
 
-      {/* VIEW MODE 1: SMARTPHONE PHONE INTERFACE PREVIEW */}
+      {/* VIEW MODE 1: CLEAN SMARTPHONE PHONE INTERFACE PREVIEW (NO RAW CODE) */}
       {viewMode === 'phone' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="space-y-6">
           
-          {/* Left Column: API Endpoint Details & cURL Command (5 Cols) */}
-          <div className="lg:col-span-5 space-y-5">
-            
-            {/* cURL Command Box */}
-            <div className="bg-slate-900 text-slate-100 rounded-3xl p-5 shadow-lg border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-bold text-slate-300">Production Feed cURL Command</span>
-                </div>
-                <button 
-                  onClick={handleCopyCurl}
-                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer"
-                >
-                  {copied ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  {copied ? 'Copied' : 'Copy cURL'}
-                </button>
-              </div>
-
-              <pre className="text-[11px] font-mono bg-slate-950 p-3.5 rounded-xl overflow-x-auto text-emerald-300 leading-relaxed border border-slate-800/80">
-                {curlCommand}
-              </pre>
-
-              <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold pt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span>Live Route: <code className="text-emerald-300 font-bold">GET /api/feed?filter=all</code></span>
+          {/* KPI Stats Cards Summary Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 text-[#059669] flex items-center justify-center font-bold text-lg shrink-0">📱</div>
+              <div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Live Candidate View</span>
+                <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">{filteredPhoneFeed.length} Items Visible</span>
               </div>
             </div>
 
-            {/* Live Feed API JSON Inspector */}
-            <div className="bg-white rounded-3xl border border-[#e2e8f0] p-5 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-outfit font-extrabold text-sm text-slate-800">Live API JSON Inspector</h3>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                  HTTP 200 OK Preserved
-                </span>
-              </div>
-
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 max-h-[380px] overflow-y-auto custom-scrollbar font-mono text-[11px] text-slate-700 leading-relaxed">
-                {loading ? (
-                  <p className="text-slate-400 text-xs py-10 text-center">Fetching live payload...</p>
-                ) : (
-                  <pre>{JSON.stringify(apiResponse, null, 2)}</pre>
-                )}
+            <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg shrink-0">💼</div>
+              <div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Approved Jobs</span>
+                <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">{filteredPhoneFeed.filter(i => i._type === 'job').length} Active</span>
               </div>
             </div>
 
+            <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-lg shrink-0">📢</div>
+              <div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Announcements</span>
+                <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">{filteredPhoneFeed.filter(i => i._type === 'admin_post').length} Published</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-[#065f46] to-[#047857] p-4.5 rounded-2xl shadow-sm flex items-center gap-3.5 text-white">
+              <div className="w-11 h-11 rounded-xl bg-emerald-800/60 text-emerald-200 flex items-center justify-center font-bold text-lg shrink-0">✨</div>
+              <div>
+                <span className="text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest block">Operational Status</span>
+                <span className="font-outfit font-extrabold text-xl block mt-0.5">100% Live Sync</span>
+              </div>
+            </div>
           </div>
 
-          {/* Right Column: SMARTPHONE PHONE MOCKUP FRAME PREVIEW (7 Cols) */}
-          <div className="lg:col-span-7 flex justify-center py-2">
+          {/* Centered Smartphone Device Frame Container */}
+          <div className="flex justify-center py-4 bg-slate-50/50 rounded-3xl border border-slate-200/80 p-6 shadow-xs">
             
             {/* Smartphone Device Outer Shell */}
             <div className="relative w-full max-w-[375px] bg-slate-950 rounded-[48px] p-3.5 shadow-2xl ring-1 ring-slate-800/60 border-4 border-slate-800">
@@ -320,7 +293,7 @@ export default function CommunityFeed() {
                   </button>
                 </div>
 
-                {/* Smartphone Feed Stream Body (Exact Output of GET /api/feed?filter=all) */}
+                {/* Smartphone Feed Stream Body */}
                 <div className="flex-grow overflow-y-auto p-4 space-y-3.5 custom-scrollbar">
                   {loading ? (
                     <p className="text-center text-slate-400 text-xs py-20 font-medium">Loading candidate feed...</p>
@@ -414,7 +387,6 @@ export default function CommunityFeed() {
             </div>
 
           </div>
-
         </div>
       ) : (
         /* VIEW MODE 2: ADMIN FEED STREAM TABLE VIEW */
