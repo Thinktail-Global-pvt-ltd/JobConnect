@@ -25,18 +25,22 @@ class JobModeratorController extends Controller
             $query->where('category', $request->category);
         }
 
-        $jobs = $query->latest()->paginate(15);
+        $jobs = $query->latest()->get();
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+        $stats = [
+            'total'    => JobPost::count(),
+            'pending'  => JobPost::where('status', 'pending')->count(),
+            'approved' => JobPost::where('status', 'approved')->count(),
+            'rejected' => JobPost::where('status', 'rejected')->count(),
+            'pinned'   => JobPost::where('is_pinned', true)->count(),
+        ];
+
+        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
             return response()->json([
                 'success' => true,
-                'jobs' => $jobs->items(),
-                'pagination' => [
-                    'total' => $jobs->total(),
-                    'per_page' => $jobs->perPage(),
-                    'current_page' => $jobs->currentPage(),
-                    'last_page' => $jobs->lastPage(),
-                ]
+                'jobs'    => $jobs,
+                'stats'   => $stats,
+                'total'   => $jobs->count()
             ]);
         }
 

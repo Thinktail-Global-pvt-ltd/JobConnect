@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
-import { Eye, Check, X, ShieldAlert, Sparkles, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Check, X, Filter } from 'lucide-react';
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -9,14 +9,14 @@ export default function Jobs() {
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Load real/mock jobs
+  // Load real jobs from backend API
   const loadJobs = async () => {
     setLoading(true);
     try {
       const data = await mockApi.getJobs(status, category);
-      setJobs(data.jobs);
+      setJobs(data.jobs || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load jobs:', err);
     } finally {
       setLoading(false);
     }
@@ -55,22 +55,22 @@ export default function Jobs() {
 
   return (
     <div className="space-y-6">
-      {/* Title & Floating Status Tabs */}
+      {/* Title & Dynamic Status Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Job Moderation</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Review and approve hospitality job listings across India.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Review and approve hospitality job listings across India and overseas.</p>
         </div>
 
-        {/* Tab Filters */}
+        {/* Dynamic Tab Filters without static numbers */}
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setStatus('')}
                   className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${status === '' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
-            All (128)
+            All
           </button>
           <button onClick={() => setStatus('pending')}
                   className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${status === 'pending' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
-            Pending (42)
+            Pending
           </button>
           <button onClick={() => setStatus('approved')}
                   className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${status === 'approved' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
@@ -81,7 +81,7 @@ export default function Jobs() {
             Rejected
           </button>
 
-          {/* Category Dropdown styled as filters */}
+          {/* Category Dropdown */}
           <div className="relative">
             <select value={category} onChange={(e) => setCategory(e.target.value)}
                     className="appearance-none bg-white border border-[#e2e8f0] rounded-lg pl-3 pr-8 py-2 text-xs font-bold text-slate-600 focus:outline-none focus:border-[#065f46]">
@@ -95,52 +95,11 @@ export default function Jobs() {
         </div>
       </div>
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        
-        {/* Card 1 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-          <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
-            <span>⏱️</span>
-            <span>Average Review Time</span>
-          </div>
-          <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">14 Minutes</span>
-        </div>
-
-        {/* Card 2 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-          <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
-            <span>📈</span>
-            <span>Approval Rate</span>
-          </div>
-          <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">86.4%</span>
-        </div>
-
-        {/* Card 3 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-          <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
-            <span>🚨</span>
-            <span>Flagged Listings</span>
-          </div>
-          <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">12</span>
-        </div>
-
-        {/* Card 4 (Dark Green Solid Background) */}
-        <div className="bg-[#065f46] p-5 rounded-2xl shadow-sm flex flex-col justify-between min-h-[105px] text-white">
-          <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-emerald-200 uppercase tracking-widest">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Auto-Moderated</span>
-          </div>
-          <span className="font-outfit font-extrabold text-2xl block mt-2">248 Jobs Today</span>
-        </div>
-
-      </div>
-
       {/* Jobs Submissions Table Card */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
         
         {loading ? (
-          <p className="text-center text-slate-400 text-xs font-medium py-16">Loading jobs submissions...</p>
+          <p className="text-center text-slate-400 text-xs font-medium py-16">Loading job submissions...</p>
         ) : jobs.length === 0 ? (
           <p className="text-center text-slate-400 text-sm font-medium py-16">No job listings found.</p>
         ) : (
@@ -148,42 +107,53 @@ export default function Jobs() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4.5 px-6">Job Title & Type</th>
-                  <th className="py-4.5 px-6">Employer</th>
-                  <th className="py-4.5 px-6">Location</th>
-                  <th className="py-4.5 px-6">Submitted Date</th>
-                  <th className="py-4.5 px-6">Status</th>
-                  <th className="py-4.5 px-6 text-center">Actions</th>
+                  <th className="py-4 px-6">Job Title & Type</th>
+                  <th className="py-4 px-6">Employer</th>
+                  <th className="py-4 px-6">Location</th>
+                  <th className="py-4 px-6">Submitted Date</th>
+                  <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
-                {jobs.map(job => (
-                  <tr key={job.id} className="hover:bg-slate-50/30 transition-colors">
+              <tbody className="divide-y divide-[#e2e8f0] text-xs font-medium">
+                {jobs.map((job) => (
+                  <tr key={job.id} className="hover:bg-slate-50/80 transition-colors">
                     {/* Title */}
                     <td className="py-4.5 px-6">
-                      <span className="font-extrabold text-slate-800 block text-[13px] leading-snug">{job.title}</span>
-                      <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{job.job_type || 'Full-time'} • {job.category}</span>
+                      <div className="flex items-center gap-2">
+                        {job.is_pinned && (
+                          <span className="text-indigo-600 text-xs" title="Pinned to Top">📌</span>
+                        )}
+                        <div>
+                          <span className="font-bold text-slate-800 block leading-tight">{job.title}</span>
+                          <span className="text-[11px] font-semibold text-slate-400 mt-0.5 block">
+                            {job.job_type || 'Full-time'} • {job.category || 'india'}
+                          </span>
+                        </div>
+                      </div>
                     </td>
 
                     {/* Employer */}
                     <td className="py-4.5 px-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-[#eff6ff] flex items-center justify-center text-xs">🏢</div>
-                        <span className="text-slate-700 font-bold">{job.company}</span>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">
+                          🏢
+                        </div>
+                        <span className="font-bold text-slate-700">{job.company || job.creator?.full_name || 'Employer'}</span>
                       </div>
                     </td>
 
                     {/* Location */}
                     <td className="py-4.5 px-6">
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <span>📍</span>
+                      <div className="flex items-center gap-1.5 text-slate-600 font-semibold">
+                        <span className="text-rose-500">📍</span>
                         <span>{job.location}</span>
                       </div>
                     </td>
 
                     {/* Submitted Date */}
                     <td className="py-4.5 px-6 text-slate-500 font-bold">
-                      {job.created_at ? new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Oct 24, 2023'}
+                      {job.created_at ? new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
                     </td>
 
                     {/* Status badge */}
@@ -236,18 +206,15 @@ export default function Jobs() {
           </div>
         )}
 
-        {/* Footer Pagination */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
-          <span className="text-xs text-slate-400 font-bold">Showing 1-10 of 128 results</span>
-          <div className="flex items-center gap-1.5">
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronLeft className="w-4 h-4" /></button>
-            <button className="w-7 h-7 rounded-lg bg-[#065f46] text-white flex items-center justify-center text-xs font-bold">1</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">2</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">3</button>
-            <span className="text-slate-400 px-1 font-bold">...</span>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-500">13</button>
-            <button className="w-7 h-7 rounded-lg border border-[#e2e8f0] hover:bg-slate-50 flex items-center justify-center text-slate-400"><ChevronRight className="w-4 h-4" /></button>
-          </div>
+        {/* Footer info (ALL LOADED AT ONCE - NO PAGINATION) */}
+        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
+          <span className="text-xs text-slate-500 font-bold">
+            Showing all {jobs.length} Job Listings
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            All Jobs Loaded At Once
+          </span>
         </div>
 
       </div>
