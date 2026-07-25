@@ -195,6 +195,37 @@ Route::post('/admin/community-posts/{id}/status', function($id, \Illuminate\Http
     return response()->json(['success' => true, 'message' => "Post status updated to {$request->status}."]);
 });
 
+// Unified Feed Item Status Toggle (Publish / Unpublish / Draft / Archive)
+Route::post('/admin/feed-item/status', function(\Illuminate\Http\Request $request) {
+    $id = $request->id;
+    $source = $request->source;
+    $status = strtolower($request->status);
+
+    if ($source === 'job_post' || str_starts_with((string)$id, 'job_')) {
+        $rawId = str_replace('job_', '', $id);
+        $job = \App\Models\JobPost::find($rawId);
+        if ($job) {
+            $dbStatus = ($status === 'published' || $status === 'approved') ? 'approved' :
+                        (($status === 'archived' || $status === 'rejected') ? 'rejected' : 'pending');
+            $job->update(['status' => $dbStatus]);
+            return response()->json(['success' => true, 'message' => "Job status updated to {$dbStatus}."]);
+        }
+    }
+
+    if ($source === 'admin_post' || str_starts_with((string)$id, 'post_')) {
+        $rawId = str_replace('post_', '', $id);
+        $post = \App\Models\AdminPost::find($rawId);
+        if ($post) {
+            $dbStatus = ($status === 'published') ? 'published' :
+                        (($status === 'archived') ? 'archived' : 'draft');
+            $post->update(['status' => $dbStatus]);
+            return response()->json(['success' => true, 'message' => "Admin post status updated to {$dbStatus}."]);
+        }
+    }
+
+    return response()->json(['success' => false, 'message' => 'Item not found.'], 404);
+});
+
 Route::delete('/admin/community-posts/{id}', function($id) {
     $post = \App\Models\AdminPost::findOrFail($id);
     $post->delete();

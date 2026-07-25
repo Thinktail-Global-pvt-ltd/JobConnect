@@ -607,5 +607,21 @@ export const mockApi = {
       console.warn("Axios direct getPublicFeed failed", e);
     }
     return { success: false };
+  },
+
+  updateFeedItemStatus: async (id, source, status) => {
+    try {
+      const res = await realApi.post('/api/admin/feed-item/status', { id, source, status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios updateFeedItemStatus failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.post('http://localhost:8001/api/admin/feed-item/status', { id, source, status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct updateFeedItemStatus failed", e);
+    }
+    return { success: false };
   }
 };

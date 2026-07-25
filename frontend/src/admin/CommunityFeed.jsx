@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Sparkles, CheckCircle2, Bookmark, Briefcase, Signal, Wifi, Battery, MapPin, Building2, Clock, RefreshCw, Smartphone, List, Eye } from 'lucide-react';
+import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Sparkles, CheckCircle2, Bookmark, Briefcase, Signal, Wifi, Battery, MapPin, Building2, Clock, Smartphone, List, Eye, EyeOff } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 export default function CommunityFeed() {
@@ -23,7 +23,7 @@ export default function CommunityFeed() {
     status: 'published',
   });
 
-  // Fetch Public Candidate Feed (GET /api/feed)
+  // Fetch Public Candidate Feed (GET /api/feed?filter=all)
   const fetchPublicCandidateFeed = async () => {
     try {
       const data = await mockApi.getPublicFeed('all');
@@ -104,15 +104,19 @@ export default function CommunityFeed() {
     }
   };
 
+  // Status toggle handler: Publish or Unpublish
   const handleStatusChange = async (id, newStatus, source = 'admin_post') => {
+    // 1. Optimistic state mutation
     setPosts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
-    if (source === 'admin_post') {
-      try {
-        const rawId = String(id).replace('post_', '');
-        await mockApi.updateCommunityPostStatus(rawId, newStatus.toLowerCase());
-      } catch (err) {
-        console.error('Status update failed:', err);
-      }
+    
+    // 2. Call backend status toggle API
+    try {
+      await mockApi.updateFeedItemStatus(id, source, newStatus.toLowerCase());
+    } catch (err) {
+      console.error('Status update failed:', err);
+    } finally {
+      // 3. Re-fetch public candidate feed so item is instantly added or removed from phone view!
+      fetchPublicCandidateFeed();
     }
   };
 
@@ -125,6 +129,8 @@ export default function CommunityFeed() {
           await mockApi.deleteCommunityPost(rawId);
         } catch (err) {
           console.error('Delete post failed:', err);
+        } finally {
+          fetchPublicCandidateFeed();
         }
       }
     }
@@ -166,7 +172,7 @@ export default function CommunityFeed() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Community Feed Manager</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, job posts, and preview live candidate mobile view.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, publish or unpublish posts live, and preview candidate view.</p>
         </div>
 
         {/* View Mode Switcher + Create Post Button */}
@@ -198,7 +204,7 @@ export default function CommunityFeed() {
         </div>
       </div>
 
-      {/* VIEW MODE 1: CLEAN SMARTPHONE PHONE INTERFACE PREVIEW (NO RAW CODE) */}
+      {/* VIEW MODE 1: SMARTPHONE PHONE INTERFACE PREVIEW */}
       {viewMode === 'phone' ? (
         <div className="space-y-6">
           
@@ -208,7 +214,7 @@ export default function CommunityFeed() {
               <div className="w-11 h-11 rounded-xl bg-emerald-50 text-[#059669] flex items-center justify-center font-bold text-lg shrink-0">📱</div>
               <div>
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Live Candidate View</span>
-                <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">{filteredPhoneFeed.length} Items Visible</span>
+                <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">{filteredPhoneFeed.length} Items Published</span>
               </div>
             </div>
 
@@ -389,7 +395,7 @@ export default function CommunityFeed() {
           </div>
         </div>
       ) : (
-        /* VIEW MODE 2: ADMIN FEED STREAM TABLE VIEW */
+        /* VIEW MODE 2: ADMIN FEED STREAM TABLE VIEW (WITH UNPUBLISH BUTTON) */
         <div className="space-y-6">
           {/* KPI Stats Row (2 Columns on Half-Screen, 4 on Full-Screen) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -411,8 +417,8 @@ export default function CommunityFeed() {
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.filter(p => p.status === 'Draft').length}</span>
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Drafts / Pending</span>
+                <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.filter(p => p.status === 'Draft' || p.status === 'Pending').length}</span>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Drafts / Unpublished</span>
               </div>
             </div>
 
@@ -453,7 +459,7 @@ export default function CommunityFeed() {
                   Published ({posts.filter(p => p.status === 'Published').length})
                 </button>
                 <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'drafts' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-                  Drafts / Pending ({posts.filter(p => p.status === 'Draft').length})
+                  Drafts / Unpublished ({posts.filter(p => p.status === 'Draft' || p.status === 'Pending').length})
                 </button>
                 <button onClick={() => setTab('archived')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'archived' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
                   Archived ({posts.filter(p => p.status === 'Archived').length})
@@ -518,7 +524,7 @@ export default function CommunityFeed() {
                           ) : (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                              Draft / Pending
+                              Unpublished / Draft
                             </span>
                           )}
                         </td>
@@ -528,15 +534,26 @@ export default function CommunityFeed() {
                           {post.date}
                         </td>
 
-                        {/* Actions */}
+                        {/* Actions: Explicit Publish / Unpublish Buttons */}
                         <td className="py-4.5 px-6 text-center">
                           <div className="flex items-center justify-center gap-2">
-                            {post.status !== 'Published' && (
+                            {post.status === 'Published' ? (
+                              <button 
+                                onClick={() => handleStatusChange(post.id, 'Draft', post.source)} 
+                                className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-extrabold rounded-md transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                                title="Unpublish item from live feed"
+                              >
+                                <EyeOff className="w-3 h-3" />
+                                <span>Unpublish</span>
+                              </button>
+                            ) : (
                               <button 
                                 onClick={() => handleStatusChange(post.id, 'Published', post.source)} 
-                                className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-bold rounded-md transition-all shadow-xs font-bold"
+                                className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-extrabold rounded-md transition-all shadow-xs flex items-center gap-1 cursor-pointer font-bold"
+                                title="Publish item to live feed"
                               >
-                                Publish
+                                <Eye className="w-3 h-3" />
+                                <span>Publish</span>
                               </button>
                             )}
 
