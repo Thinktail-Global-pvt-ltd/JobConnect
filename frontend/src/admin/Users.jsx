@@ -87,11 +87,11 @@ export default function Users() {
       {/* Title & Floating Right Button */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">User Management</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Oversee system users, manage access levels, and track registration trends.</p>
+          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Talent / Jobseeker Management</h2>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Oversee job seekers, candidates, manage access levels, and track registration trends.</p>
         </div>
         <button className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 flex items-center gap-2">
-          👤 Add New User
+          👤 Add New Talent
         </button>
       </div>
 
@@ -101,7 +101,7 @@ export default function Users() {
         <div className="flex items-center gap-6 border-b border-slate-100 md:border-none pb-2 md:pb-0">
           <button onClick={() => setTab('all')} 
                   className={`text-xs font-bold pb-2 transition-all relative ${tab === 'all' ? 'text-[#065f46] border-b-2 border-[#10b981]' : 'text-slate-400 hover:text-slate-700'}`}>
-            All Users
+            All Talent
           </button>
           <button onClick={() => setTab('active')} 
                   className={`text-xs font-bold pb-2 transition-all relative ${tab === 'active' ? 'text-[#065f46] border-b-2 border-[#10b981]' : 'text-slate-400 hover:text-slate-700'}`}>

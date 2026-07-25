@@ -1,24 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Bell, LogOut } from 'lucide-react';
+import { Search, Bell, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
 
 export default function Layout({ children }) {
   const location = useLocation();
-  
+  const [usersOpen, setUsersOpen] = useState(true);
+
   const isActive = (path) => {
-    return location.pathname.startsWith(path);
+    return location.pathname === path || (path !== '/admin/dashboard' && location.pathname.startsWith(path));
   };
 
-  const navItems = [
+  const isUsersGroupActive = location.pathname.startsWith('/admin/users') || 
+                             location.pathname.startsWith('/admin/employers') || 
+                             location.pathname.startsWith('/admin/chefs');
+
+  const mainNavItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
-    { name: 'Users', path: '/admin/users', icon: '👤' },
+  ];
+
+  const userSubItems = [
+    { name: 'Talent / Jobseeker', path: '/admin/users', icon: '👤' },
+    { name: 'Employer', path: '/admin/employers', icon: '🏢' },
+    { name: 'Chef', path: '/admin/chefs', icon: '👨‍🍳' },
+  ];
+
+  const secondaryNavItems = [
     { name: 'Jobs', path: '/admin/jobs', icon: '💼' },
     { name: 'Referrals', path: '/admin/referrals', icon: '🔗' },
     { name: 'Community Feed', path: '/admin/community', icon: '📶' },
     { name: 'Training & Overseas', path: '/admin/training', icon: '🎓' },
-    { name: 'ChefConnect', path: '/admin/chefs', icon: '🍴' },
     { name: 'Applications', path: '/admin/applications', icon: '📄' },
-    { name: 'Employers', path: '/admin/employers', icon: '🏢' },
     { name: 'Enquiries', path: '/admin/enquiries', icon: '❓' },
     { name: 'Settings', path: '/admin/settings', icon: '⚙️' },
   ];
@@ -41,7 +52,9 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="flex-grow py-3 space-y-0.5 overflow-y-auto custom-scrollbar">
-          {navItems.map((item) => {
+          
+          {/* Main Items before Users */}
+          {mainNavItems.map((item) => {
             const active = isActive(item.path);
             return (
               <Link
@@ -58,8 +71,74 @@ export default function Layout({ children }) {
               </Link>
             );
           })}
+
+          {/* Group Header: Users with Sub-items */}
+          <div>
+            <button
+              onClick={() => setUsersOpen(!usersOpen)}
+              className={`w-full flex items-center justify-between px-6 py-2.5 transition-all border-l-4 text-left ${
+                isUsersGroupActive
+                  ? 'bg-slate-50/80 border-[#10b981] text-slate-800 font-bold'
+                  : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-semibold'
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <span className="text-base leading-none">👥</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Users</span>
+              </div>
+              {usersOpen ? (
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              )}
+            </button>
+
+            {/* Nested Sub-items (Talent/Jobseeker, Employer, Chef) */}
+            {usersOpen && (
+              <div className="pl-6 space-y-0.5 bg-slate-50/40 py-1">
+                {userSubItems.map((sub) => {
+                  const active = isActive(sub.path);
+                  return (
+                    <Link
+                      key={sub.name}
+                      to={sub.path}
+                      className={`flex items-center gap-3 px-5 py-2 transition-all rounded-r-xl border-l-2 ${
+                        active
+                          ? 'bg-[#eff6ff] border-[#10b981] text-[#059669] font-extrabold shadow-2xs'
+                          : 'border-transparent text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 font-medium'
+                      }`}
+                    >
+                      <span className="text-sm leading-none">{sub.icon}</span>
+                      <span className="text-xs">{sub.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Secondary Items after Users */}
+          {secondaryNavItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`flex items-center gap-3.5 px-6 py-2.5 transition-all border-l-4 ${
+                  active
+                    ? 'bg-[#eff6ff] border-[#10b981] text-[#0f172a] font-semibold'
+                    : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                }`}
+              >
+                <span className="text-base leading-none">{item.icon}</span>
+                <span className="text-xs font-semibold">{item.name}</span>
+              </Link>
+            );
+          })}
+
         </nav>
 
+        {/* Admin User Footer Profile */}
         <div className="p-4 border-t border-slate-100 flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
             JA
