@@ -27,18 +27,30 @@ export default function Jobs() {
   }, [status, category]);
 
   const handleApprove = async (id) => {
-    await mockApi.approveJob(id);
-    loadJobs();
+    setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
+    try {
+      await mockApi.approveJob(id);
+    } catch (err) {
+      console.error('Approve job failed:', err);
+    }
   };
 
   const handleReject = async (id) => {
-    await mockApi.rejectJob(id);
-    loadJobs();
+    setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'rejected' } : j));
+    try {
+      await mockApi.rejectJob(id);
+    } catch (err) {
+      console.error('Reject job failed:', err);
+    }
   };
 
   const handleTogglePin = async (id) => {
-    await mockApi.togglePinJob(id);
-    loadJobs();
+    setJobs(prev => prev.map(j => (j.id === id) ? { ...j, is_pinned: !j.is_pinned } : j));
+    try {
+      await mockApi.togglePinJob(id);
+    } catch (err) {
+      console.error('Toggle pin failed:', err);
+    }
   };
 
   return (

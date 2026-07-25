@@ -52,6 +52,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/employer/appointments', [AppointmentController::class, 'employerAppointmentsList']);
 });
 
+// Public Feed & Approved Jobs Routes (Approved Jobs Only)
+Route::get('/feed', [FeedController::class, 'index']);
+Route::get('/jobs', function(\Illuminate\Http\Request $request) {
+    $query = \App\Models\JobPost::with('creator')->approved();
+    if ($request->filled('category')) {
+        $query->where('category', $request->category);
+    }
+    return response()->json([
+        'success' => true,
+        'jobs' => $query->latest()->get()
+    ]);
+});
+
 // Public Candidate / Chef Connect Discovery Routes (Approved Chefs Only)
 Route::get('/employer/chefs', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
 
@@ -61,6 +74,11 @@ Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController:
 Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);
 Route::post('/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
+
+Route::get('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'index']);
+Route::post('/admin/jobs/{job}/approve', [\App\Http\Controllers\Admin\JobModeratorController::class, 'approve']);
+Route::post('/admin/jobs/{job}/reject', [\App\Http\Controllers\Admin\JobModeratorController::class, 'reject']);
+Route::post('/admin/jobs/{job}/toggle-pin', [\App\Http\Controllers\Admin\JobModeratorController::class, 'togglePin']);
 
 Route::post('/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store']);
 Route::get('/support-tickets', [\App\Http\Controllers\SupportTicketController::class, 'index']);
