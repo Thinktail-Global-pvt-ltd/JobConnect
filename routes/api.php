@@ -89,17 +89,77 @@ Route::post('/admin/referrals/{id}/approve', [\App\Http\Controllers\Admin\Referr
 Route::post('/admin/referrals/{id}/reject', [\App\Http\Controllers\Admin\ReferralController::class, 'reject']);
 Route::delete('/admin/referrals/{id}', [\App\Http\Controllers\Admin\ReferralController::class, 'destroy']);
 
-// Admin Community Feed Post Management Routes
+// Admin Community Feed Post Management Routes (Unified Feed Stream of Jobs, Community Posts, & Training)
 Route::get('/admin/community-posts', function() {
-    $posts = \App\Models\AdminPost::latest()->get();
+    $feedItems = collect();
+
+    // 1. Fetch Employer & Admin Job Posts
+    $jobPosts = \App\Models\JobPost::with('creator')->latest()->get();
+    foreach ($jobPosts as $job) {
+        $statusStr = $job->status === 'approved' ? 'Published' : ($job->status === 'rejected' ? 'Archived' : 'Draft');
+        $feedItems->push([
+            'id'         => 'job_' . $job->id,
+            'raw_id'     => $job->id,
+            'source'     => 'job_post',
+            'uid'        => 'JOB-' . sprintf('%04d', $job->id),
+            'title'      => $job->title,
+            'body'       => ($job->company ?? ($job->creator ? $job->creator->full_name : 'Employer')) . ' • ' . ($job->location ?? 'India'),
+            'post_type'  => 'Job Listing (' . ucfirst($job->category ?? 'india') . ')',
+            'status'     => $statusStr,
+            'created_at' => $job->created_at ? $job->created_at->toIso8601String() : null,
+            'timestamp'  => $job->created_at ? $job->created_at->timestamp : 0,
+            'date'       => $job->created_at ? $job->created_at->format('M d, Y') : 'Recently',
+        ]);
+    }
+
+    // 2. Fetch Admin Community Posts
+    $adminPosts = \App\Models\AdminPost::latest()->get();
+    foreach ($adminPosts as $post) {
+        $statusStr = $post->status === 'published' ? 'Published' : ($post->status === 'archived' ? 'Archived' : 'Draft');
+        $feedItems->push([
+            'id'         => 'post_' . $post->id,
+            'raw_id'     => $post->id,
+            'source'     => 'admin_post',
+            'uid'        => 'AN-' . sprintf('%04d', $post->id),
+            'title'      => $post->title,
+            'body'       => $post->body,
+            'post_type'  => $post->post_type ?? 'Community Announcement',
+            'status'     => $statusStr,
+            'created_at' => $post->created_at ? $post->created_at->toIso8601String() : null,
+            'timestamp'  => $post->created_at ? $post->created_at->timestamp : 0,
+            'date'       => $post->created_at ? $post->created_at->format('M d, Y') : 'Recently',
+        ]);
+    }
+
+    // 3. Fetch Admin Training & Overseas Opportunities
+    $trainings = \App\Models\TrainingOpportunity::latest()->get();
+    foreach ($trainings as $train) {
+        $feedItems->push([
+            'id'         => 'train_' . $train->id,
+            'raw_id'     => $train->id,
+            'source'     => 'training',
+            'uid'        => 'TO-' . sprintf('%04d', $train->id),
+            'title'      => $train->program_name ?? 'Training Program',
+            'body'       => ($train->provider_name ?? 'JobConnect') . ' • ' . ($train->location ?? 'Overseas'),
+            'post_type'  => 'Training & Overseas',
+            'status'     => 'Published',
+            'created_at' => $train->created_at ? $train->created_at->toIso8601String() : null,
+            'timestamp'  => $train->created_at ? $train->created_at->timestamp : 0,
+            'date'       => $train->created_at ? $train->created_at->format('M d, Y') : 'Recently',
+        ]);
+    }
+
+    // Sort all entries chronologically by creation timestamp DESC
+    $sortedItems = $feedItems->sortByDesc('timestamp')->values();
+
     return response()->json([
         'success' => true,
-        'posts'   => $posts,
+        'posts'   => $sortedItems,
         'stats'   => [
-            'total'     => $posts->count(),
-            'published' => $posts->where('status', 'published')->count(),
-            'drafts'    => $posts->where('status', 'draft')->count(),
-            'archived'  => $posts->where('status', 'archived')->count(),
+            'total'     => $sortedItems->count(),
+            'published' => $sortedItems->where('status', 'Published')->count(),
+            'drafts'    => $sortedItems->where('status', 'Draft')->count(),
+            'archived'  => $sortedItems->where('status', 'Archived')->count(),
         ]
     ]);
 });

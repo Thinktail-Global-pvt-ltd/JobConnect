@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Eye, Sparkles, CheckCircle2, Bookmark } from 'lucide-react';
+import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Eye, Sparkles, CheckCircle2, Bookmark, Briefcase, GraduationCap, Globe } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 export default function CommunityFeed() {
@@ -20,40 +20,30 @@ export default function CommunityFeed() {
     status: 'published',
   });
 
-  // Load posts from backend API
+  // Load unified stream of (Jobs + Community Posts + Training) sorted by timestamp DESC
   const loadPosts = async () => {
     setLoading(true);
     try {
       const data = await mockApi.getCommunityPosts();
       if (data && data.posts && data.posts.length > 0) {
-        const formatted = data.posts.map(p => ({
-          id: p.id,
-          uid: `CP-${p.id}`,
-          title: p.title,
-          body: p.body,
-          post_type: p.post_type || 'Community Announcement',
-          status: p.status === 'published' ? 'Published' : p.status === 'archived' ? 'Archived' : 'Draft',
-          date: p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently',
-          cta_label: p.cta_label,
-          cta_url: p.cta_url
-        }));
-        setPosts(formatted);
+        setPosts(data.posts);
         if (data.stats) {
           setStats(data.stats);
         } else {
           setStats({
-            total: formatted.length,
-            published: formatted.filter(p => p.status === 'Published').length,
-            drafts: formatted.filter(p => p.status === 'Draft').length,
-            archived: formatted.filter(p => p.status === 'Archived').length,
+            total: data.posts.length,
+            published: data.posts.filter(p => p.status === 'Published').length,
+            drafts: data.posts.filter(p => p.status === 'Draft').length,
+            archived: data.posts.filter(p => p.status === 'Archived').length,
           });
         }
       } else {
-        // Fallback default list if no DB posts exist yet
+        // Fallback default list
         setPosts([
           {
-            id: 1,
-            uid: 'AN-2024-081',
+            id: 'post_1',
+            uid: 'AN-0001',
+            source: 'admin_post',
             title: 'New Health Benefits Package 2024',
             body: 'We are introducing comprehensive medical cover for all hospitality staff.',
             post_type: 'Community Announcement',
@@ -61,25 +51,27 @@ export default function CommunityFeed() {
             date: 'Oct 12, 2023',
           },
           {
-            id: 2,
-            uid: 'TO-2024-112',
+            id: 'job_1',
+            uid: 'JOB-0001',
+            source: 'job_post',
+            title: 'Head Chef - Luxury Bistro',
+            body: 'Luxury Bistro Palace • Mumbai, Maharashtra',
+            post_type: 'Job Listing (India)',
+            status: 'Published',
+            date: 'Jul 25, 2026',
+          },
+          {
+            id: 'train_1',
+            uid: 'TO-0001',
+            source: 'training',
             title: 'Culinary Leadership Workshop - Bali',
-            body: 'International workshop for aspiring sous chefs and executive chefs.',
+            body: 'JobConnect Overseas • Bali, Indonesia',
             post_type: 'Training & Overseas',
             status: 'Draft',
             date: 'Nov 02, 2023',
-          },
-          {
-            id: 3,
-            uid: 'FB-2023-001',
-            title: 'Annual Chef Excellence Awards 2023',
-            body: 'Celebrating top culinary talents across India and abroad.',
-            post_type: 'Featured Banner',
-            status: 'Archived',
-            date: 'Jan 15, 2023',
           }
         ]);
-        setStats({ total: 3, published: 1, drafts: 1, archived: 1 });
+        setStats({ total: 3, published: 2, drafts: 1, archived: 0 });
       }
     } catch (err) {
       console.error('Failed to load community posts:', err);
@@ -98,8 +90,9 @@ export default function CommunityFeed() {
     setSubmitting(true);
 
     const tempNewPost = {
-      id: Date.now(),
-      uid: `CP-${Date.now().toString().slice(-4)}`,
+      id: `post_${Date.now()}`,
+      uid: `AN-${Date.now().toString().slice(-4)}`,
+      source: 'admin_post',
       title: formData.title,
       body: formData.body,
       post_type: formData.post_type || 'Community Announcement',
@@ -131,22 +124,28 @@ export default function CommunityFeed() {
     }
   };
 
-  const handleStatusChange = async (id, newStatus) => {
+  const handleStatusChange = async (id, newStatus, source = 'admin_post') => {
     setPosts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
-    try {
-      await mockApi.updateCommunityPostStatus(id, newStatus.toLowerCase());
-    } catch (err) {
-      console.error('Status update failed:', err);
+    if (source === 'admin_post') {
+      try {
+        const rawId = String(id).replace('post_', '');
+        await mockApi.updateCommunityPostStatus(rawId, newStatus.toLowerCase());
+      } catch (err) {
+        console.error('Status update failed:', err);
+      }
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this community post?")) {
+  const handleDelete = async (id, source = 'admin_post') => {
+    if (window.confirm("Are you sure you want to delete this stream entry?")) {
       setPosts(prev => prev.filter(p => p.id !== id));
-      try {
-        await mockApi.deleteCommunityPost(id);
-      } catch (err) {
-        console.error('Delete post failed:', err);
+      if (source === 'admin_post') {
+        try {
+          const rawId = String(id).replace('post_', '');
+          await mockApi.deleteCommunityPost(rawId);
+        } catch (err) {
+          console.error('Delete post failed:', err);
+        }
       }
     }
   };
@@ -158,13 +157,20 @@ export default function CommunityFeed() {
     return true;
   });
 
-  const getPostBadgeColor = (type) => {
-    switch (type) {
-      case 'Community Announcement': return 'bg-[#ccfbf1] text-[#0f766e] border-[#99f6e4]';
-      case 'Training & Overseas': return 'bg-[#ffedd5] text-[#c2410c] border-[#fed7aa]';
-      case 'Featured Banner': return 'bg-[#d1fae5] text-[#065f46] border-[#a7f3d0]';
-      default: return 'bg-[#dbeafe] text-[#1d4ed8] border-[#bfdbfe]';
-    }
+  const getPostBadgeColor = (type = '') => {
+    if (type.includes('Job Listing')) return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (type.includes('Training')) return 'bg-[#ffedd5] text-[#c2410c] border-[#fed7aa]';
+    if (type.includes('Announcement')) return 'bg-[#ccfbf1] text-[#0f766e] border-[#99f6e4]';
+    if (type.includes('Featured')) return 'bg-[#d1fae5] text-[#065f46] border-[#a7f3d0]';
+    return 'bg-[#dbeafe] text-[#1d4ed8] border-[#bfdbfe]';
+  };
+
+  const getSourceIcon = (source, type = '') => {
+    if (source === 'job_post' || type.includes('Job Listing')) return '💼';
+    if (source === 'training' || type.includes('Training')) return '🎓';
+    if (type.includes('Announcement')) return '📢';
+    if (type.includes('Featured')) return '🏆';
+    return '📶';
   };
 
   return (
@@ -174,7 +180,7 @@ export default function CommunityFeed() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Community Feed Manager</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, workshops, and featured banners on the candidate feed.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Chronological stream of Employer Jobs, Admin Announcements, and Overseas Training Programs.</p>
         </div>
 
         <button 
@@ -196,29 +202,29 @@ export default function CommunityFeed() {
           </div>
           <div>
             <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.filter(p => p.status === 'Published').length}</span>
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Active Posts</span>
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Active / Published</span>
           </div>
         </div>
 
         {/* Card 2 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
-          <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
             <FileText className="w-5 h-5" />
           </div>
           <div>
             <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.filter(p => p.status === 'Draft').length}</span>
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Drafts Pending</span>
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Drafts / Pending</span>
           </div>
         </div>
 
         {/* Card 3 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
-          <div className="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
             <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.length}</span>
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Total Feed Posts</span>
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Total Stream Entries</span>
           </div>
         </div>
 
@@ -229,7 +235,7 @@ export default function CommunityFeed() {
           </div>
           <div>
             <span className="font-outfit font-extrabold text-2xl block leading-tight">{posts.filter(p => p.status === 'Archived').length}</span>
-            <span className="text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest mt-1 block">Archived Posts</span>
+            <span className="text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest mt-1 block">Archived Entries</span>
           </div>
         </div>
 
@@ -240,15 +246,15 @@ export default function CommunityFeed() {
         
         {/* Tabs Bar */}
         <div className="px-6 py-4 border-b border-[#e2e8f0] flex items-center justify-between bg-slate-50/30">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button onClick={() => setTab('all')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'all' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-              All Posts ({posts.length})
+              All Stream Posts ({posts.length})
             </button>
             <button onClick={() => setTab('published')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'published' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Published ({posts.filter(p => p.status === 'Published').length})
             </button>
             <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'drafts' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-              Drafts ({posts.filter(p => p.status === 'Draft').length})
+              Drafts / Pending ({posts.filter(p => p.status === 'Draft').length})
             </button>
             <button onClick={() => setTab('archived')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'archived' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Archived ({posts.filter(p => p.status === 'Archived').length})
@@ -258,18 +264,18 @@ export default function CommunityFeed() {
 
         {/* Table List */}
         {loading ? (
-          <p className="text-center text-slate-400 text-xs font-medium py-16">Loading community posts...</p>
+          <p className="text-center text-slate-400 text-xs font-medium py-16">Loading community stream entries...</p>
         ) : filteredPosts.length === 0 ? (
-          <p className="text-center text-slate-400 text-sm font-medium py-16">No community posts found for this tab filter.</p>
+          <p className="text-center text-slate-400 text-sm font-medium py-16">No feed entries found for this tab filter.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 px-6">Title</th>
-                  <th className="py-4 px-6">Post Type</th>
+                  <th className="py-4 px-6">Entry Title & Details</th>
+                  <th className="py-4 px-6">Post Type & Source</th>
                   <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6">Publish Date</th>
+                  <th className="py-4 px-6">Created Date</th>
                   <th className="py-4 px-6 text-center">Actions</th>
                 </tr>
               </thead>
@@ -280,7 +286,7 @@ export default function CommunityFeed() {
                     <td className="py-4.5 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">
-                          📢
+                          {getSourceIcon(post.source, post.post_type)}
                         </div>
                         <div>
                           <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{post.title}</span>
@@ -313,7 +319,7 @@ export default function CommunityFeed() {
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                          Draft
+                          Draft / Pending
                         </span>
                       )}
                     </td>
@@ -328,7 +334,7 @@ export default function CommunityFeed() {
                       <div className="flex items-center justify-center gap-2">
                         {post.status !== 'Published' && (
                           <button 
-                            onClick={() => handleStatusChange(post.id, 'Published')} 
+                            onClick={() => handleStatusChange(post.id, 'Published', post.source)} 
                             className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-bold rounded-md transition-all shadow-xs"
                           >
                             Publish
@@ -337,7 +343,7 @@ export default function CommunityFeed() {
 
                         {post.status === 'Published' && (
                           <button 
-                            onClick={() => handleStatusChange(post.id, 'Archived')} 
+                            onClick={() => handleStatusChange(post.id, 'Archived', post.source)} 
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
                             title="Archive"
                           >
@@ -347,7 +353,7 @@ export default function CommunityFeed() {
 
                         {post.status === 'Archived' && (
                           <button 
-                            onClick={() => handleStatusChange(post.id, 'Draft')} 
+                            onClick={() => handleStatusChange(post.id, 'Draft', post.source)} 
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors"
                             title="Restore to Draft"
                           >
@@ -356,7 +362,7 @@ export default function CommunityFeed() {
                         )}
 
                         <button 
-                          onClick={() => handleDelete(post.id)} 
+                          onClick={() => handleDelete(post.id, post.source)} 
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
                           title="Delete"
                         >
@@ -374,11 +380,11 @@ export default function CommunityFeed() {
         {/* Footer info (ALL LOADED AT ONCE - NO PAGINATION) */}
         <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
           <span className="text-xs text-slate-500 font-bold">
-            Showing all {filteredPosts.length} Community Posts
+            Showing all {filteredPosts.length} Combined Stream Posts (Jobs, Announcements & Training)
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            All Posts Loaded At Once
+            All Stream Entries Loaded Chronologically
           </span>
         </div>
 
