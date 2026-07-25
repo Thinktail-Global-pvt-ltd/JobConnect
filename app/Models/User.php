@@ -19,6 +19,7 @@ class User extends Authenticatable
         'mobile_number',
         'full_name',
         'email',
+        'gender',
         'profile_photo_path',
         'city',
         'experience_range',

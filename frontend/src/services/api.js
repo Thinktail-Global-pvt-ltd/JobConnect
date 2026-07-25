@@ -609,6 +609,22 @@ export const mockApi = {
     return { success: true };
   },
 
+  createChef: async (chefData) => {
+    try {
+      const res = await realApi.post('/api/admin/chefs/create', chefData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios createChef /api/admin/chefs/create failed, trying onboarding/save...", e);
+    }
+    try {
+      const res = await axios.post('http://localhost:8001/api/admin/chefs/create', chefData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct createChef failed", e);
+    }
+    return { success: true };
+  },
+
   getPublicFeed: async (filter = 'all') => {
     try {
       const res = await realApi.get('/api/feed', { params: { filter } });

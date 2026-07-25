@@ -62,6 +62,7 @@ class ProfileController extends Controller
                 'mobile_number' => $user ? $user->mobile_number : '8799730966',
                 'full_name' => $user ? $user->full_name : 'Alex Smith',
                 'email' => $user ? $user->email : 'alex.smith@hospitality.com',
+                'gender' => $user ? ($user->gender ?? 'male') : 'male',
                 'profile_photo_path' => $photo,
                 'city' => $user ? $user->city : 'London, UK',
                 'experience_years' => $user ? $user->experience_years : '3-5 Years',
@@ -236,6 +237,7 @@ class ProfileController extends Controller
                 $user->full_name = $profileData['full_name'];
                 $user->email = $profileData['email'];
                 $user->city = $profileData['city'];
+                $user->gender = $profileData['gender'];
                 $user->experience_range = $profileData['experience_range'];
                 $user->current_employer = $profileData['current_employer'];
                 $user->preferred_role = $profileData['preferred_role'];

@@ -62,6 +62,9 @@ class JobPostController extends Controller
 
             // Optional generic fields
             'salary'                 => 'nullable|string|max:100',
+            'salary_min'             => 'nullable|numeric|min:0',
+            'salary_max'             => 'nullable|numeric|min:0',
+            'salary_currency'        => 'nullable|string|max:10',
             'location'               => 'nullable|string|max:255',
             'company_logo_url'       => 'nullable|url',
             'job_type'               => 'nullable|string|in:Full-time,Part-time,Contract,Internship,Freelance',
@@ -82,6 +85,7 @@ class JobPostController extends Controller
 
             // Referral fields
             'is_referral'            => 'nullable|boolean',
+            'contact_person'         => 'nullable|string|max:255',
             // Accept both: "job_seeker" (with underscore) and "jobseeker" (without)
             'submitted_by_role'      => 'nullable|string|in:jobseeker,job_seeker,chef,employer,agency',
         ]);
@@ -114,6 +118,17 @@ class JobPostController extends Controller
             'message'  => 'Job post submitted successfully and is pending moderation.',
             'job_post' => $jobPost,
         ], 201);
+    }
+
+    /**
+     * POST /api/jobs/referrals
+     *
+     * Create a new referral job post.
+     */
+    public function storeReferral(Request $request)
+    {
+        $request->merge(['is_referral' => true]);
+        return $this->store($request);
     }
 
     /**

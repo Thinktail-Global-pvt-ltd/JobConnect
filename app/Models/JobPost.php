@@ -13,6 +13,10 @@ class JobPost extends Model
         'category', // india, overseas, community
         'company',
         'salary',
+        'salary_min',
+        'salary_max',
+        'salary_currency',
+        'contact_person',
         'location',
         'company_logo_url',
         'contact_info',
@@ -41,6 +45,9 @@ class JobPost extends Model
         'accommodation_available' => 'boolean',
         'requirements'            => 'array',
         'benefits'                => 'array',
+        'salary_min'              => 'float',
+        'salary_max'              => 'float',
+        'open_positions'          => 'integer',
     ];
 
     /**

@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Submission Routes
     Route::post('/jobs', [JobPostController::class, 'store']);
+    Route::post('/jobs/referrals', [JobPostController::class, 'storeReferral']);
     Route::get('/my-jobs', [JobPostController::class, 'myJobs']);
     Route::post('/chefs', [ChefProfileController::class, 'store']);
     Route::post('/chef/onboarding/save', [\App\Http\Controllers\ChefOnboardingController::class, 'save']);
@@ -76,6 +77,72 @@ Route::post('/admin/users/{user}/activate', [\App\Http\Controllers\Admin\UserMod
 Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserModeratorController::class, 'destroy']);
 Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
+Route::post('/admin/chefs/create', function(\Illuminate\Http\Request $request) {
+    $request->validate([
+        'full_name' => 'required|string|max:255',
+        'city' => 'required|string|max:255',
+        'experience_range' => 'required|string|max:255',
+        'cuisine_specialty' => 'required|string|max:255',
+    ]);
+
+    $email = $request->email ?: ('chef.' . time() . '@hospitality.com');
+    $mobile = $request->mobile_number ?: ('9' . rand(100000000, 999999999));
+
+    $user = \App\Models\User::firstOrCreate(
+        ['email' => $email],
+        [
+            'full_name' => $request->full_name,
+            'mobile_number' => $mobile,
+            'city' => $request->city,
+            'experience_range' => $request->experience_range,
+            'preferred_role' => $request->preferred_role ?? 'Executive Chef',
+            'skills' => is_array($request->skills) ? $request->skills : array_filter(array_map('trim', explode(',', $request->skills ?? ''))),
+        ]
+    );
+
+    \App\Models\UserRole::updateOrCreate(
+        ['user_id' => $user->id, 'role_type' => 'chef'],
+        ['is_active' => true]
+    );
+
+    $profile = \App\Models\ChefProfile::updateOrCreate(
+        ['user_id' => $user->id],
+        [
+            'cuisine_specialty' => $request->cuisine_specialty,
+            'bio' => $request->bio,
+            'calendly_link' => $request->calendly_link,
+            'availability_info' => json_encode([
+                'languages' => is_array($request->languages) ? $request->languages : explode(',', $request->languages ?? 'English,Hindi'),
+                'regional_experience' => is_array($request->regional_experience) ? $request->regional_experience : ['Pan-India'],
+                'location_preference' => $request->location_preference ?? 'Both',
+                'employment_preference' => is_array($request->employment_preference) ? $request->employment_preference : ['Permanent'],
+                'availability_status' => $request->availability ?? 'Full-time',
+            ]),
+            'approval_status' => $request->approval_status ?? 'approved',
+        ]
+    );
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Chef profile created successfully!',
+        'chef' => [
+            'id' => $profile->id,
+            'user_id' => $user->id,
+            'full_name' => $user->full_name,
+            'name' => $user->full_name,
+            'email' => $user->email,
+            'mobile_number' => $user->mobile_number,
+            'city' => $user->city,
+            'experience_range' => $user->experience_range,
+            'cuisine_specialty' => $profile->cuisine_specialty,
+            'specialties' => $profile->cuisine_specialty,
+            'bio' => $profile->bio,
+            'calendly_link' => $profile->calendly_link,
+            'approval_status' => $profile->approval_status,
+            'status' => $profile->approval_status,
+        ]
+    ], 201);
+});
 Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);
 Route::post('/admin/chefs/{chef}/unpublish', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'unpublish']);
 Route::post('/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
