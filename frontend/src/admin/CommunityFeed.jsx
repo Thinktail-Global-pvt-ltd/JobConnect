@@ -96,24 +96,38 @@ export default function CommunityFeed() {
     e.preventDefault();
     if (!formData.title || !formData.body) return;
     setSubmitting(true);
+
+    const tempNewPost = {
+      id: Date.now(),
+      uid: `CP-${Date.now().toString().slice(-4)}`,
+      title: formData.title,
+      body: formData.body,
+      post_type: formData.post_type || 'Community Announcement',
+      status: formData.status === 'published' ? 'Published' : 'Draft',
+      date: 'Just Now',
+      cta_label: formData.cta_label,
+      cta_url: formData.cta_url
+    };
+
+    // Optimistically insert post & close modal instantly
+    setPosts(prev => [tempNewPost, ...prev]);
+    setIsModalOpen(false);
+
     try {
-      const res = await mockApi.createCommunityPost(formData);
-      if (res && res.success) {
-        setIsModalOpen(false);
-        setFormData({
-          title: '',
-          post_type: 'Community Announcement',
-          body: '',
-          cta_label: '',
-          cta_url: '',
-          status: 'published',
-        });
-        loadPosts();
-      }
+      await mockApi.createCommunityPost(formData);
     } catch (err) {
       console.error('Create post failed:', err);
     } finally {
       setSubmitting(false);
+      setFormData({
+        title: '',
+        post_type: 'Community Announcement',
+        body: '',
+        cta_label: '',
+        cta_url: '',
+        status: 'published',
+      });
+      loadPosts();
     }
   };
 
