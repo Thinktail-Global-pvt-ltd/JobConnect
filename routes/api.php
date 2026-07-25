@@ -89,6 +89,58 @@ Route::post('/admin/referrals/{id}/approve', [\App\Http\Controllers\Admin\Referr
 Route::post('/admin/referrals/{id}/reject', [\App\Http\Controllers\Admin\ReferralController::class, 'reject']);
 Route::delete('/admin/referrals/{id}', [\App\Http\Controllers\Admin\ReferralController::class, 'destroy']);
 
+// Admin Community Feed Post Management Routes
+Route::get('/admin/community-posts', function() {
+    $posts = \App\Models\AdminPost::latest()->get();
+    return response()->json([
+        'success' => true,
+        'posts'   => $posts,
+        'stats'   => [
+            'total'     => $posts->count(),
+            'published' => $posts->where('status', 'published')->count(),
+            'drafts'    => $posts->where('status', 'draft')->count(),
+            'archived'  => $posts->where('status', 'archived')->count(),
+        ]
+    ]);
+});
+
+Route::post('/admin/community-posts', function(\Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'title'        => 'required|string|max:255',
+        'body'         => 'required|string',
+        'post_type'    => 'nullable|string',
+        'image_url'    => 'nullable|string',
+        'cta_label'    => 'nullable|string',
+        'cta_url'      => 'nullable|string',
+        'status'       => 'nullable|string|in:published,draft,archived',
+        'inject_every' => 'nullable|integer',
+    ]);
+
+    $post = \App\Models\AdminPost::create(array_merge($validated, [
+        'status'     => $request->status ?? 'published',
+        'post_type'  => $request->post_type ?? 'announcement',
+        'created_by' => 1,
+    ]));
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Community post created successfully.',
+        'post'    => $post
+    ], 201);
+});
+
+Route::post('/admin/community-posts/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    $post = \App\Models\AdminPost::findOrFail($id);
+    $post->update(['status' => $request->status]);
+    return response()->json(['success' => true, 'message' => "Post status updated to {$request->status}."]);
+});
+
+Route::delete('/admin/community-posts/{id}', function($id) {
+    $post = \App\Models\AdminPost::findOrFail($id);
+    $post->delete();
+    return response()->json(['success' => true, 'message' => 'Post deleted successfully.']);
+});
+
 Route::post('/support-ticket', [\App\Http\Controllers\SupportTicketController::class, 'store']);
 Route::get('/support-tickets', [\App\Http\Controllers\SupportTicketController::class, 'index']);
 

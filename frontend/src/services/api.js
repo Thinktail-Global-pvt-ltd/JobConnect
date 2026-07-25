@@ -472,6 +472,73 @@ export const mockApi = {
   },
 
   // ==========================================
+  // COMMUNITY POSTS APIs (live Laravel backend)
+  // ==========================================
+  getCommunityPosts: async () => {
+    try {
+      const res = await realApi.get('/api/admin/community-posts');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios getCommunityPosts failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.get('http://localhost:8001/api/admin/community-posts');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct getCommunityPosts failed", e);
+    }
+    return { success: true, posts: [] };
+  },
+
+  createCommunityPost: async (postData) => {
+    try {
+      const res = await realApi.post('/api/admin/community-posts', postData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios createCommunityPost failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.post('http://localhost:8001/api/admin/community-posts', postData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct createCommunityPost failed", e);
+    }
+    return { success: false };
+  },
+
+  updateCommunityPostStatus: async (id, status) => {
+    try {
+      const res = await realApi.post(`/api/admin/community-posts/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios updateCommunityPostStatus failed", e);
+    }
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/community-posts/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct updateCommunityPostStatus failed", e);
+    }
+    return { success: false };
+  },
+
+  deleteCommunityPost: async (id) => {
+    try {
+      const res = await realApi.delete(`/api/admin/community-posts/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios deleteCommunityPost failed", e);
+    }
+    try {
+      const res = await axios.delete(`http://localhost:8001/api/admin/community-posts/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct deleteCommunityPost failed", e);
+    }
+    return { success: false };
+  },
+
+  // ==========================================
   // CHEF MODERATION APIs (live Laravel backend)
   // ==========================================
   getChefs: async (status = '') => {
