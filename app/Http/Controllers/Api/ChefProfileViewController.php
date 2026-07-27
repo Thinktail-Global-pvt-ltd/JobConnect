@@ -36,7 +36,7 @@ class ChefProfileViewController extends Controller
         $this->ensureTableExists();
         try {
             $chefId = $chef_id ?? $request->input('chef_id') ?? $request->input('user_id');
-            $user = $request->user();
+            $user = $request->user() ?: auth('sanctum')->user();
             $employerId = $user ? $user->id : ($request->input('employer_id') ?? 1);
 
             if (!$chefId) {
@@ -94,7 +94,7 @@ class ChefProfileViewController extends Controller
     public function getChefProfileViews(Request $request, $chef_id = null)
     {
         $this->ensureTableExists();
-        $user = $request->user();
+        $user = $request->user() ?: auth('sanctum')->user();
         $chefId = $chef_id ?? $request->query('chef_id') ?? ($user ? $user->id : null);
 
         $query = ChefProfileView::with('employer');

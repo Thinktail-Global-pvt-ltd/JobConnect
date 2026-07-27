@@ -48,10 +48,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chef/onboarding/save', [\App\Http\Controllers\ChefOnboardingController::class, 'save']);
     Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);
 
-    // Chef Connect Appointment Routes
+    // Chef Connect Appointment & Profile View Routes
     Route::post('/appointments/book', [AppointmentController::class, 'book']);
     Route::get('/chef/appointments', [AppointmentController::class, 'chefAppointmentsList']);
     Route::get('/employer/appointments', [AppointmentController::class, 'employerAppointmentsList']);
+    Route::post('/chefs/{chef_id}/view', [\App\Http\Controllers\Api\ChefProfileViewController::class, 'recordView']);
+    Route::post('/chef/view-profile', [\App\Http\Controllers\Api\ChefProfileViewController::class, 'recordView']);
+    Route::get('/chef/profile-views', [\App\Http\Controllers\Api\ChefProfileViewController::class, 'getChefProfileViews']);
+    Route::post('/chef/profile-views', [\App\Http\Controllers\Api\ChefProfileViewController::class, 'getChefProfileViews']);
 });
 
 // Public Feed & Approved Jobs Routes (Approved Jobs Only)
