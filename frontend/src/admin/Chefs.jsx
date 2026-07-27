@@ -496,7 +496,7 @@ export default function Chefs() {
                       const experience = chef.experience_range || chef.experience || '0 Years';
                       const specialties = chef.cuisine_specialty || chef.specialties || 'Multi-Cuisine';
                       const status = chef.approval_status || chef.status || 'pending';
-                      const hasCalendly = chef.calendly || !empty(chef.calendly_link);
+                      const hasCalendly = chef.calendly || Boolean(chef.calendly_link);
                       const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CH';
 
                       return (

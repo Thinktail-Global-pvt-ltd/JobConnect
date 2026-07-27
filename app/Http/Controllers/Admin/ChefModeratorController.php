@@ -11,8 +11,27 @@ class ChefModeratorController extends Controller
     /**
      * List all chef profiles.
      */
+    /**
+     * List all chef profiles.
+     */
     public function index(Request $request)
     {
+        // Auto-ensure all users with role_type 'chef' have a ChefProfile record
+        $chefUsers = \App\Models\User::whereHas('roles', function($q) {
+            $q->where('role_type', 'chef');
+        })->with(['chefProfile'])->latest()->get();
+
+        foreach ($chefUsers as $user) {
+            if (!$user->chefProfile) {
+                ChefProfile::create([
+                    'user_id' => $user->id,
+                    'cuisine_specialty' => 'Multi-Cuisine',
+                    'bio' => 'Professional Chef',
+                    'approval_status' => 'approved',
+                ]);
+            }
+        }
+
         $query = ChefProfile::with('user');
 
         // Optional filter by status
@@ -43,45 +62,59 @@ class ChefModeratorController extends Controller
     public function apiIndex(Request $request)
     {
         try {
-            $query = ChefProfile::with('user');
+            // Find all users who have role_type = 'chef' in user_roles
+            $chefUsers = \App\Models\User::whereHas('roles', function($q) {
+                $q->where('role_type', 'chef');
+            })->with(['chefProfile'])->latest()->get();
 
-            if ($request->has('status') && !empty($request->status) && in_array($request->status, ['pending', 'approved', 'rejected'])) {
-                $query->where('approval_status', $request->status);
-            }
+            $chefs = $chefUsers->map(function ($user) {
+                $chef = $user->chefProfile;
 
-            $chefProfiles = $query->latest()->get();
+                // Auto-create profile if missing for user_roles chef
+                if (!$chef) {
+                    $chef = ChefProfile::create([
+                        'user_id' => $user->id,
+                        'cuisine_specialty' => 'Multi-Cuisine',
+                        'bio' => 'Professional Chef',
+                        'approval_status' => 'approved',
+                    ]);
+                }
 
-            $chefs = $chefProfiles->map(function ($chef) {
                 $availability = [];
                 if ($chef->availability_info) {
                     $availability = json_decode($chef->availability_info, true) ?: [];
                 }
 
-                $user = $chef->user;
-                $fullName = $user ? $user->full_name : 'Unnamed Chef';
+                $fullName = $user->full_name ?: 'Chef #' . $user->id;
 
                 return [
                     'id' => $chef->id,
-                    'user_id' => $chef->user_id,
+                    'user_id' => $user->id,
                     'full_name' => $fullName,
                     'name' => $fullName,
-                    'email' => $user ? $user->email : '',
-                    'mobile_number' => $user ? $user->mobile_number : '',
-                    'city' => $user ? $user->city : '',
-                    'profile_photo_path' => $user ? $user->profile_photo_path : null,
-                    'experience_range' => $user ? ($user->experience_range ?: '0') : '0',
-                    'experience' => $user ? ($user->experience_range ?: '0') : '0',
+                    'email' => $user->email ?: '',
+                    'mobile_number' => $user->mobile_number ?: '',
+                    'city' => $user->city ?: '',
+                    'profile_photo_path' => $user->profile_photo_path,
+                    'experience_range' => $user->experience_range ?: '0',
+                    'experience' => $user->experience_range ?: '0',
                     'cuisine_specialty' => $chef->cuisine_specialty ?: 'Multi-Cuisine',
                     'specialties' => $chef->cuisine_specialty ?: 'Multi-Cuisine',
                     'bio' => $chef->bio ?: '',
                     'calendly_link' => $chef->calendly_link ?: '',
                     'calendly' => !empty($chef->calendly_link),
-                    'approval_status' => $chef->approval_status ?: 'pending',
-                    'status' => $chef->approval_status ?: 'pending',
+                    'approval_status' => $chef->approval_status ?: 'approved',
+                    'status' => $chef->approval_status ?: 'approved',
                     'availability_info' => $availability,
-                    'skills' => ($user && is_array($user->skills)) ? $user->skills : [],
+                    'skills' => is_array($user->skills) ? $user->skills : [],
                 ];
             });
+
+            if ($request->has('status') && !empty($request->status) && in_array($request->status, ['pending', 'approved', 'rejected'])) {
+                $chefs = $chefs->filter(function($c) use ($request) {
+                    return $c['status'] === $request->status;
+                })->values();
+            }
 
             return response()->json([
                 'success' => true,
@@ -98,43 +131,58 @@ class ChefModeratorController extends Controller
     /**
      * Approve a chef profile.
      */
-    public function approve(ChefProfile $chef, Request $request)
+    public function approve($id, Request $request)
     {
-        $chef->update(['approval_status' => 'approved']);
+        $chef = ChefProfile::where('id', $id)->orWhere('user_id', $id)->first();
+        if (!$chef) {
+            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'approved']);
+        } else {
+            $chef->update(['approval_status' => 'approved']);
+        }
 
         if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Chef approved successfully.']);
         }
 
-        return redirect()->back()->with('success', "Chef profile for {$chef->user->full_name} has been approved successfully.");
+        return redirect()->back()->with('success', "Chef profile has been approved successfully.");
     }
 
     /**
      * Unpublish a chef profile (reverts approval_status to pending).
      */
-    public function unpublish(ChefProfile $chef, Request $request)
+    public function unpublish($id, Request $request)
     {
-        $chef->update(['approval_status' => 'pending']);
+        $chef = ChefProfile::where('id', $id)->orWhere('user_id', $id)->first();
+        if (!$chef) {
+            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'pending']);
+        } else {
+            $chef->update(['approval_status' => 'pending']);
+        }
 
         if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Chef unpublished successfully.']);
         }
 
-        return redirect()->back()->with('success', "Chef profile for {$chef->user->full_name} has been unpublished.");
+        return redirect()->back()->with('success', "Chef profile has been unpublished.");
     }
 
     /**
      * Reject a chef profile.
      */
-    public function reject(ChefProfile $chef, Request $request)
+    public function reject($id, Request $request)
     {
-        $chef->update(['approval_status' => 'rejected']);
+        $chef = ChefProfile::where('id', $id)->orWhere('user_id', $id)->first();
+        if (!$chef) {
+            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'rejected']);
+        } else {
+            $chef->update(['approval_status' => 'rejected']);
+        }
 
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['success' => true, 'message' => 'Chef rejected successfully.']);
         }
 
-        return redirect()->back()->with('success', "Chef profile for {$chef->user->full_name} has been rejected.");
+        return redirect()->back()->with('success', "Chef profile has been rejected.");
     }
 
     /**
