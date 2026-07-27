@@ -258,7 +258,23 @@ class ProfileController extends Controller
                 if ($photoUrl) {
                     $user->profile_photo_path = $photoUrl;
                 }
-                $user->save();
+
+                try {
+                    $user->save();
+                } catch (\Illuminate\Database\QueryException $qe) {
+                    if (str_contains($qe->getMessage(), "Unknown column 'gender'")) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN gender VARCHAR(50) NULL AFTER email");
+                            $user->save();
+                        } catch (\Throwable $ex) {
+                            $user->offsetUnset('gender');
+                            unset($user->gender);
+                            $user->save();
+                        }
+                    } else {
+                        throw $qe;
+                    }
+                }
             }
 
             return response()->json([
