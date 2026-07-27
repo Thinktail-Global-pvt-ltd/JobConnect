@@ -72,10 +72,13 @@ class ChefProfileController extends Controller
             ->where('status', 'confirmed')
             ->count();
 
+        $chefCompleteness = $user ? \App\Services\ProfileProgressService::calculateChef($user)['percentage'] : 100;
+
         return response()->json([
             'success' => true,
             'stats' => [
                 'profile_views' => \App\Models\ChefProfileView::where('chef_id', $user ? $user->id : 0)->count() ?: 12,
+                'profile_completeness' => $chefCompleteness,
                 'appointment_requests' => $appointmentsCount,
                 'referrals_posted' => $referralsCount,
                 'upcoming_consultations' => $upcomingCount,
