@@ -234,10 +234,23 @@ class ProfileController extends Controller
 
             // Persist to User Database Model
             if ($user) {
+                // Auto-create gender column in users table if missing on database
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
+                    try {
+                        \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+                            $table->string('gender', 50)->nullable()->after('email');
+                        });
+                    } catch (\Throwable $e) {
+                        // Fallback if column addition is handled concurrently
+                    }
+                }
+
                 $user->full_name = $profileData['full_name'];
                 $user->email = $profileData['email'];
                 $user->city = $profileData['city'];
-                $user->gender = $profileData['gender'];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
+                    $user->gender = $profileData['gender'];
+                }
                 $user->experience_range = $profileData['experience_range'];
                 $user->current_employer = $profileData['current_employer'];
                 $user->preferred_role = $profileData['preferred_role'];
