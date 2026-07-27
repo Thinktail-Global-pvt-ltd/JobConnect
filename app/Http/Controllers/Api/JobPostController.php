@@ -150,7 +150,12 @@ class JobPostController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+        } else {
+            // Only show published / approved data by default
+            $query->where('status', 'approved');
         }
 
         $jobs = $query->orderBy('created_at', 'desc')->get();
