@@ -20,6 +20,24 @@ realApi.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+// LocalStorage helper functions
+const getStored = (key, defaultVal) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultVal;
+  } catch (e) {
+    return defaultVal;
+  }
+};
+
+const setStored = (key, val) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(val));
+  } catch (e) {
+    console.warn(`Failed to save ${key} to localStorage`, e);
+  }
+};
+
 // ==========================================
 // MOCK DATABASE (For fallback if backend fails or is offline)
 // ==========================================
