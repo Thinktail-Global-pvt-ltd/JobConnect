@@ -185,11 +185,14 @@ export default function Chefs() {
           </div>
 
           <button 
-            onClick={() => setIsOnboardModalOpen(true)}
-            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer"
+            type="button"
+            onClick={() => {
+              setIsOnboardModalOpen(true);
+            }}
+            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer z-20"
           >
             <UserPlus className="w-4 h-4" />
-            + Onboard New Chef
+            <span>+ Onboard New Chef</span>
           </button>
         </div>
       </div>
@@ -615,7 +618,7 @@ export default function Chefs() {
 
       {/* ONBOARD NEW CHEF MODAL */}
       {isOnboardModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-xl overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-150">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
               <div className="flex items-center gap-2.5">
