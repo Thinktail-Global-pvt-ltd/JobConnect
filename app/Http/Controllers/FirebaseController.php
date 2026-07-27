@@ -187,4 +187,30 @@ class FirebaseController extends Controller
             'notifications' => $history
         ]);
     }
+
+    /**
+     * Trigger daily profile completion reminder push notifications via API.
+     * POST /api/scheduler/send-profile-reminders
+     */
+    public function triggerProfileCompletionReminders(Request $request)
+    {
+        try {
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('send:profile-completion-reminders', [
+                '--role' => $request->input('role')
+            ]);
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile completion reminder scheduler executed successfully!',
+                'exit_code' => $exitCode,
+                'output' => trim($output)
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error triggering scheduler: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

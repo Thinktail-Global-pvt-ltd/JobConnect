@@ -459,3 +459,6 @@ Route::get('/chef/completeness', [ProfileController::class, 'getChefCompleteness
 Route::get('/employer/profile/completeness', [ProfileController::class, 'getEmployerCompleteness']);
 Route::get('/employer/completeness', [ProfileController::class, 'getEmployerCompleteness']);
 Route::get('/talent/profile/completeness', [ProfileController::class, 'getTalentCompleteness']);
+
+// Daily Profile Completion Notification Scheduler Trigger Route
+Route::match(['get', 'post'], '/scheduler/send-profile-reminders', [\App\Http\Controllers\FirebaseController::class, 'triggerProfileCompletionReminders']);
