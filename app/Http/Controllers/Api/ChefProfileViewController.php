@@ -16,43 +16,50 @@ class ChefProfileViewController extends Controller
      */
     public function recordView(Request $request, $chef_id = null)
     {
-        $chefId = $chef_id ?? $request->input('chef_id') ?? $request->input('user_id');
-        $user = $request->user();
-        $employerId = $user ? $user->id : ($request->input('employer_id') ?? 1);
+        try {
+            $chefId = $chef_id ?? $request->input('chef_id') ?? $request->input('user_id');
+            $user = $request->user();
+            $employerId = $user ? $user->id : ($request->input('employer_id') ?? 1);
 
-        if (!$chefId) {
+            if (!$chefId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The chef_id parameter is required.'
+                ], 422);
+            }
+
+            $chef = User::find($chefId);
+            $employer = User::find($employerId);
+
+            $view = ChefProfileView::create([
+                'chef_id' => $chefId,
+                'employer_id' => $employerId,
+                'viewed_at' => now(),
+            ]);
+
+            $totalViews = ChefProfileView::where('chef_id', $chefId)->count();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Employer profile view recorded successfully.',
+                'view' => [
+                    'id' => (string) $view->id,
+                    'chef_id' => (int) $chefId,
+                    'employer_id' => (int) $employerId,
+                    'chef_name' => $chef ? ($chef->full_name ?: ('Chef #' . $chefId)) : ('Chef #' . $chefId),
+                    'recruiter_name' => $employer ? ($employer->full_name ?: 'Employer Recruiter') : 'Employer Recruiter',
+                    'company' => $employer ? ($employer->current_employer ?: ($employer->company_name ?: 'Hospitality Employer')) : 'Hospitality Employer',
+                    'location' => $employer ? ($employer->city ?: 'India') : 'India',
+                    'viewed_at' => 'Just now',
+                    'total_profile_views' => $totalViews
+                ]
+            ], 200);
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'The chef_id parameter is required.'
-            ], 422);
+                'message' => 'Error recording view: ' . $e->getMessage()
+            ], 500);
         }
-
-        $chef = User::find($chefId);
-        $employer = User::find($employerId);
-
-        $view = ChefProfileView::create([
-            'chef_id' => $chefId,
-            'employer_id' => $employerId,
-            'viewed_at' => now(),
-        ]);
-
-        $totalViews = ChefProfileView::where('chef_id', $chefId)->count();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Employer profile view recorded successfully.',
-            'view' => [
-                'id' => (string) $view->id,
-                'chef_id' => (int) $chefId,
-                'employer_id' => (int) $employerId,
-                'chef_name' => $chef ? ($chef->full_name ?: ('Chef #' . $chefId)) : ('Chef #' . $chefId),
-                'recruiter_name' => $employer ? ($employer->full_name ?: 'Employer Recruiter') : 'Employer Recruiter',
-                'company' => $employer ? ($employer->current_employer ?: ($employer->company_name ?: 'Hospitality Employer')) : 'Hospitality Employer',
-                'location' => $employer ? ($employer->city ?: 'India') : 'India',
-                'viewed_at' => 'Just now',
-                'total_profile_views' => $totalViews
-            ]
-        ], 200);
     }
 
     /**
