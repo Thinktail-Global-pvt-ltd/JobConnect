@@ -49,19 +49,21 @@ class ChefProfileViewController extends Controller
             $chef = User::find($chefId);
             $employer = User::find($employerId);
 
-            $view = ChefProfileView::create([
+            $viewId = \Illuminate\Support\Facades\DB::table('chef_profile_views')->insertGetId([
                 'chef_id' => (int) $chefId,
                 'employer_id' => (int) $employerId,
                 'viewed_at' => now()->toDateTimeString(),
+                'created_at' => now()->toDateTimeString(),
+                'updated_at' => now()->toDateTimeString(),
             ]);
 
-            $totalViews = ChefProfileView::where('chef_id', $chefId)->count();
+            $totalViews = \Illuminate\Support\Facades\DB::table('chef_profile_views')->where('chef_id', $chefId)->count();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Employer profile view recorded successfully.',
                 'view' => [
-                    'id' => (string) $view->id,
+                    'id' => (string) $viewId,
                     'chef_id' => (int) $chefId,
                     'employer_id' => (int) $employerId,
                     'chef_name' => $chef ? ($chef->full_name ?: ('Chef #' . $chefId)) : ('Chef #' . $chefId),
