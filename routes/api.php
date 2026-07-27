@@ -53,11 +53,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/chef/appointments', [AppointmentController::class, 'chefAppointmentsList']);
     Route::get('/employer/appointments', [AppointmentController::class, 'employerAppointmentsList']);
 
-    Route::post('/chefs/{chef}/view', function($chef, \Illuminate\Http\Request $request) {
+    $recordViewHandler = function($chef_id = null, \Illuminate\Http\Request $request = null) {
+        if ($chef_id instanceof \Illuminate\Http\Request) {
+            $request = $chef_id;
+            $chef_id = null;
+        }
         try {
-            $user = $request->user() ?: auth('sanctum')->user();
-            $employerId = $user ? $user->id : ($request->input('employer_id') ?? 1);
-            $chefId = $chef ?: ($request->input('chef_id') ?? 4);
+            $user = $request ? ($request->user() ?: auth('sanctum')->user()) : auth('sanctum')->user();
+            $employerId = $user ? $user->id : ($request ? ($request->input('employer_id') ?? 1) : 1);
+            $chefId = $chef_id ?? ($request ? ($request->input('chef_id') ?? $request->input('user_id')) : null) ?? 4;
 
             if (!\Illuminate\Support\Facades\Schema::hasTable('chef_profile_views')) {
                 \Illuminate\Support\Facades\Schema::create('chef_profile_views', function ($table) {
@@ -97,7 +101,12 @@ Route::middleware('auth:sanctum')->group(function () {
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
-    });
+    };
+
+    Route::post('/chefs/{chef_id}/view', $recordViewHandler);
+    Route::post('/chefs/{chef}/view', $recordViewHandler);
+    Route::post('/chef/view-profile', $recordViewHandler);
+    Route::post('/chef-views/record', $recordViewHandler);
 
     Route::get('/chef/profile-views', function(\Illuminate\Http\Request $request) {
         try {
