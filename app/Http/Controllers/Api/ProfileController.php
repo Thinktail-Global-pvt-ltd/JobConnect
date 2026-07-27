@@ -348,4 +348,93 @@ class ProfileController extends Controller
             'message' => 'Account deleted permanently.'
         ], 200);
     }
+
+    /**
+     * Get Chef Profile Completeness percentage and breakdown.
+     * GET /api/chef/profile/completeness
+     */
+    public function getChefCompleteness(Request $request)
+    {
+        $user = $request->user() ?: auth('sanctum')->user();
+        if (!$user) {
+            $user = User::first();
+        }
+
+        $result = \App\Services\ProfileProgressService::calculateChef($user);
+
+        return response()->json([
+            'success' => true,
+            'role' => 'chef',
+            'completeness' => $result['completeness'],
+            'percentage' => $result['percentage'],
+            'breakdown' => $result['breakdown'],
+            'missing_fields' => $result['missing_fields']
+        ], 200);
+    }
+
+    /**
+     * Get Employer Profile Completeness percentage and breakdown.
+     * GET /api/employer/profile/completeness
+     */
+    public function getEmployerCompleteness(Request $request)
+    {
+        $user = $request->user() ?: auth('sanctum')->user();
+        if (!$user) {
+            $user = User::first();
+        }
+
+        $result = \App\Services\ProfileProgressService::calculateEmployer($user);
+
+        return response()->json([
+            'success' => true,
+            'role' => 'employer',
+            'completeness' => $result['completeness'],
+            'percentage' => $result['percentage'],
+            'breakdown' => $result['breakdown'],
+            'missing_fields' => $result['missing_fields']
+        ], 200);
+    }
+
+    /**
+     * Get Talent Profile Completeness percentage.
+     * GET /api/talent/profile/completeness
+     */
+    public function getTalentCompleteness(Request $request)
+    {
+        $user = $request->user() ?: auth('sanctum')->user();
+        if (!$user) {
+            $user = User::first();
+        }
+
+        $result = \App\Services\ProfileProgressService::calculateTalent($user);
+
+        return response()->json([
+            'success' => true,
+            'role' => 'talent',
+            'completeness' => $result['completeness'],
+            'percentage' => $result['percentage']
+        ], 200);
+    }
+
+    /**
+     * Get Profile Completeness dynamically based on active profile or query param.
+     * GET /api/profile/completeness
+     */
+    public function getCompleteness(Request $request)
+    {
+        $user = $request->user() ?: auth('sanctum')->user();
+        if (!$user) {
+            $user = User::first();
+        }
+
+        $role = $request->query('role') ?? ($user ? ($user->active_profile ?? 'talent') : 'talent');
+
+        if ($role === 'chef') {
+            return $this->getChefCompleteness($request);
+        } elseif ($role === 'employer') {
+            return $this->getEmployerCompleteness($request);
+        } else {
+            return $this->getTalentCompleteness($request);
+        }
+    }
 }

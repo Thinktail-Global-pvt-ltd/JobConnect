@@ -24,9 +24,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Multi-profile Management Switcher Route
     Route::post('/auth/toggle-profile', [AuthController::class, 'toggleProfile']);
 
-    // User Profile Routes
+    // User Profile & Completeness Routes
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
+    Route::get('/profile/completeness', [ProfileController::class, 'getCompleteness']);
+    Route::get('/chef/profile/completeness', [ProfileController::class, 'getChefCompleteness']);
+    Route::get('/chef/completeness', [ProfileController::class, 'getChefCompleteness']);
+    Route::get('/employer/profile/completeness', [ProfileController::class, 'getEmployerCompleteness']);
+    Route::get('/employer/completeness', [ProfileController::class, 'getEmployerCompleteness']);
+    Route::get('/talent/profile/completeness', [ProfileController::class, 'getTalentCompleteness']);
     Route::get('/profile/personal', [ProfileController::class, 'showPersonal']);
     Route::post('/profile/personal', [ProfileController::class, 'updatePersonal']);
     Route::post('/profile/language', [ProfileController::class, 'updateLanguage']);
@@ -445,3 +451,11 @@ Route::post('/user/fcm-token', [\App\Http\Controllers\FirebaseController::class,
 Route::match(['get', 'post'], '/test/send-notification', [\App\Http\Controllers\FirebaseController::class, 'sendTestNotification']);
 Route::match(['get', 'post'], '/user/send-notification', [\App\Http\Controllers\FirebaseController::class, 'sendTestNotification']);
 Route::match(['get', 'post'], '/user/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+
+// Profile Completeness Routes
+Route::get('/profile/completeness', [ProfileController::class, 'getCompleteness']);
+Route::get('/chef/profile/completeness', [ProfileController::class, 'getChefCompleteness']);
+Route::get('/chef/completeness', [ProfileController::class, 'getChefCompleteness']);
+Route::get('/employer/profile/completeness', [ProfileController::class, 'getEmployerCompleteness']);
+Route::get('/employer/completeness', [ProfileController::class, 'getEmployerCompleteness']);
+Route::get('/talent/profile/completeness', [ProfileController::class, 'getTalentCompleteness']);
