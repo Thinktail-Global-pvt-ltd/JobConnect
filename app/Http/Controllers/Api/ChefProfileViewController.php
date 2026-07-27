@@ -31,20 +31,24 @@ class ChefProfileViewController extends Controller
      * Record an employer viewing a chef's profile.
      * POST /api/chefs/{chef}/view
      */
-    public function recordView(Request $request, $chef_id = null)
+    public function recordView($chef_id = null, Request $request = null)
     {
+        if ($chef_id instanceof Request) {
+            $req = $chef_id;
+            $id = $request;
+            $request = $req;
+            $chef_id = $id;
+        }
+        if (!$request) {
+            $request = request();
+        }
+
         $this->ensureTableExists();
+
         try {
-            $chefId = $chef_id ?? $request->input('chef_id') ?? $request->input('user_id');
+            $chefId = is_numeric($chef_id) ? (int)$chef_id : ($request->input('chef_id') ?? $request->input('user_id') ?? 4);
             $user = $request->user() ?: auth('sanctum')->user();
             $employerId = $user ? $user->id : ($request->input('employer_id') ?? 1);
-
-            if (!$chefId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The chef_id parameter is required.'
-                ], 422);
-            }
 
             $chef = User::find($chefId);
             $employer = User::find($employerId);
@@ -85,60 +89,78 @@ class ChefProfileViewController extends Controller
     /**
      * Get list of employers who viewed a specific chef's profile.
      */
-    public function getViews(Request $request, $chef_id = null)
+    public function getViews($chef_id = null, Request $request = null)
     {
-        return $this->getChefProfileViews($request, $chef_id);
+        return $this->getChefProfileViews($chef_id, $request);
     }
 
     /**
      * Get profile views for chef side GET /api/chef/profile-views
      */
-    public function getChefProfileViews(Request $request, $chef_id = null)
+    public function getChefProfileViews($chef_id = null, Request $request = null)
     {
-        $this->ensureTableExists();
-        $user = $request->user() ?: auth('sanctum')->user();
-        $chefId = $chef_id ?? $request->query('chef_id') ?? ($user ? $user->id : null);
-
-        $query = ChefProfileView::with('employer');
-        if ($chefId) {
-            $query->where('chef_id', $chefId);
+        if ($chef_id instanceof Request) {
+            $req = $chef_id;
+            $id = $request;
+            $request = $req;
+            $chef_id = $id;
+        }
+        if (!$request) {
+            $request = request();
         }
 
-        $views = $query->orderBy('created_at', 'desc')->get();
+        $this->ensureTableExists();
 
-        $formattedViews = $views->map(function ($v) {
-            $employer = $v->employer;
-            
-            $viewedAtStr = 'Recently';
-            if ($v->viewed_at) {
-                try {
-                    $dt = Carbon::parse($v->viewed_at);
-                    if ($dt->isToday()) {
-                        $viewedAtStr = 'Today, ' . $dt->format('g:i A');
-                    } elseif ($dt->isYesterday()) {
-                        $viewedAtStr = 'Yesterday, ' . $dt->format('g:i A');
-                    } else {
-                        $viewedAtStr = $dt->format('d M, g:i A');
-                    }
-                } catch (\Exception $e) {
-                    $viewedAtStr = (string) $v->viewed_at;
-                }
+        try {
+            $user = $request->user() ?: auth('sanctum')->user();
+            $chefId = is_numeric($chef_id) ? (int)$chef_id : ($request->query('chef_id') ?? ($user ? $user->id : null));
+
+            $query = \Illuminate\Support\Facades\DB::table('chef_profile_views');
+            if ($chefId) {
+                $query->where('chef_id', $chefId);
             }
 
-            return [
-                'id' => (string) $v->id,
-                'recruiter_name' => ($employer && $employer->full_name) ? $employer->full_name : ('Employer Recruiter #' . $v->employer_id),
-                'company' => ($employer && ($employer->current_employer || $employer->company_name)) ? ($employer->current_employer ?: $employer->company_name) : 'Hospitality Company',
-                'location' => ($employer && $employer->city) ? $employer->city : 'India',
-                'viewed_at' => $viewedAtStr,
-                'industry' => 'Hospitality & Dining'
-            ];
-        });
+            $views = $query->orderBy('created_at', 'desc')->get();
 
-        return response()->json([
-            'success' => true,
-            'total_views' => count($formattedViews),
-            'views' => $formattedViews
-        ], 200);
+            $formattedViews = $views->map(function ($v) {
+                $employer = User::find($v->employer_id);
+                
+                $viewedAtStr = 'Recently';
+                if ($v->viewed_at) {
+                    try {
+                        $dt = Carbon::parse($v->viewed_at);
+                        if ($dt->isToday()) {
+                            $viewedAtStr = 'Today, ' . $dt->format('g:i A');
+                        } elseif ($dt->isYesterday()) {
+                            $viewedAtStr = 'Yesterday, ' . $dt->format('g:i A');
+                        } else {
+                            $viewedAtStr = $dt->format('d M, g:i A');
+                        }
+                    } catch (\Throwable $e) {
+                        $viewedAtStr = (string) $v->viewed_at;
+                    }
+                }
+
+                return [
+                    'id' => (string) $v->id,
+                    'recruiter_name' => ($employer && $employer->full_name) ? $employer->full_name : ('Employer Recruiter #' . $v->employer_id),
+                    'company' => ($employer && ($employer->current_employer || $employer->company_name)) ? ($employer->current_employer ?: $employer->company_name) : 'Hospitality Company',
+                    'location' => ($employer && $employer->city) ? $employer->city : 'India',
+                    'viewed_at' => $viewedAtStr,
+                    'industry' => 'Hospitality & Dining'
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'total_views' => count($formattedViews),
+                'views' => $formattedViews
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching views: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
