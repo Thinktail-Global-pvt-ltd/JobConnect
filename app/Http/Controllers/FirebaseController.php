@@ -73,7 +73,7 @@ class FirebaseController extends Controller
      */
     public function sendTestNotification(Request $request)
     {
-        if ($request->input('trigger_reminders') || $request->input('action') === 'send_reminders') {
+        if ($request->has('trigger_reminders') || $request->filled('trigger_reminders') || $request->input('action') === 'send_reminders' || $request->query('trigger_reminders')) {
             return $this->triggerProfileCompletionReminders($request);
         }
 
