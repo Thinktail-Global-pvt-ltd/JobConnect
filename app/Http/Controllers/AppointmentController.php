@@ -151,42 +151,58 @@ class AppointmentController extends Controller
     public function registeredChefsList()
     {
         try {
-            $chefs = User::whereHas('roles', function ($q) {
+            // Find all users with role_type = 'chef'
+            $chefUsers = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
             })
-            ->where(function($q) {
-                $q->whereNull('is_available')->orWhere('is_available', true);
-            })
-            ->whereHas('chefProfile', function ($q) {
-                $q->where('approval_status', 'approved');
+            ->with(['chefProfile'])
+            ->get();
+
+            // Auto-create missing chef profiles
+            foreach ($chefUsers as $user) {
+                if (!$user->chefProfile) {
+                    \App\Models\ChefProfile::create([
+                        'user_id' => $user->id,
+                        'cuisine_specialty' => 'Multi-Cuisine',
+                        'bio' => 'Professional Chef',
+                        'approval_status' => 'approved',
+                    ]);
+                }
+            }
+
+            // Reload all chefs (approved or active)
+            $chefs = User::whereHas('roles', function ($q) {
+                $q->where('role_type', 'chef');
             })
             ->with(['chefProfile'])
             ->get()
             ->map(function ($chef) {
-                // Decode availability_info
+                $profile = $chef->chefProfile;
                 $availability = [];
-                if ($chef->chefProfile && $chef->chefProfile->availability_info) {
-                    $availability = json_decode($chef->chefProfile->availability_info, true) ?: [];
+                if ($profile && $profile->availability_info) {
+                    $availability = json_decode($profile->availability_info, true) ?: [];
                 }
 
+                $status = $profile ? ($profile->approval_status ?: 'approved') : 'approved';
+
                 return [
-                    'id' => $chef->chefProfile ? $chef->chefProfile->id : $chef->id,
+                    'id' => $profile ? $profile->id : $chef->id,
                     'user_id' => $chef->id,
-                    'full_name' => $chef->full_name,
-                    'name' => $chef->full_name,
-                    'email' => $chef->email,
-                    'mobile_number' => $chef->mobile_number,
-                    'city' => $chef->city,
+                    'full_name' => $chef->full_name ?: ('Chef #' . $chef->id),
+                    'name' => $chef->full_name ?: ('Chef #' . $chef->id),
+                    'email' => $chef->email ?: '',
+                    'mobile_number' => $chef->mobile_number ?: '',
+                    'city' => $chef->city ?: '',
                     'profile_photo_path' => $chef->profile_photo_path,
                     'experience_range' => $chef->experience_range ?: '0',
                     'experience' => $chef->experience_range ?: '0',
-                    'cuisine_specialty' => $chef->chefProfile ? $chef->chefProfile->cuisine_specialty : 'Multi-Cuisine',
-                    'specialties' => $chef->chefProfile ? $chef->chefProfile->cuisine_specialty : 'Multi-Cuisine',
-                    'bio' => $chef->chefProfile ? $chef->chefProfile->bio : '',
-                    'calendly_link' => $chef->chefProfile ? $chef->chefProfile->calendly_link : '',
-                    'calendly' => !empty($chef->chefProfile ? $chef->chefProfile->calendly_link : ''),
-                    'approval_status' => 'approved',
-                    'status' => 'approved',
+                    'cuisine_specialty' => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
+                    'specialties' => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
+                    'bio' => $profile ? ($profile->bio ?: '') : '',
+                    'calendly_link' => $profile ? ($profile->calendly_link ?: '') : '',
+                    'calendly' => !empty($profile ? $profile->calendly_link : ''),
+                    'approval_status' => $status,
+                    'status' => $status,
                     'availability_info' => $availability,
                     'skills' => is_array($chef->skills) ? $chef->skills : [],
                 ];

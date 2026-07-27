@@ -572,15 +572,23 @@ export const mockApi = {
   getChefs: async (status = '') => {
     try {
       const res = await realApi.get('/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
     } catch (e) {
-      console.warn("Axios getChefs /api/admin/chefs failed, trying direct localhost...", e);
+      console.warn("Axios getChefs /api/admin/chefs failed, trying direct relative...", e);
+    }
+    try {
+      const res = await axios.get('/backend/api/admin/chefs', { params: { status } });
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+        return res.data;
+      }
+    } catch (e) {
+      console.warn("Axios direct /backend/api/admin/chefs failed...", e);
     }
     try {
       const res = await axios.get('http://localhost:8001/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
     } catch (e) {
@@ -596,15 +604,23 @@ export const mockApi = {
   getEmployerChefs: async () => {
     try {
       const res = await realApi.get('/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
     } catch (e) {
-      console.warn("Axios getEmployerChefs /api/employer/chefs failed, trying direct localhost...", e);
+      console.warn("Axios getEmployerChefs /api/employer/chefs failed...", e);
+    }
+    try {
+      const res = await axios.get('/backend/api/employer/chefs');
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+        return res.data;
+      }
+    } catch (e) {
+      console.warn("Axios direct /backend/api/employer/chefs failed...", e);
     }
     try {
       const res = await axios.get('http://localhost:8001/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
     } catch (e) {
