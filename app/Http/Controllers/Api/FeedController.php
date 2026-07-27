@@ -72,7 +72,7 @@ class FeedController extends Controller
         //     We use inject_every to know how frequently to inject each post.
         //     Default inject_every = 2 → insert after every 2 job items.
         // ----------------------------------------------------------------
-        $adminPosts = AdminPost::published()
+        $adminPosts = AdminPost::with('creator')->published()
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($p) {
