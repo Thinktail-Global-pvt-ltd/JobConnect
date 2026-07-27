@@ -50,9 +50,9 @@ class ChefProfileViewController extends Controller
             $employer = User::find($employerId);
 
             $view = ChefProfileView::create([
-                'chef_id' => $chefId,
-                'employer_id' => $employerId,
-                'viewed_at' => now(),
+                'chef_id' => (int) $chefId,
+                'employer_id' => (int) $employerId,
+                'viewed_at' => now()->toDateTimeString(),
             ]);
 
             $totalViews = ChefProfileView::where('chef_id', $chefId)->count();
