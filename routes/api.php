@@ -54,6 +54,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chef/onboarding/save', [\App\Http\Controllers\ChefOnboardingController::class, 'save']);
     Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);
 
+    // Applicant Status & Shortlisting Routes
+    Route::post('/employer/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
+    Route::post('/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
+
     // Chef Connect Appointment & Profile View Routes
     Route::post('/appointments/book', [AppointmentController::class, 'book']);
     Route::get('/chef/appointments', [AppointmentController::class, 'chefAppointmentsList']);
@@ -462,3 +466,7 @@ Route::get('/talent/profile/completeness', [ProfileController::class, 'getTalent
 
 // Daily Profile Completion Notification Scheduler Trigger Route
 Route::match(['get', 'post'], '/scheduler/send-profile-reminders', [\App\Http\Controllers\FirebaseController::class, 'triggerProfileCompletionReminders']);
+
+// Candidate Status & Shortlisting Routes
+Route::match(['get', 'post'], '/employer/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
+Route::match(['get', 'post'], '/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
