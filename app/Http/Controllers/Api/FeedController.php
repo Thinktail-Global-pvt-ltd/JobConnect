@@ -64,6 +64,19 @@ class FeedController extends Controller
         $jobs->transform(function ($job) use ($appliedJobIds) {
             $job->applied = in_array($job->id, $appliedJobIds);
             $job->_type   = $job->is_referral ? 'referral_job' : 'job';
+
+            // Normalize and parse currency
+            $curr = $job->salary_currency;
+            if (empty($curr) && !empty($job->salary)) {
+                if (str_contains($job->salary, 'AED')) $curr = 'AED';
+                elseif (str_contains($job->salary, 'INR') || str_contains($job->salary, '₹')) $curr = 'INR';
+                elseif (str_contains($job->salary, '$') || str_contains($job->salary, 'USD')) $curr = 'USD';
+                elseif (str_contains($job->salary, '£') || str_contains($job->salary, 'GBP')) $curr = 'GBP';
+                elseif (str_contains($job->salary, '€') || str_contains($job->salary, 'EUR')) $curr = 'EUR';
+                else $curr = 'INR';
+            }
+            $job->salary_currency = $curr ?: 'INR';
+            $job->currency = $job->salary_currency;
             
             $posterRole = $job->submitted_by_role ?: ($job->creator ? $job->creator->active_profile : 'employer');
             $job->posted_by_role = $posterRole;
