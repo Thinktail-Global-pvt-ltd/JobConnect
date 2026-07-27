@@ -263,6 +263,9 @@ class EmployerController extends Controller
 
             $application->update(['status' => $newStatus]);
 
+            // Shoot automatic FCM Push Notification to Applicant
+            \App\Services\NotificationTriggerService::notifyApplicationStatusChange($application, $newStatus);
+
             // Return updated candidate details mapped for frontend
             $mappedApplicant = [
                 'id' => $application->id,

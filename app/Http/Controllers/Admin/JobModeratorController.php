@@ -54,6 +54,9 @@ class JobModeratorController extends Controller
     {
         $job->update(['status' => 'approved']);
 
+        // Shoot FCM Push Notifications to Employer & Job Seekers
+        \App\Services\NotificationTriggerService::notifyJobPublished($job);
+
         if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
             return response()->json([
                 'success' => true,

@@ -61,6 +61,9 @@ class ReferralController extends Controller
         $referral = JobPost::where('is_referral', true)->findOrFail($id);
         $referral->update(['status' => 'approved']);
 
+        // Shoot FCM Push Notifications to Employer & Candidates
+        \App\Services\NotificationTriggerService::notifyJobPublished($referral);
+
         return response()->json(['success' => true, 'message' => 'Referral approved.']);
     }
 

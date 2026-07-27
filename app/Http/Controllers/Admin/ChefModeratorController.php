@@ -140,6 +140,13 @@ class ChefModeratorController extends Controller
             $chef->update(['approval_status' => 'approved']);
         }
 
+        // Shoot FCM Push Notification to Chef
+        \App\Services\NotificationTriggerService::sendToUser(
+            $chef->user_id,
+            "Chef Profile Approved! 🎉",
+            "Congratulations! Your Chef profile has been approved by admin. Employers can now view & book you on JobConnect!"
+        );
+
         if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Chef approved successfully.']);
         }
