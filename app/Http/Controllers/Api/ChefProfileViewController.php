@@ -10,12 +10,30 @@ use Carbon\Carbon;
 
 class ChefProfileViewController extends Controller
 {
+    private function ensureTableExists()
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('chef_profile_views')) {
+                \Illuminate\Support\Facades\Schema::create('chef_profile_views', function ($table) {
+                    $table->id();
+                    $table->unsignedBigInteger('chef_id');
+                    $table->unsignedBigInteger('employer_id');
+                    $table->timestamp('viewed_at')->nullable();
+                    $table->timestamps();
+                });
+            }
+        } catch (\Throwable $e) {
+            // Ignore if table exists or migration error
+        }
+    }
+
     /**
      * Record an employer viewing a chef's profile.
      * POST /api/chefs/{chef}/view
      */
     public function recordView(Request $request, $chef_id = null)
     {
+        $this->ensureTableExists();
         try {
             $chefId = $chef_id ?? $request->input('chef_id') ?? $request->input('user_id');
             $user = $request->user();
@@ -75,6 +93,7 @@ class ChefProfileViewController extends Controller
      */
     public function getChefProfileViews(Request $request, $chef_id = null)
     {
+        $this->ensureTableExists();
         $user = $request->user();
         $chefId = $chef_id ?? $request->query('chef_id') ?? ($user ? $user->id : null);
 
