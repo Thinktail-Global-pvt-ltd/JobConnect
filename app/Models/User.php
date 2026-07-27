@@ -173,6 +173,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Accessor to dynamically retrieve active profile / role type.
+     */
+    public function getActiveProfileAttribute(): string
+    {
+        $activeRole = $this->roles()->where('is_active', true)->first();
+        if ($activeRole) {
+            return $activeRole->role_type;
+        }
+        $anyRole = $this->roles()->first();
+        return $anyRole ? $anyRole->role_type : 'job_seeker';
+    }
+
+    /**
      * Scope for non-suspended users.
      */
     public function scopeActive($query)

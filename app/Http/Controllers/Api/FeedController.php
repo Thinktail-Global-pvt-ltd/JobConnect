@@ -64,6 +64,15 @@ class FeedController extends Controller
         $jobs->transform(function ($job) use ($appliedJobIds) {
             $job->applied = in_array($job->id, $appliedJobIds);
             $job->_type   = $job->is_referral ? 'referral_job' : 'job';
+            
+            $posterRole = $job->submitted_by_role ?: ($job->creator ? $job->creator->active_profile : 'employer');
+            $job->posted_by_role = $posterRole;
+
+            if ($job->creator) {
+                $job->creator->active_profile = $posterRole;
+                $job->creator->role = $posterRole;
+            }
+
             return $job;
         });
 
@@ -78,6 +87,11 @@ class FeedController extends Controller
             ->map(function ($p) {
                 $p->_type  = 'admin_post';
                 $p->applied = false;
+                $p->posted_by_role = 'administrator';
+                if ($p->creator) {
+                    $p->creator->active_profile = 'administrator';
+                    $p->creator->role = 'administrator';
+                }
                 return $p;
             });
 
