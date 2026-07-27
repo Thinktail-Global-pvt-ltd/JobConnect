@@ -28,6 +28,9 @@ class FeedController extends Controller
      */
     public function index(Request $request)
     {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
         // ----------------------------------------------------------------
         // 1.  Fetch paginated job posts (Employer jobs & Referral jobs)
         // ----------------------------------------------------------------
