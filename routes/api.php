@@ -78,70 +78,95 @@ Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserModeratorC
 Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::post('/admin/chefs/create', function(\Illuminate\Http\Request $request) {
-    $request->validate([
-        'full_name' => 'required|string|max:255',
-        'city' => 'required|string|max:255',
-        'experience_range' => 'required|string|max:255',
-        'cuisine_specialty' => 'required|string|max:255',
-    ]);
+    try {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'experience_range' => 'required|string|max:255',
+            'cuisine_specialty' => 'required|string|max:255',
+        ]);
 
-    $email = $request->email ?: ('chef.' . time() . '@hospitality.com');
-    $mobile = $request->mobile_number ?: ('9' . rand(100000000, 999999999));
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . implode(', ', $validator->errors()->all()),
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-    $user = \App\Models\User::firstOrCreate(
-        ['email' => $email],
-        [
-            'full_name' => $request->full_name,
-            'mobile_number' => $mobile,
-            'city' => $request->city,
-            'experience_range' => $request->experience_range,
-            'preferred_role' => $request->preferred_role ?? 'Executive Chef',
-            'skills' => is_array($request->skills) ? $request->skills : array_filter(array_map('trim', explode(',', $request->skills ?? ''))),
-        ]
-    );
+        $email = $request->email ?: ('chef.' . time() . rand(100, 999) . '@hospitality.com');
+        $mobile = $request->mobile_number ?: ('9' . rand(100000000, 999999999));
 
-    \App\Models\UserRole::updateOrCreate(
-        ['user_id' => $user->id, 'role_type' => 'chef'],
-        ['is_active' => true]
-    );
+        // Find or create user, avoiding duplicate key exception on mobile or email
+        $user = \App\Models\User::where('email', $email)->orWhere('mobile_number', $mobile)->first();
 
-    $profile = \App\Models\ChefProfile::updateOrCreate(
-        ['user_id' => $user->id],
-        [
-            'cuisine_specialty' => $request->cuisine_specialty,
-            'bio' => $request->bio,
-            'calendly_link' => $request->calendly_link,
-            'availability_info' => json_encode([
-                'languages' => is_array($request->languages) ? $request->languages : explode(',', $request->languages ?? 'English,Hindi'),
-                'regional_experience' => is_array($request->regional_experience) ? $request->regional_experience : ['Pan-India'],
-                'location_preference' => $request->location_preference ?? 'Both',
-                'employment_preference' => is_array($request->employment_preference) ? $request->employment_preference : ['Permanent'],
-                'availability_status' => $request->availability ?? 'Full-time',
-            ]),
-            'approval_status' => $request->approval_status ?? 'approved',
-        ]
-    );
+        if (!$user) {
+            $user = \App\Models\User::create([
+                'email' => $email,
+                'full_name' => $request->full_name,
+                'mobile_number' => $mobile,
+                'city' => $request->city,
+                'experience_range' => $request->experience_range,
+                'preferred_role' => $request->preferred_role ?? 'Executive Chef',
+                'skills' => is_array($request->skills) ? $request->skills : array_filter(array_map('trim', explode(',', $request->skills ?? ''))),
+            ]);
+        } else {
+            $user->update([
+                'full_name' => $request->full_name,
+                'city' => $request->city,
+                'experience_range' => $request->experience_range,
+                'preferred_role' => $request->preferred_role ?? 'Executive Chef',
+            ]);
+        }
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Chef profile created successfully!',
-        'chef' => [
-            'id' => $profile->id,
-            'user_id' => $user->id,
-            'full_name' => $user->full_name,
-            'name' => $user->full_name,
-            'email' => $user->email,
-            'mobile_number' => $user->mobile_number,
-            'city' => $user->city,
-            'experience_range' => $user->experience_range,
-            'cuisine_specialty' => $profile->cuisine_specialty,
-            'specialties' => $profile->cuisine_specialty,
-            'bio' => $profile->bio,
-            'calendly_link' => $profile->calendly_link,
-            'approval_status' => $profile->approval_status,
-            'status' => $profile->approval_status,
-        ]
-    ], 201);
+        \App\Models\UserRole::updateOrCreate(
+            ['user_id' => $user->id, 'role_type' => 'chef'],
+            ['is_active' => true]
+        );
+
+        $profile = \App\Models\ChefProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'cuisine_specialty' => $request->cuisine_specialty,
+                'bio' => $request->bio,
+                'calendly_link' => $request->calendly_link,
+                'availability_info' => json_encode([
+                    'languages' => is_array($request->languages) ? $request->languages : explode(',', $request->languages ?? 'English,Hindi'),
+                    'regional_experience' => is_array($request->regional_experience) ? $request->regional_experience : ['Pan-India'],
+                    'location_preference' => $request->location_preference ?? 'Both',
+                    'employment_preference' => is_array($request->employment_preference) ? $request->employment_preference : ['Permanent'],
+                    'availability_status' => $request->availability ?? 'Full-time',
+                ]),
+                'approval_status' => $request->approval_status ?? 'approved',
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Chef profile created successfully!',
+            'chef' => [
+                'id' => $profile->id,
+                'user_id' => $user->id,
+                'full_name' => $user->full_name,
+                'name' => $user->full_name,
+                'email' => $user->email,
+                'mobile_number' => $user->mobile_number,
+                'city' => $user->city,
+                'experience_range' => $user->experience_range,
+                'cuisine_specialty' => $profile->cuisine_specialty,
+                'specialties' => $profile->cuisine_specialty,
+                'bio' => $profile->bio,
+                'calendly_link' => $profile->calendly_link,
+                'approval_status' => $profile->approval_status,
+                'status' => $profile->approval_status,
+            ]
+        ], 201);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error onboarding chef: ' . $e->getMessage()
+        ], 500);
+    }
 });
 Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);
 Route::post('/admin/chefs/{chef}/unpublish', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'unpublish']);

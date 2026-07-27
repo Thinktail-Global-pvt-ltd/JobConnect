@@ -103,7 +103,10 @@ export default function Chefs() {
 
   const handleOnboardSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.full_name || !formData.city || !formData.cuisine_specialty) return;
+    if (!formData.full_name || !formData.city || !formData.cuisine_specialty) {
+      alert("Please fill in all required fields: Full Name, City, and Cuisine Specialties.");
+      return;
+    }
     setSubmitting(true);
 
     const tempNewChef = {
@@ -124,17 +127,23 @@ export default function Chefs() {
       status: formData.approval_status || 'approved',
     };
 
+    // Optimistic UI state update
     setChefs(prev => [tempNewChef, ...prev.filter(c => c.id !== tempNewChef.id)]);
     if (tempNewChef.approval_status === 'approved') {
       setPublishedChefs(prev => [tempNewChef, ...prev.filter(c => c.id !== tempNewChef.id)]);
     }
 
-    setIsOnboardModalOpen(false);
-
     try {
-      await mockApi.createChef(formData);
+      const res = await mockApi.createChef(formData);
+      if (res && res.success === false) {
+        alert("Onboarding failed: " + (res.message || "Unknown error"));
+      } else {
+        alert("Chef Onboarded Successfully!");
+        setIsOnboardModalOpen(false);
+      }
     } catch (err) {
       console.error('Chef onboarding failed:', err);
+      alert("Error onboarding chef: " + err.message);
     } finally {
       setSubmitting(false);
       await loadChefs();
