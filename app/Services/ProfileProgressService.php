@@ -9,6 +9,27 @@ use App\Models\ChefProfile;
 class ProfileProgressService
 {
     /**
+     * Helper to strictly check if a field contains actual non-null, non-empty data.
+     */
+    private static function isFilled($value): bool
+    {
+        if ($value === null) {
+            return false;
+        }
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            return $trimmed !== '' && strtolower($trimmed) !== 'null';
+        }
+        if (is_array($value)) {
+            return count(array_filter($value)) > 0;
+        }
+        if (is_numeric($value)) {
+            return true;
+        }
+        return !empty($value);
+    }
+
+    /**
      * Calculate profile progress percentage dynamically for general user.
      */
     public static function calculate(User $user): int
@@ -16,37 +37,37 @@ class ProfileProgressService
         $percentage = 0;
 
         // 1. Name (15%)
-        if (!empty($user->full_name)) {
+        if (self::isFilled($user->full_name)) {
             $percentage += 15;
         }
 
         // 2. Photo (15%)
-        if (!empty($user->profile_photo_path)) {
+        if (self::isFilled($user->profile_photo_path)) {
             $percentage += 15;
         }
 
         // 3. Mobile (10%)
-        if (!empty($user->mobile_number)) {
+        if (self::isFilled($user->mobile_number)) {
             $percentage += 10;
         }
 
         // 4. City (15%)
-        if (!empty($user->city)) {
+        if (self::isFilled($user->city)) {
             $percentage += 15;
         }
 
         // 5. Experience Range (20%)
-        if (!empty($user->experience_range) || !empty($user->experience_years)) {
+        if (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) {
             $percentage += 20;
         }
 
         // 6. Preferred Role (15%)
-        if (!empty($user->preferred_role)) {
+        if (self::isFilled($user->preferred_role)) {
             $percentage += 15;
         }
 
         // 7. Skills (10%)
-        if (!empty($user->skills) && (is_array($user->skills) ? count($user->skills) > 0 : !empty($user->skills))) {
+        if (self::isFilled($user->skills)) {
             $percentage += 10;
         }
 
@@ -62,7 +83,7 @@ class ProfileProgressService
         $percentage = 0;
 
         // 1. Full Name (15%)
-        if (!empty($user->full_name)) {
+        if (self::isFilled($user->full_name)) {
             $percentage += 15;
             $breakdown['full_name'] = 15;
         } else {
@@ -70,7 +91,7 @@ class ProfileProgressService
         }
 
         // 2. Profile Photo (15%)
-        if (!empty($user->profile_photo_path)) {
+        if (self::isFilled($user->profile_photo_path)) {
             $percentage += 15;
             $breakdown['profile_photo'] = 15;
         } else {
@@ -78,7 +99,7 @@ class ProfileProgressService
         }
 
         // 3. Mobile Number (10%)
-        if (!empty($user->mobile_number)) {
+        if (self::isFilled($user->mobile_number)) {
             $percentage += 10;
             $breakdown['mobile_number'] = 10;
         } else {
@@ -86,7 +107,7 @@ class ProfileProgressService
         }
 
         // 4. City / Location (15%)
-        if (!empty($user->city)) {
+        if (self::isFilled($user->city)) {
             $percentage += 15;
             $breakdown['city'] = 15;
         } else {
@@ -94,7 +115,7 @@ class ProfileProgressService
         }
 
         // 5. Culinary Experience (15%)
-        if (!empty($user->experience_range) || !empty($user->experience_years)) {
+        if (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) {
             $percentage += 15;
             $breakdown['experience'] = 15;
         } else {
@@ -102,7 +123,7 @@ class ProfileProgressService
         }
 
         // 6. Preferred Role (15%)
-        if (!empty($user->preferred_role)) {
+        if (self::isFilled($user->preferred_role)) {
             $percentage += 15;
             $breakdown['preferred_role'] = 15;
         } else {
@@ -111,8 +132,8 @@ class ProfileProgressService
 
         // 7. Skills / Cuisine Specialty (15%)
         $chefProfile = ChefProfile::where('user_id', $user->id)->first();
-        $hasSkills = !empty($user->skills) && (is_array($user->skills) ? count($user->skills) > 0 : !empty($user->skills));
-        $hasSpecialty = $chefProfile && (!empty($chefProfile->cuisine_specialty) || !empty($chefProfile->bio));
+        $hasSkills = self::isFilled($user->skills);
+        $hasSpecialty = $chefProfile && (self::isFilled($chefProfile->cuisine_specialty) || self::isFilled($chefProfile->bio));
 
         if ($hasSkills || $hasSpecialty) {
             $percentage += 15;
@@ -143,7 +164,7 @@ class ProfileProgressService
         $percentage = 0;
 
         // 1. Company Name / Recruiter Name (25%)
-        if (!empty($user->full_name) || !empty($user->current_employer) || !empty($user->company_name)) {
+        if (self::isFilled($user->full_name) || self::isFilled($user->current_employer) || self::isFilled($user->company_name)) {
             $percentage += 25;
             $breakdown['company_name'] = 25;
         } else {
@@ -151,7 +172,7 @@ class ProfileProgressService
         }
 
         // 2. Profile Photo / Company Logo (15%)
-        if (!empty($user->profile_photo_path)) {
+        if (self::isFilled($user->profile_photo_path)) {
             $percentage += 15;
             $breakdown['company_logo'] = 15;
         } else {
@@ -159,7 +180,7 @@ class ProfileProgressService
         }
 
         // 3. Mobile Number (20%)
-        if (!empty($user->mobile_number)) {
+        if (self::isFilled($user->mobile_number)) {
             $percentage += 20;
             $breakdown['contact_number'] = 20;
         } else {
@@ -167,20 +188,20 @@ class ProfileProgressService
         }
 
         // 4. City / Operating Location (20%)
-        if (!empty($user->city)) {
+        if (self::isFilled($user->city)) {
             $percentage += 20;
             $breakdown['location'] = 20;
         } else {
             $breakdown['location'] = 0;
         }
 
-        // 5. Posted Jobs / Business Activity (20%)
+        // 5. Posted Jobs / Email (20%)
         $jobCount = JobPost::where('created_by', $user->id)->count();
-        if ($jobCount > 0 || !empty($user->email)) {
+        if ($jobCount > 0) {
             $percentage += 20;
-            $breakdown['jobs_or_email'] = 20;
+            $breakdown['posted_jobs'] = 20;
         } else {
-            $breakdown['jobs_or_email'] = 0;
+            $breakdown['posted_jobs'] = 0;
         }
 
         $missing = array_keys(array_filter($breakdown, function($val) {
