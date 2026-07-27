@@ -31,24 +31,24 @@ class ChefProfileViewController extends Controller
      * Record an employer viewing a chef's profile.
      * POST /api/chefs/{chef}/view
      */
-    public function recordView($chef_id = null, Request $request = null)
+    public function recordView($param1 = null, $param2 = null)
     {
-        if ($chef_id instanceof Request) {
-            $req = $chef_id;
-            $id = $request;
-            $request = $req;
-            $chef_id = $id;
-        }
-        if (!$request) {
-            $request = request();
-        }
-
         $this->ensureTableExists();
 
         try {
-            $chefId = is_numeric($chef_id) ? (int)$chef_id : ($request->input('chef_id') ?? $request->input('user_id') ?? 4);
-            $user = $request->user() ?: auth('sanctum')->user();
-            $employerId = $user ? $user->id : ($request->input('employer_id') ?? 1);
+            $req = request();
+            $chefId = null;
+
+            if (is_numeric($param1)) {
+                $chefId = (int) $param1;
+            } elseif (is_numeric($param2)) {
+                $chefId = (int) $param2;
+            } else {
+                $chefId = $req->input('chef_id') ?? $req->input('user_id') ?? 4;
+            }
+
+            $user = $req->user() ?: auth('sanctum')->user();
+            $employerId = $user ? $user->id : ($req->input('employer_id') ?? 1);
 
             $chef = User::find($chefId);
             $employer = User::find($employerId);
