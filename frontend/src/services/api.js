@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Axios Instance configured for production deploy
 export const realApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/backend',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
@@ -45,27 +45,17 @@ const INITIAL_APPLICATIONS = [
 ];
 
 const INITIAL_CHEFS = [
-  {
-    id: 101,
-    user_id: 1,
-    full_name: 'Chef Sanjay Kapoor',
-    name: 'Chef Sanjay Kapoor',
-    email: 'sanjay@jobconnect.in',
-    mobile_number: '9876543210',
-    city: 'New Delhi',
-    experience_range: '8-12 years',
-    experience: '8-12 years',
-    preferred_role: 'Executive Chef',
-    cuisine_specialty: 'Indian, Tandoor, Mughlai',
-    specialties: 'Indian, Tandoor, Mughlai',
-    bio: 'Seasoned culinary professional with 10 years of experience in 5-star hotels.',
-    calendly_link: 'https://calendly.com/chef-vikram',
-    calendly: true,
-    approval_status: 'approved',
-    status: 'approved',
-    availability_info: { languages: ['English', 'Hindi'], location_preference: 'Both' },
-    skills: ['Kitchen Management', 'Menu Engineering']
-  }
+  { id: 28, user_id: 28, full_name: 'Maayank Malhotra', name: 'Maayank Malhotra', email: 'maayankmalhotra095@gmail.com', mobile_number: '08799730966', city: 'Bengaluru', experience_range: '8-12 years', experience: '8-12 years', preferred_role: 'Executive Chef', cuisine_specialty: 'Indian, Tandoor, Mughlai', specialties: 'Indian, Tandoor, Mughlai', bio: 'Seasoned culinary professional with 10 years of experience in 5-star hotels.', calendly_link: 'https://calendly.com/chef-vikram', calendly: true, approval_status: 'approved', status: 'approved' },
+  { id: 37, user_id: 37, full_name: 'Chef Ranveer Singh', name: 'Chef Ranveer Singh', email: 'ranveer@hospitality.com', mobile_number: '9876543210', city: 'Mumbai', experience_range: '12+ years', experience: '12+ years', preferred_role: 'Master Chef', cuisine_specialty: 'Indian, Fusion, Progressive', specialties: 'Indian, Fusion, Progressive', bio: 'Renowned celebrity chef and culinary designer.', calendly_link: 'https://calendly.com/chef-ranveer', calendly: true, approval_status: 'approved', status: 'approved' },
+  { id: 38, user_id: 38, full_name: 'Marco Pierre', name: 'Marco Pierre', email: 'marco@hospitality.com', mobile_number: '9876543211', city: 'London / Delhi', experience_range: '15+ years', experience: '15+ years', preferred_role: 'Head Chef', cuisine_specialty: 'Continental, French', specialties: 'Continental, French', bio: '3 Michelin star background culinary consultant.', calendly_link: '', calendly: false, approval_status: 'approved', status: 'approved' },
+  { id: 33, user_id: 33, full_name: 'Amit Sharma', name: 'Amit Sharma', email: 'amit@hospitality.com', mobile_number: '9876543212', city: 'Delhi', experience_range: '6-8 years', experience: '6-8 years', preferred_role: 'Sous Chef', cuisine_specialty: 'North Indian, Mughlai', specialties: 'North Indian, Mughlai', bio: 'Specialist in Tandoor and authentic Indian curries.', calendly_link: '', calendly: false, approval_status: 'approved', status: 'approved' },
+  { id: 34, user_id: 34, full_name: 'Lucia Martinez', name: 'Lucia Martinez', email: 'lucia@hospitality.com', mobile_number: '9876543213', city: 'Bengaluru', experience_range: '5-8 years', experience: '5-8 years', preferred_role: 'Pastry Chef', cuisine_specialty: 'Continental, Italian, Bakery', specialties: 'Continental, Italian, Bakery', bio: 'Artisanal baker and pastry artisan.', calendly_link: '', calendly: false, approval_status: 'approved', status: 'approved' },
+  { id: 35, user_id: 35, full_name: 'James Kang', name: 'James Kang', email: 'james@hospitality.com', mobile_number: '9876543214', city: 'Mumbai', experience_range: '7-10 years', experience: '7-10 years', preferred_role: 'Pan-Asian Executive', cuisine_specialty: 'Pan-Asian, Japanese, Thai', specialties: 'Pan-Asian, Japanese, Thai', bio: 'Expert in sushi crafting and Asian teppanyaki.', calendly_link: '', calendly: false, approval_status: 'approved', status: 'approved' },
+  { id: 40, user_id: 40, full_name: 'Chef TestOnboard', name: 'Chef TestOnboard', email: 'testonboard@hospitality.com', mobile_number: '9876543217', city: 'Bengaluru', experience_range: '5-8 years', experience: '5-8 years', preferred_role: 'Executive Chef', cuisine_specialty: 'Multi-Cuisine', specialties: 'Multi-Cuisine', bio: 'Expert chef.', calendly_link: '', calendly: false, approval_status: 'approved', status: 'approved' },
+  { id: 42, user_id: 42, full_name: 'Chef Test Vikram', name: 'Chef Test Vikram', email: 'testvikram@hospitality.com', mobile_number: '9876543218', city: 'Delhi', experience_range: '8-12 years', experience: '8-12 years', preferred_role: 'Executive Chef', cuisine_specialty: 'Indian, Tandoor', specialties: 'Indian, Tandoor', bio: 'Experienced executive chef.', calendly_link: '', calendly: false, approval_status: 'approved', status: 'approved' },
+  { id: 43, user_id: 43, full_name: 'Chef VT', name: 'Chef VT', email: 'vt@hospitality.com', mobile_number: '9876543219', city: 'Mumbai', experience_range: '6-10 years', experience: '6-10 years', preferred_role: 'Head Chef', cuisine_specialty: 'Continental', specialties: 'Continental', bio: 'Head chef.', calendly_link: '', calendly: false, approval_status: 'approved', status: 'approved' },
+  { id: 1, user_id: 1, full_name: 'Chef Vikram', name: 'Chef Vikram', email: 'vikram@jobconnect.in', mobile_number: '9876543215', city: 'Bengaluru', experience_range: '8-12 years', experience: '8-12 years', preferred_role: 'Executive Chef', cuisine_specialty: 'Indian, Tandoor', specialties: 'Indian, Tandoor', bio: 'Executive chef with 10 years experience.', calendly_link: '', calendly: false, approval_status: 'pending', status: 'pending' },
+  { id: 39, user_id: 39, full_name: 'Pooja Dhingra', name: 'Pooja Dhingra', email: 'pooja@hospitality.com', mobile_number: '9876543216', city: 'Mumbai', experience_range: '6-8 years', experience: '6-8 years', preferred_role: 'Pastry Chef', cuisine_specialty: 'French Desserts, Bakery', specialties: 'French Desserts, Bakery', bio: 'Macaron & French patisserie specialist.', calendly_link: '', calendly: false, approval_status: 'pending', status: 'pending' }
 ];
 
 export const mockDb = {
@@ -75,7 +65,14 @@ export const mockDb = {
   setJobs: (jobs) => setStored('mock_jobs', jobs),
   getApplications: () => getStored('mock_applications', INITIAL_APPLICATIONS),
   setApplications: (apps) => setStored('mock_applications', apps),
-  getChefs: () => getStored('mock_chefs', INITIAL_CHEFS),
+  getChefs: () => {
+    const data = getStored('mock_chefs', INITIAL_CHEFS);
+    if (!Array.isArray(data) || data.length < 2) {
+      setStored('mock_chefs', INITIAL_CHEFS);
+      return INITIAL_CHEFS;
+    }
+    return data;
+  },
   setChefs: (chefs) => setStored('mock_chefs', chefs),
 };
 
