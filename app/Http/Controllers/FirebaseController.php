@@ -73,6 +73,10 @@ class FirebaseController extends Controller
      */
     public function sendTestNotification(Request $request)
     {
+        if ($request->input('trigger_reminders') || $request->input('action') === 'send_reminders') {
+            return $this->triggerProfileCompletionReminders($request);
+        }
+
         $validator = Validator::make($request->all(), [
             'user_id' => 'required_without:fcm_token',
             'fcm_token' => 'required_without:user_id|string|nullable',
