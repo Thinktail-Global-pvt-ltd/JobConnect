@@ -44,18 +44,29 @@ const INITIAL_APPLICATIONS = [
   { id: '2', job_post_id: '3', applicant_id: '4', status: 'new', created_at: '2026-07-02T17:00:00Z' }
 ];
 
-const getStored = (key, fallback) => {
-  const data = localStorage.getItem(key);
-  if (!data) {
-    localStorage.setItem(key, JSON.stringify(fallback));
-    return fallback;
+const INITIAL_CHEFS = [
+  {
+    id: 101,
+    user_id: 1,
+    full_name: 'Chef Sanjay Kapoor',
+    name: 'Chef Sanjay Kapoor',
+    email: 'sanjay@jobconnect.in',
+    mobile_number: '9876543210',
+    city: 'New Delhi',
+    experience_range: '8-12 years',
+    experience: '8-12 years',
+    preferred_role: 'Executive Chef',
+    cuisine_specialty: 'Indian, Tandoor, Mughlai',
+    specialties: 'Indian, Tandoor, Mughlai',
+    bio: 'Seasoned culinary professional with 10 years of experience in 5-star hotels.',
+    calendly_link: 'https://calendly.com/chef-vikram',
+    calendly: true,
+    approval_status: 'approved',
+    status: 'approved',
+    availability_info: { languages: ['English', 'Hindi'], location_preference: 'Both' },
+    skills: ['Kitchen Management', 'Menu Engineering']
   }
-  return JSON.parse(data);
-};
-
-const setStored = (key, data) => {
-  localStorage.setItem(key, JSON.stringify(data));
-};
+];
 
 export const mockDb = {
   getUsers: () => getStored('mock_users', INITIAL_USERS),
@@ -64,6 +75,8 @@ export const mockDb = {
   setJobs: (jobs) => setStored('mock_jobs', jobs),
   getApplications: () => getStored('mock_applications', INITIAL_APPLICATIONS),
   setApplications: (apps) => setStored('mock_applications', apps),
+  getChefs: () => getStored('mock_chefs', INITIAL_CHEFS),
+  setChefs: (chefs) => setStored('mock_chefs', chefs),
 };
 
 // Internal Mock Endpoints Fallback
@@ -562,7 +575,7 @@ export const mockApi = {
   getChefs: async (status = '') => {
     try {
       const res = await realApi.get('/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {
@@ -570,19 +583,23 @@ export const mockApi = {
     }
     try {
       const res = await axios.get('http://localhost:8001/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {
       console.warn("Axios direct getChefs failed", e);
     }
-    return { success: true, chefs: [] };
+    let chefs = mockDb.getChefs();
+    if (status) {
+      chefs = chefs.filter(c => c.status === status || c.approval_status === status);
+    }
+    return { success: true, chefs };
   },
 
   getEmployerChefs: async () => {
     try {
       const res = await realApi.get('/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {
@@ -590,16 +607,19 @@ export const mockApi = {
     }
     try {
       const res = await axios.get('http://localhost:8001/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {
       console.warn("Axios direct getEmployerChefs failed", e);
     }
-    return { success: true, chefs: [] };
+    const approvedChefs = mockDb.getChefs().filter(c => c.status === 'approved' || c.approval_status === 'approved');
+    return { success: true, chefs: approvedChefs };
   },
 
   approveChef: async (id) => {
+    const chefs = mockDb.getChefs().map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'approved', approval_status: 'approved' } : c);
+    mockDb.setChefs(chefs);
     try {
       const res = await realApi.post(`/api/admin/chefs/${id}/approve`);
       if (res.data && res.data.success) return res.data;
@@ -616,6 +636,8 @@ export const mockApi = {
   },
 
   rejectChef: async (id) => {
+    const chefs = mockDb.getChefs().map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c);
+    mockDb.setChefs(chefs);
     try {
       const res = await realApi.post(`/api/admin/chefs/${id}/reject`);
       if (res.data && res.data.success) return res.data;
@@ -632,6 +654,8 @@ export const mockApi = {
   },
 
   unpublishChef: async (id) => {
+    const chefs = mockDb.getChefs().map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'pending', approval_status: 'pending' } : c);
+    mockDb.setChefs(chefs);
     try {
       const res = await realApi.post(`/api/admin/chefs/${id}/unpublish`);
       if (res.data && res.data.success) return res.data;
@@ -648,6 +672,31 @@ export const mockApi = {
   },
 
   createChef: async (chefData) => {
+    const newChef = {
+      id: Date.now(),
+      user_id: Date.now(),
+      full_name: chefData.full_name,
+      name: chefData.full_name,
+      email: chefData.email || `chef.${Date.now()}@hospitality.com`,
+      mobile_number: chefData.mobile_number || '9876543210',
+      city: chefData.city || 'Bengaluru',
+      experience_range: chefData.experience_range || '8-12 years',
+      experience: chefData.experience_range || '8-12 years',
+      preferred_role: chefData.preferred_role || 'Executive Chef',
+      cuisine_specialty: chefData.cuisine_specialty || 'Multi-Cuisine',
+      specialties: chefData.cuisine_specialty || 'Multi-Cuisine',
+      bio: chefData.bio || '',
+      calendly_link: chefData.calendly_link || '',
+      calendly: Boolean(chefData.calendly_link),
+      approval_status: chefData.approval_status || 'approved',
+      status: chefData.approval_status || 'approved',
+      skills: Array.isArray(chefData.skills) ? chefData.skills : (chefData.skills ? chefData.skills.split(',') : []),
+    };
+
+    // Save to local mockDb so it persists even in fallback/offline
+    const currentChefs = mockDb.getChefs();
+    mockDb.setChefs([newChef, ...currentChefs]);
+
     try {
       const res = await realApi.post('/api/admin/chefs/create', chefData);
       if (res.data && res.data.success) return res.data;
@@ -660,7 +709,7 @@ export const mockApi = {
     } catch (e) {
       console.warn("Axios direct createChef failed", e);
     }
-    return { success: true };
+    return { success: true, chef: newChef };
   },
 
   getTrainingPrograms: async () => {

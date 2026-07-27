@@ -120,11 +120,15 @@ export default function Chefs() {
       bio: formData.bio,
       calendly_link: formData.calendly_link,
       calendly: Boolean(formData.calendly_link),
-      approval_status: formData.approval_status,
-      status: formData.approval_status,
+      approval_status: formData.approval_status || 'approved',
+      status: formData.approval_status || 'approved',
     };
 
-    setChefs(prev => [tempNewChef, ...prev]);
+    setChefs(prev => [tempNewChef, ...prev.filter(c => c.id !== tempNewChef.id)]);
+    if (tempNewChef.approval_status === 'approved') {
+      setPublishedChefs(prev => [tempNewChef, ...prev.filter(c => c.id !== tempNewChef.id)]);
+    }
+
     setIsOnboardModalOpen(false);
 
     try {
@@ -133,7 +137,7 @@ export default function Chefs() {
       console.error('Chef onboarding failed:', err);
     } finally {
       setSubmitting(false);
-      loadChefs();
+      await loadChefs();
     }
   };
 
