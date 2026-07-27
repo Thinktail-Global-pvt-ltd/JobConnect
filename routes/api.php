@@ -55,7 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/chefs/{chef}/view', [ChefProfileViewController::class, 'recordView']);
     Route::post('/chefs/{chef_id}/view', [ChefProfileViewController::class, 'recordView']);
+    Route::post('/chefs/view', [ChefProfileViewController::class, 'recordView']);
     Route::post('/chef/view-profile', [ChefProfileViewController::class, 'recordView']);
+    Route::post('/chef/profile/view', [ChefProfileViewController::class, 'recordView']);
     Route::post('/chef-views/record', [ChefProfileViewController::class, 'recordView']);
 
     Route::get('/chef/profile-views', [ChefProfileViewController::class, 'getChefProfileViews']);
