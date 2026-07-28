@@ -486,17 +486,22 @@ export const mockApi = {
   createTestApplication: async (jobId, applicantId) => {
     try {
       const res = await realApi.post('/api/admin/applications/test-apply', { job_post_id: jobId, applicant_id: applicantId });
-      if (res.data && res.data.success) return res.data;
+      if (res.data) return res.data;
     } catch (e) {
-      console.warn("Axios createTestApplication failed, trying direct localhost...", e);
+      console.warn("Axios createTestApplication error:", e);
+      if (e.response && e.response.data) {
+        return e.response.data;
+      }
     }
     try {
-      const res = await axios.post('http://localhost:8001/api/admin/applications/test-apply', { job_post_id: jobId, applicant_id: applicantId });
-      if (res.data && res.data.success) return res.data;
+      const res = await axios.post('/backend/api/admin/applications/test-apply', { job_post_id: jobId, applicant_id: applicantId });
+      if (res.data) return res.data;
     } catch (e) {
-      console.warn("Axios direct createTestApplication failed", e);
+      if (e.response && e.response.data) {
+        return e.response.data;
+      }
     }
-    return { success: false };
+    return { success: false, message: 'Server connection failed.' };
   },
 
   // ==========================================

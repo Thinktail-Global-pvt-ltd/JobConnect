@@ -531,39 +531,72 @@ Route::get('/admin/test-apply-options', function() {
 });
 
 Route::post('/admin/applications/test-apply', function(\Illuminate\Http\Request $request) {
-    $validated = $request->validate([
-        'job_post_id' => 'required|exists:job_posts,id',
-        'applicant_id' => 'required|exists:users,id',
-    ]);
+    try {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'job_post_id' => 'required',
+            'applicant_id' => 'required',
+        ]);
 
-    $job = \App\Models\JobPost::findOrFail($validated['job_post_id']);
-    $user = \App\Models\User::findOrFail($validated['applicant_id']);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error: ' . implode(', ', $validator->errors()->all())
+            ], 422);
+        }
 
-    // Check if application already exists
-    $existing = \App\Models\JobApplication::where('job_post_id', $job->id)
-        ->where('applicant_id', $user->id)
-        ->first();
+        $job = \App\Models\JobPost::find($request->job_post_id);
+        if (!$job) {
+            return response()->json([
+                'success' => false,
+                'message' => "Job post ID #{$request->job_post_id} not found in database."
+            ], 404);
+        }
 
-    if ($existing) {
+        $user = \App\Models\User::find($request->applicant_id);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => "Applicant User ID #{$request->applicant_id} not found in database."
+            ], 404);
+        }
+
+        // Check if application already exists
+        $existing = \App\Models\JobApplication::where('job_post_id', $job->id)
+            ->where('applicant_id', $user->id)
+            ->first();
+
+        if ($existing) {
+            $candidateName = $user->full_name ?: ('User #' . $user->id);
+            return response()->json([
+                'success' => false,
+                'message' => "Candidate '{$candidateName}' has already applied for '{$job->title}'!"
+            ], 422);
+        }
+
+        $app = \App\Models\JobApplication::create([
+            'job_post_id' => $job->id,
+            'applicant_id' => $user->id,
+            'employer_id' => $job->created_by ?: 1,
+            'status' => 'new',
+        ]);
+
+        $app->load(['applicant.chefProfile', 'job_post']);
+
+        $candidateName = $user->full_name ?: ('User #' . $user->id);
+        return response()->json([
+            'success' => true,
+            'message' => "Test application submitted successfully for candidate '{$candidateName}'.",
+            'application' => $app
+        ], 201);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Test application failed: ' . $e->getMessage(), [
+            'exception' => $e,
+            'request' => $request->all()
+        ]);
+
         return response()->json([
             'success' => false,
-            'message' => "Candidate '{$user->full_name}' has already applied for this job listing."
-        ], 422);
+            'message' => 'Failed to submit test application: ' . $e->getMessage()
+        ], 500);
     }
-
-    $app = \App\Models\JobApplication::create([
-        'job_post_id' => $job->id,
-        'applicant_id' => $user->id,
-        'employer_id' => $job->created_by ?: 1,
-        'status' => 'new',
-        'cover_letter' => 'Test application submitted manually by Admin',
-    ]);
-
-    $app->load(['applicant.chefProfile', 'job_post']);
-
-    return response()->json([
-        'success' => true,
-        'message' => "Test application submitted successfully for candidate '{$user->full_name}'.",
-        'application' => $app
-    ], 201);
 });
