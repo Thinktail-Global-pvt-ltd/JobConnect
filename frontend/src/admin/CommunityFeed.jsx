@@ -29,7 +29,10 @@ export default function CommunityFeed() {
     try {
       const data = await mockApi.getPublicFeed('all');
       if (data && data.success && data.feed) {
-        setPublicFeed(data.feed.data || []);
+        const feedData = data.feed.data || [];
+        // Sort pinned items top first
+        feedData.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+        setPublicFeed(feedData);
       }
     } catch (err) {
       console.error('Failed to load candidate public feed:', err);
@@ -43,13 +46,15 @@ export default function CommunityFeed() {
       await fetchPublicCandidateFeed();
       const data = await mockApi.getCommunityPosts();
       if (data && data.posts && data.posts.length > 0) {
-        setPosts(data.posts);
+        const postData = data.posts;
+        postData.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+        setPosts(postData);
         setStats({
-          total: data.posts.length,
-          published: data.posts.filter(p => p.status === 'Published').length,
-          drafts: data.posts.filter(p => p.status === 'Draft' || p.status === 'Pending').length,
-          archived: data.posts.filter(p => p.status === 'Archived').length,
-          pinned: data.posts.filter(p => Boolean(p.is_pinned)).length
+          total: postData.length,
+          published: postData.filter(p => p.status === 'Published').length,
+          drafts: postData.filter(p => p.status === 'Draft' || p.status === 'Pending').length,
+          archived: postData.filter(p => p.status === 'Archived').length,
+          pinned: postData.filter(p => Boolean(p.is_pinned)).length
         });
       }
     } catch (err) {
@@ -63,27 +68,35 @@ export default function CommunityFeed() {
     loadPosts();
   }, []);
 
-  const handleTogglePin = (id) => {
+  const handleTogglePin = async (id) => {
+    // 1. Update posts state
     setPosts(prev => {
-      const updated = prev.map(p => {
-        if (p.id === id) {
-          return { ...p, is_pinned: !p.is_pinned };
-        }
-        return p;
-      });
-
-      // Sort pinned posts top-first
+      const updated = prev.map(p => p.id === id ? { ...p, is_pinned: !p.is_pinned } : p);
       return [...updated].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
     });
 
+    // 2. Update publicFeed state
+    setPublicFeed(prev => {
+      const updated = prev.map(item => item.id === id ? { ...item, is_pinned: !item.is_pinned } : item);
+      return [...updated].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+    });
+
+    // 3. Update KPI stats
     setStats(prev => {
-      const target = posts.find(p => p.id === id);
+      const target = posts.find(p => p.id === id) || publicFeed.find(p => p.id === id);
       const isPinnedNow = !target?.is_pinned;
       return {
         ...prev,
         pinned: isPinnedNow ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
       };
     });
+
+    // 4. Call backend toggle pin API
+    try {
+      await mockApi.togglePinJob(id);
+    } catch (err) {
+      console.error('Toggle pin failed:', err);
+    }
   };
 
   const handleCreateSubmit = async (e) => {
@@ -109,7 +122,7 @@ export default function CommunityFeed() {
       const updated = [tempNewPost, ...prev];
       return [...updated].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
     });
-    
+
     setIsModalOpen(false);
 
     try {
@@ -196,7 +209,7 @@ export default function CommunityFeed() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Community Feed Manager</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, pin posts live, publish or unpublish stream entries.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, pin existing posts live, publish or unpublish stream entries.</p>
         </div>
 
         {/* View Mode Switcher + Create Post Button */}
@@ -331,7 +344,7 @@ export default function CommunityFeed() {
                     <p className="text-center text-slate-400 text-xs py-20 font-medium">No published feed items visible.</p>
                   ) : (
                     filteredPhoneFeed.map((item, idx) => (
-                      <div key={idx} className={`bg-white rounded-2xl p-4 border shadow-2xs space-y-2.5 transition-all ${item.is_pinned ? 'border-purple-300 bg-purple-50/20' : 'border-slate-200/80 hover:border-emerald-300'}`}>
+                      <div key={idx} className={`bg-white rounded-2xl p-4 border shadow-2xs space-y-2.5 transition-all ${item.is_pinned ? 'border-purple-400 bg-purple-50/40 ring-1 ring-purple-300' : 'border-slate-200/80 hover:border-emerald-300'}`}>
                         
                         {/* Item Source & Type Badge */}
                         <div className="flex items-center justify-between">
@@ -355,7 +368,9 @@ export default function CommunityFeed() {
 
                           <div className="flex items-center gap-1">
                             {item.is_pinned && (
-                              <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[8px] font-extrabold rounded">📌 PINNED</span>
+                              <span className="px-1.5 py-0.5 bg-purple-600 text-white text-[8px] font-black rounded flex items-center gap-0.5 shadow-xs">
+                                📌 PINNED
+                              </span>
                             )}
                             <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
                               <Clock className="w-2.5 h-2.5" />
@@ -390,10 +405,23 @@ export default function CommunityFeed() {
                           </div>
                         )}
 
-                        {/* Action Button inside Mobile Screen */}
-                        <div className="pt-1">
-                          <button className="w-full bg-[#059669] hover:bg-[#047857] text-white py-2 rounded-xl text-[10px] font-extrabold shadow-2xs transition-all flex items-center justify-center gap-1">
-                            <span>{item._type === 'job' ? 'Apply Now' : 'Read Full Announcement'}</span>
+                        {/* Admin Direct Quick Action Bar inside Phone Card */}
+                        <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
+                          <button 
+                            onClick={() => handleTogglePin(item.id)}
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-extrabold flex items-center gap-1 transition-all cursor-pointer ${
+                              item.is_pinned 
+                                ? 'bg-purple-600 text-white shadow-2xs' 
+                                : 'bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white border border-purple-200'
+                            }`}
+                            title={item.is_pinned ? "Unpin Post" : "Pin Post to Feed Top Priority"}
+                          >
+                            <Pin className="w-3 h-3" />
+                            <span>{item.is_pinned ? 'Unpin' : 'Pin to Top'}</span>
+                          </button>
+
+                          <button className="bg-[#059669] hover:bg-[#047857] text-white px-3 py-1.5 rounded-xl text-[10px] font-extrabold shadow-2xs transition-all flex items-center gap-1">
+                            <span>{item._type === 'job' ? 'Apply' : 'Read'}</span>
                             <ArrowUpRight className="w-3 h-3" />
                           </button>
                         </div>
