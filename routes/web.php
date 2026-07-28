@@ -348,53 +348,77 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
 // PUBLIC API FALLBACKS (FOR REACT SPA WITHOUT COOKIE AUTH SESSION)
 Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
     try {
-        $query = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost']);
+        $apps = \Illuminate\Support\Facades\DB::table('job_applications')
+            ->leftJoin('users', 'job_applications.applicant_id', '=', 'users.id')
+            ->leftJoin('job_posts', 'job_applications.job_post_id', '=', 'job_posts.id')
+            ->select(
+                'job_applications.id',
+                'job_applications.applicant_id',
+                'job_applications.job_post_id',
+                'job_applications.employer_id',
+                'job_applications.status',
+                'job_applications.created_at',
+                'users.full_name as applicant_name',
+                'users.email as applicant_email',
+                'users.mobile_number as applicant_mobile',
+                'users.city as applicant_city',
+                'users.experience_range as applicant_experience',
+                'users.preferred_role as applicant_preferred_role',
+                'users.current_employer as applicant_current_employer',
+                'users.skills as applicant_skills',
+                'users.profile_photo_path as applicant_photo',
+                'job_posts.title as job_title',
+                'job_posts.company as job_company',
+                'job_posts.location as job_location',
+                'job_posts.category as job_category'
+            );
 
         if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
-            $query->where('status', $request->status);
+            $apps->where('job_applications.status', $request->status);
         }
 
-        $apps = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
+        $results = $apps->orderBy('job_applications.id', 'desc')->get();
 
-        $mapped = $apps->map(function($app) {
-            $applicant = $app->applicant;
-            $job = $app->jobPost;
+        $mapped = $results->map(function($row) {
+            $fullName = $row->applicant_name ?: ('Candidate #' . $row->applicant_id);
+            $jobTitle = $row->job_title ?: ('Job Listing #' . $row->job_post_id);
 
-            $fullName = $applicant ? ($applicant->full_name ?: ('Candidate #' . $applicant->id)) : ('Candidate #' . $app->applicant_id);
-            $email = $applicant ? ($applicant->email ?: '') : '';
-            $mobile = $applicant ? ($applicant->mobile_number ?: '') : '';
-            $city = $applicant ? ($applicant->city ?: 'N/A') : 'N/A';
-            $experience = $applicant ? ($applicant->experience_range ?: 'N/A') : 'N/A';
-
-            $jobTitle = $job ? ($job->title ?: ('Job Listing #' . $app->job_post_id)) : ('Job Listing #' . $app->job_post_id);
-            $company = $job ? ($job->company ?: 'Employer') : 'Employer';
+            $skills = [];
+            if ($row->applicant_skills) {
+                $decoded = json_decode($row->applicant_skills, true);
+                if (is_array($decoded)) {
+                    $skills = $decoded;
+                } elseif (is_string($row->applicant_skills)) {
+                    $skills = array_filter(array_map('trim', explode(',', $row->applicant_skills)));
+                }
+            }
 
             return [
-                'id' => $app->id,
-                'applicant_id' => $app->applicant_id,
-                'job_post_id' => $app->job_post_id,
-                'employer_id' => $app->employer_id,
-                'status' => $app->status ?: 'new',
-                'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
+                'id' => $row->id,
+                'applicant_id' => $row->applicant_id,
+                'job_post_id' => $row->job_post_id,
+                'employer_id' => $row->employer_id,
+                'status' => $row->status ?: 'new',
+                'created_at' => $row->created_at ?: now()->toIso8601String(),
                 'applicant' => [
-                    'id' => $applicant ? $applicant->id : $app->applicant_id,
+                    'id' => $row->applicant_id,
                     'full_name' => $fullName,
                     'name' => $fullName,
-                    'email' => $email,
-                    'mobile_number' => $mobile,
-                    'city' => $city,
-                    'experience_range' => $experience,
-                    'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
-                    'current_employer' => $applicant ? ($applicant->current_employer ?: '') : '',
-                    'skills' => ($applicant && is_array($applicant->skills)) ? $applicant->skills : ($applicant && is_string($applicant->skills) ? (json_decode($applicant->skills, true) ?: []) : []),
-                    'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
+                    'email' => $row->applicant_email ?: '',
+                    'mobile_number' => $row->applicant_mobile ?: '',
+                    'city' => $row->applicant_city ?: 'N/A',
+                    'experience_range' => $row->applicant_experience ?: 'N/A',
+                    'preferred_role' => $row->applicant_preferred_role ?: '',
+                    'current_employer' => $row->applicant_current_employer ?: '',
+                    'skills' => $skills,
+                    'profile_photo_path' => $row->applicant_photo,
                 ],
                 'job_post' => [
-                    'id' => $job ? $job->id : $app->job_post_id,
+                    'id' => $row->job_post_id,
                     'title' => $jobTitle,
-                    'company' => $company,
-                    'location' => $job ? ($job->location ?: 'India') : 'India',
-                    'category' => $job ? ($job->category ?: 'india') : 'india',
+                    'company' => $row->job_company ?: 'Employer',
+                    'location' => $row->job_location ?: 'India',
+                    'category' => $row->job_category ?: 'india',
                 ]
             ];
         });
@@ -405,7 +429,6 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
             'applications' => $mapped
         ]);
     } catch (\Throwable $e) {
-        \Illuminate\Support\Facades\Log::error('Admin applications list error: ' . $e->getMessage());
         return response()->json([
             'success' => false,
             'message' => $e->getMessage()
