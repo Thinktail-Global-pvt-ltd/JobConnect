@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { mockApi } from '../services/api';
+import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
 import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin } from 'lucide-react';
 
@@ -14,10 +14,47 @@ export default function Jobs() {
   const loadJobs = async () => {
     setLoading(true);
     try {
+      // 1. Attempt fetching from real backend API feed
+      const res = await realApi.get('/feed?filter=all');
+      if (res.data && res.data.feed && res.data.feed.data) {
+        const feedJobs = res.data.feed.data.map(j => ({
+          id: j.id,
+          title: j.title,
+          company: j.company || j.creator?.current_employer || j.creator?.full_name || 'Hospitality Employer',
+          salary: j.salary || (j.salary_min ? `${j.salary_currency || ''} ${j.salary_min} - ${j.salary_max}` : 'Negotiable'),
+          location: j.location || 'India',
+          category: j.category || 'india',
+          job_type: j.job_type || 'Full-time',
+          created_at: j.created_at,
+          status: j.status || 'approved',
+          is_pinned: Boolean(j.is_pinned),
+          creator: j.creator || { full_name: j.company }
+        }));
+
+        let filtered = feedJobs;
+        if (status) filtered = filtered.filter(j => j.status === status);
+        if (category) filtered = filtered.filter(j => j.category === category);
+
+        setJobs(filtered);
+        setStats({
+          total: feedJobs.length,
+          pending: feedJobs.filter(j => j.status === 'pending').length,
+          approved: feedJobs.filter(j => j.status === 'approved').length,
+          rejected: feedJobs.filter(j => j.status === 'rejected').length,
+          pinned: feedJobs.filter(j => j.is_pinned).length
+        });
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to fetch real feed jobs, using fallback:', err);
+    }
+
+    // 2. Fallback to mockApi
+    try {
       const data = await mockApi.getJobs(status, category);
       const allJobs = data.jobs || [];
       setJobs(allJobs);
-      
       setStats({
         total: data.stats?.total ?? allJobs.length,
         pending: data.stats?.pending ?? allJobs.filter(j => j.status === 'pending').length,
@@ -38,55 +75,30 @@ export default function Jobs() {
 
   const handleApprove = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
-    setStats(prev => ({
-      ...prev,
-      pending: Math.max(0, prev.pending - 1),
-      approved: prev.approved + 1
-    }));
     try {
       await mockApi.approveJob(id);
     } catch (err) {
       console.error('Approve job failed:', err);
-    } finally {
-      loadJobs();
     }
   };
 
   const handleReject = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'rejected' } : j));
-    setStats(prev => ({
-      ...prev,
-      pending: Math.max(0, prev.pending - 1),
-      rejected: prev.rejected + 1
-    }));
     try {
       await mockApi.rejectJob(id);
     } catch (err) {
       console.error('Reject job failed:', err);
-    } finally {
-      loadJobs();
     }
   };
 
   const handleTogglePin = async (id) => {
     const job = jobs.find(j => j.id === id);
     const newPinnedState = !job?.is_pinned;
-    
-    // 1. Optimistic state mutation
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, is_pinned: newPinnedState } : j));
-    setStats(prev => ({
-      ...prev,
-      pinned: newPinnedState ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
-    }));
-
-    // 2. Call live backend toggle API
     try {
       await mockApi.togglePinJob(id);
     } catch (err) {
       console.error('Toggle pin failed:', err);
-    } finally {
-      // 3. Reload live jobs to update database state
-      loadJobs();
     }
   };
 
@@ -99,7 +111,7 @@ export default function Jobs() {
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Review and approve hospitality job listings across India and overseas.</p>
         </div>
 
-        {/* Dynamic Tab Filters with Live Badge Counts */}
+        {/* Dynamic Tab Filters */}
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setStatus('')}
                   className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
@@ -142,7 +154,7 @@ export default function Jobs() {
         </div>
       </div>
 
-      {/* KPI Cards Row (2 Columns on Half-Screen, 4 on Full-Screen) */}
+      {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Card 1 */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
@@ -212,7 +224,7 @@ export default function Jobs() {
                   <th className="py-4 px-6 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e2e8f0] text-xs font-medium">
+              <tbody className="divide-y divide-[#e2e8f0] text-xs font-semibold">
                 {jobs.map((job) => (
                   <tr key={job.id} className={`hover:bg-slate-50/80 transition-colors ${job.is_pinned ? 'bg-purple-50/40' : ''}`}>
                     {/* Job Title & Pin Badge */}
@@ -224,7 +236,7 @@ export default function Jobs() {
                         <div>
                           <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{job.title}</span>
                           <span className="text-[11px] text-slate-400 font-semibold mt-0.5 block">
-                            {job.type || 'Full-time'} • <span className="capitalize">{job.category || 'india'}</span>
+                            {job.job_type || 'Full-time'} • <span className="capitalize">{job.category || 'india'}</span>
                           </span>
                         </div>
                       </div>
