@@ -34,6 +34,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * Array of dynamic attributes appended to JSON serialization.
+     */
+    protected $appends = [
+        'active_profile',
+        'active_role',
+        'user_role',
+    ];
+
+    /**
      * The attributes that should be hidden for serialization.
      */
     protected $hidden = [
@@ -183,6 +192,16 @@ class User extends Authenticatable
         }
         $anyRole = $this->roles()->first();
         return $anyRole ? $anyRole->role_type : 'job_seeker';
+    }
+
+    public function getActiveRoleAttribute(): string
+    {
+        return $this->getActiveProfileAttribute();
+    }
+
+    public function getUserRoleAttribute(): string
+    {
+        return $this->getActiveProfileAttribute();
     }
 
     /**

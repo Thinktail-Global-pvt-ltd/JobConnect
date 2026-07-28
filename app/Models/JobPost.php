@@ -50,6 +50,33 @@ class JobPost extends Model
         'open_positions'          => 'integer',
     ];
 
+    protected $appends = [
+        'posted_by_role',
+        'active_role',
+        'user_role',
+    ];
+
+    public function getPostedByRoleAttribute(): string
+    {
+        if (!empty($this->submitted_by_role)) {
+            return $this->submitted_by_role;
+        }
+        if ($this->creator) {
+            return $this->creator->active_profile;
+        }
+        return 'employer';
+    }
+
+    public function getActiveRoleAttribute(): string
+    {
+        return $this->getPostedByRoleAttribute();
+    }
+
+    public function getUserRoleAttribute(): string
+    {
+        return $this->getPostedByRoleAttribute();
+    }
+
     /**
      * Relationship with user creator.
      */
