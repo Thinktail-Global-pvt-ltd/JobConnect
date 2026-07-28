@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 // Passwordless Auth Endpoint Routes
 Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
 Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::match(['get', 'post'], '/request-otp', [AuthController::class, 'requestOtp']);
+Route::match(['get', 'post'], '/verify-otp', [AuthController::class, 'verifyOtp']);
 
 // Secured Protected Routes
 Route::middleware('auth:sanctum')->group(function () {

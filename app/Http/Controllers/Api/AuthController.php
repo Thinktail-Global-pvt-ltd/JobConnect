@@ -186,6 +186,78 @@ class AuthController extends Controller
         // Fetch roles details
         $roles = $user->roles()->get();
         $activeRole = $user->activeRole()->first();
+        $activeRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type ?: 'job_seeker');
+
+        // Auto-fetch or auto-ensure ChefProfile if role is chef or if chefProfile exists
+        $chefProfile = $user->chefProfile()->first();
+        if (!$chefProfile && ($activeRoleType === 'chef' || $user->hasActiveRole('chef'))) {
+            $chefProfile = \App\Models\ChefProfile::create([
+                'user_id' => $user->id,
+                'cuisine_specialty' => 'Multi-Cuisine',
+                'bio' => 'Professional Chef',
+                'approval_status' => 'approved',
+            ]);
+        }
+
+        $chefData = null;
+        if ($chefProfile) {
+            $availability = [];
+            if ($chefProfile->availability_info) {
+                $availability = json_decode($chefProfile->availability_info, true) ?: [];
+            }
+            $chefData = [
+                'id' => $chefProfile->id,
+                'user_id' => $chefProfile->user_id,
+                'cuisine_specialty' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                'specialties' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                'bio' => $chefProfile->bio ?: '',
+                'calendly_link' => $chefProfile->calendly_link ?: '',
+                'approval_status' => $chefProfile->approval_status ?: 'approved',
+                'status' => $chefProfile->approval_status ?: 'approved',
+                'availability_info' => $availability,
+                'created_at' => $chefProfile->created_at ? $chefProfile->created_at->toIso8601String() : null,
+                'updated_at' => $chefProfile->updated_at ? $chefProfile->updated_at->toIso8601String() : null,
+            ];
+        }
+
+        // Fetch EmployerProfile if exists
+        $employerProfile = $user->employerProfile()->first();
+        $employerData = null;
+        if ($employerProfile) {
+            $employerData = [
+                'id' => $employerProfile->id,
+                'user_id' => $employerProfile->user_id,
+                'company_name' => $employerProfile->company_name ?: '',
+                'company_website' => $employerProfile->company_website ?: '',
+                'company_logo_url' => $employerProfile->company_logo_url ?: '',
+                'city' => $employerProfile->city ?: '',
+                'designation' => $employerProfile->designation ?: '',
+                'description' => $employerProfile->description ?: '',
+                'created_at' => $employerProfile->created_at ? $employerProfile->created_at->toIso8601String() : null,
+            ];
+        }
+
+        // Fetch Socials
+        $socials = $user->socials()->first();
+        $socialsData = null;
+        if ($socials) {
+            $socialsData = [
+                'instagram' => $socials->instagram ?: '',
+                'linkedin' => $socials->linkedin ?: '',
+                'facebook' => $socials->facebook ?: '',
+                'twitter' => $socials->twitter ?: '',
+                'youtube' => $socials->youtube ?: '',
+                'website' => $socials->website ?: '',
+            ];
+        }
+
+        // Parse skills array
+        $skills = [];
+        if (is_array($user->skills)) {
+            $skills = $user->skills;
+        } elseif (is_string($user->skills)) {
+            $skills = json_decode($user->skills, true) ?: [];
+        }
 
         return response()->json([
             'success' => true,
@@ -194,24 +266,40 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'mobile_number' => $user->mobile_number,
-                'full_name' => $user->full_name,
-                'email' => $user->email,
+                'full_name' => $user->full_name ?: '',
+                'name' => $user->full_name ?: '',
+                'email' => $user->email ?: '',
+                'gender' => $user->gender ?: '',
                 'profile_photo_path' => $user->profile_photo_path,
-                'city' => $user->city,
-                'experience_years' => $user->experience_years,
-                'preferred_role' => $user->preferred_role,
-                'current_employer' => $user->current_employer,
-                'skills' => $user->skills,
+                'city' => $user->city ?: '',
+                'experience_years' => $user->experience_range ?: ($user->experience_years ?: '0'),
+                'experience_range' => $user->experience_range ?: ($user->experience_years ?: '0'),
+                'preferred_role' => $user->preferred_role ?: '',
+                'current_employer' => $user->current_employer ?: '',
+                'skills' => $skills,
+                'availability_status' => $user->availability_status ?: 'available',
+                'is_available' => (bool)$user->is_available,
                 'selected_language' => $user->selected_language ?? 'en',
+                'fcm_token' => $user->fcm_token,
                 'completeness' => $user->profile_completeness,
+                'profile_completeness' => $user->profile_completeness,
+                'active_profile' => $activeRoleType,
+                'active_role' => $activeRoleType,
+                'user_role' => $activeRoleType,
                 'profiles' => $roles->map(function ($r) {
                     return [
                         'role_type' => $r->role_type,
                         'is_active' => $r->is_active,
                     ];
                 }),
-                'active_profile' => $activeRole ? $activeRole->role_type : 'job_seeker',
-            ]
+                'chef_profile' => $chefData,
+                'chef_profile_details' => $chefData,
+                'employer_profile' => $employerData,
+                'socials' => $socialsData,
+            ],
+            'chef_profile' => $chefData,
+            'employer_profile' => $employerData,
+            'socials' => $socialsData,
         ]);
     }
 
