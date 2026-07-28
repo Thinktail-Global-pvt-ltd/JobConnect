@@ -137,6 +137,16 @@ class ProfileController extends Controller
         $activeRole = $user ? $user->active_profile : 'job_seeker';
         $completeness = $user ? \App\Services\ProfileProgressService::calculate($user) : 0;
 
+        // Extract location_preference & employment_preference safely if available
+        $chefAvailability = ($user && $user->chefProfile && $user->chefProfile->availability_info)
+            ? (json_decode($user->chefProfile->availability_info, true) ?: [])
+            : [];
+            
+        $jobLocation = $user->city ?: ($chefAvailability['location_preference'] ?? 'India');
+        $preference = $user->preferred_role ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? 'Full Time'));
+        $country = $user->country ?: 'India';
+        $city = $user->city ?: ($employerData['city'] ?? 'N/A');
+
         return response()->json([
             'success' => true,
             'user' => [
@@ -147,7 +157,10 @@ class ProfileController extends Controller
                 'email' => $user ? $user->email : null,
                 'gender' => $user ? $user->gender : null,
                 'profile_photo_path' => $photo,
-                'city' => $user ? $user->city : null,
+                'country' => $country,
+                'city' => $city,
+                'job_location' => $jobLocation,
+                'preference' => $preference,
                 'experience_years' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'experience_range' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
@@ -164,6 +177,10 @@ class ProfileController extends Controller
                 'employer_profile' => $employerData,
                 'socials' => $socialsData,
             ],
+            'country' => $country,
+            'city' => $city,
+            'job_location' => $jobLocation,
+            'preference' => $preference,
             'chef_profile' => $chefData,
             'employer_profile' => $employerData,
             'socials' => $socialsData,

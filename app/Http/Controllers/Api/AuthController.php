@@ -279,6 +279,14 @@ class AuthController extends Controller
 
         $completeness = \App\Services\ProfileProgressService::calculate($user);
 
+        $chefProfile = $user->chefProfile()->first();
+        $chefAvailability = ($chefProfile && $chefProfile->availability_info) ? (json_decode($chefProfile->availability_info, true) ?: []) : [];
+
+        $jobLocation = $user->city ?: ($chefAvailability['location_preference'] ?? 'India');
+        $preference = $user->preferred_role ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? 'Full Time'));
+        $country = $user->country ?: 'India';
+        $city = $user->city ?: ($employerData['city'] ?? 'N/A');
+
         return response()->json([
             'success' => true,
             'message' => 'Authenticated successfully.',
@@ -291,7 +299,10 @@ class AuthController extends Controller
                 'email' => $user->email ?: '',
                 'gender' => $user->gender ?: '',
                 'profile_photo_path' => $user->profile_photo_path,
-                'city' => $user->city ?: '',
+                'country' => $country,
+                'city' => $city,
+                'job_location' => $jobLocation,
+                'preference' => $preference,
                 'experience_years' => $user->experience_range ?: ($user->experience_years ?: '0'),
                 'experience_range' => $user->experience_range ?: ($user->experience_years ?: '0'),
                 'preferred_role' => $user->preferred_role ?: '',
