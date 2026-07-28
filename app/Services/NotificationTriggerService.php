@@ -68,6 +68,24 @@ class NotificationTriggerService
     }
 
     /**
+     * Trigger 0: Job Created / Submitted by Employer
+     * - Sends Push Notification & In-App Notification to Employer creator
+     */
+    public static function notifyJobCreated(JobPost $job)
+    {
+        $creator = $job->creator ?: User::find($job->created_by);
+        if ($creator) {
+            $title = "Job Post Created Successfully 🎉";
+            $body = "Your job post '{$job->title}' at {$job->company} has been created and is waiting for admin approval.";
+            self::sendToUser($creator, $title, $body, [
+                'job_id' => $job->id,
+                'event' => 'job_created',
+                'status' => 'pending'
+            ]);
+        }
+    }
+
+    /**
      * Trigger 1: Job Published / Approved by Admin
      * - Sends Push Notification to Employer creator
      * - Sends Push Notification to relevant active Chefs/Talents searching for jobs
@@ -75,10 +93,11 @@ class NotificationTriggerService
     public static function notifyJobPublished(JobPost $job)
     {
         // 1. Notify Employer who created the job
-        if ($job->creator) {
-            $title = "Job Approved & Published! 🚀";
-            $body = "Your job posting '{$job->title}' at {$job->company} is now live and published on JobConnect!";
-            self::sendToUser($job->creator, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
+        $creator = $job->creator ?: User::find($job->created_by);
+        if ($creator) {
+            $title = "Job Post Approved & Live! 🚀";
+            $body = "Great news! Your job post '{$job->title}' at {$job->company} is now approved and live on JobConnect feed.";
+            self::sendToUser($creator, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
         }
 
         // 2. Notify Chefs / Job Seekers (Broadcast alert to active chefs/job seekers)

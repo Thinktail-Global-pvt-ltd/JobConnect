@@ -113,6 +113,13 @@ class JobPostController extends Controller
             'submitted_by_role' => $submittedByRole,
         ]));
 
+        // Dispatch FCM Push Notification & In-App Notification History entry
+        try {
+            \App\Services\NotificationTriggerService::notifyJobCreated($jobPost);
+        } catch (\Throwable $ne) {
+            \Illuminate\Support\Facades\Log::error('Job creation notification error: ' . $ne->getMessage());
+        }
+
         return response()->json([
             'success'  => true,
             'message'  => 'Job post submitted successfully and is pending moderation.',
