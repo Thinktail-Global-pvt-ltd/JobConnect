@@ -469,27 +469,46 @@ export const mockApi = {
 
   getTestApplyOptions: async () => {
     try {
+      const res = await realApi.get('/admin/test-apply-options');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
       const res = await realApi.get('/api/admin/test-apply-options');
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getTestApplyOptions failed, trying direct localhost...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.get('http://localhost:8001/api/admin/test-apply-options');
+      const res = await axios.get('/backend/admin/test-apply-options');
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct getTestApplyOptions failed", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.get('/backend/api/admin/test-apply-options');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return { success: true, jobs: [], users: [] };
   },
 
   createTestApplication: async (jobId, applicantId) => {
     try {
+      const res = await realApi.post('/admin/applications/test-apply', { job_post_id: jobId, applicant_id: applicantId });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message && !e.response.data.message.includes('could not be found')) {
+        return e.response.data;
+      }
+    }
+    try {
       const res = await realApi.post('/api/admin/applications/test-apply', { job_post_id: jobId, applicant_id: applicantId });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message && !e.response.data.message.includes('could not be found')) {
+        return e.response.data;
+      }
+    }
+    try {
+      const res = await axios.post('/backend/admin/applications/test-apply', { job_post_id: jobId, applicant_id: applicantId });
       if (res.data) return res.data;
     } catch (e) {
-      console.warn("Axios createTestApplication error:", e);
-      if (e.response && e.response.data) {
+      if (e.response && e.response.data && e.response.data.message && !e.response.data.message.includes('could not be found')) {
         return e.response.data;
       }
     }

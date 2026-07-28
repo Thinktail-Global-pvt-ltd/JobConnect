@@ -183,4 +183,96 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
     Route::put('/community-posts/{id}', [AdminPostController::class, 'update']);
     Route::delete('/community-posts/{id}', [AdminPostController::class, 'destroy']);
     Route::post('/community-posts/{id}/publish', [AdminPostController::class, 'publish']);
+
+    // Admin Manual Test Application Routes
+    Route::match(['get', 'post'], '/applications/test-apply', function(\Illuminate\Http\Request $request) {
+        try {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'job_post_id' => 'required',
+                'applicant_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error: ' . implode(', ', $validator->errors()->all())
+                ], 422);
+            }
+
+            $job = \App\Models\JobPost::find($request->job_post_id);
+            if (!$job) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Job post ID #{$request->job_post_id} not found in database."
+                ], 404);
+            }
+
+            $user = \App\Models\User::find($request->applicant_id);
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Applicant User ID #{$request->applicant_id} not found in database."
+                ], 404);
+            }
+
+            $existing = \App\Models\JobApplication::where('job_post_id', $job->id)
+                ->where('applicant_id', $user->id)
+                ->first();
+
+            if ($existing) {
+                $candidateName = $user->full_name ?: ('User #' . $user->id);
+                return response()->json([
+                    'success' => false,
+                    'message' => "Candidate '{$candidateName}' has already applied for '{$job->title}'!"
+                ], 422);
+            }
+
+            $app = \App\Models\JobApplication::create([
+                'job_post_id' => $job->id,
+                'applicant_id' => $user->id,
+                'employer_id' => $job->created_by ?: 1,
+                'status' => 'new',
+            ]);
+
+            $app->load(['applicant.chefProfile', 'job_post']);
+
+            $candidateName = $user->full_name ?: ('User #' . $user->id);
+            return response()->json([
+                'success' => true,
+                'message' => "Test application submitted successfully for candidate '{$candidateName}'.",
+                'application' => $app
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to submit test application: ' . $e->getMessage()
+            ], 500);
+        }
+    });
+
+    Route::get('/test-apply-options', function() {
+        $jobs = \App\Models\JobPost::latest()->get();
+        $users = \App\Models\User::with('roles')->latest()->get();
+        return response()->json([
+            'success' => true,
+            'jobs' => $jobs->map(function($j) {
+                return [
+                    'id' => $j->id,
+                    'title' => $j->title,
+                    'company' => $j->company ?: 'Employer',
+                    'location' => $j->location ?: 'India',
+                    'category' => $j->category ?: 'india'
+                ];
+            }),
+            'users' => $users->map(function($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->full_name ?: ('User #' . $u->id),
+                    'email' => $u->email ?: '',
+                    'mobile_number' => $u->mobile_number ?: '',
+                    'role' => $u->active_profile ?: 'user'
+                ];
+            })
+        ]);
+    });
 });
