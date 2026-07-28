@@ -497,10 +497,40 @@ Route::match(['get', 'post'], '/applicants/{id}/status', [EmployerController::cl
 
 // Admin Job Applications Moderation & Manual Test Application Routes
 Route::get('/admin/applications', function() {
-    $apps = \App\Models\JobApplication::with(['applicant.chefProfile', 'job_post'])->latest()->get();
+    $apps = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost', 'job_post'])->latest()->get();
     return response()->json([
         'success' => true,
-        'applications' => $apps
+        'applications' => $apps->map(function($app) {
+            $applicant = $app->applicant;
+            $job = $app->job_post ?: $app->jobPost;
+
+            return [
+                'id' => $app->id,
+                'applicant_id' => $app->applicant_id,
+                'job_post_id' => $app->job_post_id,
+                'status' => $app->status ?: 'new',
+                'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
+                'applicant' => $applicant ? [
+                    'id' => $applicant->id,
+                    'full_name' => $applicant->full_name ?: 'Unknown Candidate',
+                    'email' => $applicant->email ?: '',
+                    'mobile_number' => $applicant->mobile_number ?: '',
+                    'city' => $applicant->city ?: '',
+                    'experience_range' => $applicant->experience_range ?: '',
+                    'preferred_role' => $applicant->preferred_role ?: '',
+                    'current_employer' => $applicant->current_employer ?: '',
+                    'skills' => is_array($applicant->skills) ? $applicant->skills : (json_decode($applicant->skills, true) ?: []),
+                    'profile_photo_path' => $applicant->profile_photo_path,
+                ] : null,
+                'job_post' => $job ? [
+                    'id' => $job->id,
+                    'title' => $job->title ?: ('Job #' . $job->id),
+                    'company' => $job->company ?: 'Employer',
+                    'location' => $job->location ?: 'India',
+                    'category' => $job->category ?: 'india',
+                ] : null,
+            ];
+        })
     ]);
 });
 
@@ -512,7 +542,7 @@ Route::get('/admin/test-apply-options', function() {
         'jobs' => $jobs->map(function($j) {
             return [
                 'id' => $j->id,
-                'title' => $j->title,
+                'title' => $j->title ?: ('Job #' . $j->id),
                 'company' => $j->company ?: 'Employer',
                 'location' => $j->location ?: 'India',
                 'category' => $j->category ?: 'india'
