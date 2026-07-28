@@ -50,21 +50,30 @@ class JobModeratorController extends Controller
     /**
      * Approve a job post.
      */
-    public function approve(JobPost $job)
+    public function approve($job)
     {
-        $job->update(['status' => 'approved']);
+        $jobModel = $job instanceof JobPost ? $job : JobPost::find($job);
+        if (!$jobModel) {
+            return response()->json(['success' => false, 'message' => 'Job posting not found.'], 404);
+        }
 
-        // Shoot FCM Push Notifications to Employer & Job Seekers
-        \App\Services\NotificationTriggerService::notifyJobPublished($job);
+        $jobModel->update(['status' => 'approved']);
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
+        // Shoot FCM Push Notifications & In-App Notification to Employer & Candidates
+        try {
+            \App\Services\NotificationTriggerService::notifyJobPublished($jobModel);
+        } catch (\Throwable $ne) {
+            \Illuminate\Support\Facades\Log::error('Job approval notification error: ' . $ne->getMessage());
+        }
+
+        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
             return response()->json([
                 'success' => true,
-                'message' => "Job posting '{$job->title}' has been approved successfully."
+                'message' => "Job posting '{$jobModel->title}' has been approved successfully."
             ]);
         }
 
-        return redirect()->back()->with('success', "Job posting '{$job->title}' has been approved successfully.");
+        return redirect()->back()->with('success', "Job posting '{$jobModel->title}' has been approved successfully.");
     }
 
     /**
