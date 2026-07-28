@@ -224,16 +224,33 @@ class AuthController extends Controller
         } elseif ($activeRoleType === 'employer') {
             $employerProfile = $user->employerProfile()->first();
             if ($employerProfile) {
+                $ops = $employerProfile->operational_locations;
+                if (is_string($ops)) {
+                    $ops = json_decode($ops, true) ?: [];
+                }
                 $employerData = [
                     'id' => $employerProfile->id,
                     'user_id' => $employerProfile->user_id,
-                    'company_name' => $employerProfile->company_name ?: '',
-                    'company_website' => $employerProfile->company_website ?: '',
-                    'company_logo_url' => $employerProfile->company_logo_url ?: '',
-                    'city' => $employerProfile->city ?: '',
-                    'designation' => $employerProfile->designation ?: '',
-                    'description' => $employerProfile->description ?: '',
+                    'business_name' => $employerProfile->business_name ?: '',
+                    'company_name' => $employerProfile->business_name ?: '',
+                    'industry_segment' => $employerProfile->industry_segment ?: '',
+                    'description' => $employerProfile->industry_segment ?: '',
+                    'business_location' => $employerProfile->business_location ?: '',
+                    'city' => $employerProfile->business_location ?: '',
+                    'contact_person_name' => $employerProfile->contact_person_name ?: '',
+                    'designation' => $employerProfile->contact_person_name ?: '',
+                    'business_mobile' => $employerProfile->business_mobile ?: '',
+                    'business_email' => $employerProfile->business_email ?: '',
+                    'preferred_language' => $employerProfile->preferred_language ?: 'en',
+                    'company_logo_path' => $employerProfile->company_logo_path ?: '',
+                    'company_logo_url' => $employerProfile->company_logo_path ?: '',
+                    'operational_locations' => is_array($ops) ? $ops : [],
+                    'nominee_name' => $employerProfile->nominee_name ?: '',
+                    'nominee_relationship' => $employerProfile->nominee_relationship ?: '',
+                    'nominee_mobile' => $employerProfile->nominee_mobile ?: '',
+                    'is_completed' => (bool)$employerProfile->is_completed,
                     'created_at' => $employerProfile->created_at ? $employerProfile->created_at->toIso8601String() : null,
+                    'updated_at' => $employerProfile->updated_at ? $employerProfile->updated_at->toIso8601String() : null,
                 ];
             }
         }

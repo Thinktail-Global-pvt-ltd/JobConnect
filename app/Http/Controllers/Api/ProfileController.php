@@ -91,16 +91,33 @@ class ProfileController extends Controller
             }
         } elseif ($activeRole === 'employer') {
             if ($user && $user->employerProfile) {
+                $ops = $user->employerProfile->operational_locations;
+                if (is_string($ops)) {
+                    $ops = json_decode($ops, true) ?: [];
+                }
                 $employerData = [
                     'id' => $user->employerProfile->id,
                     'user_id' => $user->employerProfile->user_id,
-                    'company_name' => $user->employerProfile->company_name ?: '',
-                    'company_website' => $user->employerProfile->company_website ?: '',
-                    'company_logo_url' => $user->employerProfile->company_logo_url ?: '',
-                    'city' => $user->employerProfile->city ?: '',
-                    'designation' => $user->employerProfile->designation ?: '',
-                    'description' => $user->employerProfile->description ?: '',
+                    'business_name' => $user->employerProfile->business_name ?: '',
+                    'company_name' => $user->employerProfile->business_name ?: '',
+                    'industry_segment' => $user->employerProfile->industry_segment ?: '',
+                    'description' => $user->employerProfile->industry_segment ?: '',
+                    'business_location' => $user->employerProfile->business_location ?: '',
+                    'city' => $user->employerProfile->business_location ?: '',
+                    'contact_person_name' => $user->employerProfile->contact_person_name ?: '',
+                    'designation' => $user->employerProfile->contact_person_name ?: '',
+                    'business_mobile' => $user->employerProfile->business_mobile ?: '',
+                    'business_email' => $user->employerProfile->business_email ?: '',
+                    'preferred_language' => $user->employerProfile->preferred_language ?: 'en',
+                    'company_logo_path' => $user->employerProfile->company_logo_path ?: '',
+                    'company_logo_url' => $user->employerProfile->company_logo_path ?: '',
+                    'operational_locations' => is_array($ops) ? $ops : [],
+                    'nominee_name' => $user->employerProfile->nominee_name ?: '',
+                    'nominee_relationship' => $user->employerProfile->nominee_relationship ?: '',
+                    'nominee_mobile' => $user->employerProfile->nominee_mobile ?: '',
+                    'is_completed' => (bool)$user->employerProfile->is_completed,
                     'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
+                    'updated_at' => $user->employerProfile->updated_at ? $user->employerProfile->updated_at->toIso8601String() : null,
                 ];
             }
         }
