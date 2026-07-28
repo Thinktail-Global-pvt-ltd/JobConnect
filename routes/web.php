@@ -148,6 +148,7 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
 
     // Employer Moderator Routes
     Route::get('/employers', [EmployerModeratorController::class, 'index']);
+    Route::post('/employers', [EmployerModeratorController::class, 'store']);
     Route::post('/employers/{user}/suspend', [EmployerModeratorController::class, 'suspend']);
     Route::post('/employers/{user}/activate', [EmployerModeratorController::class, 'activate']);
 

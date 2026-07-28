@@ -55,7 +55,7 @@
 
 <!-- Main Employer Directory Card (Dynamic List — No Pagination) -->
 <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mt-8">
-    <!-- Top Filter Bar -->
+    <!-- Top Filter & Actions Bar -->
     <div class="p-7 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white">
         <div class="flex items-center gap-3">
             <h2 class="font-outfit font-black text-xl text-slate-800">Employer Directory</h2>
@@ -63,7 +63,7 @@
             <span class="bg-purple-50 text-purple-600 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">PREMIUM TIER</span>
         </div>
 
-        <!-- Search Form -->
+        <!-- Search Form & Add Employer Action -->
         <div class="flex items-center gap-3">
             <form action="{{ url('admin/employers') }}" method="GET" class="relative flex-grow md:w-80">
                 <input type="text" name="search" placeholder="Search employers, regions, or status..." value="{{ request('search') }}" 
@@ -73,6 +73,11 @@
                     <a href="{{ url('admin/employers') }}" class="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 text-xs font-bold p-1">✕</a>
                 @endif
             </form>
+
+            <button onclick="document.getElementById('addEmployerModal').classList.remove('hidden')" 
+                    class="bg-brand-500 hover:bg-brand-600 text-white rounded-2xl px-5 py-3 text-xs font-extrabold shadow-sm shadow-brand-500/20 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap flex items-center gap-2">
+                <span>+</span> Add Employer
+            </button>
         </div>
     </div>
 
@@ -81,7 +86,7 @@
         <div class="p-16 text-center text-slate-400 font-medium">
             <div class="text-4xl mb-3">🏢</div>
             <p class="text-sm font-semibold text-slate-600">No employer accounts found</p>
-            <p class="text-xs text-slate-400 mt-1">Try resetting search filters or register new employer accounts.</p>
+            <p class="text-xs text-slate-400 mt-1">Try resetting search filters or click "+ Add Employer" to register a new account.</p>
         </div>
     @else
         <div class="overflow-x-auto">
@@ -183,5 +188,63 @@
             <span class="text-slate-400">Total Employer Accounts: {{ $employers->count() }}</span>
         </div>
     @endif
+</div>
+
+<!-- Add Employer Modal -->
+<div id="addEmployerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 animate-fade-in">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 relative">
+        <button onclick="document.getElementById('addEmployerModal').classList.add('hidden')" class="absolute right-6 top-6 text-slate-400 hover:text-slate-600 font-bold text-lg">
+            ✕
+        </button>
+
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-xl">
+                🏢
+            </div>
+            <div>
+                <h3 class="font-outfit font-extrabold text-lg text-slate-800">Add New Employer</h3>
+                <p class="text-xs font-medium text-slate-400 mt-0.5">Onboard a new employer/business account directly.</p>
+            </div>
+        </div>
+
+        <form action="{{ url('admin/employers') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Business / Company Name *</label>
+                <input type="text" name="business_name" required placeholder="e.g. Taj Hotels & Resorts" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-500 focus:bg-white transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Contact Person Full Name *</label>
+                <input type="text" name="full_name" required placeholder="e.g. Rahul Sharma" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-500 focus:bg-white transition">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Mobile Number *</label>
+                    <input type="text" name="mobile_number" required placeholder="e.g. 9876543210" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-500 focus:bg-white transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Email Address</label>
+                    <input type="email" name="email" placeholder="e.g. hr@company.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-500 focus:bg-white transition">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Business Location / City</label>
+                <input type="text" name="business_location" placeholder="e.g. Mumbai, India" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand-500 focus:bg-white transition">
+            </div>
+
+            <div class="pt-4 flex items-center justify-end gap-3">
+                <button type="button" onclick="document.getElementById('addEmployerModal').classList.add('hidden')" class="px-5 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition">
+                    Create Employer Account
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection

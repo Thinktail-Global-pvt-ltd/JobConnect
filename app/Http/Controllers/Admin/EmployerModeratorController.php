@@ -81,6 +81,56 @@ class EmployerModeratorController extends Controller
     }
 
     /**
+     * Store / Onboard a new employer account directly from Admin Console.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'mobile_number' => 'required|string|unique:users,mobile_number',
+            'full_name' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:users,email',
+            'business_name' => 'required|string|max:255',
+            'business_location' => 'nullable|string|max:255',
+        ]);
+
+        // Create User Record
+        $user = User::create([
+            'mobile_number' => $validated['mobile_number'],
+            'full_name' => $validated['full_name'],
+            'email' => $validated['email'] ?? null,
+            'city' => $validated['business_location'] ?? 'Mumbai',
+            'current_employer' => $validated['business_name'],
+        ]);
+
+        // Assign active employer role in user_roles
+        \App\Models\UserRole::updateOrCreate(
+            ['user_id' => $user->id, 'role_type' => 'employer'],
+            ['is_active' => true]
+        );
+
+        // Create associated EmployerProfile
+        \App\Models\EmployerProfile::create([
+            'user_id' => $user->id,
+            'business_name' => $validated['business_name'],
+            'contact_person_name' => $validated['full_name'],
+            'business_location' => $validated['business_location'] ?? 'Mumbai',
+            'business_mobile' => $validated['mobile_number'],
+            'business_email' => $validated['email'] ?? null,
+            'is_completed' => true,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Employer account for '{$validated['business_name']}' created successfully!",
+                'user' => $user->load('employerProfile')
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Employer account for '{$validated['business_name']}' created successfully!");
+    }
+
+    /**
      * Suspend an employer account.
      */
     public function suspend(User $user)
