@@ -499,62 +499,70 @@ Route::match(['get', 'post'], '/applicants/{id}/status', [EmployerController::cl
 
 // Admin Job Applications List Route
 Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
-    $query = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost', 'job_post']);
+    try {
+        $query = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost']);
 
-    if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
-        $query->where('status', $request->status);
+        if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
+            $query->where('status', $request->status);
+        }
+
+        $apps = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
+
+        $mapped = $apps->map(function($app) {
+            $applicant = $app->applicant;
+            $job = $app->jobPost;
+
+            $fullName = $applicant ? ($applicant->full_name ?: ('Candidate #' . $applicant->id)) : ('Candidate #' . $app->applicant_id);
+            $email = $applicant ? ($applicant->email ?: '') : '';
+            $mobile = $applicant ? ($applicant->mobile_number ?: '') : '';
+            $city = $applicant ? ($applicant->city ?: 'N/A') : 'N/A';
+            $experience = $applicant ? ($applicant->experience_range ?: 'N/A') : 'N/A';
+
+            $jobTitle = $job ? ($job->title ?: ('Job Listing #' . $app->job_post_id)) : ('Job Listing #' . $app->job_post_id);
+            $company = $job ? ($job->company ?: 'Employer') : 'Employer';
+
+            return [
+                'id' => $app->id,
+                'applicant_id' => $app->applicant_id,
+                'job_post_id' => $app->job_post_id,
+                'employer_id' => $app->employer_id,
+                'status' => $app->status ?: 'new',
+                'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
+                'applicant' => [
+                    'id' => $applicant ? $applicant->id : $app->applicant_id,
+                    'full_name' => $fullName,
+                    'name' => $fullName,
+                    'email' => $email,
+                    'mobile_number' => $mobile,
+                    'city' => $city,
+                    'experience_range' => $experience,
+                    'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
+                    'current_employer' => $applicant ? ($applicant->current_employer ?: '') : '',
+                    'skills' => ($applicant && is_array($applicant->skills)) ? $applicant->skills : ($applicant && is_string($applicant->skills) ? (json_decode($applicant->skills, true) ?: []) : []),
+                    'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
+                ],
+                'job_post' => [
+                    'id' => $job ? $job->id : $app->job_post_id,
+                    'title' => $jobTitle,
+                    'company' => $company,
+                    'location' => $job ? ($job->location ?: 'India') : 'India',
+                    'category' => $job ? ($job->category ?: 'india') : 'india',
+                ]
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'total' => $mapped->count(),
+            'applications' => $mapped
+        ]);
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error('Admin applications list error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
     }
-
-    $apps = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
-
-    $mapped = $apps->map(function($app) {
-        $applicant = $app->applicant;
-        $job = $app->job_post ?: $app->jobPost;
-
-        $fullName = $applicant ? ($applicant->full_name ?: ('Candidate #' . $applicant->id)) : ('Candidate #' . $app->applicant_id);
-        $email = $applicant ? ($applicant->email ?: '') : '';
-        $mobile = $applicant ? ($applicant->mobile_number ?: '') : '';
-        $city = $applicant ? ($applicant->city ?: 'N/A') : 'N/A';
-        $experience = $applicant ? ($applicant->experience_range ?: 'N/A') : 'N/A';
-
-        $jobTitle = $job ? ($job->title ?: ('Job Listing #' . $app->job_post_id)) : ('Job Listing #' . $app->job_post_id);
-        $company = $job ? ($job->company ?: 'Employer') : 'Employer';
-
-        return [
-            'id' => $app->id,
-            'applicant_id' => $app->applicant_id,
-            'job_post_id' => $app->job_post_id,
-            'employer_id' => $app->employer_id,
-            'status' => $app->status ?: 'new',
-            'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
-            'applicant' => [
-                'id' => $applicant ? $applicant->id : $app->applicant_id,
-                'full_name' => $fullName,
-                'name' => $fullName,
-                'email' => $email,
-                'mobile_number' => $mobile,
-                'city' => $city,
-                'experience_range' => $experience,
-                'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
-                'current_employer' => $applicant ? ($applicant->current_employer ?: '') : '',
-                'skills' => ($applicant && is_array($applicant->skills)) ? $applicant->skills : ($applicant && is_string($applicant->skills) ? (json_decode($applicant->skills, true) ?: []) : []),
-                'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
-            ],
-            'job_post' => [
-                'id' => $job ? $job->id : $app->job_post_id,
-                'title' => $jobTitle,
-                'company' => $company,
-                'location' => $job ? ($job->location ?: 'India') : 'India',
-                'category' => $job ? ($job->category ?: 'india') : 'india',
-            ]
-        ];
-    });
-
-    return response()->json([
-        'success' => true,
-        'total' => $mapped->count(),
-        'applications' => $mapped
-    ]);
 });
 
 Route::get('/admin/test-apply-options', function() {
