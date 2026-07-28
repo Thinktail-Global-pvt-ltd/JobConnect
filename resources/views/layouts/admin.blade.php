@@ -104,8 +104,8 @@
                 <span class="text-sm">Community Feed</span>
             </a>
 
-            <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group text-slate-400 hover:bg-slate-50 hover:text-slate-800">
-                <span class="text-xl text-slate-300">🏢</span>
+            <a href="{{ url('admin/employers') }}" class="flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group {{ Request::is('admin/employers*') ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' }}">
+                <span class="text-xl {{ Request::is('admin/employers*') ? 'text-brand-500' : 'text-slate-400 group-hover:text-slate-600' }}">🏢</span>
                 <span class="text-sm">Employers</span>
             </a>
 

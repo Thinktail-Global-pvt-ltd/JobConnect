@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserModeratorController;
+use App\Http\Controllers\Admin\EmployerModeratorController;
 use App\Http\Controllers\Admin\JobModeratorController;
 use App\Http\Controllers\Admin\ChefModeratorController;
 use App\Http\Controllers\Admin\TrainingController;
@@ -144,6 +145,11 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
     Route::delete('/users/{user}', [UserModeratorController::class, 'destroy']);
     Route::get('/users/{user}/posted-jobs', [UserModeratorController::class, 'postedJobsList']);
     Route::get('/users/{user}/applied-jobs', [UserModeratorController::class, 'appliedJobsList']);
+
+    // Employer Moderator Routes
+    Route::get('/employers', [EmployerModeratorController::class, 'index']);
+    Route::post('/employers/{user}/suspend', [EmployerModeratorController::class, 'suspend']);
+    Route::post('/employers/{user}/activate', [EmployerModeratorController::class, 'activate']);
 
     // Job Moderator Routes
     Route::get('/jobs', [JobModeratorController::class, 'index']);
