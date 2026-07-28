@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Sparkles, CheckCircle2, Bookmark, Briefcase, Signal, Wifi, Battery, MapPin, Building2, Clock, Smartphone, List, Eye, EyeOff } from 'lucide-react';
+import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Sparkles, CheckCircle2, Bookmark, Briefcase, Signal, Wifi, Battery, MapPin, Building2, Clock, Smartphone, List, Eye, EyeOff, Pin } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 export default function CommunityFeed() {
   const [viewMode, setViewMode] = useState('phone'); // 'phone' or 'table'
   const [posts, setPosts] = useState([]);
   const [publicFeed, setPublicFeed] = useState([]);
-  const [stats, setStats] = useState({ total: 0, published: 0, drafts: 0, archived: 0 });
+  const [stats, setStats] = useState({ total: 0, published: 0, drafts: 0, archived: 0, pinned: 0 });
   const [tab, setTab] = useState('all');
   const [phoneCategory, setPhoneCategory] = useState('');
   const [loading, setLoading] = useState(true);
@@ -43,16 +43,13 @@ export default function CommunityFeed() {
       const data = await mockApi.getCommunityPosts();
       if (data && data.posts && data.posts.length > 0) {
         setPosts(data.posts);
-        if (data.stats) {
-          setStats(data.stats);
-        } else {
-          setStats({
-            total: data.posts.length,
-            published: data.posts.filter(p => p.status === 'Published').length,
-            drafts: data.posts.filter(p => p.status === 'Draft').length,
-            archived: data.posts.filter(p => p.status === 'Archived').length,
-          });
-        }
+        setStats({
+          total: data.posts.length,
+          published: data.posts.filter(p => p.status === 'Published').length,
+          drafts: data.posts.filter(p => p.status === 'Draft' || p.status === 'Pending').length,
+          archived: data.posts.filter(p => p.status === 'Archived').length,
+          pinned: data.posts.filter(p => Boolean(p.is_pinned)).length
+        });
       }
     } catch (err) {
       console.error('Failed to load community posts:', err);
@@ -64,6 +61,29 @@ export default function CommunityFeed() {
   useEffect(() => {
     loadPosts();
   }, []);
+
+  const handleTogglePin = (id) => {
+    setPosts(prev => {
+      const updated = prev.map(p => {
+        if (p.id === id) {
+          return { ...p, is_pinned: !p.is_pinned };
+        }
+        return p;
+      });
+
+      // Sort pinned posts top-first
+      return [...updated].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+    });
+
+    setStats(prev => {
+      const target = posts.find(p => p.id === id);
+      const isPinnedNow = !target?.is_pinned;
+      return {
+        ...prev,
+        pinned: isPinnedNow ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
+      };
+    });
+  };
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
@@ -80,7 +100,8 @@ export default function CommunityFeed() {
       status: formData.status === 'published' ? 'Published' : 'Draft',
       date: 'Just Now',
       cta_label: formData.cta_label,
-      cta_url: formData.cta_url
+      cta_url: formData.cta_url,
+      is_pinned: false
     };
 
     setPosts(prev => [tempNewPost, ...prev]);
@@ -106,16 +127,12 @@ export default function CommunityFeed() {
 
   // Status toggle handler: Publish or Unpublish
   const handleStatusChange = async (id, newStatus, source = 'admin_post') => {
-    // 1. Optimistic state mutation
     setPosts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
-    
-    // 2. Call backend status toggle API
     try {
       await mockApi.updateFeedItemStatus(id, source, newStatus.toLowerCase());
     } catch (err) {
       console.error('Status update failed:', err);
     } finally {
-      // 3. Re-fetch public candidate feed so item is instantly added or removed from phone view!
       fetchPublicCandidateFeed();
     }
   };
@@ -138,7 +155,8 @@ export default function CommunityFeed() {
 
   const filteredPosts = posts.filter(p => {
     if (tab === 'published') return p.status === 'Published';
-    if (tab === 'drafts') return p.status === 'Draft';
+    if (tab === 'drafts') return p.status === 'Draft' || p.status === 'Pending';
+    if (tab === 'pinned') return Boolean(p.is_pinned);
     if (tab === 'archived') return p.status === 'Archived';
     return true;
   });
@@ -172,7 +190,7 @@ export default function CommunityFeed() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Community Feed Manager</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, publish or unpublish posts live, and preview candidate view.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, pin posts live, publish or unpublish stream entries.</p>
         </div>
 
         {/* View Mode Switcher + Create Post Button */}
@@ -219,10 +237,10 @@ export default function CommunityFeed() {
             </div>
 
             <div className="bg-white p-4.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg shrink-0">💼</div>
+              <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg shrink-0">📌</div>
               <div>
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Approved Jobs</span>
-                <span className="font-outfit font-extrabold text-xl text-slate-800 block mt-0.5">{filteredPhoneFeed.filter(i => i._type === 'job').length} Active</span>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Pinned Entries</span>
+                <span className="font-outfit font-extrabold text-xl text-purple-700 block mt-0.5">{stats.pinned} Featured Top</span>
               </div>
             </div>
 
@@ -249,7 +267,7 @@ export default function CommunityFeed() {
             {/* Smartphone Device Outer Shell */}
             <div className="relative w-full max-w-[375px] bg-slate-950 rounded-[48px] p-3.5 shadow-2xl ring-1 ring-slate-800/60 border-4 border-slate-800">
               
-              {/* Phone Notch / Dynamic Island */}
+              {/* Phone Notch */}
               <div className="absolute top-6 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-50 flex items-center justify-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-800" />
                 <div className="w-2 h-2 rounded-full bg-slate-950" />
@@ -307,7 +325,7 @@ export default function CommunityFeed() {
                     <p className="text-center text-slate-400 text-xs py-20 font-medium">No published feed items visible.</p>
                   ) : (
                     filteredPhoneFeed.map((item, idx) => (
-                      <div key={idx} className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-2.5 transition-all hover:border-emerald-300">
+                      <div key={idx} className={`bg-white rounded-2xl p-4 border shadow-2xs space-y-2.5 transition-all ${item.is_pinned ? 'border-purple-300 bg-purple-50/20' : 'border-slate-200/80 hover:border-emerald-300'}`}>
                         
                         {/* Item Source & Type Badge */}
                         <div className="flex items-center justify-between">
@@ -329,10 +347,15 @@ export default function CommunityFeed() {
                             </span>
                           )}
 
-                          <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
-                            <Clock className="w-2.5 h-2.5" />
-                            Published
-                          </span>
+                          <div className="flex items-center gap-1">
+                            {item.is_pinned && (
+                              <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[8px] font-extrabold rounded">📌 PINNED</span>
+                            )}
+                            <span className="text-[9px] font-bold text-slate-400 flex items-center gap-1">
+                              <Clock className="w-2.5 h-2.5" />
+                              Published
+                            </span>
+                          </div>
                         </div>
 
                         {/* Title & Body */}
@@ -348,7 +371,7 @@ export default function CommunityFeed() {
                           )}
                         </div>
 
-                        {/* Job Meta (Location & Salary) */}
+                        {/* Job Meta */}
                         {item._type === 'job' && (
                           <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px] font-semibold text-slate-600">
                             <span className="flex items-center gap-1 text-slate-500">
@@ -401,9 +424,9 @@ export default function CommunityFeed() {
           </div>
         </div>
       ) : (
-        /* VIEW MODE 2: ADMIN FEED STREAM TABLE VIEW (WITH UNPUBLISH BUTTON) */
+        /* VIEW MODE 2: ADMIN FEED STREAM TABLE VIEW (WITH PIN BUTTON) */
         <div className="space-y-6">
-          {/* KPI Stats Row (2 Columns on Half-Screen, 4 on Full-Screen) */}
+          {/* KPI Stats Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             
             {/* Card 1 */}
@@ -419,23 +442,23 @@ export default function CommunityFeed() {
 
             {/* Card 2 */}
             <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
-              <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5" />
+              <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 font-bold text-[#9333ea]">
+                <Pin className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.filter(p => p.status === 'Draft' || p.status === 'Pending').length}</span>
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Drafts / Unpublished</span>
+                <span className="font-outfit font-extrabold text-2xl text-purple-700 block leading-tight">{stats.pinned}</span>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Pinned to Priority</span>
               </div>
             </div>
 
             {/* Card 3 */}
             <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-11 h-11 rounded-xl bg-[#fff7ed] text-[#c2410c] flex items-center justify-center shrink-0">
+                <FileText className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.length}</span>
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Total Stream Entries</span>
+                <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{posts.filter(p => p.status === 'Draft' || p.status === 'Pending').length}</span>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Drafts / Unpublished</span>
               </div>
             </div>
 
@@ -445,8 +468,8 @@ export default function CommunityFeed() {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-outfit font-extrabold text-2xl block leading-tight">{posts.filter(p => p.status === 'Archived').length}</span>
-                <span className="text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest mt-1 block">Archived Entries</span>
+                <span className="font-outfit font-extrabold text-2xl block leading-tight">{posts.length}</span>
+                <span className="text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest mt-1 block">Total Stream Entries</span>
               </div>
             </div>
 
@@ -458,16 +481,19 @@ export default function CommunityFeed() {
             {/* Tabs Bar */}
             <div className="px-6 py-4 border-b border-[#e2e8f0] flex items-center justify-between bg-slate-50/30">
               <div className="flex items-center gap-2 flex-wrap">
-                <button onClick={() => setTab('all')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'all' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+                <button onClick={() => setTab('all')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'all' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
                   All Stream Posts ({posts.length})
                 </button>
-                <button onClick={() => setTab('published')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'published' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+                <button onClick={() => setTab('published')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'published' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
                   Published ({posts.filter(p => p.status === 'Published').length})
                 </button>
-                <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'drafts' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+                <button onClick={() => setTab('pinned')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'pinned' ? 'bg-purple-600 text-white' : 'text-purple-700 bg-purple-50 hover:bg-purple-100'}`}>
+                  📌 Pinned ({stats.pinned})
+                </button>
+                <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
                   Drafts / Unpublished ({posts.filter(p => p.status === 'Draft' || p.status === 'Pending').length})
                 </button>
-                <button onClick={() => setTab('archived')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${tab === 'archived' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+                <button onClick={() => setTab('archived')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'archived' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
                   Archived ({posts.filter(p => p.status === 'Archived').length})
                 </button>
               </div>
@@ -492,10 +518,13 @@ export default function CommunityFeed() {
                   </thead>
                   <tbody className="divide-y divide-[#e2e8f0] text-xs font-medium">
                     {filteredPosts.map((post) => (
-                      <tr key={post.id} className="hover:bg-slate-50/80 transition-colors">
-                        {/* Title */}
+                      <tr key={post.id} className={`hover:bg-slate-50/80 transition-colors ${post.is_pinned ? 'bg-purple-50/30' : ''}`}>
+                        {/* Title with Pin Badge */}
                         <td className="py-4.5 px-6">
                           <div className="flex items-center gap-3">
+                            {post.is_pinned && (
+                              <span className="text-purple-600 text-sm shrink-0" title="Pinned to top feed priority">📌</span>
+                            )}
                             <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">
                               {getSourceIcon(post.source, post.post_type)}
                             </div>
@@ -540,7 +569,7 @@ export default function CommunityFeed() {
                           {post.date}
                         </td>
 
-                        {/* Actions: Explicit Publish / Unpublish Buttons */}
+                        {/* Actions: Publish, Unpublish, Pin/Unpin, Delete */}
                         <td className="py-4.5 px-6 text-center">
                           <div className="flex items-center justify-center gap-2">
                             {post.status === 'Published' ? (
@@ -562,6 +591,19 @@ export default function CommunityFeed() {
                                 <span>Publish</span>
                               </button>
                             )}
+
+                            {/* Pin / Unpin Button */}
+                            <button 
+                              onClick={() => handleTogglePin(post.id)} 
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
+                                post.is_pinned 
+                                  ? 'bg-purple-600 text-white border-purple-600 shadow-xs' 
+                                  : 'bg-purple-50 text-purple-600 border-purple-100 hover:bg-purple-600 hover:text-white'
+                              }`} 
+                              title={post.is_pinned ? "Unpin Post" : "Pin Post to Candidate Feed Top Priority"}
+                            >
+                              <Pin className="w-4 h-4" />
+                            </button>
 
                             {post.status === 'Published' && (
                               <button 
@@ -599,7 +641,7 @@ export default function CommunityFeed() {
               </div>
             )}
 
-            {/* Footer info (ALL LOADED AT ONCE - NO PAGINATION) */}
+            {/* Footer info */}
             <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
               <span className="text-xs text-slate-500 font-bold">
                 Showing all {filteredPosts.length} Combined Stream Posts (Jobs, Announcements & Training)
