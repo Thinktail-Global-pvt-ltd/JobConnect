@@ -11,6 +11,7 @@ class JobApplication extends Model
         'job_post_id',
         'employer_id',
         'status', // new, contacted, shortlisted, hired, rejected
+        'preferred_call_time',
     ];
 
     /**

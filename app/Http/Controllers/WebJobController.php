@@ -47,17 +47,29 @@ class WebJobController extends Controller
             ], 422);
         }
 
+        $preferredCallTime = $request->input('preferred_call_time', $request->input('call_time', null));
+
         // Create application
-        JobApplication::create([
+        $application = JobApplication::create([
             'applicant_id' => $user->id,
             'job_post_id' => $job->id,
             'employer_id' => $job->created_by,
             'status' => 'new',
+            'preferred_call_time' => $preferredCallTime,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Application submitted successfully!',
+            'application' => [
+                'id' => $application->id,
+                'applicant_id' => $application->applicant_id,
+                'job_post_id' => $application->job_post_id,
+                'employer_id' => $application->employer_id,
+                'status' => $application->status,
+                'preferred_call_time' => $application->preferred_call_time,
+                'created_at' => $application->created_at ? $application->created_at->toIso8601String() : null,
+            ]
         ]);
     }
 

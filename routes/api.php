@@ -509,6 +509,7 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                 'job_applications.job_post_id',
                 'job_applications.employer_id',
                 'job_applications.status',
+                'job_applications.preferred_call_time',
                 'job_applications.created_at',
                 'users.full_name as applicant_name',
                 'users.email as applicant_email',
@@ -551,6 +552,7 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                 'job_post_id' => $row->job_post_id,
                 'employer_id' => $row->employer_id,
                 'status' => $row->status ?: 'new',
+                'preferred_call_time' => $row->preferred_call_time ?: null,
                 'created_at' => $row->created_at ?: now()->toIso8601String(),
                 'applicant' => [
                     'id' => $row->applicant_id,
