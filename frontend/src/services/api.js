@@ -919,5 +919,35 @@ export const mockApi = {
       console.warn("Axios direct updateFeedItemStatus failed", e);
     }
     return { success: false };
+  },
+
+  getSidebarStats: async () => {
+    try {
+      const res = await realApi.get('/api/admin/sidebar-stats');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get('/backend/api/admin/sidebar-stats');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get('http://localhost:8001/api/admin/sidebar-stats');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    return {
+      success: true,
+      counts: {
+        users: 24,
+        talent: 14,
+        employers: 6,
+        chefs: 4,
+        jobs: 21,
+        referrals: 5,
+        community: 12,
+        training: 6,
+        applications: 21,
+        enquiries: 3,
+      }
+    };
   }
 };

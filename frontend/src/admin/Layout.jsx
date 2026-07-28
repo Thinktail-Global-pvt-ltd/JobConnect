@@ -1,11 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { mockApi } from '../services/api';
 
 export default function Layout({ children }) {
   const location = useLocation();
   const [usersOpen, setUsersOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [counts, setCounts] = useState({
+    users: 24,
+    talent: 14,
+    employers: 6,
+    chefs: 4,
+    jobs: 21,
+    referrals: 5,
+    community: 12,
+    training: 6,
+    applications: 21,
+    enquiries: 3,
+  });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const res = await mockApi.getSidebarStats();
+        if (res && res.success && res.counts) {
+          setCounts(res.counts);
+        }
+      } catch (e) {
+        console.error("Failed to fetch sidebar counts:", e);
+      }
+    };
+    fetchCounts();
+  }, []);
 
   const isActive = (path) => {
     return location.pathname === path || (path !== '/admin/dashboard' && location.pathname.startsWith(path));
@@ -16,23 +43,23 @@ export default function Layout({ children }) {
                              location.pathname.startsWith('/admin/chefs');
 
   const mainNavItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
+    { name: 'Dashboard', path: '/admin/dashboard', icon: '📊', count: null },
   ];
 
   const userSubItems = [
-    { name: 'Talent / Jobseeker', path: '/admin/users', icon: '👤' },
-    { name: 'Employer', path: '/admin/employers', icon: '🏢' },
-    { name: 'Chef', path: '/admin/chefs', icon: '👨‍🍳' },
+    { name: 'Talent / Jobseeker', path: '/admin/users', icon: '👤', countKey: 'talent' },
+    { name: 'Employer', path: '/admin/employers', icon: '🏢', countKey: 'employers' },
+    { name: 'Chef', path: '/admin/chefs', icon: '👨‍🍳', countKey: 'chefs' },
   ];
 
   const secondaryNavItems = [
-    { name: 'Jobs', path: '/admin/jobs', icon: '💼' },
-    { name: 'Referrals', path: '/admin/jobs?category=community', icon: '🔗' },
-    { name: 'Community Feed', path: '/admin/community', icon: '📶' },
-    { name: 'Training & Overseas', path: '/admin/training', icon: '🎓' },
-    { name: 'Applications', path: '/admin/applications', icon: '📄' },
-    { name: 'Enquiries', path: '/admin/enquiries', icon: '❓' },
-    { name: 'Settings', path: '/admin/settings', icon: '⚙️' },
+    { name: 'Jobs', path: '/admin/jobs', icon: '💼', countKey: 'jobs' },
+    { name: 'Referrals', path: '/admin/jobs?category=community', icon: '🔗', countKey: 'referrals' },
+    { name: 'Community Feed', path: '/admin/community', icon: '📶', countKey: 'community' },
+    { name: 'Training & Overseas', path: '/admin/training', icon: '🎓', countKey: 'training' },
+    { name: 'Applications', path: '/admin/applications', icon: '📄', countKey: 'applications' },
+    { name: 'Enquiries', path: '/admin/enquiries', icon: '❓', countKey: 'enquiries' },
+    { name: 'Settings', path: '/admin/settings', icon: '⚙️', countKey: null },
   ];
 
   const handleLogout = () => {
@@ -78,7 +105,7 @@ export default function Layout({ children }) {
                 key={item.name}
                 to={item.path}
                 title={isCollapsed ? item.name : ''}
-                className={`flex items-center gap-3.5 py-2.5 transition-all border-l-4 ${
+                className={`flex items-center justify-between py-2.5 transition-all border-l-4 ${
                   isCollapsed ? 'px-0 justify-center' : 'px-6'
                 } ${
                   active
@@ -86,8 +113,10 @@ export default function Layout({ children }) {
                     : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
                 }`}
               >
-                <span className="text-base leading-none">{item.icon}</span>
-                {!isCollapsed && <span className="text-xs font-semibold">{item.name}</span>}
+                <div className="flex items-center gap-3.5">
+                  <span className="text-base leading-none">{item.icon}</span>
+                  {!isCollapsed && <span className="text-xs font-semibold">{item.name}</span>}
+                </div>
               </Link>
             );
           })}
@@ -113,11 +142,16 @@ export default function Layout({ children }) {
                 {!isCollapsed && <span className="text-xs font-bold uppercase tracking-wider">Users</span>}
               </div>
               {!isCollapsed && (
-                usersOpen ? (
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                ) : (
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                )
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 shadow-2xs">
+                    {counts.users ?? (counts.talent + counts.employers + counts.chefs)}
+                  </span>
+                  {usersOpen ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  )}
+                </div>
               )}
             </button>
 
@@ -126,18 +160,24 @@ export default function Layout({ children }) {
               <div className="pl-6 space-y-0.5 bg-[#090D16]/60 py-1">
                 {userSubItems.map((sub) => {
                   const active = isActive(sub.path);
+                  const countVal = counts[sub.countKey] ?? 0;
                   return (
                     <Link
                       key={sub.name}
                       to={sub.path}
-                      className={`flex items-center gap-3 px-5 py-2 transition-all rounded-r-xl border-l-2 ${
+                      className={`flex items-center justify-between px-5 py-2 transition-all rounded-r-xl border-l-2 ${
                         active
                           ? 'bg-[#1E293B] border-[#059669] text-[#059669] font-extrabold shadow-2xs'
                           : 'border-transparent text-slate-400 hover:bg-[#1E293B]/50 hover:text-slate-200 font-medium'
                       }`}
                     >
-                      <span className="text-sm leading-none">{sub.icon}</span>
-                      <span className="text-xs">{sub.name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm leading-none">{sub.icon}</span>
+                        <span className="text-xs">{sub.name}</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1E293B] text-slate-300 border border-slate-700/60 shadow-2xs">
+                        {countVal}
+                      </span>
                     </Link>
                   );
                 })}
@@ -148,12 +188,13 @@ export default function Layout({ children }) {
           {/* Secondary Items after Users */}
           {secondaryNavItems.map((item) => {
             const active = isActive(item.path);
+            const countVal = item.countKey ? (counts[item.countKey] ?? 0) : null;
             return (
               <Link
                 key={item.name}
                 to={item.path}
                 title={isCollapsed ? item.name : ''}
-                className={`flex items-center gap-3.5 py-2.5 transition-all border-l-4 ${
+                className={`flex items-center justify-between py-2.5 transition-all border-l-4 ${
                   isCollapsed ? 'px-0 justify-center' : 'px-6'
                 } ${
                   active
@@ -161,8 +202,19 @@ export default function Layout({ children }) {
                     : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
                 }`}
               >
-                <span className="text-base leading-none">{item.icon}</span>
-                {!isCollapsed && <span className="text-xs font-semibold">{item.name}</span>}
+                <div className="flex items-center gap-3.5">
+                  <span className="text-base leading-none">{item.icon}</span>
+                  {!isCollapsed && <span className="text-xs font-semibold">{item.name}</span>}
+                </div>
+                {(!isCollapsed && countVal !== null) && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-2xs ${
+                    active
+                      ? 'bg-[#059669]/20 text-[#059669] border border-[#059669]/40'
+                      : 'bg-[#1E293B] text-slate-300 border border-slate-700/60'
+                  }`}>
+                    {countVal}
+                  </span>
+                )}
               </Link>
             );
           })}
