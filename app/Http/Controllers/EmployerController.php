@@ -82,7 +82,10 @@ class EmployerController extends Controller
                     }
 
                     $appliedAt = $app->created_at ? $app->created_at->toIso8601String() : null;
+                    $createdAtRaw = $app->created_at ? $app->created_at->toDateTimeString() : null;
                     $appliedDate = $app->created_at ? $app->created_at->format('j M Y') : 'N/A';
+                    $appliedTime = $app->created_at ? $app->created_at->format('h:i A') : 'N/A';
+                    $appliedDateTime = $app->created_at ? $app->created_at->format('j M Y, h:i A') : 'N/A';
                     $appliedTimeAgo = $app->created_at ? $app->created_at->diffForHumans() : 'N/A';
                     $appliedTimestamp = $app->created_at ? $app->created_at->timestamp : 0;
 
@@ -97,7 +100,10 @@ class EmployerController extends Controller
                         'mobile_number' => $applicant ? ($applicant->mobile_number ?: '') : '',
                         'gender' => $applicant ? ($applicant->gender ?: '') : '',
                         'status' => $app->status, // new, contacted, shortlisted, hired, rejected
+                        'created_at' => $createdAtRaw,
                         'applied_date' => $appliedDate,
+                        'applied_time' => $appliedTime,
+                        'applied_date_time' => $appliedDateTime,
                         'applied_at' => $appliedAt,
                         'applied_time_ago' => $appliedTimeAgo,
                         'applied_timestamp' => $appliedTimestamp,
