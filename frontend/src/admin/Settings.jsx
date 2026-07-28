@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { ShieldCheck, Info } from 'lucide-react';
 
 export default function Settings() {
-  const [platformName, setPlatformName] = useState('JobConnect');
+  const [platformName, setPlatformName] = useState('JobRito');
   const [communityName, setCommunityName] = useState('Hospitality Elite');
-  const [supportNum, setSupportNum] = useState('+1 (800) 555-JOBS');
-  const [supportEmail, setSupportEmail] = useState('support@jobconnect.hospitality');
+  const [supportNum, setSupportNum] = useState('+91 (800) 555-JOBRITO');
+  const [supportEmail, setSupportEmail] = useState('support@jobrito.com');
   const [description, setDescription] = useState('The premier digital workspace for hospitality professionals, connecting top-tier culinary and service talent with world-class employers through referral networks and specialized training programs.');
 
   // Toggles status
@@ -24,7 +24,7 @@ export default function Settings() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Platform Settings</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Configure the core identity and global feature toggles for the JobConnect ecosystem.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Configure the core identity and global feature toggles for the JobRito ecosystem.</p>
         </div>
 
         <button onClick={handleSave} className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all flex items-center gap-1.5 self-stretch md:self-auto justify-center">

@@ -18,9 +18,9 @@ export default function AdminLogin() {
       const cleanId = adminId.trim();
       const cleanPassword = password.trim();
 
-      if (cleanId === 'jobconnect_admin' && cleanPassword === '123456') {
+      if ((cleanId === 'jobrito_admin' || cleanId === 'jobconnect_admin') && cleanPassword === '123456') {
         localStorage.setItem('admin_authenticated', 'true');
-        localStorage.setItem('admin_user_id', 'jobconnect_admin');
+        localStorage.setItem('admin_user_id', 'jobrito_admin');
         sessionStorage.setItem('admin_authenticated', 'true');
 
         window.dispatchEvent(new Event('admin_auth_change'));
@@ -45,7 +45,9 @@ export default function AdminLogin() {
           <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner border border-emerald-100">
             <ShieldCheck className="w-8 h-8" />
           </div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800 tracking-tight">Admin Console Login</h2>
+          <h2 className="font-outfit font-black text-2xl text-slate-900 tracking-tight">
+            Job<span className="text-[#059669]">Rito</span> Admin Console
+          </h2>
           <p className="text-xs text-slate-400 font-medium">Restricted system. Authorised administrative personnel only.</p>
         </div>
 
@@ -71,7 +73,7 @@ export default function AdminLogin() {
                 required
                 value={adminId}
                 onChange={(e) => setAdminId(e.target.value)}
-                placeholder="jobconnect_admin"
+                placeholder="jobrito_admin"
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-10 pr-4 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition-all shadow-sm"
               />
               <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -107,7 +109,7 @@ export default function AdminLogin() {
             ) : (
               <>
                 <KeyRound className="w-4 h-4" />
-                Sign In to Admin Console
+                Sign In to JobRito Admin
               </>
             )}
           </button>
@@ -116,7 +118,7 @@ export default function AdminLogin() {
         {/* Footer Notice */}
         <div className="pt-2 text-center border-t border-slate-100">
           <span className="text-[10px] text-slate-400 font-semibold block">
-            JobConnect Admin Portal &bull; Secured System
+            JobRito Admin Portal &bull; Secured System
           </span>
         </div>
 

@@ -48,11 +48,15 @@ export default function Layout({ children }) {
       {/* Responsive Collapsible Sidebar */}
       <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-[#e2e8f0] flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
         {/* Brand Header */}
-        <div className={`px-4 py-5 flex items-center justify-between border-b border-slate-50 ${isCollapsed ? 'justify-center' : 'px-6'}`}>
+        <div className={`px-4 py-5 flex items-center justify-between border-b border-slate-100 ${isCollapsed ? 'justify-center' : 'px-6'}`}>
           {!isCollapsed && (
             <div className="flex flex-col justify-start">
-              <span className="font-sans font-extrabold text-xl text-[#059669] leading-none">JobConnect</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Admin Console</span>
+              <span className="font-outfit font-black text-2xl text-slate-900 tracking-tight leading-none">
+                Job<span className="text-[#059669]">Rito</span>
+              </span>
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mt-1">
+                Admin Console
+              </span>
             </div>
           )}
           <button 
@@ -167,13 +171,13 @@ export default function Layout({ children }) {
 
         {/* Admin User Footer Profile */}
         <div className={`p-4 border-t border-slate-100 flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3'}`}>
-          <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
-            JA
+          <div className="w-8 h-8 rounded-full bg-[#059669] flex items-center justify-center text-white font-black text-xs shrink-0 shadow-sm">
+            JR
           </div>
           {!isCollapsed && (
             <>
               <div className="overflow-hidden flex-grow">
-                <span className="text-xs font-bold text-slate-700 block truncate">jobconnect_admin</span>
+                <span className="text-xs font-extrabold text-slate-800 block truncate">jobrito_admin</span>
                 <span className="text-[10px] font-semibold text-slate-400 block truncate">Super Admin</span>
               </div>
               <button 
@@ -204,7 +208,7 @@ export default function Layout({ children }) {
             <div className="relative w-44 sm:w-64 md:w-80">
               <input
                 type="text"
-                placeholder="Search data, users, or jobs..."
+                placeholder="Search JobRito database, candidates, or jobs..."
                 className="w-full bg-[#f1f5f9] border-none rounded-full py-2 pl-9 pr-3 text-xs font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#10b981] transition-all"
               />
               <Search className="absolute left-3 top-2.5 text-slate-400 w-3.5 h-3.5" />
@@ -221,11 +225,11 @@ export default function Layout({ children }) {
 
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="text-right hidden sm:block">
-                <span className="text-xs font-bold text-slate-700 block">jobconnect_admin</span>
+                <span className="text-xs font-extrabold text-slate-800 block">jobrito_admin</span>
                 <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">Super Admin</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-[#eff6ff] flex items-center justify-center text-[#1e40af] font-bold text-xs border border-blue-100 shrink-0">
-                JA
+              <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-[#059669] font-black text-xs border border-emerald-100 shrink-0">
+                JR
               </div>
               <button 
                 onClick={handleLogout} 
