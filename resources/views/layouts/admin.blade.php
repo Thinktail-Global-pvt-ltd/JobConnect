@@ -93,10 +93,9 @@
 
             <span class="px-4 pt-4 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-3">Other Services</span>
 
-            <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group text-slate-400 hover:bg-slate-50 hover:text-slate-800">
-                <span class="text-xl text-slate-300">🔗</span>
+            <a href="{{ url('admin/jobs?category=community') }}" class="flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group {{ Request::fullUrlIs('*category=community*') ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800' }}">
+                <span class="text-xl {{ Request::fullUrlIs('*category=community*') ? 'text-brand-500' : 'text-slate-400 group-hover:text-slate-600' }}">🔗</span>
                 <span class="text-sm">Referrals</span>
-                <span class="ml-auto bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">Soon</span>
             </a>
 
             <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group text-slate-400 hover:bg-slate-50 hover:text-slate-800">

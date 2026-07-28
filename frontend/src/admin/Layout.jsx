@@ -27,7 +27,7 @@ export default function Layout({ children }) {
 
   const secondaryNavItems = [
     { name: 'Jobs', path: '/admin/jobs', icon: '💼' },
-    { name: 'Referrals', path: '/admin/referrals', icon: '🔗' },
+    { name: 'Referrals', path: '/admin/jobs?category=community', icon: '🔗' },
     { name: 'Community Feed', path: '/admin/community', icon: '📶' },
     { name: 'Training & Overseas', path: '/admin/training', icon: '🎓' },
     { name: 'Applications', path: '/admin/applications', icon: '📄' },
