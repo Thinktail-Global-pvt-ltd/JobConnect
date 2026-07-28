@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles } from 'lucide-react';
+import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 export default function Training() {
   const [programs, setPrograms] = useState([]);
-  const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, countries_count: 0 });
+  const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, countries_count: 0, pinned: 0 });
   const [tab, setTab] = useState('all');
   const [loading, setLoading] = useState(true);
 
@@ -26,20 +26,16 @@ export default function Training() {
       const data = await mockApi.getTrainingPrograms();
       if (data && data.programs) {
         setPrograms(data.programs);
-        if (data.stats) {
-          setStats(data.stats);
-        } else {
-          // Dynamic calculation fallback
-          const allProgs = data.programs;
-          const countries = new Set();
-          allProgs.forEach(p => (p.countries || []).forEach(c => countries.add(c)));
-          setStats({
-            total: allProgs.length,
-            active: allProgs.filter(p => p.status === 'Published' || p.status === 'Active').length,
-            pending: allProgs.filter(p => p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending').length,
-            countries_count: countries.size
-          });
-        }
+        const allProgs = data.programs;
+        const countries = new Set();
+        allProgs.forEach(p => (p.countries || []).forEach(c => countries.add(c)));
+        setStats({
+          total: allProgs.length,
+          active: allProgs.filter(p => p.status === 'Published' || p.status === 'Active').length,
+          pending: allProgs.filter(p => p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending').length,
+          countries_count: countries.size,
+          pinned: allProgs.filter(p => p.is_pinned).length
+        });
       }
     } catch (err) {
       console.error('Failed to load training programs:', err);
@@ -67,6 +63,29 @@ export default function Training() {
     }
   };
 
+  const handleTogglePin = (id) => {
+    setPrograms(prev => {
+      const updated = prev.map(p => {
+        if (p.id === id) {
+          return { ...p, is_pinned: !p.is_pinned };
+        }
+        return p;
+      });
+
+      // Sort pinned top first
+      return [...updated].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+    });
+
+    setStats(prev => {
+      const target = programs.find(p => p.id === id);
+      const isPinnedNow = !target?.is_pinned;
+      return {
+        ...prev,
+        pinned: isPinnedNow ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
+      };
+    });
+  };
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.countries) return;
@@ -79,7 +98,8 @@ export default function Training() {
       countries: formData.countries.split(',').map(c => c.trim()),
       duration: formData.duration || '12 Months',
       status: formData.status,
-      date: 'Just Now'
+      date: 'Just Now',
+      is_pinned: false
     };
 
     setPrograms(prev => [tempNewProg, ...prev]);
@@ -105,6 +125,7 @@ export default function Training() {
   const filteredPrograms = programs.filter(p => {
     if (tab === 'published') return p.status === 'Published' || p.status === 'Active';
     if (tab === 'drafts') return p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending';
+    if (tab === 'pinned') return Boolean(p.is_pinned);
     return true;
   });
 
@@ -141,7 +162,7 @@ export default function Training() {
         </button>
       </div>
 
-      {/* Dynamic KPI Stats Row (4 Columns Responsively Wrapped) */}
+      {/* Dynamic KPI Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         
         {/* Card 1: Active Programs */}
@@ -156,19 +177,7 @@ export default function Training() {
           </div>
         </div>
 
-        {/* Card 2: Draft / In Review */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left hover:border-amber-200 transition-all">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 font-bold text-xl">
-            <FileText className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-grow">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block truncate">Pending / In Review</span>
-            <span className="font-outfit font-extrabold text-2xl text-amber-600 block mt-0.5">{stats.pending}</span>
-            <span className="text-[10px] font-bold text-amber-500 block mt-0.5">Awaiting Publication</span>
-          </div>
-        </div>
-
-        {/* Card 3: Overseas Deployment Destinations */}
+        {/* Card 2: Overseas Deployment Destinations */}
         <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left hover:border-blue-200 transition-all">
           <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xl">
             <Globe className="w-6 h-6" />
@@ -177,6 +186,18 @@ export default function Training() {
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block truncate">Overseas Destinations</span>
             <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-0.5">{stats.countries_count} Countries</span>
             <span className="text-[10px] font-bold text-slate-400 block mt-0.5">Global Placement Network</span>
+          </div>
+        </div>
+
+        {/* Card 3: Pinned / Priority Programs */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left hover:border-purple-200 transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 font-bold text-xl">
+            <Pin className="w-6 h-6" />
+          </div>
+          <div className="min-w-0 flex-grow">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block truncate">Pinned to Priority</span>
+            <span className="font-outfit font-extrabold text-2xl text-purple-700 block mt-0.5">{stats.pinned}</span>
+            <span className="text-[10px] font-bold text-purple-600 block mt-0.5">Featured Feed Top</span>
           </div>
         </div>
 
@@ -205,6 +226,9 @@ export default function Training() {
             </button>
             <button onClick={() => setTab('published')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'published' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Active / Published ({stats.active})
+            </button>
+            <button onClick={() => setTab('pinned')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'pinned' ? 'bg-purple-600 text-white' : 'text-purple-700 bg-purple-50 hover:bg-purple-100'}`}>
+              📌 Pinned ({stats.pinned})
             </button>
             <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Drafts / In Review ({stats.pending})
@@ -235,11 +259,18 @@ export default function Training() {
                   const isActive = prog.status === 'Published' || prog.status === 'Active';
 
                   return (
-                    <tr key={prog.id} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Name & Curriculum */}
+                    <tr key={prog.id} className={`hover:bg-slate-50/50 transition-colors ${prog.is_pinned ? 'bg-purple-50/30' : ''}`}>
+                      {/* Name & Curriculum with Pin Indicator */}
                       <td className="py-4.5 px-6">
-                        <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{prog.name}</span>
-                        <span className="text-[10px] text-slate-400 font-bold block mt-1">Curriculum: {prog.curriculum}</span>
+                        <div className="flex items-center gap-2">
+                          {prog.is_pinned && (
+                            <span className="text-purple-600 text-sm shrink-0" title="Pinned to top feed priority">📌</span>
+                          )}
+                          <div>
+                            <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{prog.name}</span>
+                            <span className="text-[10px] text-slate-400 font-bold block mt-1">Curriculum: {prog.curriculum}</span>
+                          </div>
+                        </div>
                       </td>
 
                       {/* Countries badges */}
@@ -301,6 +332,19 @@ export default function Training() {
                               <span>Publish</span>
                             </button>
                           )}
+
+                          {/* Pin / Unpin Button */}
+                          <button 
+                            onClick={() => handleTogglePin(prog.id)} 
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
+                              prog.is_pinned 
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-xs' 
+                                : 'bg-purple-50 text-purple-600 border-purple-100 hover:bg-purple-600 hover:text-white'
+                            }`} 
+                            title={prog.is_pinned ? "Unpin Program" : "Pin Program to Feed Top Priority"}
+                          >
+                            <Pin className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
