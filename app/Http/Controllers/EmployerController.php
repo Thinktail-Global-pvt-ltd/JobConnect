@@ -81,18 +81,59 @@ class EmployerController extends Controller
                         $skills = json_decode($applicant->skills, true) ?: [];
                     }
 
+                    $appliedAt = $app->created_at ? $app->created_at->toIso8601String() : null;
+                    $appliedDate = $app->created_at ? $app->created_at->format('j M Y') : 'N/A';
+                    $appliedTimeAgo = $app->created_at ? $app->created_at->diffForHumans() : 'N/A';
+                    $appliedTimestamp = $app->created_at ? $app->created_at->timestamp : 0;
+
                     return [
                         'id' => $app->id,
-                        'name' => $applicant ? $applicant->full_name : 'Unknown Candidate',
-                        'mobile_number' => $applicant ? $applicant->mobile_number : '',
+                        'application_id' => $app->id,
+                        'job_post_id' => $app->job_post_id,
+                        'applicant_id' => $app->applicant_id,
+                        'name' => $applicant ? ($applicant->full_name ?: 'Unknown Candidate') : 'Unknown Candidate',
+                        'full_name' => $applicant ? ($applicant->full_name ?: 'Unknown Candidate') : 'Unknown Candidate',
+                        'email' => $applicant ? ($applicant->email ?: '') : '',
+                        'mobile_number' => $applicant ? ($applicant->mobile_number ?: '') : '',
+                        'gender' => $applicant ? ($applicant->gender ?: '') : '',
                         'status' => $app->status, // new, contacted, shortlisted, hired, rejected
-                        'applied_date' => $app->created_at ? $app->created_at->format('j M Y') : 'N/A',
-                        'city' => $applicant ? $applicant->city : 'N/A',
-                        'experience_range' => $applicant ? $applicant->experience_range : 'N/A',
-                        'current_employer' => $applicant ? $applicant->current_employer : 'N/A',
+                        'applied_date' => $appliedDate,
+                        'applied_at' => $appliedAt,
+                        'applied_time_ago' => $appliedTimeAgo,
+                        'applied_timestamp' => $appliedTimestamp,
+                        'city' => $applicant ? ($applicant->city ?: 'N/A') : 'N/A',
+                        'experience_range' => $applicant ? ($applicant->experience_range ?: 'N/A') : 'N/A',
+                        'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
+                        'current_employer' => $applicant ? ($applicant->current_employer ?: 'N/A') : 'N/A',
+                        'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
+                        'availability_status' => $applicant ? ($applicant->availability_status ?: 'available') : 'available',
+                        'is_available' => $applicant ? (bool)$applicant->is_available : true,
+                        'selected_language' => $applicant ? ($applicant->selected_language ?: 'en') : 'en',
+                        'user_role' => $applicant ? $applicant->active_profile : 'job_seeker',
+                        'active_role' => $applicant ? $applicant->active_profile : 'job_seeker',
+                        'active_profile' => $applicant ? $applicant->active_profile : 'job_seeker',
                         'skills' => $skills,
                         'bio' => $chefProfile ? $chefProfile->bio : null,
                         'cuisine_specialty' => $chefProfile ? $chefProfile->cuisine_specialty : null,
+                        'user' => $applicant ? [
+                            'id' => $applicant->id,
+                            'full_name' => $applicant->full_name,
+                            'email' => $applicant->email,
+                            'mobile_number' => $applicant->mobile_number,
+                            'gender' => $applicant->gender,
+                            'city' => $applicant->city,
+                            'experience_range' => $applicant->experience_range,
+                            'preferred_role' => $applicant->preferred_role,
+                            'current_employer' => $applicant->current_employer,
+                            'profile_photo_path' => $applicant->profile_photo_path,
+                            'availability_status' => $applicant->availability_status,
+                            'is_available' => (bool)$applicant->is_available,
+                            'selected_language' => $applicant->selected_language,
+                            'active_profile' => $applicant->active_profile,
+                            'active_role' => $applicant->active_role,
+                            'user_role' => $applicant->user_role,
+                            'skills' => $skills,
+                        ] : null
                     ];
                 });
 

@@ -54,6 +54,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chef/onboarding/save', [\App\Http\Controllers\ChefOnboardingController::class, 'save']);
     Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);
 
+    // Employer Dashboard Route
+    Route::get('/employer_dashboard', [EmployerController::class, 'index']);
+    Route::get('/employer/dashboard', [EmployerController::class, 'index']);
+
     // Applicant Status & Shortlisting Routes
     Route::post('/employer/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
     Route::post('/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
