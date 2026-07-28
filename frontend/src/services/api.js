@@ -450,10 +450,20 @@ export const mockApi = {
   getApplications: async (status = '') => {
     try {
       const res = await realApi.get('/admin/applications', { params: { status } });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getApplications failed, fallback to mock DB", e);
-    }
+      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
+    } catch (e) {}
+    try {
+      const res = await realApi.get('/api/admin/applications', { params: { status } });
+      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get('/backend/admin/applications', { params: { status } });
+      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get('/backend/api/admin/applications', { params: { status } });
+      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
+    } catch (e) {}
     return mockEndpoints.getApplications(status);
   },
 
