@@ -14,5 +14,12 @@ class TrainingOpportunity extends Model
         'location',
         'price',
         'external_link',
+        'duration',
+        'status',
+        'is_pinned',
+    ];
+
+    protected $casts = [
+        'is_pinned' => 'boolean',
     ];
 }

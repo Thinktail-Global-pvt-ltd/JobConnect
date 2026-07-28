@@ -791,6 +791,22 @@ export const mockApi = {
     return { success: true };
   },
 
+  togglePinTraining: async (id) => {
+    try {
+      const res = await realApi.post(`/api/admin/training-opportunities/${id}/toggle-pin`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios togglePinTraining failed, trying direct localhost...", e);
+    }
+    try {
+      const res = await axios.post(`http://localhost:8001/api/admin/training-opportunities/${id}/toggle-pin`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct togglePinTraining failed", e);
+    }
+    return { success: true };
+  },
+
   getChefProfileViews: async () => {
     try {
       const res = await realApi.get('/api/chef/profile-views');

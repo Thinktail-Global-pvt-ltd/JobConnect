@@ -19,11 +19,13 @@ class AdminPost extends Model
         'publish_at',
         'inject_every', // after how many feed job items to inject
         'created_by',
+        'is_pinned',
     ];
 
     protected $casts = [
         'publish_at'   => 'datetime',
         'inject_every' => 'integer',
+        'is_pinned'    => 'boolean',
     ];
 
     /**

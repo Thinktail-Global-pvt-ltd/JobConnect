@@ -205,19 +205,19 @@ Route::delete('/admin/referrals/{id}', [\App\Http\Controllers\Admin\ReferralCont
 
 // Admin Training & Overseas Opportunities API Routes
 Route::get('/admin/training-opportunities', function() {
-    $trainings = \App\Models\TrainingOpportunity::latest()->get();
+    $trainings = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')->latest()->get();
     
     if ($trainings->isEmpty()) {
         $initials = [
-            ['program_name' => 'Advanced Culinary Arts - London', 'provider_name' => 'Michelin Prep', 'location' => 'UK, Ireland', 'duration' => '12 Months', 'status' => 'Published', 'created_at' => now()],
-            ['program_name' => 'Hospitality Leadership - Dubai', 'provider_name' => 'Operations Mgmt', 'location' => 'UAE, Qatar', 'duration' => '24 Months', 'status' => 'Active', 'created_at' => now()->subDays(2)],
-            ['program_name' => 'Luxury Resort Management', 'provider_name' => 'Guest Experience', 'location' => 'Maldives, Seychelles', 'duration' => '18 Months', 'status' => 'Draft', 'created_at' => now()->subDays(5)],
-            ['program_name' => 'Sommelier Certification', 'provider_name' => 'Wine Science', 'location' => 'France, Italy', 'duration' => '6 Months', 'status' => 'Reviewing', 'created_at' => now()->subDays(10)],
+            ['program_name' => 'Advanced Culinary Arts - London', 'provider_name' => 'Michelin Prep', 'location' => 'UK, Ireland', 'duration' => '12 Months', 'status' => 'Published', 'is_pinned' => true, 'created_at' => now()],
+            ['program_name' => 'Hospitality Leadership - Dubai', 'provider_name' => 'Operations Mgmt', 'location' => 'UAE, Qatar', 'duration' => '24 Months', 'status' => 'Active', 'is_pinned' => false, 'created_at' => now()->subDays(2)],
+            ['program_name' => 'Luxury Resort Management', 'provider_name' => 'Guest Experience', 'location' => 'Maldives, Seychelles', 'duration' => '18 Months', 'status' => 'Draft', 'is_pinned' => false, 'created_at' => now()->subDays(5)],
+            ['program_name' => 'Sommelier Certification', 'provider_name' => 'Wine Science', 'location' => 'France, Italy', 'duration' => '6 Months', 'status' => 'Reviewing', 'is_pinned' => false, 'created_at' => now()->subDays(10)],
         ];
         foreach ($initials as $init) {
             \App\Models\TrainingOpportunity::create($init);
         }
-        $trainings = \App\Models\TrainingOpportunity::latest()->get();
+        $trainings = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')->latest()->get();
     }
 
     $allCountries = [];
@@ -240,6 +240,7 @@ Route::get('/admin/training-opportunities', function() {
                 'countries' => array_map('trim', explode(',', $t->location ?? 'Overseas')),
                 'duration' => $t->duration ?? '12 Months',
                 'status' => ucfirst($t->status ?? 'Published'),
+                'is_pinned' => (bool)$t->is_pinned,
                 'date' => $t->created_at ? $t->created_at->format('M d, Y') : 'Recently',
             ];
         }),
@@ -247,6 +248,7 @@ Route::get('/admin/training-opportunities', function() {
             'total' => $trainings->count(),
             'active' => $trainings->filter(fn($t) => in_array(strtolower($t->status), ['published', 'active']))->count(),
             'pending' => $trainings->filter(fn($t) => in_array(strtolower($t->status), ['draft', 'reviewing', 'pending']))->count(),
+            'pinned' => $trainings->filter(fn($t) => (bool)$t->is_pinned)->count(),
             'countries_count' => count($allCountries),
             'countries_list' => $allCountries,
         ]
@@ -260,6 +262,7 @@ Route::post('/admin/training-opportunities/create', function(\Illuminate\Http\Re
         'countries' => 'required|string|max:255',
         'duration' => 'required|string|max:255',
         'status' => 'nullable|string',
+        'is_pinned' => 'nullable|boolean',
     ]);
 
     $t = \App\Models\TrainingOpportunity::create([
@@ -268,6 +271,7 @@ Route::post('/admin/training-opportunities/create', function(\Illuminate\Http\Re
         'location' => $validated['countries'],
         'duration' => $validated['duration'],
         'status' => $validated['status'] ?? 'Published',
+        'is_pinned' => $request->boolean('is_pinned'),
     ]);
 
     return response()->json(['success' => true, 'message' => 'Training program created successfully.', 'program' => $t], 201);
@@ -277,6 +281,13 @@ Route::post('/admin/training-opportunities/{id}/status', function($id, \Illumina
     $t = \App\Models\TrainingOpportunity::findOrFail($id);
     $t->update(['status' => $request->status]);
     return response()->json(['success' => true, 'message' => "Program status updated to {$request->status}."]);
+});
+
+Route::post('/admin/training-opportunities/{id}/toggle-pin', function($id) {
+    $t = \App\Models\TrainingOpportunity::findOrFail($id);
+    $t->is_pinned = !$t->is_pinned;
+    $t->save();
+    return response()->json(['success' => true, 'is_pinned' => (bool)$t->is_pinned, 'message' => 'Training pin status updated successfully.']);
 });
 
 // Admin Community Feed Post Management Routes (Unified Feed Stream of Jobs, Community Posts, & Training)
@@ -296,6 +307,7 @@ Route::get('/admin/community-posts', function() {
             'body'       => ($job->company ?? ($job->creator ? $job->creator->full_name : 'Employer')) . ' • ' . ($job->location ?? 'India'),
             'post_type'  => 'Job Listing (' . ucfirst($job->category ?? 'india') . ')',
             'status'     => $statusStr,
+            'is_pinned'  => (bool)$job->is_pinned,
             'created_at' => $job->created_at ? $job->created_at->toIso8601String() : null,
             'timestamp'  => $job->created_at ? $job->created_at->timestamp : 0,
             'date'       => $job->created_at ? $job->created_at->format('M d, Y') : 'Recently',
@@ -315,6 +327,7 @@ Route::get('/admin/community-posts', function() {
             'body'       => $post->body,
             'post_type'  => $post->post_type ?? 'Community Announcement',
             'status'     => $statusStr,
+            'is_pinned'  => (bool)$post->is_pinned,
             'created_at' => $post->created_at ? $post->created_at->toIso8601String() : null,
             'timestamp'  => $post->created_at ? $post->created_at->timestamp : 0,
             'date'       => $post->created_at ? $post->created_at->format('M d, Y') : 'Recently',
@@ -333,14 +346,20 @@ Route::get('/admin/community-posts', function() {
             'body'       => ($train->provider_name ?? 'JobConnect') . ' • ' . ($train->location ?? 'Overseas'),
             'post_type'  => 'Training & Overseas',
             'status'     => 'Published',
+            'is_pinned'  => (bool)$train->is_pinned,
             'created_at' => $train->created_at ? $train->created_at->toIso8601String() : null,
             'timestamp'  => $train->created_at ? $train->created_at->timestamp : 0,
             'date'       => $train->created_at ? $train->created_at->format('M d, Y') : 'Recently',
         ]);
     }
 
-    // Sort all entries chronologically by creation timestamp DESC
-    $sortedItems = $feedItems->sortByDesc('timestamp')->values();
+    // Sort pinned items top first, then chronologically DESC
+    $sortedItems = $feedItems->sort(function($a, $b) {
+        if ($a['is_pinned'] !== $b['is_pinned']) {
+            return $b['is_pinned'] ? 1 : -1;
+        }
+        return $b['timestamp'] - $a['timestamp'];
+    })->values();
 
     return response()->json([
         'success' => true,
@@ -350,6 +369,7 @@ Route::get('/admin/community-posts', function() {
             'published' => $sortedItems->where('status', 'Published')->count(),
             'drafts'    => $sortedItems->where('status', 'Draft')->count(),
             'archived'  => $sortedItems->where('status', 'Archived')->count(),
+            'pinned'    => $sortedItems->where('is_pinned', true)->count(),
         ]
     ]);
 });

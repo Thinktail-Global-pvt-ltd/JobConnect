@@ -63,7 +63,7 @@ export default function Training() {
     }
   };
 
-  const handleTogglePin = (id) => {
+  const handleTogglePin = async (id) => {
     setPrograms(prev => {
       const updated = prev.map(p => {
         if (p.id === id) {
@@ -76,14 +76,13 @@ export default function Training() {
       return [...updated].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
     });
 
-    setStats(prev => {
-      const target = programs.find(p => p.id === id);
-      const isPinnedNow = !target?.is_pinned;
-      return {
-        ...prev,
-        pinned: isPinnedNow ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
-      };
-    });
+    try {
+      await mockApi.togglePinTraining(id);
+    } catch (err) {
+      console.error('Toggle pin failed:', err);
+    } finally {
+      loadPrograms();
+    }
   };
 
   const handleCreateSubmit = async (e) => {
