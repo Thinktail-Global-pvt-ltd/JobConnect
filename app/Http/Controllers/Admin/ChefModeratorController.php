@@ -4,27 +4,28 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChefProfile;
+use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 
 class ChefModeratorController extends Controller
 {
     /**
-     * List all chef profiles.
+     * Helper to auto-sync and fetch all chef records (combining user_roles & chef_profiles).
      */
-    /**
-     * List all chef profiles.
-     */
-    public function index(Request $request)
+    private function syncAndGetChefProfiles()
     {
-        // Auto-ensure all users with role_type 'chef' have a ChefProfile record
-        $chefUsers = \App\Models\User::whereHas('roles', function($q) {
-            $q->where('role_type', 'chef');
-        })->with(['chefProfile'])->latest()->get();
+        // 1. Find all user IDs who have role_type = 'chef' in user_roles
+        $chefUserIds = UserRole::where('role_type', 'chef')->pluck('user_id')->toArray();
 
-        foreach ($chefUsers as $user) {
-            if (!$user->chefProfile) {
+        // 2. Ensure every such user has a ChefProfile record
+        if (!empty($chefUserIds)) {
+            $existingProfileUserIds = ChefProfile::whereIn('user_id', $chefUserIds)->pluck('user_id')->toArray();
+            $missingUserIds = array_diff($chefUserIds, $existingProfileUserIds);
+
+            foreach ($missingUserIds as $userId) {
                 ChefProfile::create([
-                    'user_id' => $user->id,
+                    'user_id' => $userId,
                     'cuisine_specialty' => 'Multi-Cuisine',
                     'bio' => 'Professional Chef',
                     'approval_status' => 'approved',
@@ -32,24 +33,33 @@ class ChefModeratorController extends Controller
             }
         }
 
-        $query = ChefProfile::with('user');
+        // 3. Fetch all ChefProfile records with user relation
+        return ChefProfile::with('user')->latest()->get();
+    }
 
-        // Optional filter by status
+    /**
+     * List all chef profiles for Blade view.
+     */
+    public function index(Request $request)
+    {
+        $profiles = $this->syncAndGetChefProfiles();
+
         if ($request->has('status') && in_array($request->status, ['pending', 'approved', 'rejected'])) {
-            $query->where('approval_status', $request->status);
+            $profiles = $profiles->filter(fn($p) => $p->approval_status === $request->status)->values();
         }
 
-        $chefs = $query->latest()->get();
+        $chefs = $profiles;
 
         // Fetch dynamic stats for dashboard cards
-        $pendingCount = ChefProfile::where('approval_status', 'pending')->count();
-        $approvedCount = ChefProfile::where('approval_status', 'approved')->count();
-        $totalChefs = ChefProfile::count();
-        $calendlyLinkedCount = ChefProfile::whereNotNull('calendly_link')->where('calendly_link', '!=', '')->count();
+        $allProfiles = ChefProfile::all();
+        $pendingCount = $allProfiles->where('approval_status', 'pending')->count();
+        $approvedCount = $allProfiles->where('approval_status', 'approved')->count();
+        $totalChefs = $allProfiles->count();
+        $calendlyLinkedCount = $allProfiles->filter(fn($p) => !empty($p->calendly_link))->count();
         $calendlySyncPercentage = $totalChefs > 0 ? round(($calendlyLinkedCount / $totalChefs) * 100) : 0;
 
         // Fetch all employers for coordination appointments
-        $employers = \App\Models\User::whereHas('roles', function($q) {
+        $employers = User::whereHas('roles', function($q) {
             $q->where('role_type', 'employer');
         })->orderBy('full_name', 'asc')->get();
 
@@ -62,42 +72,35 @@ class ChefModeratorController extends Controller
     public function apiIndex(Request $request)
     {
         try {
-            // Find all users who have role_type = 'chef' in user_roles
-            $chefUsers = \App\Models\User::whereHas('roles', function($q) {
-                $q->where('role_type', 'chef');
-            })->with(['chefProfile'])->latest()->get();
+            $profiles = $this->syncAndGetChefProfiles();
 
-            $chefs = $chefUsers->map(function ($user) {
-                $chef = $user->chefProfile;
-
-                // Auto-create profile if missing for user_roles chef
-                if (!$chef) {
-                    $chef = ChefProfile::create([
-                        'user_id' => $user->id,
-                        'cuisine_specialty' => 'Multi-Cuisine',
-                        'bio' => 'Professional Chef',
-                        'approval_status' => 'approved',
-                    ]);
-                }
+            $chefs = $profiles->map(function ($chef) {
+                $user = $chef->user;
 
                 $availability = [];
                 if ($chef->availability_info) {
                     $availability = json_decode($chef->availability_info, true) ?: [];
                 }
 
-                $fullName = $user->full_name ?: 'Chef #' . $user->id;
+                $fullName = ($user && $user->full_name) ? $user->full_name : ('Chef #' . $chef->user_id);
+                $email = $user ? ($user->email ?: '') : '';
+                $mobile = $user ? ($user->mobile_number ?: '') : '';
+                $city = $user ? ($user->city ?: '') : '';
+                $exp = $user ? ($user->experience_range ?: '0') : '0';
+                $photo = $user ? $user->profile_photo_path : null;
+                $skills = ($user && is_array($user->skills)) ? $user->skills : [];
 
                 return [
                     'id' => $chef->id,
-                    'user_id' => $user->id,
+                    'user_id' => $chef->user_id,
                     'full_name' => $fullName,
                     'name' => $fullName,
-                    'email' => $user->email ?: '',
-                    'mobile_number' => $user->mobile_number ?: '',
-                    'city' => $user->city ?: '',
-                    'profile_photo_path' => $user->profile_photo_path,
-                    'experience_range' => $user->experience_range ?: '0',
-                    'experience' => $user->experience_range ?: '0',
+                    'email' => $email,
+                    'mobile_number' => $mobile,
+                    'city' => $city,
+                    'profile_photo_path' => $photo,
+                    'experience_range' => $exp,
+                    'experience' => $exp,
                     'cuisine_specialty' => $chef->cuisine_specialty ?: 'Multi-Cuisine',
                     'specialties' => $chef->cuisine_specialty ?: 'Multi-Cuisine',
                     'bio' => $chef->bio ?: '',
@@ -106,7 +109,7 @@ class ChefModeratorController extends Controller
                     'approval_status' => $chef->approval_status ?: 'approved',
                     'status' => $chef->approval_status ?: 'approved',
                     'availability_info' => $availability,
-                    'skills' => is_array($user->skills) ? $user->skills : [],
+                    'skills' => $skills,
                 ];
             });
 
@@ -118,7 +121,7 @@ class ChefModeratorController extends Controller
 
             return response()->json([
                 'success' => true,
-                'chefs' => $chefs
+                'chefs' => $chefs->values()
             ]);
         } catch (\Exception $e) {
             return response()->json([
