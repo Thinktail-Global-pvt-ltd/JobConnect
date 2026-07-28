@@ -188,53 +188,54 @@ class AuthController extends Controller
         $activeRole = $user->activeRole()->first();
         $activeRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type ?: 'job_seeker');
 
-        // Auto-fetch or auto-ensure ChefProfile if role is chef or if chefProfile exists
-        $chefProfile = $user->chefProfile()->first();
-        if (!$chefProfile && ($activeRoleType === 'chef' || $user->hasActiveRole('chef'))) {
-            $chefProfile = \App\Models\ChefProfile::create([
-                'user_id' => $user->id,
-                'cuisine_specialty' => 'Multi-Cuisine',
-                'bio' => 'Professional Chef',
-                'approval_status' => 'approved',
-            ]);
-        }
-
+        // Strictly check active role and attach only the active role's profile data
         $chefData = null;
-        if ($chefProfile) {
-            $availability = [];
-            if ($chefProfile->availability_info) {
-                $availability = json_decode($chefProfile->availability_info, true) ?: [];
-            }
-            $chefData = [
-                'id' => $chefProfile->id,
-                'user_id' => $chefProfile->user_id,
-                'cuisine_specialty' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
-                'specialties' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
-                'bio' => $chefProfile->bio ?: '',
-                'calendly_link' => $chefProfile->calendly_link ?: '',
-                'approval_status' => $chefProfile->approval_status ?: 'approved',
-                'status' => $chefProfile->approval_status ?: 'approved',
-                'availability_info' => $availability,
-                'created_at' => $chefProfile->created_at ? $chefProfile->created_at->toIso8601String() : null,
-                'updated_at' => $chefProfile->updated_at ? $chefProfile->updated_at->toIso8601String() : null,
-            ];
-        }
-
-        // Fetch EmployerProfile if exists
-        $employerProfile = $user->employerProfile()->first();
         $employerData = null;
-        if ($employerProfile) {
-            $employerData = [
-                'id' => $employerProfile->id,
-                'user_id' => $employerProfile->user_id,
-                'company_name' => $employerProfile->company_name ?: '',
-                'company_website' => $employerProfile->company_website ?: '',
-                'company_logo_url' => $employerProfile->company_logo_url ?: '',
-                'city' => $employerProfile->city ?: '',
-                'designation' => $employerProfile->designation ?: '',
-                'description' => $employerProfile->description ?: '',
-                'created_at' => $employerProfile->created_at ? $employerProfile->created_at->toIso8601String() : null,
-            ];
+
+        if ($activeRoleType === 'chef') {
+            $chefProfile = $user->chefProfile()->first();
+            if (!$chefProfile && $user->hasActiveRole('chef')) {
+                $chefProfile = \App\Models\ChefProfile::create([
+                    'user_id' => $user->id,
+                    'cuisine_specialty' => 'Multi-Cuisine',
+                    'bio' => 'Professional Chef',
+                    'approval_status' => 'approved',
+                ]);
+            }
+            if ($chefProfile) {
+                $availability = [];
+                if ($chefProfile->availability_info) {
+                    $availability = json_decode($chefProfile->availability_info, true) ?: [];
+                }
+                $chefData = [
+                    'id' => $chefProfile->id,
+                    'user_id' => $chefProfile->user_id,
+                    'cuisine_specialty' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                    'specialties' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                    'bio' => $chefProfile->bio ?: '',
+                    'calendly_link' => $chefProfile->calendly_link ?: '',
+                    'approval_status' => $chefProfile->approval_status ?: 'approved',
+                    'status' => $chefProfile->approval_status ?: 'approved',
+                    'availability_info' => $availability,
+                    'created_at' => $chefProfile->created_at ? $chefProfile->created_at->toIso8601String() : null,
+                    'updated_at' => $chefProfile->updated_at ? $chefProfile->updated_at->toIso8601String() : null,
+                ];
+            }
+        } elseif ($activeRoleType === 'employer') {
+            $employerProfile = $user->employerProfile()->first();
+            if ($employerProfile) {
+                $employerData = [
+                    'id' => $employerProfile->id,
+                    'user_id' => $employerProfile->user_id,
+                    'company_name' => $employerProfile->company_name ?: '',
+                    'company_website' => $employerProfile->company_website ?: '',
+                    'company_logo_url' => $employerProfile->company_logo_url ?: '',
+                    'city' => $employerProfile->city ?: '',
+                    'designation' => $employerProfile->designation ?: '',
+                    'description' => $employerProfile->description ?: '',
+                    'created_at' => $employerProfile->created_at ? $employerProfile->created_at->toIso8601String() : null,
+                ];
+            }
         }
 
         // Fetch Socials
@@ -259,6 +260,8 @@ class AuthController extends Controller
             $skills = json_decode($user->skills, true) ?: [];
         }
 
+        $completeness = \App\Services\ProfileProgressService::calculate($user);
+
         return response()->json([
             'success' => true,
             'message' => 'Authenticated successfully.',
@@ -281,8 +284,8 @@ class AuthController extends Controller
                 'is_available' => (bool)$user->is_available,
                 'selected_language' => $user->selected_language ?? 'en',
                 'fcm_token' => $user->fcm_token,
-                'completeness' => $user->profile_completeness,
-                'profile_completeness' => $user->profile_completeness,
+                'completeness' => $completeness,
+                'profile_completeness' => $completeness,
                 'active_profile' => $activeRoleType,
                 'active_role' => $activeRoleType,
                 'user_role' => $activeRoleType,

@@ -66,38 +66,43 @@ class ProfileController extends Controller
         
         $photo = $this->getLatestPhoto($user);
 
-        $chefData = null;
-        if ($user && $user->chefProfile) {
-            $availability = [];
-            if ($user->chefProfile->availability_info) {
-                $availability = json_decode($user->chefProfile->availability_info, true) ?: [];
-            }
-            $chefData = [
-                'id' => $user->chefProfile->id,
-                'user_id' => $user->chefProfile->user_id,
-                'cuisine_specialty' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
-                'specialties' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
-                'bio' => $user->chefProfile->bio ?: '',
-                'calendly_link' => $user->chefProfile->calendly_link ?: '',
-                'availability_info' => $availability,
-                'approval_status' => $user->chefProfile->approval_status ?: 'approved',
-                'status' => $user->chefProfile->approval_status ?: 'approved',
-            ];
-        }
+        $activeRole = $user ? ($user->active_profile ?: 'job_seeker') : 'job_seeker';
 
+        $chefData = null;
         $employerData = null;
-        if ($user && $user->employerProfile) {
-            $employerData = [
-                'id' => $user->employerProfile->id,
-                'user_id' => $user->employerProfile->user_id,
-                'company_name' => $user->employerProfile->company_name ?: '',
-                'company_website' => $user->employerProfile->company_website ?: '',
-                'company_logo_url' => $user->employerProfile->company_logo_url ?: '',
-                'city' => $user->employerProfile->city ?: '',
-                'designation' => $user->employerProfile->designation ?: '',
-                'description' => $user->employerProfile->description ?: '',
-                'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
-            ];
+
+        if ($activeRole === 'chef') {
+            if ($user && $user->chefProfile) {
+                $availability = [];
+                if ($user->chefProfile->availability_info) {
+                    $availability = json_decode($user->chefProfile->availability_info, true) ?: [];
+                }
+                $chefData = [
+                    'id' => $user->chefProfile->id,
+                    'user_id' => $user->chefProfile->user_id,
+                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                    'specialties' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                    'bio' => $user->chefProfile->bio ?: '',
+                    'calendly_link' => $user->chefProfile->calendly_link ?: '',
+                    'availability_info' => $availability,
+                    'approval_status' => $user->chefProfile->approval_status ?: 'approved',
+                    'status' => $user->chefProfile->approval_status ?: 'approved',
+                ];
+            }
+        } elseif ($activeRole === 'employer') {
+            if ($user && $user->employerProfile) {
+                $employerData = [
+                    'id' => $user->employerProfile->id,
+                    'user_id' => $user->employerProfile->user_id,
+                    'company_name' => $user->employerProfile->company_name ?: '',
+                    'company_website' => $user->employerProfile->company_website ?: '',
+                    'company_logo_url' => $user->employerProfile->company_logo_url ?: '',
+                    'city' => $user->employerProfile->city ?: '',
+                    'designation' => $user->employerProfile->designation ?: '',
+                    'description' => $user->employerProfile->description ?: '',
+                    'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
+                ];
+            }
         }
 
         $socialsData = null;
