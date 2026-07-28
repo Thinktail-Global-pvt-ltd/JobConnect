@@ -26,7 +26,15 @@ class JobApplication extends Model
      */
     public function jobPost()
     {
-        return $this->belongsTo(JobPost::class);
+        return $this->belongsTo(JobPost::class, 'job_post_id');
+    }
+
+    /**
+     * Relationship alias for snake_case job_post.
+     */
+    public function job_post()
+    {
+        return $this->belongsTo(JobPost::class, 'job_post_id');
     }
 
     /**
