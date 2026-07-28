@@ -30,10 +30,17 @@ class ProfileProgressService
     }
 
     /**
-     * Calculate profile progress percentage dynamically for general user.
+     * Calculate profile progress percentage dynamically based on user active role.
      */
     public static function calculate(User $user): int
     {
+        $role = $user->active_profile ?? 'job_seeker';
+        if ($role === 'chef') {
+            return self::calculateChef($user)['completeness'];
+        } elseif ($role === 'employer') {
+            return self::calculateEmployer($user)['completeness'];
+        }
+
         $percentage = 0;
 
         // 1. Name (15%)

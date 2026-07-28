@@ -48,12 +48,72 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        $user = $request->user() ?? User::first();
+        $user = $request->user();
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+            if ($tokenObj) {
+                $user = $tokenObj->tokenable;
+            }
+        }
+        if (!$user) {
+            $user = User::first();
+        }
+
         if ($user) {
-            $user->load('chefProfile');
+            $user->load(['chefProfile', 'employerProfile', 'socials']);
         }
         
         $photo = $this->getLatestPhoto($user);
+
+        $chefData = null;
+        if ($user && $user->chefProfile) {
+            $availability = [];
+            if ($user->chefProfile->availability_info) {
+                $availability = json_decode($user->chefProfile->availability_info, true) ?: [];
+            }
+            $chefData = [
+                'id' => $user->chefProfile->id,
+                'user_id' => $user->chefProfile->user_id,
+                'cuisine_specialty' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                'specialties' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                'bio' => $user->chefProfile->bio ?: '',
+                'calendly_link' => $user->chefProfile->calendly_link ?: '',
+                'availability_info' => $availability,
+                'approval_status' => $user->chefProfile->approval_status ?: 'approved',
+                'status' => $user->chefProfile->approval_status ?: 'approved',
+            ];
+        }
+
+        $employerData = null;
+        if ($user && $user->employerProfile) {
+            $employerData = [
+                'id' => $user->employerProfile->id,
+                'user_id' => $user->employerProfile->user_id,
+                'company_name' => $user->employerProfile->company_name ?: '',
+                'company_website' => $user->employerProfile->company_website ?: '',
+                'company_logo_url' => $user->employerProfile->company_logo_url ?: '',
+                'city' => $user->employerProfile->city ?: '',
+                'designation' => $user->employerProfile->designation ?: '',
+                'description' => $user->employerProfile->description ?: '',
+                'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
+            ];
+        }
+
+        $socialsData = null;
+        if ($user && $user->socials) {
+            $socialsData = [
+                'instagram' => $user->socials->instagram ?: '',
+                'linkedin' => $user->socials->linkedin ?: '',
+                'facebook' => $user->socials->facebook ?: '',
+                'twitter' => $user->socials->twitter ?: '',
+                'youtube' => $user->socials->youtube ?: '',
+                'website' => $user->socials->website ?: '',
+            ];
+        }
+
+        $activeRole = $user ? $user->active_profile : 'job_seeker';
+        $completeness = $user ? \App\Services\ProfileProgressService::calculate($user) : 0;
 
         return response()->json([
             'success' => true,
@@ -61,24 +121,30 @@ class ProfileController extends Controller
                 'id' => $user ? $user->id : null,
                 'mobile_number' => $user ? $user->mobile_number : null,
                 'full_name' => $user ? $user->full_name : null,
+                'name' => $user ? $user->full_name : null,
                 'email' => $user ? $user->email : null,
                 'gender' => $user ? $user->gender : null,
-                'profile_photo_path' => $user ? $user->profile_photo_path : null,
+                'profile_photo_path' => $photo,
                 'city' => $user ? $user->city : null,
                 'experience_years' => $user ? ($user->experience_range ?: $user->experience_years) : null,
+                'experience_range' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'current_employer' => $user ? $user->current_employer : null,
                 'skills' => $user ? $user->skills : null,
                 'selected_language' => ($user && $user->selected_language) ? $user->selected_language : 'en',
-                'completeness' => $user ? $user->profile_completeness : 0,
-                'chef_profile' => ($user && $user->chefProfile) ? [
-                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty,
-                    'bio' => $user->chefProfile->bio,
-                    'calendly_link' => $user->chefProfile->calendly_link,
-                    'availability_info' => json_decode($user->chefProfile->availability_info, true) ?: [],
-                    'approval_status' => $user->chefProfile->approval_status,
-                ] : null
-            ]
+                'active_profile' => $activeRole,
+                'active_role' => $activeRole,
+                'user_role' => $activeRole,
+                'completeness' => $completeness,
+                'profile_completeness' => $completeness,
+                'chef_profile' => $chefData,
+                'chef_profile_details' => $chefData,
+                'employer_profile' => $employerData,
+                'socials' => $socialsData,
+            ],
+            'chef_profile' => $chefData,
+            'employer_profile' => $employerData,
+            'socials' => $socialsData,
         ]);
     }
 
