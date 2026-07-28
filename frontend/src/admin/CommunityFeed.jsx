@@ -21,6 +21,7 @@ export default function CommunityFeed() {
     cta_label: '',
     cta_url: '',
     status: 'published',
+    is_pinned: false
   });
 
   // Fetch Public Candidate Feed (GET /api/feed?filter=all)
@@ -101,10 +102,14 @@ export default function CommunityFeed() {
       date: 'Just Now',
       cta_label: formData.cta_label,
       cta_url: formData.cta_url,
-      is_pinned: false
+      is_pinned: Boolean(formData.is_pinned)
     };
 
-    setPosts(prev => [tempNewPost, ...prev]);
+    setPosts(prev => {
+      const updated = [tempNewPost, ...prev];
+      return [...updated].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+    });
+    
     setIsModalOpen(false);
 
     try {
@@ -120,6 +125,7 @@ export default function CommunityFeed() {
         cta_label: '',
         cta_url: '',
         status: 'published',
+        is_pinned: false
       });
       loadPosts();
     }
@@ -641,7 +647,7 @@ export default function CommunityFeed() {
               </div>
             )}
 
-            {/* Footer info */}
+            {/* Footer info (ALL LOADED AT ONCE - NO PAGINATION) */}
             <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
               <span className="text-xs text-slate-500 font-bold">
                 Showing all {filteredPosts.length} Combined Stream Posts (Jobs, Announcements & Training)
@@ -719,6 +725,24 @@ export default function CommunityFeed() {
                 </div>
               </div>
 
+              {/* Pin to Top Toggle Checkbox inside Create Modal */}
+              <div className="flex items-center justify-between p-3.5 bg-purple-50/70 border border-purple-200/80 rounded-2xl">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base">📌</span>
+                  <div>
+                    <span className="text-xs font-extrabold text-purple-900 block">Pin to Feed Top Priority</span>
+                    <span className="text-[10px] font-semibold text-purple-600 block">Feature this post at the very top of candidate feeds</span>
+                  </div>
+                </div>
+                <input 
+                  type="checkbox"
+                  id="modal_is_pinned"
+                  checked={formData.is_pinned}
+                  onChange={(e) => setFormData(prev => ({ ...prev, is_pinned: e.target.checked }))}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+                />
+              </div>
+
               {/* Body / Description */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Post Content / Description *</label>
@@ -769,7 +793,7 @@ export default function CommunityFeed() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all"
+                  className="px-5 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer"
                 >
                   {submitting ? 'Creating...' : 'Submit & Publish Post'}
                 </button>
