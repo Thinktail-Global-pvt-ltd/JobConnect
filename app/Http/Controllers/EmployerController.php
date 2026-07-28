@@ -297,33 +297,43 @@ class EmployerController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|string|in:new,pending,shortlisted,contacted,rejected',
+                'status' => 'required|string|in:new,pending,shortlisted,contacted,hired,rejected',
             ]);
 
-            // Find the application belonging to one of the logged-in user's job postings
-            $application = JobApplication::where('employer_id', Auth::id())->findOrFail($id);
+            $application = JobApplication::find($id);
+            if (!$application) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Job application #{$id} not found."
+                ], 404);
+            }
             
             $newStatus = $validated['status'];
             if ($newStatus === 'pending') {
-                $newStatus = 'new'; // Map pending to 'new' inside database schema
+                $newStatus = 'new';
             }
 
             $application->update(['status' => $newStatus]);
 
-            // Shoot automatic FCM Push Notification to Applicant
-            \App\Services\NotificationTriggerService::notifyApplicationStatusChange($application, $newStatus);
+            // Shoot automatic FCM Push Notification & In-App Notification to Applicant Candidate
+            try {
+                \App\Services\NotificationTriggerService::notifyApplicationStatusChange($application, $newStatus);
+            } catch (\Throwable $ne) {
+                \Illuminate\Support\Facades\Log::error('Application status notification error: ' . $ne->getMessage());
+            }
 
-            // Return updated candidate details mapped for frontend
+            $applicantUser = $application->applicant ?: \App\Models\User::find($application->applicant_id);
+
             $mappedApplicant = [
                 'id' => $application->id,
-                'name' => $application->applicant ? $application->applicant->full_name : 'Unknown Candidate',
+                'name' => $applicantUser ? ($applicantUser->full_name ?: 'Candidate #' . $applicantUser->id) : 'Candidate #' . $application->applicant_id,
                 'status' => $application->status,
                 'applied_date' => $application->created_at ? $application->created_at->format('j M Y') : 'N/A',
             ];
 
             return response()->json([
                 'success' => true,
-                'message' => "Candidate status updated to {$application->status}.",
+                'message' => "Candidate status updated to {$application->status} and notification sent to applicant.",
                 'applicant' => $mappedApplicant,
             ]);
         } catch (\Exception $e) {
