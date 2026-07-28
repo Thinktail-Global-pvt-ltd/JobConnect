@@ -13,15 +13,6 @@ class JobApplication extends Model
         'status', // new, contacted, shortlisted, hired, rejected
     ];
 
-    protected $appends = [
-        'job_post',
-    ];
-
-    public function getJobPostAttribute()
-    {
-        return $this->jobPost;
-    }
-
     /**
      * Relationship with applicant.
      */

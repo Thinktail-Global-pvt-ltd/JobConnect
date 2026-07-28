@@ -500,7 +500,7 @@ Route::match(['get', 'post'], '/applicants/{id}/status', [EmployerController::cl
 // Admin Job Applications List Route
 Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
     try {
-        $query = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost']);
+        $query = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost', 'job_post']);
 
         if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
             $query->where('status', $request->status);
@@ -510,7 +510,7 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
 
         $mapped = $apps->map(function($app) {
             $applicant = $app->applicant;
-            $job = $app->jobPost;
+            $job = $app->job_post ?: ($app->jobPost ?: null);
 
             $fullName = $applicant ? ($applicant->full_name ?: ('Candidate #' . $applicant->id)) : ('Candidate #' . $app->applicant_id);
             $email = $applicant ? ($applicant->email ?: '') : '';
