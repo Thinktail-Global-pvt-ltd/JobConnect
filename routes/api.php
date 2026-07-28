@@ -497,42 +497,63 @@ Route::match(['get', 'post'], '/scheduler/send-profile-reminders', [\App\Http\Co
 Route::match(['get', 'post'], '/employer/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
 Route::match(['get', 'post'], '/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
 
-// Admin Job Applications Moderation & Manual Test Application Routes
-Route::get('/admin/applications', function() {
-    $apps = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost', 'job_post'])->latest()->get();
+// Admin Job Applications List Route
+Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
+    $query = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost', 'job_post']);
+
+    if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
+        $query->where('status', $request->status);
+    }
+
+    $apps = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
+
+    $mapped = $apps->map(function($app) {
+        $applicant = $app->applicant;
+        $job = $app->job_post ?: $app->jobPost;
+
+        $fullName = $applicant ? ($applicant->full_name ?: ('Candidate #' . $applicant->id)) : ('Candidate #' . $app->applicant_id);
+        $email = $applicant ? ($applicant->email ?: '') : '';
+        $mobile = $applicant ? ($applicant->mobile_number ?: '') : '';
+        $city = $applicant ? ($applicant->city ?: 'N/A') : 'N/A';
+        $experience = $applicant ? ($applicant->experience_range ?: 'N/A') : 'N/A';
+
+        $jobTitle = $job ? ($job->title ?: ('Job Listing #' . $app->job_post_id)) : ('Job Listing #' . $app->job_post_id);
+        $company = $job ? ($job->company ?: 'Employer') : 'Employer';
+
+        return [
+            'id' => $app->id,
+            'applicant_id' => $app->applicant_id,
+            'job_post_id' => $app->job_post_id,
+            'employer_id' => $app->employer_id,
+            'status' => $app->status ?: 'new',
+            'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
+            'applicant' => [
+                'id' => $applicant ? $applicant->id : $app->applicant_id,
+                'full_name' => $fullName,
+                'name' => $fullName,
+                'email' => $email,
+                'mobile_number' => $mobile,
+                'city' => $city,
+                'experience_range' => $experience,
+                'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
+                'current_employer' => $applicant ? ($applicant->current_employer ?: '') : '',
+                'skills' => ($applicant && is_array($applicant->skills)) ? $applicant->skills : ($applicant && is_string($applicant->skills) ? (json_decode($applicant->skills, true) ?: []) : []),
+                'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
+            ],
+            'job_post' => [
+                'id' => $job ? $job->id : $app->job_post_id,
+                'title' => $jobTitle,
+                'company' => $company,
+                'location' => $job ? ($job->location ?: 'India') : 'India',
+                'category' => $job ? ($job->category ?: 'india') : 'india',
+            ]
+        ];
+    });
+
     return response()->json([
         'success' => true,
-        'applications' => $apps->map(function($app) {
-            $applicant = $app->applicant;
-            $job = $app->job_post ?: $app->jobPost;
-
-            return [
-                'id' => $app->id,
-                'applicant_id' => $app->applicant_id,
-                'job_post_id' => $app->job_post_id,
-                'status' => $app->status ?: 'new',
-                'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
-                'applicant' => $applicant ? [
-                    'id' => $applicant->id,
-                    'full_name' => $applicant->full_name ?: 'Unknown Candidate',
-                    'email' => $applicant->email ?: '',
-                    'mobile_number' => $applicant->mobile_number ?: '',
-                    'city' => $applicant->city ?: '',
-                    'experience_range' => $applicant->experience_range ?: '',
-                    'preferred_role' => $applicant->preferred_role ?: '',
-                    'current_employer' => $applicant->current_employer ?: '',
-                    'skills' => is_array($applicant->skills) ? $applicant->skills : (json_decode($applicant->skills, true) ?: []),
-                    'profile_photo_path' => $applicant->profile_photo_path,
-                ] : null,
-                'job_post' => $job ? [
-                    'id' => $job->id,
-                    'title' => $job->title ?: ('Job #' . $job->id),
-                    'company' => $job->company ?: 'Employer',
-                    'location' => $job->location ?: 'India',
-                    'category' => $job->category ?: 'india',
-                ] : null,
-            ];
-        })
+        'total' => $mapped->count(),
+        'applications' => $mapped
     ]);
 });
 
