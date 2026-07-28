@@ -143,7 +143,7 @@ export default function Layout({ children }) {
               </div>
               {!isCollapsed && (
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 shadow-2xs">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#059669] text-white shadow-sm border border-emerald-500">
                     {counts.users ?? (counts.talent + counts.employers + counts.chefs)}
                   </span>
                   {usersOpen ? (
@@ -167,7 +167,7 @@ export default function Layout({ children }) {
                       to={sub.path}
                       className={`flex items-center justify-between px-5 py-2 transition-all rounded-r-xl border-l-2 ${
                         active
-                          ? 'bg-[#1E293B] border-[#059669] text-[#059669] font-extrabold shadow-2xs'
+                          ? 'bg-[#1E293B] border-[#059669] text-white font-extrabold shadow-2xs'
                           : 'border-transparent text-slate-400 hover:bg-[#1E293B]/50 hover:text-slate-200 font-medium'
                       }`}
                     >
@@ -175,7 +175,7 @@ export default function Layout({ children }) {
                         <span className="text-sm leading-none">{sub.icon}</span>
                         <span className="text-xs">{sub.name}</span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1E293B] text-slate-300 border border-slate-700/60 shadow-2xs">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
                         {countVal}
                       </span>
                     </Link>
@@ -207,11 +207,7 @@ export default function Layout({ children }) {
                   {!isCollapsed && <span className="text-xs font-semibold">{item.name}</span>}
                 </div>
                 {(!isCollapsed && countVal !== null) && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-2xs ${
-                    active
-                      ? 'bg-[#059669]/20 text-[#059669] border border-[#059669]/40'
-                      : 'bg-[#1E293B] text-slate-300 border border-slate-700/60'
-                  }`}>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
                     {countVal}
                   </span>
                 )}
