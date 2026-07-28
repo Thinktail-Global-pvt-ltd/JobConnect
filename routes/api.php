@@ -494,3 +494,76 @@ Route::match(['get', 'post'], '/scheduler/send-profile-reminders', [\App\Http\Co
 // Candidate Status & Shortlisting Routes
 Route::match(['get', 'post'], '/employer/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
 Route::match(['get', 'post'], '/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
+
+// Admin Job Applications Moderation & Manual Test Application Routes
+Route::get('/admin/applications', function() {
+    $apps = \App\Models\JobApplication::with(['applicant.chefProfile', 'job_post'])->latest()->get();
+    return response()->json([
+        'success' => true,
+        'applications' => $apps
+    ]);
+});
+
+Route::get('/admin/test-apply-options', function() {
+    $jobs = \App\Models\JobPost::latest()->get();
+    $users = \App\Models\User::with('roles')->latest()->get();
+    return response()->json([
+        'success' => true,
+        'jobs' => $jobs->map(function($j) {
+            return [
+                'id' => $j->id,
+                'title' => $j->title,
+                'company' => $j->company ?: 'Employer',
+                'location' => $j->location ?: 'India',
+                'category' => $j->category ?: 'india'
+            ];
+        }),
+        'users' => $users->map(function($u) {
+            return [
+                'id' => $u->id,
+                'name' => $u->full_name ?: ('User #' . $u->id),
+                'email' => $u->email ?: '',
+                'mobile_number' => $u->mobile_number ?: '',
+                'role' => $u->active_profile ?: 'user'
+            ];
+        })
+    ]);
+});
+
+Route::post('/admin/applications/test-apply', function(\Illuminate\Http\Request $request) {
+    $validated = $request->validate([
+        'job_post_id' => 'required|exists:job_posts,id',
+        'applicant_id' => 'required|exists:users,id',
+    ]);
+
+    $job = \App\Models\JobPost::findOrFail($validated['job_post_id']);
+    $user = \App\Models\User::findOrFail($validated['applicant_id']);
+
+    // Check if application already exists
+    $existing = \App\Models\JobApplication::where('job_post_id', $job->id)
+        ->where('applicant_id', $user->id)
+        ->first();
+
+    if ($existing) {
+        return response()->json([
+            'success' => false,
+            'message' => "Candidate '{$user->full_name}' has already applied for this job listing."
+        ], 422);
+    }
+
+    $app = \App\Models\JobApplication::create([
+        'job_post_id' => $job->id,
+        'applicant_id' => $user->id,
+        'employer_id' => $job->created_by ?: 1,
+        'status' => 'new',
+        'cover_letter' => 'Test application submitted manually by Admin',
+    ]);
+
+    $app->load(['applicant.chefProfile', 'job_post']);
+
+    return response()->json([
+        'success' => true,
+        'message' => "Test application submitted successfully for candidate '{$user->full_name}'.",
+        'application' => $app
+    ], 201);
+});

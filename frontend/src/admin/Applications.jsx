@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { mockApi } from '../services/api';
-import { Search, Eye, Check, X, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
+import { Search, Eye, Check, X, ChevronLeft, ChevronRight, Briefcase, Plus, Send, User, Building2 } from 'lucide-react';
 
 export default function Applications() {
   const [apps, setApps] = useState([]);
@@ -12,11 +12,21 @@ export default function Applications() {
   const [selectedApp, setSelectedApp] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Test Apply Modal State
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState('');
+  const [selectedApplicantId, setSelectedApplicantId] = useState('');
+  const [testJobsList, setTestJobsList] = useState([]);
+  const [testUsersList, setTestUsersList] = useState([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [submittingTest, setSubmittingTest] = useState(false);
+  const [testMessage, setTestMessage] = useState({ type: '', text: '' });
+
   const loadApps = async () => {
     setLoading(true);
     try {
       const res = await mockApi.getApplications();
-      if (res.success) {
+      if (res && res.success && Array.isArray(res.applications)) {
         setApps(res.applications);
       }
     } catch (e) {
@@ -29,6 +39,58 @@ export default function Applications() {
   useEffect(() => {
     loadApps();
   }, []);
+
+  const handleOpenTestModal = async () => {
+    setIsTestModalOpen(true);
+    setLoadingOptions(true);
+    setTestMessage({ type: '', text: '' });
+    try {
+      const data = await mockApi.getTestApplyOptions();
+      if (data) {
+        if (data.jobs && data.jobs.length > 0) {
+          setTestJobsList(data.jobs);
+          setSelectedJobId(data.jobs[0].id);
+        }
+        if (data.users && data.users.length > 0) {
+          setTestUsersList(data.users);
+          setSelectedApplicantId(data.users[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load test apply options:', err);
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
+
+  const handleTestSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedJobId || !selectedApplicantId) {
+      setTestMessage({ type: 'error', text: 'Please select both a job listing and a candidate user.' });
+      return;
+    }
+
+    setSubmittingTest(true);
+    setTestMessage({ type: '', text: '' });
+
+    try {
+      const res = await mockApi.createTestApplication(selectedJobId, selectedApplicantId);
+      if (res && res.success) {
+        setTestMessage({ type: 'success', text: res.message || 'Test application submitted successfully!' });
+        setTimeout(() => {
+          setIsTestModalOpen(false);
+          loadApps();
+        }, 1200);
+      } else {
+        setTestMessage({ type: 'error', text: res?.message || 'Failed to submit test application.' });
+      }
+    } catch (err) {
+      console.error('Test apply failed:', err);
+      setTestMessage({ type: 'error', text: 'Error submitting test application.' });
+    } finally {
+      setSubmittingTest(false);
+    }
+  };
 
   const handleUpdateStatus = async (id, status) => {
     await mockApi.updateApplicationStatus(id, status);
@@ -65,18 +127,33 @@ export default function Applications() {
   return (
     <div className="space-y-6 text-left">
       
-      {/* Title & Floating Search */}
+      {/* Title & Action Controls Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Job Applications</h2>
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Review, moderate, and track candidates applying for hospitality listings.</p>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full md:w-72">
-          <input type="text" placeholder="Search candidate, job, or company..." value={search} onChange={(e) => setSearch(e.target.value)}
-                 className="w-full bg-white border border-[#e2e8f0] rounded-lg py-2 pl-10 pr-4 text-xs font-medium text-slate-600 focus:outline-none focus:border-[#059669] transition-all" />
-          <Search className="absolute left-3.5 top-2.5 text-slate-400 w-4 h-4" />
+        {/* Action Controls: Search & Test Apply Button */}
+        <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
+          <div className="relative w-full md:w-64">
+            <input 
+              type="text" 
+              placeholder="Search candidate, job, or company..." 
+              value={search} 
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-white border border-[#e2e8f0] rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-600 focus:outline-none focus:border-[#059669] transition-all" 
+            />
+            <Search className="absolute left-3.5 top-2.5 text-slate-400 w-4 h-4" />
+          </div>
+
+          <button 
+            onClick={handleOpenTestModal}
+            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Test Apply for Candidate</span>
+          </button>
         </div>
       </div>
 
@@ -190,17 +267,17 @@ export default function Applications() {
                     <td className="py-4.5 px-6 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button onClick={() => { setSelectedApp(a); setModalOpen(true); }}
-                                className="w-8 h-8 rounded-lg bg-[#f8f9fc] hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center border border-[#e2e8f0] transition-colors" title="Review Profile">
+                                className="w-8 h-8 rounded-lg bg-[#f8f9fc] hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center border border-[#e2e8f0] transition-colors cursor-pointer" title="Review Profile">
                           <Eye className="w-4 h-4" />
                         </button>
                         
                         <button onClick={() => handleUpdateStatus(a.id, 'contacted')}
-                                className="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-500 text-blue-600 hover:text-white flex items-center justify-center border border-blue-100 hover:border-blue-500 transition-colors" title="Mark Contacted">
+                                className="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-500 text-blue-600 hover:text-white flex items-center justify-center border border-blue-100 hover:border-blue-500 transition-colors cursor-pointer" title="Mark Contacted">
                           <span>📞</span>
                         </button>
 
                         <button onClick={() => handleUpdateStatus(a.id, 'hired')}
-                                className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center border border-emerald-100 hover:border-emerald-500 transition-colors" title="Hire Candidate">
+                                className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center border border-emerald-100 hover:border-emerald-500 transition-colors cursor-pointer" title="Hire Candidate">
                           <Check className="w-4 h-4" />
                         </button>
                       </div>
@@ -224,6 +301,108 @@ export default function Applications() {
         </div>
 
       </div>
+
+      {/* TEST APPLY FOR CANDIDATE MODAL */}
+      {isTestModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-150 text-left">
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">📝</span>
+                <h3 className="font-outfit font-extrabold text-slate-800 text-base">Submit Test Job Application</h3>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setIsTestModalOpen(false)} 
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            {loadingOptions ? (
+              <p className="text-center text-slate-400 text-xs font-medium py-16">Loading registered jobs and users...</p>
+            ) : (
+              <form onSubmit={handleTestSubmit} className="p-6 space-y-4">
+                
+                {testMessage.text && (
+                  <div className={`p-3 rounded-xl text-xs font-extrabold ${testMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                    {testMessage.text}
+                  </div>
+                )}
+
+                {/* Step 1: Select Job Listing */}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-[#059669]" />
+                    <span>Select Target Job Listing *</span>
+                  </label>
+                  <select 
+                    value={selectedJobId}
+                    onChange={(e) => setSelectedJobId(e.target.value)}
+                    required
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    {testJobsList.map(job => (
+                      <option key={job.id} value={job.id}>
+                        {job.title} — {job.company} ({job.location})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Step 2: Select Candidate / Registered User */}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-1.5">
+                    <User className="w-3.5 h-3.5 text-[#059669]" />
+                    <span>Select Registered Candidate / Employer / User *</span>
+                  </label>
+                  <select 
+                    value={selectedApplicantId}
+                    onChange={(e) => setSelectedApplicantId(e.target.value)}
+                    required
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    {testUsersList.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.email || user.mobile_number}) — {user.role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Info Note */}
+                <div className="p-3.5 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-[11px] font-semibold text-emerald-800">
+                  💡 This will create an active test application entry linking the selected candidate to the job post, visible live on both the Admin Applications table and the Employer Dashboard!
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsTestModalOpen(false)}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingTest}
+                    className="px-5 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{submittingTest ? 'Submitting...' : 'Submit Test Application'}</span>
+                  </button>
+                </div>
+
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* Details Dialog Modal */}
       {modalOpen && selectedApp && (
