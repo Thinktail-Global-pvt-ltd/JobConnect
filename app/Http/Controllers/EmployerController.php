@@ -396,7 +396,8 @@ class EmployerController extends Controller
                 'message' => "Candidate status updated to {$application->status} and notification sent to applicant.",
                 'applicant' => $mappedApplicant,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('updateApplicantStatus Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update applicant status.',
