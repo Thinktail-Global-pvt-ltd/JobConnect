@@ -126,48 +126,80 @@ class NotificationTriggerService
 
     /**
      * Trigger 2: Applicant Status Update (Shortlisted, Contacted, Hired, Rejected)
-     * - Sends Push Notification to the Applicant
+     * - Sends Push Notification to BOTH Applicant (Chef/Talent) and Employer
      */
     public static function notifyApplicationStatusChange(JobApplication $application, string $newStatus)
     {
-        $applicant = $application->applicant;
-        if (!$applicant) {
-            return;
-        }
-
-        $jobTitle = $application->jobPost ? $application->jobPost->title : 'Job Opening';
-        $companyName = $application->jobPost ? $application->jobPost->company : 'Employer';
-        $applicantName = $applicant->full_name ?: 'Candidate';
+        $applicant = $application->applicant ?: User::find($application->applicant_id);
+        $job = $application->jobPost ?: JobPost::find($application->job_post_id);
+        
+        $jobTitle = $job ? $job->title : 'Job Opening';
+        $companyName = $job ? ($job->company ?: 'Employer') : 'Employer';
+        $applicantName = $applicant ? ($applicant->full_name ?: 'Candidate #' . $application->applicant_id) : 'Candidate';
 
         switch (strtolower($newStatus)) {
             case 'shortlisted':
-                $title = "Congratulations! You are Shortlisted! 🎉";
-                $body = "Hi {$applicantName}, great news! You have been shortlisted for '{$jobTitle}' at {$companyName}.";
+                $titleApplicant = "Congratulations! You are Shortlisted! 🎉";
+                $bodyApplicant  = "Hi {$applicantName}, great news! You have been shortlisted for '{$jobTitle}' at {$companyName}.";
+
+                $titleEmployer  = "Candidate Shortlisted! 🌟";
+                $bodyEmployer   = "You have shortlisted candidate {$applicantName} for your job listing '{$jobTitle}'.";
                 break;
+
             case 'contacted':
-                $title = "Employer Interested in Your Profile! 📞";
-                $body = "Hi {$applicantName}, {$companyName} has updated your status to Contacted for '{$jobTitle}'.";
+                $titleApplicant = "Employer Interested in Your Profile! 📞";
+                $bodyApplicant  = "Hi {$applicantName}, {$companyName} has updated your status to Contacted for '{$jobTitle}'.";
+
+                $titleEmployer  = "Candidate Contacted 📞";
+                $bodyEmployer   = "Candidate {$applicantName} status set to Contacted for '{$jobTitle}'.";
                 break;
+
             case 'hired':
             case 'accepted':
-                $title = "Congratulations! You are Hired! 🌟";
-                $body = "Hi {$applicantName}, excellent news! You have been selected for '{$jobTitle}' at {$companyName}!";
+                $titleApplicant = "Congratulations! You are Hired! 🌟";
+                $bodyApplicant  = "Hi {$applicantName}, excellent news! You have been selected for '{$jobTitle}' at {$companyName}!";
+
+                $titleEmployer  = "Candidate Hired! 🎉";
+                $bodyEmployer   = "Congratulations! Candidate {$applicantName} has been hired for '{$jobTitle}'.";
                 break;
+
             case 'rejected':
-                $title = "Application Update: {$jobTitle}";
-                $body = "Hi {$applicantName}, your application for '{$jobTitle}' at {$companyName} has been updated.";
+                $titleApplicant = "Application Update: {$jobTitle}";
+                $bodyApplicant  = "Hi {$applicantName}, your application status for '{$jobTitle}' at {$companyName} has been updated.";
+
+                $titleEmployer  = "Candidate Application Status Updated";
+                $bodyEmployer   = "Candidate {$applicantName} application updated for '{$jobTitle}'.";
                 break;
+
             default:
-                $title = "Application Status Updated 📋";
-                $body = "Hi {$applicantName}, your application status for '{$jobTitle}' is now " . ucfirst($newStatus) . ".";
+                $titleApplicant = "Application Status Updated 📋";
+                $bodyApplicant  = "Hi {$applicantName}, your application status for '{$jobTitle}' is now " . ucfirst($newStatus) . ".";
+
+                $titleEmployer  = "Candidate Status Updated 📋";
+                $bodyEmployer   = "Candidate {$applicantName} status updated to " . ucfirst($newStatus) . " for '{$jobTitle}'.";
                 break;
         }
 
-        self::sendToUser($applicant, $title, $body, [
-            'application_id' => $application->id,
-            'job_id' => $application->job_post_id,
-            'status' => $newStatus,
-            'event' => 'application_status_updated'
-        ]);
+        // 1. Notify Applicant (Chef / Job Seeker)
+        if ($applicant) {
+            self::sendToUser($applicant, $titleApplicant, $bodyApplicant, [
+                'application_id' => $application->id,
+                'job_id' => $application->job_post_id,
+                'status' => $newStatus,
+                'event' => 'candidate_shortlisted'
+            ]);
+        }
+
+        // 2. Notify Employer
+        $employerId = $application->employer_id ?: ($job ? $job->created_by : null);
+        if ($employerId) {
+            self::sendToUser($employerId, $titleEmployer, $bodyEmployer, [
+                'application_id' => $application->id,
+                'job_id' => $application->job_post_id,
+                'applicant_id' => $application->applicant_id,
+                'status' => $newStatus,
+                'event' => 'employer_shortlisted_candidate'
+            ]);
+        }
     }
 }
