@@ -392,10 +392,40 @@ export const mockApi = {
   getJobDetail: async (id) => {
     try {
       const res = await realApi.get(`/admin/jobs/${id}`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getJobDetail failed, fallback to mock DB", e);
-    }
+      if (res.data && (res.data.success || res.data.job)) {
+        return { success: true, job: res.data.job || res.data };
+      }
+    } catch (e) {}
+    try {
+      const res = await realApi.get(`/api/jobs/${id}`);
+      if (res.data && (res.data.success || res.data.job)) {
+        return { success: true, job: res.data.job || res.data };
+      }
+    } catch (e) {}
+    try {
+      const res = await axios.get(`/backend/api/jobs/${id}`);
+      if (res.data && (res.data.success || res.data.job)) {
+        return { success: true, job: res.data.job || res.data };
+      }
+    } catch (e) {}
+    try {
+      const res = await axios.get(`http://localhost:8001/api/jobs/${id}`);
+      if (res.data && (res.data.success || res.data.job)) {
+        return { success: true, job: res.data.job || res.data };
+      }
+    } catch (e) {}
+
+    // Fallback: search within getJobs list
+    try {
+      const allJobs = await mockApi.getJobs();
+      if (allJobs && allJobs.jobs && Array.isArray(allJobs.jobs)) {
+        const found = allJobs.jobs.find(j => String(j.id) === String(id));
+        if (found) {
+          return { success: true, job: found };
+        }
+      }
+    } catch (e) {}
+
     return mockEndpoints.getJobDetail(id);
   },
 

@@ -20,33 +20,36 @@ export default function JobDetail() {
   const loadJob = async () => {
     setLoading(true);
     try {
-      // 1. Try fetching real job post from real backend API (/feed?filter=all)
-      const res = await realApi.get('/feed?filter=all');
-      if (res.data && res.data.feed && res.data.feed.data) {
-        const found = res.data.feed.data.find(j => String(j.id) === String(id));
-        if (found) {
-          setJob({
-            id: found.id,
-            title: found.title,
-            company: found.company || found.creator?.current_employer || found.creator?.full_name || 'Hospitality Employer',
-            salary: found.salary || (found.salary_min ? `${found.salary_currency || ''} ${found.salary_min} - ${found.salary_max}` : 'INR 30,000 - 40,000'),
-            experience_range: found.experience_range || '3-5 Years',
-            job_type: found.job_type || 'Full-time',
-            location: found.location || 'Gurgaon, India',
-            description: found.description || 'No description provided.',
-            status: found.status || 'approved',
-            created_at: found.created_at,
-            creator: found.creator || { full_name: found.company || 'Employer Contact', email: found.contact_info || 'test@test.com' }
-          });
-          setLoading(false);
-          return;
-        }
+      // 1. Fetch via getJobDetail API (which searches real endpoints & list)
+      const data = await mockApi.getJobDetail(id);
+      if (data && (data.job || data.id)) {
+        const found = data.job || data;
+        setJob({
+          id: found.id,
+          title: found.title || `Job Listing #${found.id}`,
+          company: found.company || found.creator?.current_employer || found.creator?.full_name || 'Hospitality Employer',
+          salary: found.salary || (found.salary_min ? `${found.salary_currency || ''} ${found.salary_min} - ${found.salary_max}` : 'INR 30,000 - 50,000'),
+          experience_range: found.experience_range || '0-2 Years',
+          job_type: found.job_type || 'Full-time',
+          location: found.location || 'India',
+          description: found.description || 'No description provided.',
+          requirements: found.requirements || [],
+          benefits: found.benefits || [],
+          status: found.status || 'approved',
+          created_at: found.created_at,
+          creator: found.creator || { full_name: found.company || 'Employer Contact', email: found.contact_info || 'N/A', mobile_number: found.contact_person || 'N/A' }
+        });
+        setLoading(false);
+        return;
       }
 
-      // 2. Fallback to mockApi if not found in feed
-      const data = await mockApi.getJobDetail(id);
-      if (data.success) {
-        setJob(data.job);
+      // 2. Secondary fallback via getJobs
+      const jobsRes = await mockApi.getJobs();
+      if (jobsRes && jobsRes.jobs && Array.isArray(jobsRes.jobs)) {
+        const found = jobsRes.jobs.find(j => String(j.id) === String(id));
+        if (found) {
+          setJob(found);
+        }
       }
     } catch (err) {
       console.error('Failed to load job details:', err);
