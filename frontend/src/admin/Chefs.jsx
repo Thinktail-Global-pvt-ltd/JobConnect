@@ -427,7 +427,7 @@ export default function Chefs() {
                 <select 
                   value={statusFilter} 
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-slate-50 border border-[#e2e8f0] text-slate-700 text-xs font-bold py-2.5 pl-4 pr-8 rounded-xl focus:outline-none focus:border-emerald-500 cursor-pointer appearance-none"
+                  className="bg-[#1E293B] border border-slate-700/60 text-white text-xs font-extrabold py-2.5 pl-4 pr-8 rounded-xl focus:outline-none focus:border-[#059669] cursor-pointer appearance-none"
                 >
                   <option value="">All Statuses</option>
                   <option value="pending">Pending / Unpublished Only</option>
@@ -439,7 +439,7 @@ export default function Chefs() {
 
               <button 
                 onClick={loadChefs}
-                className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-[#e2e8f0] rounded-xl text-slate-600 transition-colors cursor-pointer"
+                className="p-2.5 bg-[#1E293B] hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 transition-colors cursor-pointer"
                 title="Refresh Data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -449,41 +449,41 @@ export default function Chefs() {
 
           {/* KPI Cards (2 Columns on Half-Screen, 4 on Full-Screen) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-              <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending / Unpublished</div>
+            <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Pending / Unpublished</div>
               <div className="mt-2">
-                <span className="font-outfit font-extrabold text-2xl text-amber-600 block">{pendingCount}</span>
-                <span className="text-[10px] font-bold text-amber-500 block mt-0.5">Hidden from Employer API</span>
+                <span className="font-outfit font-black text-3xl text-amber-400 block">{pendingCount}</span>
+                <span className="text-[10px] font-extrabold text-amber-500/90 block mt-0.5">Hidden from Employer API</span>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-              <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Calendly Sync</div>
+            <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Calendly Sync</div>
               <div className="mt-2">
-                <span className="font-outfit font-extrabold text-2xl text-slate-800 block">{calendlyPercentage}%</span>
-                <span className="text-[10px] font-bold text-slate-400 block mt-0.5">Active synchronization</span>
+                <span className="font-outfit font-black text-3xl text-white block">{calendlyPercentage}%</span>
+                <span className="text-[10px] font-extrabold text-slate-400 block mt-0.5">Active synchronization</span>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-              <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Published Chefs</div>
+            <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Active Published Chefs</div>
               <div className="mt-2">
-                <span className="font-outfit font-extrabold text-2xl text-emerald-600 block">{approvedCount}</span>
-                <span className="text-[10px] font-bold text-emerald-600 block mt-0.5">Visible on Employer API</span>
+                <span className="font-outfit font-black text-3xl text-emerald-400 block">{approvedCount}</span>
+                <span className="text-[10px] font-extrabold text-emerald-400 block mt-0.5">Visible on Employer API</span>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-              <div className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Applications</div>
+            <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Applications</div>
               <div className="mt-2">
-                <span className="font-outfit font-extrabold text-2xl text-slate-800 block">{totalCount}</span>
-                <span className="text-[10px] font-bold text-slate-400 block mt-0.5">Loaded at once</span>
+                <span className="font-outfit font-black text-3xl text-white block">{totalCount}</span>
+                <span className="text-[10px] font-extrabold text-slate-400 block mt-0.5">Loaded at once</span>
               </div>
             </div>
           </div>
 
           {/* Chefs List Table Card */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+          <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden">
             {loading ? (
               <p className="text-center text-slate-400 text-xs font-medium py-16">Loading chef profiles...</p>
             ) : chefs.length === 0 ? (
@@ -492,7 +492,7 @@ export default function Chefs() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
                       <th className="py-4 px-6">Chef Name</th>
                       <th className="py-4 px-6">Experience</th>
                       <th className="py-4 px-6">Cuisine Specialties</th>
@@ -501,7 +501,7 @@ export default function Chefs() {
                       <th className="py-4 px-6 text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#e2e8f0] text-xs font-semibold">
+                  <tbody className="divide-y divide-[#1E293B]/60 text-slate-200 text-xs font-semibold">
                     {chefs.map((chef) => {
                       const name = chef.full_name || chef.name || 'Unnamed Chef';
                       const email = chef.email || '';
@@ -512,36 +512,36 @@ export default function Chefs() {
                       const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CH';
 
                       return (
-                        <tr key={chef.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr key={chef.id} className="hover:bg-[#1E293B]/50 transition-colors">
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
+                              <div className="w-9 h-9 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
                                 {initials}
                               </div>
                               <div>
-                                <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{name}</span>
+                                <span className="font-extrabold text-white text-[13px] block leading-tight">{name}</span>
                                 <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">{email}</span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="py-4 px-6 text-slate-600 font-bold">
+                          <td className="py-4 px-6 text-slate-300 font-extrabold">
                             {experience}
                           </td>
 
                           <td className="py-4 px-6">
-                            <span className="bg-slate-100 text-slate-700 text-[10px] font-extrabold px-2.5 py-1 rounded-md border border-slate-200 inline-block">
+                            <span className="bg-[#1E293B] text-slate-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md border border-slate-700 inline-block">
                               {specialties}
                             </span>
                           </td>
 
                           <td className="py-4 px-6 text-center">
                             {hasCalendly ? (
-                              <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-extrabold px-2 py-0.5 rounded-full">
+                              <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 text-[9px] font-black px-2.5 py-0.5 rounded-full">
                                 ✓ Yes
                               </span>
                             ) : (
-                              <span className="bg-slate-50 text-slate-400 border border-slate-100 text-[9px] font-extrabold px-2 py-0.5 rounded-full">
+                              <span className="bg-slate-900 text-slate-400 border border-slate-800 text-[9px] font-black px-2.5 py-0.5 rounded-full">
                                 ✕ No
                               </span>
                             )}
@@ -549,15 +549,15 @@ export default function Chefs() {
 
                           <td className="py-4 px-6">
                             {status === 'approved' ? (
-                              <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#d1fae5] text-[#065f46]">
+                              <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
                                 Approved / Published
                               </span>
                             ) : status === 'rejected' || status === 'suspended' ? (
-                              <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#fee2e2] text-[#991b1b]">
+                              <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-950/80 text-rose-400 border border-rose-800/60">
                                 Rejected
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#fff7ed] text-[#c2410c]">
+                              <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-950/80 text-amber-400 border border-amber-800/60">
                                 Unpublished / Pending
                               </span>
                             )}
@@ -567,7 +567,7 @@ export default function Chefs() {
                             <div className="flex items-center justify-center gap-2">
                               <button 
                                 onClick={() => setSelectedChef(chef)}
-                                className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center border border-[#e2e8f0] transition-colors" 
+                                className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center border border-slate-700 transition-colors cursor-pointer" 
                                 title="View Full Profile Details"
                               >
                                 <Eye className="w-4 h-4" />
@@ -576,7 +576,7 @@ export default function Chefs() {
                               {status === 'approved' ? (
                                 <button 
                                   onClick={() => handleUnpublish(chef.id)} 
-                                  className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-extrabold rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                                  className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
                                   title="Unpublish Chef from Employer API"
                                 >
                                   <EyeOff className="w-3 h-3" />
@@ -585,7 +585,7 @@ export default function Chefs() {
                               ) : (
                                 <button 
                                   onClick={() => handleApprove(chef.id)} 
-                                  className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-extrabold rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer font-bold"
+                                  className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-black rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
                                   title="Publish & Approve Chef for Employer API"
                                 >
                                   <Check className="w-3 h-3" />
@@ -596,7 +596,7 @@ export default function Chefs() {
                               {status !== 'rejected' && status !== 'suspended' && (
                                 <button 
                                   onClick={() => handleReject(chef.id)} 
-                                  className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white flex items-center justify-center border border-rose-100 transition-colors" 
+                                  className="w-8 h-8 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 flex items-center justify-center border border-rose-800/60 transition-colors cursor-pointer" 
                                   title="Reject Chef"
                                 >
                                   <X className="w-4 h-4" />

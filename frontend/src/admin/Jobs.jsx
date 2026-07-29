@@ -115,47 +115,47 @@ export default function Jobs() {
 
   return (
     <div className="space-y-6 text-left">
-      {/* Title & Unified Section Tabs */}
+      {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Jobs & Referrals Moderation</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage India Jobs, Overseas Jobs, and Referral listings in a single unified view.</p>
+          <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Jobs & Referrals Moderation</h2>
+          <p className="text-xs font-semibold text-slate-400 mt-1">Manage India Jobs, Overseas Jobs, and Referral listings in a single unified view.</p>
         </div>
 
-        {/* Dynamic Status Filters */}
+        {/* Status Filter Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setStatus('')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
             <span>All Statuses</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === '' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-500'}`}>{stats.total}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === '' ? 'bg-emerald-950 text-emerald-300' : 'bg-slate-800 text-slate-300'}`}>{stats.total}</span>
           </button>
           
           <button onClick={() => setStatus('pending')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'pending' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === 'pending' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
             <span>Pending</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === 'pending' ? 'bg-emerald-700 text-emerald-100' : 'bg-amber-100 text-amber-700'}`}>{stats.pending}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'pending' ? 'bg-emerald-950 text-emerald-300' : 'bg-amber-950 text-amber-400 border border-amber-800'}`}>{stats.pending}</span>
           </button>
 
           <button onClick={() => setStatus('approved')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'approved' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === 'approved' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
             <span>Approved</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === 'approved' ? 'bg-emerald-700 text-emerald-100' : 'bg-emerald-100 text-emerald-700'}`}>{stats.approved}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'approved' ? 'bg-emerald-950 text-emerald-300' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}`}>{stats.approved}</span>
           </button>
 
           <button onClick={() => setStatus('rejected')}
-                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'rejected' ? 'bg-[#065f46] text-white' : 'bg-white border border-[#e2e8f0] text-slate-600 hover:bg-slate-50'}`}>
+                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === 'rejected' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
             <span>Rejected</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === 'rejected' ? 'bg-emerald-700 text-emerald-100' : 'bg-rose-100 text-rose-700'}`}>{stats.rejected}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'rejected' ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-400 border border-rose-800'}`}>{stats.rejected}</span>
           </button>
         </div>
       </div>
 
       {/* Merged Section Category Tabs (India Jobs, Overseas Jobs, Referrals) */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto">
         <button 
           onClick={() => setCategory('')} 
           className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === '' ? 'bg-slate-900 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            category === '' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
           }`}
         >
           <span>💼 All Job Listings</span>
@@ -164,7 +164,7 @@ export default function Jobs() {
         <button 
           onClick={() => setCategory('india')} 
           className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'india' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            category === 'india' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
           }`}
         >
           <span>🇮🇳 India Jobs</span>
@@ -173,7 +173,7 @@ export default function Jobs() {
         <button 
           onClick={() => setCategory('overseas')} 
           className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'overseas' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            category === 'overseas' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
           }`}
         >
           <span>✈️ Overseas Jobs</span>
@@ -182,7 +182,7 @@ export default function Jobs() {
         <button 
           onClick={() => setCategory('community')} 
           className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'community' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            category === 'community' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
           }`}
         >
           <span>🔗 Referrals & Community</span>
@@ -192,56 +192,56 @@ export default function Jobs() {
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Card 1 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
+        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Listings</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Listings</span>
             <Briefcase className="w-4 h-4 text-slate-400" />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block">{stats.total}</span>
-            <span className="text-[10px] font-bold text-slate-400">Merged Categories</span>
+            <span className="font-outfit font-black text-3xl text-white block">{stats.total}</span>
+            <span className="text-[10px] font-extrabold text-slate-400">Merged Categories</span>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
+        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Review</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Pending Review</span>
+            <Clock className="w-4 h-4 text-amber-400" />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-extrabold text-2xl text-amber-600 block">{stats.pending}</span>
-            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Requires Approval</span>
+            <span className="font-outfit font-black text-3xl text-amber-400 block">{stats.pending}</span>
+            <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/80 border border-amber-800/60 px-2 py-0.5 rounded-full">Requires Approval</span>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
+        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Approved & Live</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Approved & Live</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-extrabold text-2xl text-emerald-600 block">{stats.approved}</span>
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Visible on Feed</span>
+            <span className="font-outfit font-black text-3xl text-emerald-400 block">{stats.approved}</span>
+            <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded-full">Visible on Feed</span>
           </div>
         </div>
 
         {/* Card 4 - Featured & Pinned */}
-        <div className="bg-[#065f46] p-5 rounded-2xl shadow-sm flex flex-col justify-between min-h-[105px] text-white">
+        <div className="bg-[#059669] p-5 rounded-3xl shadow-2xl flex flex-col justify-between min-h-[105px] text-white">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-extrabold text-emerald-200 uppercase tracking-widest block">Featured & Pinned</span>
+            <span className="text-[10px] font-black text-emerald-200 uppercase tracking-widest block">Featured & Pinned</span>
             <Pin className="w-4 h-4 text-emerald-200" />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-extrabold text-2xl block">{stats.pinned}</span>
-            <span className="text-[10px] font-bold text-emerald-100 bg-emerald-800/80 px-2 py-0.5 rounded-full">Top Feed Priority</span>
+            <span className="font-outfit font-black text-3xl block">{stats.pinned}</span>
+            <span className="text-[10px] font-black text-emerald-100 bg-[#064e3b] px-2.5 py-0.5 rounded-full">Top Feed Priority</span>
           </div>
         </div>
       </div>
 
       {/* Main Table Board */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+      <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden">
         {loading ? (
           <p className="text-center text-slate-400 text-xs font-medium py-16">Loading jobs and referrals moderation data...</p>
         ) : jobs.length === 0 ? (
@@ -250,7 +250,7 @@ export default function Jobs() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
                   <th className="py-4 px-6">Job Title & Section</th>
                   <th className="py-4 px-6">Employer / Source</th>
                   <th className="py-4 px-6">Location</th>
@@ -259,25 +259,25 @@ export default function Jobs() {
                   <th className="py-4 px-6 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e2e8f0] text-xs font-semibold">
+              <tbody className="divide-y divide-[#1E293B]/60 text-slate-200 text-xs font-semibold">
                 {jobs.map((job) => (
-                  <tr key={job.id} className={`hover:bg-slate-50/80 transition-colors ${job.is_pinned ? 'bg-purple-50/40' : ''}`}>
+                  <tr key={job.id} className={`hover:bg-[#1E293B]/50 transition-colors ${job.is_pinned ? 'bg-purple-950/20' : ''}`}>
                     {/* Job Title & Category Badge */}
                     <td className="py-4.5 px-6">
                       <div className="flex items-center gap-2">
                         {job.is_pinned && (
-                          <span className="text-rose-500 text-sm shrink-0" title="Pinned to top feed priority">📌</span>
+                          <span className="text-purple-400 text-sm shrink-0" title="Pinned to top feed priority">📌</span>
                         )}
                         <div>
-                          <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{job.title}</span>
+                          <span className="font-extrabold text-white text-[13px] block leading-tight">{job.title}</span>
                           <span className="text-[11px] font-semibold mt-0.5 block flex items-center gap-1.5">
                             <span className="text-slate-400">{job.job_type || 'Full-time'} •</span>
                             {job.category === 'community' ? (
-                              <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-extrabold border border-emerald-100">🔗 Referral</span>
+                              <span className="text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded text-[10px] font-black border border-emerald-800/60">🔗 Referral</span>
                             ) : job.category === 'overseas' ? (
-                              <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded text-[10px] font-extrabold border border-purple-100">✈️ Overseas</span>
+                              <span className="text-purple-400 bg-purple-950/80 px-2 py-0.5 rounded text-[10px] font-black border border-purple-800/60">✈️ Overseas</span>
                             ) : (
-                              <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10px] font-extrabold border border-blue-100">🇮🇳 India</span>
+                              <span className="text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded text-[10px] font-black border border-blue-800/60">🇮🇳 India</span>
                             )}
                           </span>
                         </div>
@@ -285,38 +285,38 @@ export default function Jobs() {
                     </td>
 
                     {/* Employer / Creator */}
-                    <td className="py-4.5 px-6 font-bold text-slate-700">
+                    <td className="py-4.5 px-6 font-extrabold text-slate-200">
                       <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">🏢</span>
+                        <span className="w-6 h-6 rounded-md bg-[#1E293B] text-slate-300 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-700">🏢</span>
                         <span>{job.creator ? (job.creator.full_name || job.creator.company_name) : (job.company || 'Hospitality Employer')}</span>
                       </div>
                     </td>
 
                     {/* Location */}
-                    <td className="py-4.5 px-6 font-semibold text-slate-600">
-                      <span className="flex items-center gap-1 text-slate-500">
-                        <span className="text-rose-500">📍</span>
+                    <td className="py-4.5 px-6 font-semibold text-slate-300">
+                      <span className="flex items-center gap-1 text-slate-300">
+                        <span className="text-rose-400">📍</span>
                         {job.location || 'India'}
                       </span>
                     </td>
 
                     {/* Submitted Date */}
-                    <td className="py-4.5 px-6 text-slate-500 font-bold">
+                    <td className="py-4.5 px-6 text-slate-400 font-semibold">
                       {job.created_at ? new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
                     </td>
 
                     {/* Status badge */}
                     <td className="py-4.5 px-6">
                       {job.status === 'approved' ? (
-                        <span className="px-2.5 py-1 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#d1fae5] text-[#065f46]">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
                           Approved
                         </span>
                       ) : job.status === 'rejected' ? (
-                        <span className="px-2.5 py-1 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#fee2e2] text-[#991b1b]">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-950/80 text-rose-400 border border-rose-800/60">
                           Rejected
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-md text-[9px] font-extrabold uppercase tracking-wider bg-[#fff7ed] text-[#c2410c]">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-950/80 text-amber-400 border border-amber-800/60">
                           Pending
                         </span>
                       )}
@@ -331,19 +331,19 @@ export default function Jobs() {
                           (job.benefits && Array.isArray(job.benefits) && job.benefits.length > 0) ||
                           (job.details && job.details.trim() !== '')
                         ) && (
-                          <Link to={`/admin/jobs/${job.id}`} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center border border-[#e2e8f0] transition-colors" title="Review Job Details">
+                          <Link to={`/admin/jobs/${job.id}`} className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center border border-slate-700 transition-colors" title="Review Job Details">
                             <Eye className="w-4 h-4" />
                           </Link>
                         )}
 
                         {job.status !== 'approved' && (
-                          <button onClick={() => handleApprove(job.id)} className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center border border-emerald-100 hover:border-emerald-500 transition-colors cursor-pointer" title="Approve Listing">
+                          <button onClick={() => handleApprove(job.id)} className="w-8 h-8 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 flex items-center justify-center border border-emerald-800/60 transition-colors cursor-pointer" title="Approve Listing">
                             <Check className="w-4 h-4" />
                           </button>
                         )}
 
                         {job.status !== 'rejected' && (
-                          <button onClick={() => handleReject(job.id)} className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white flex items-center justify-center border border-rose-100 hover:border-rose-500 transition-colors cursor-pointer" title="Reject Listing">
+                          <button onClick={() => handleReject(job.id)} className="w-8 h-8 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 flex items-center justify-center border border-rose-800/60 transition-colors cursor-pointer" title="Reject Listing">
                             <X className="w-4 h-4" />
                           </button>
                         )}
@@ -351,7 +351,7 @@ export default function Jobs() {
                         {/* Toggle Pin Button */}
                         <button 
                           onClick={() => handleTogglePin(job.id)} 
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${job.is_pinned ? 'bg-purple-600 text-white border-purple-600 shadow-xs' : 'bg-purple-50 text-purple-600 border-purple-100 hover:bg-purple-600 hover:text-white'}`} 
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${job.is_pinned ? 'bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-600/20' : 'bg-[#1E293B] text-purple-400 border-slate-700 hover:bg-purple-900 hover:text-white'}`} 
                           title={job.is_pinned ? "Unpin Listing" : "Pin Listing to Top Feed Priority"}
                         >
                           <Pin className="w-4 h-4" />
@@ -366,12 +366,12 @@ export default function Jobs() {
         )}
 
         {/* Footer info */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
-          <span className="text-xs text-slate-500 font-bold">
+        <div className="px-6 py-4 flex justify-between items-center border-t border-[#1E293B] bg-[#0F172A]/40">
+          <span className="text-xs text-slate-400 font-extrabold">
             Showing all {jobs.length} Merged Listings (India, Overseas & Referrals)
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
             Unified Jobs & Referrals Board
           </span>
         </div>

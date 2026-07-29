@@ -151,13 +151,13 @@ export default function Employers() {
   const activePartnersCount = employers.filter(e => e.status === 'Active').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-left">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Employers Management</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Oversee platform employers, verification states, and job posting analytics.</p>
+          <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Employers Management</h2>
+          <p className="text-xs font-semibold text-slate-400 mt-1">Oversee platform employers, verification states, and job posting analytics.</p>
         </div>
 
         {/* Search */}
@@ -167,7 +167,7 @@ export default function Employers() {
             placeholder="Search employers, regions, or status..." 
             value={search} 
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#e2e8f0] rounded-lg py-2 pl-10 pr-4 text-xs font-medium text-slate-600 focus:outline-none focus:border-[#059669] transition-all" 
+            className="w-full bg-[#1E293B] border border-slate-700/60 rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#059669] transition-all" 
           />
           <span className="absolute left-3.5 top-2.5 text-slate-400 text-xs">🔍</span>
         </div>
@@ -177,38 +177,38 @@ export default function Employers() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Growth Overview */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+        <div className="lg:col-span-2 bg-[#0B1120] p-6 rounded-3xl border border-[#1E293B] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
           <div>
-            <h3 className="font-outfit font-extrabold text-lg text-emerald-800 leading-none">Growth Overview</h3>
-            <span className="text-[10px] font-bold text-slate-400 mt-1 block">Total active employers registered on JobConnect platform.</span>
+            <h3 className="font-outfit font-black text-lg text-emerald-400 leading-none">Growth Overview</h3>
+            <span className="text-[10px] font-bold text-slate-400 mt-1 block">Total active employers registered on JobRito platform.</span>
           </div>
 
           <div className="flex items-center gap-12 mt-6">
             <div>
-              <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Partners</span>
-              <span className="font-outfit font-extrabold text-2xl text-slate-800 mt-0.5 block">{activePartnersCount}</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Active Partners</span>
+              <span className="font-outfit font-black text-3xl text-white mt-0.5 block">{activePartnersCount}</span>
             </div>
             <div>
-              <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Employers</span>
-              <span className="font-outfit font-extrabold text-2xl text-slate-800 mt-0.5 block">{employers.length}</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Total Employers</span>
+              <span className="font-outfit font-black text-3xl text-white mt-0.5 block">{employers.length}</span>
             </div>
           </div>
 
-          <div className="absolute right-6 bottom-4 text-[#e2e8f0]/40 text-7xl select-none font-extrabold font-mono pointer-events-none">
+          <div className="absolute right-6 bottom-4 text-[#1E293B]/60 text-7xl select-none font-black font-mono pointer-events-none">
             📈
           </div>
         </div>
 
         {/* Right Priority Actions */}
-        <div className="bg-[#22c55e] p-6 rounded-2xl shadow-sm text-white flex flex-col justify-between min-h-[140px] text-left">
+        <div className="bg-[#059669] p-6 rounded-3xl shadow-2xl text-white flex flex-col justify-between min-h-[140px] text-left">
           <div>
-            <h3 className="font-outfit font-extrabold text-base leading-none">Priority Actions</h3>
+            <h3 className="font-outfit font-black text-base leading-none">Priority Actions</h3>
             <span className="text-[10px] font-bold text-emerald-100 mt-1 block">Platform employer verification active</span>
           </div>
 
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="w-full bg-[#064e3b] hover:bg-[#065f46] text-white rounded-lg py-2.5 text-xs font-bold transition-all mt-4 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+            className="w-full bg-[#064e3b] hover:bg-[#065f46] text-white rounded-xl py-2.5 text-xs font-black transition-all mt-4 flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
           >
             <span>🛡️</span>
             + Onboard New Employer
@@ -218,20 +218,20 @@ export default function Employers() {
       </div>
 
       {/* Employer Directory Table Card */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+      <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden">
         
         {/* Table Header Filter & Add Button Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 border-b border-[#e2e8f0]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 border-b border-[#1E293B] bg-[#0F172A]/40">
           <div className="flex items-center gap-3">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Employer Directory</h3>
-            <span className="bg-emerald-50 text-[#059669] border border-emerald-100 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">Global Access</span>
-            <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase">Premium Tier</span>
+            <h3 className="font-outfit font-black text-sm text-white">Employer Directory</h3>
+            <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Global Access</span>
+            <span className="bg-blue-950/80 text-blue-400 border border-blue-800/60 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Premium Tier</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add Employer
@@ -243,7 +243,7 @@ export default function Employers() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+              <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
                 <th className="py-4 px-6">Business Name</th>
                 <th className="py-4 px-6">Contact Person</th>
                 <th className="py-4 px-6">Mobile Number</th>
@@ -252,7 +252,7 @@ export default function Employers() {
                 <th className="py-4 px-6 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
+            <tbody className="divide-y divide-[#1E293B]/60 text-slate-200 text-xs font-semibold">
               {filteredEmployers.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-slate-400 font-medium">
@@ -261,63 +261,68 @@ export default function Employers() {
                 </tr>
               ) : (
                 filteredEmployers.map(emp => (
-                  <tr key={emp.id} className="hover:bg-slate-50/30 transition-colors">
+                  <tr key={emp.id} className="hover:bg-[#1E293B]/50 transition-colors">
                     
                     {/* Business Name with avatar */}
                     <td className="py-4.5 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-[#eff6ff] text-blue-600 border border-blue-100 flex items-center justify-center font-bold font-outfit text-xs shadow-sm shrink-0">
+                        <div className="w-8 h-8 rounded-xl bg-blue-950 text-blue-400 border border-blue-800/60 flex items-center justify-center font-black font-outfit text-xs shadow-sm shrink-0">
                           {emp.name ? emp.name[0].toUpperCase() : 'E'}
                         </div>
                         <div>
-                          <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{emp.name}</span>
+                          <span className="font-extrabold text-white text-[13px] block leading-tight">{emp.name}</span>
                           <span className="text-[10px] text-slate-400 font-bold block mt-0.5">📍 {emp.hq}</span>
                         </div>
                       </div>
                     </td>
 
                     {/* Contact Person */}
-                    <td className="py-4.5 px-6 font-bold text-slate-700">
+                    <td className="py-4.5 px-6 font-extrabold text-slate-200">
                       {emp.contact}
                     </td>
 
                     {/* Mobile number */}
-                    <td className="py-4.5 px-6 font-semibold text-slate-500">
-                      <code>{emp.phone}</code>
+                    <td className="py-4.5 px-6 font-semibold text-slate-300">
+                      <code className="bg-[#1E293B] px-2 py-0.5 rounded text-slate-300 font-mono text-[11px] border border-slate-700/50">{emp.phone}</code>
                     </td>
 
                     {/* Jobs Posted count */}
-                    <td className="py-4.5 px-6 text-emerald-600 font-bold">
+                    <td className="py-4.5 px-6 text-emerald-400 font-extrabold">
                       📄 {emp.posted_count || 0}
                     </td>
 
                     {/* Status Badge */}
                     <td className="py-4.5 px-6">
-                      <span className={`px-2.5 py-1 rounded text-[9px] font-extrabold uppercase tracking-wider border ${
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${
                         emp.status === 'Active'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                          : 'bg-rose-50 text-rose-700 border-rose-100'
+                          ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60'
+                          : 'bg-rose-950/80 text-rose-400 border-rose-800/60'
                       }`}>
                         {emp.status}
                       </span>
                     </td>
 
-                    {/* Actions */}
-                    <td className="py-4.5 px-6 text-center">
-                      <div className="flex items-center justify-center gap-3">
-                        <button 
-                          onClick={() => toggleSuspend(emp.id)}
-                          className={`text-xs font-extrabold px-3 py-1 rounded transition-all cursor-pointer ${
-                            emp.status === 'Active'
-                              ? 'bg-rose-50 text-rose-600 hover:bg-rose-100'
-                              : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                          }`}
-                        >
-                          {emp.status === 'Active' ? 'Suspend' : 'Activate'}
-                        </button>
-                      </div>
-                    </td>
+                    {/* Actions Links */}
+                    <td className="py-4.5 px-6 text-center space-x-2">
+                      <Link 
+                        to={`/admin/employers/${emp.id}`}
+                        className="px-3 py-1.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-extrabold transition-all inline-flex items-center gap-1 cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View</span>
+                      </Link>
 
+                      <button 
+                        onClick={() => toggleSuspend(emp.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
+                          emp.status === 'Active'
+                            ? 'bg-rose-950/60 hover:bg-rose-900 text-rose-400 border-rose-800/60'
+                            : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 border-emerald-800/60'
+                        }`}
+                      >
+                        {emp.status === 'Active' ? 'Suspend' : 'Activate'}
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -326,15 +331,15 @@ export default function Employers() {
         </div>
 
         {/* Footer (Showing ALL entries — NO PAGINATION) */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
-          <span className="text-xs text-slate-500 font-bold">
-            Showing all {filteredEmployers.length} registered employers (No Pagination)
+        <div className="px-6 py-4 flex justify-between items-center border-t border-[#1E293B] bg-[#0F172A]/40">
+          <span className="text-xs text-slate-400 font-extrabold">
+            Showing all {filteredEmployers.length} Employers
           </span>
-          <span className="text-xs text-slate-400 font-semibold">
-            Latest Top-First Order
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            All Employers Loaded At Once
           </span>
         </div>
-
       </div>
 
       {/* Add Employer Modal */}
