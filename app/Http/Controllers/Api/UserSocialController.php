@@ -21,13 +21,22 @@ class UserSocialController extends Controller
         // Get or initialize socials record
         $socials = $user->socials ?? UserSocial::firstOrCreate(['user_id' => $user->id]);
 
+        $others = [];
+        if ($socials->others) {
+            $others = is_array($socials->others) ? $socials->others : (json_decode($socials->others, true) ?: []);
+        }
+
         return response()->json([
             'success' => true,
             'socials' => [
-                'linkedin'  => $socials->linkedin,
-                'instagram' => $socials->instagram,
-                'facebook'  => $socials->facebook,
-                'twitter'   => $socials->twitter,
+                'linkedin'  => $socials->linkedin ?: '',
+                'instagram' => $socials->instagram ?: '',
+                'facebook'  => $socials->facebook ?: '',
+                'twitter'   => $socials->twitter ?: '',
+                'youtube'   => $socials->youtube ?: '',
+                'website'   => $socials->website ?: '',
+                'github'    => $socials->github ?: '',
+                'others'    => $others,
             ]
         ]);
     }
@@ -46,6 +55,10 @@ class UserSocialController extends Controller
             'instagram' => 'nullable|string|url|max:255',
             'facebook'  => 'nullable|string|url|max:255',
             'twitter'   => 'nullable|string|url|max:255',
+            'youtube'   => 'nullable|string|url|max:255',
+            'website'   => 'nullable|string|url|max:255',
+            'github'    => 'nullable|string|url|max:255',
+            'others'    => 'nullable',
         ]);
 
         if ($validator->fails()) {
@@ -55,20 +68,34 @@ class UserSocialController extends Controller
             ], 422);
         }
 
+        $validated = $validator->validated();
+        if (isset($validated['others']) && is_array($validated['others'])) {
+            $validated['others'] = json_encode($validated['others']);
+        }
+
         // Get or create socials record
         $socials = UserSocial::updateOrCreate(
             ['user_id' => $user->id],
-            $validator->validated()
+            $validated
         );
+
+        $others = [];
+        if ($socials->others) {
+            $others = is_array($socials->others) ? $socials->others : (json_decode($socials->others, true) ?: []);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Social profile links saved successfully.',
             'socials' => [
-                'linkedin'  => $socials->linkedin,
-                'instagram' => $socials->instagram,
-                'facebook'  => $socials->facebook,
-                'twitter'   => $socials->twitter,
+                'linkedin'  => $socials->linkedin ?: '',
+                'instagram' => $socials->instagram ?: '',
+                'facebook'  => $socials->facebook ?: '',
+                'twitter'   => $socials->twitter ?: '',
+                'youtube'   => $socials->youtube ?: '',
+                'website'   => $socials->website ?: '',
+                'github'    => $socials->github ?: '',
+                'others'    => $others,
             ]
         ]);
     }

@@ -122,30 +122,52 @@ class ProfileController extends Controller
             }
         }
 
-        $socialsData = null;
-        if ($user && $user->socials) {
-            $socialsData = [
-                'instagram' => $user->socials->instagram ?: '',
-                'linkedin' => $user->socials->linkedin ?: '',
-                'facebook' => $user->socials->facebook ?: '',
-                'twitter' => $user->socials->twitter ?: '',
-                'youtube' => $user->socials->youtube ?: '',
-                'website' => $user->socials->website ?: '',
-            ];
+        // Ensure social media schema includes youtube, website, github, others
+        if (\Illuminate\Support\Facades\Schema::hasTable('user_socials')) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_socials', 'youtube')) {
+                try {
+                    \Illuminate\Support\Facades\Schema::table('user_socials', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('youtube', 255)->nullable();
+                        $table->string('website', 255)->nullable();
+                        $table->string('github', 255)->nullable();
+                        $table->text('others')->nullable();
+                    });
+                } catch (\Throwable $e) {}
+            }
         }
+
+        $socialsObj = $user ? $user->socials : null;
+        $othersList = [];
+        if ($socialsObj && $socialsObj->others) {
+            $othersList = is_array($socialsObj->others) ? $socialsObj->others : (json_decode($socialsObj->others, true) ?: []);
+        }
+
+        $socialsData = [
+            'instagram' => $socialsObj ? ($socialsObj->instagram ?: '') : '',
+            'linkedin'  => $socialsObj ? ($socialsObj->linkedin ?: '') : '',
+            'facebook'  => $socialsObj ? ($socialsObj->facebook ?: '') : '',
+            'twitter'   => $socialsObj ? ($socialsObj->twitter ?: '') : '',
+            'youtube'   => $socialsObj ? ($socialsObj->youtube ?: '') : '',
+            'website'   => $socialsObj ? ($socialsObj->website ?: '') : '',
+            'github'    => $socialsObj ? ($socialsObj->github ?: '') : '',
+            'others'    => $othersList,
+        ];
 
         $activeRole = $user ? $user->active_profile : 'job_seeker';
         $completeness = $user ? \App\Services\ProfileProgressService::calculate($user) : 0;
 
         // Extract location_preference & employment_preference safely if available
         $chefAvailability = ($user && $user->chefProfile && $user->chefProfile->availability_info)
-            ? (json_decode($user->chefProfile->availability_info, true) ?: [])
+            ? (is_array($user->chefProfile->availability_info) ? $user->chefProfile->availability_info : (json_decode($user->chefProfile->availability_info, true) ?: []))
             : [];
             
         $jobLocation = $user->city ?: ($chefAvailability['location_preference'] ?? 'India');
         $preference = $user->preferred_role ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? 'Full Time'));
         $country = $user->country ?: 'India';
         $city = $user->city ?: ($employerData['city'] ?? 'N/A');
+
+        $isAvailable = $user ? (bool)$user->is_available : true;
+        $availabilityStatus = $user ? ($user->availability_status ?: 'Available') : 'Available';
 
         return response()->json([
             'success' => true,
@@ -166,6 +188,8 @@ class ProfileController extends Controller
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'current_employer' => $user ? $user->current_employer : null,
                 'skills' => $user ? $user->skills : null,
+                'availability_status' => $availabilityStatus,
+                'is_available' => $isAvailable,
                 'selected_language' => ($user && $user->selected_language) ? $user->selected_language : 'en',
                 'active_profile' => $activeRole,
                 'active_role' => $activeRole,
@@ -181,6 +205,8 @@ class ProfileController extends Controller
             'city' => $city,
             'job_location' => $jobLocation,
             'preference' => $preference,
+            'availability_status' => $availabilityStatus,
+            'is_available' => $isAvailable,
             'chef_profile' => $chefData,
             'employer_profile' => $employerData,
             'socials' => $socialsData,
@@ -364,6 +390,31 @@ class ProfileController extends Controller
                     $user->profile_photo_path = $photoUrl;
                 }
 
+                // Parse and update Availability if provided
+                if ($request->has('availability_status') || $request->has('is_available') || $request->has('availability')) {
+                    $rawAvail = $request->input('availability_status') ?? $request->input('is_available') ?? $request->input('availability');
+                    $isAvail = true;
+                    if (is_bool($rawAvail)) {
+                        $isAvail = $rawAvail;
+                    } elseif (is_string($rawAvail)) {
+                        $norm = strtolower(trim($rawAvail));
+                        if (in_array($norm, ['unavailable', 'false', '0', 'off', 'hidden', 'inactive', 'not available'])) {
+                            $isAvail = false;
+                        }
+                    } elseif (is_numeric($rawAvail)) {
+                        $isAvail = (int)$rawAvail === 1;
+                    }
+
+                    $statusStr = $isAvail ? 'Available' : 'Unavailable';
+                    $user->is_available = $isAvail;
+                    $user->availability_status = $statusStr;
+
+                    if ($user->chefProfile) {
+                        $user->chefProfile->availability_info = $statusStr;
+                        $user->chefProfile->save();
+                    }
+                }
+
                 try {
                     $user->save();
                 } catch (\Illuminate\Database\QueryException $qe) {
@@ -379,6 +430,37 @@ class ProfileController extends Controller
                     } else {
                         throw $qe;
                     }
+                }
+
+                // Handle Social Links updates (including Add More / Custom Links)
+                $socialsPayload = $request->input('socials') ?? $request->only(['linkedin', 'instagram', 'facebook', 'twitter', 'youtube', 'website', 'github', 'others']);
+                if (is_array($socialsPayload) && !empty(array_filter($socialsPayload))) {
+                    $instagram = $socialsPayload['instagram'] ?? $request->input('instagram');
+                    $linkedin  = $socialsPayload['linkedin'] ?? $request->input('linkedin');
+                    $facebook   = $socialsPayload['facebook'] ?? $request->input('facebook');
+                    $twitter    = $socialsPayload['twitter'] ?? $request->input('twitter');
+                    $youtube    = $socialsPayload['youtube'] ?? $request->input('youtube');
+                    $website    = $socialsPayload['website'] ?? $request->input('website');
+                    $github     = $socialsPayload['github'] ?? $request->input('github');
+                    $others     = $socialsPayload['others'] ?? $request->input('others');
+
+                    if (is_array($others)) {
+                        $others = json_encode($others);
+                    }
+
+                    \App\Models\UserSocial::updateOrCreate(
+                        ['user_id' => $user->id],
+                        array_filter([
+                            'instagram' => $instagram,
+                            'linkedin'  => $linkedin,
+                            'facebook'  => $facebook,
+                            'twitter'   => $twitter,
+                            'youtube'   => $youtube,
+                            'website'   => $website,
+                            'github'    => $github,
+                            'others'    => $others,
+                        ], fn($val) => !is_null($val))
+                    );
                 }
             }
 

@@ -14,6 +14,10 @@ class UserSocial extends Model
         'instagram',
         'facebook',
         'twitter',
+        'youtube',
+        'website',
+        'github',
+        'others',
     ];
 
     /**
