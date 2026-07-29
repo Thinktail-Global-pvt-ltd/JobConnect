@@ -325,9 +325,16 @@ export default function Jobs() {
                     {/* Actions: View Details, Approve, Reject, Toggle Pin */}
                     <td className="py-4.5 px-6 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <Link to={`/admin/jobs/${job.id}`} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center border border-[#e2e8f0] transition-colors" title="Review Job Details">
-                          <Eye className="w-4 h-4" />
-                        </Link>
+                        {Boolean(
+                          (job.description && job.description.trim() !== '') || 
+                          (job.requirements && Array.isArray(job.requirements) && job.requirements.length > 0) ||
+                          (job.benefits && Array.isArray(job.benefits) && job.benefits.length > 0) ||
+                          (job.details && job.details.trim() !== '')
+                        ) && (
+                          <Link to={`/admin/jobs/${job.id}`} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center border border-[#e2e8f0] transition-colors" title="Review Job Details">
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        )}
 
                         {job.status !== 'approved' && (
                           <button onClick={() => handleApprove(job.id)} className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white flex items-center justify-center border border-emerald-100 hover:border-emerald-500 transition-colors cursor-pointer" title="Approve Listing">
