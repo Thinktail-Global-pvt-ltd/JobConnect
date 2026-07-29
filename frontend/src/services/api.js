@@ -699,30 +699,20 @@ export const mockApi = {
       if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
-    } catch (e) {
-      console.warn("Axios getChefs /api/admin/chefs failed, trying direct relative...", e);
-    }
+    } catch (e) {}
     try {
       const res = await axios.get('/backend/api/admin/chefs', { params: { status } });
       if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
-    } catch (e) {
-      console.warn("Axios direct /backend/api/admin/chefs failed...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.get('http://localhost:8001/api/admin/chefs', { params: { status } });
+      const res = await axios.get('http://178.16.138.159/backend/api/admin/chefs', { params: { status } });
       if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
-    } catch (e) {
-      console.warn("Axios direct getChefs failed", e);
-    }
-    let chefs = mockDb.getChefs();
-    if (status) {
-      chefs = chefs.filter(c => c.status === status || c.approval_status === status);
-    }
-    return { success: true, chefs };
+    } catch (e) {}
+    return { success: true, chefs: [] };
   },
 
   getEmployerChefs: async () => {
@@ -731,80 +721,67 @@ export const mockApi = {
       if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
-    } catch (e) {
-      console.warn("Axios getEmployerChefs /api/employer/chefs failed...", e);
-    }
+    } catch (e) {}
     try {
       const res = await axios.get('/backend/api/employer/chefs');
       if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
-    } catch (e) {
-      console.warn("Axios direct /backend/api/employer/chefs failed...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.get('http://localhost:8001/api/employer/chefs');
+      const res = await axios.get('http://178.16.138.159/backend/api/employer/chefs');
       if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
         return res.data;
       }
-    } catch (e) {
-      console.warn("Axios direct getEmployerChefs failed", e);
-    }
-    const approvedChefs = mockDb.getChefs().filter(c => c.status === 'approved' || c.approval_status === 'approved');
-    return { success: true, chefs: approvedChefs };
+    } catch (e) {}
+    return { success: true, chefs: [] };
   },
 
   approveChef: async (id) => {
-    const chefs = mockDb.getChefs().map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'approved', approval_status: 'approved' } : c);
-    mockDb.setChefs(chefs);
     try {
       const res = await realApi.post(`/api/admin/chefs/${id}/approve`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios approveChef /api/admin/chefs failed", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.post(`http://localhost:8001/api/admin/chefs/${id}/approve`);
+      const res = await axios.post(`/backend/api/admin/chefs/${id}/approve`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct approveChef failed", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.post(`http://178.16.138.159/backend/api/admin/chefs/${id}/approve`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return { success: true };
   },
 
   rejectChef: async (id) => {
-    const chefs = mockDb.getChefs().map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c);
-    mockDb.setChefs(chefs);
     try {
       const res = await realApi.post(`/api/admin/chefs/${id}/reject`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios rejectChef /api/admin/chefs failed", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.post(`http://localhost:8001/api/admin/chefs/${id}/reject`);
+      const res = await axios.post(`/backend/api/admin/chefs/${id}/reject`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct rejectChef failed", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.post(`http://178.16.138.159/backend/api/admin/chefs/${id}/reject`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return { success: true };
   },
 
   unpublishChef: async (id) => {
-    const chefs = mockDb.getChefs().map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'pending', approval_status: 'pending' } : c);
-    mockDb.setChefs(chefs);
     try {
       const res = await realApi.post(`/api/admin/chefs/${id}/unpublish`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios unpublishChef /api/admin/chefs failed", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.post(`http://localhost:8001/api/admin/chefs/${id}/unpublish`);
+      const res = await axios.post(`/backend/api/admin/chefs/${id}/unpublish`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct unpublishChef failed", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.post(`http://178.16.138.159/backend/api/admin/chefs/${id}/unpublish`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return { success: true };
   },
 
