@@ -58,6 +58,27 @@ class WebJobController extends Controller
             'preferred_call_time' => $preferredCallTime,
         ]);
 
+        // Shoot FCM Push Notification & Persist to UserNotificationHistory
+        try {
+            $employerId = $job->created_by ?: 17;
+            $applicantName = $user->full_name ?: ('Candidate #' . $user->id);
+            $jobTitle = $job->title ?: 'Job Listing';
+
+            \App\Services\NotificationTriggerService::sendToUser(
+                $employerId,
+                "New Candidate Application 💼",
+                "Hi! {$applicantName} applied for your job listing '{$jobTitle}'.",
+                [
+                    'event' => 'application_received',
+                    'job_id' => $job->id,
+                    'application_id' => $application->id,
+                    'applicant_id' => $user->id
+                ]
+            );
+        } catch (\Throwable $ne) {
+            \Illuminate\Support\Facades\Log::error('Job apply FCM notification error: ' . $ne->getMessage());
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Application submitted successfully!',
