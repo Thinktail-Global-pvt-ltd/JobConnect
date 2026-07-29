@@ -590,12 +590,16 @@ export default function Applications() {
 
                         {/* Status Badge */}
                         <td className="py-4.5 px-6">
-                          {a.status === 'contacted' ? (
+                          {a.status === 'shortlisted' ? (
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                              Shortlisted
+                            </span>
+                          ) : a.status === 'contacted' ? (
                             <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-950/80 text-blue-400 border border-blue-800/60">
                               Contacted
                             </span>
                           ) : a.status === 'hired' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-teal-950/80 text-teal-400 border border-teal-800/60">
                               Hired
                             </span>
                           ) : a.status === 'rejected' ? (
