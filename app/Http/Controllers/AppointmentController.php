@@ -151,10 +151,10 @@ class AppointmentController extends Controller
     public function registeredChefsList()
     {
         try {
-            // Find all users with role_type = 'chef'
+            // Find all users with role_type = 'chef' or active_profile = 'chef'
             $chefUsers = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
-            })
+            })->orWhere('active_profile', 'chef')
             ->with(['chefProfile'])
             ->get();
 
@@ -170,20 +170,31 @@ class AppointmentController extends Controller
                 }
             }
 
-            // Reload all chefs (approved or active)
+            // Reload all chefs with chefProfile
             $chefs = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
-            })
+            })->orWhere('active_profile', 'chef')
             ->with(['chefProfile'])
             ->get()
             ->map(function ($chef) {
                 $profile = $chef->chefProfile;
                 $availability = [];
                 if ($profile && $profile->availability_info) {
-                    $availability = json_decode($profile->availability_info, true) ?: [];
+                    if (is_array($profile->availability_info)) {
+                        $availability = $profile->availability_info;
+                    } else {
+                        $availability = json_decode($profile->availability_info, true) ?: [];
+                    }
                 }
 
                 $status = $profile ? ($profile->approval_status ?: 'approved') : 'approved';
+
+                $skills = [];
+                if (is_array($chef->skills)) {
+                    $skills = $chef->skills;
+                } elseif (is_string($chef->skills)) {
+                    $skills = json_decode($chef->skills, true) ?: [];
+                }
 
                 return [
                     'id' => $profile ? $profile->id : $chef->id,
@@ -192,10 +203,17 @@ class AppointmentController extends Controller
                     'name' => $chef->full_name ?: ('Chef #' . $chef->id),
                     'email' => $chef->email ?: '',
                     'mobile_number' => $chef->mobile_number ?: '',
+                    'gender' => $chef->gender ?: '',
+                    'country' => $chef->country ?? 'India',
                     'city' => $chef->city ?: '',
-                    'profile_photo_path' => $chef->profile_photo_path,
+                    'job_location' => $chef->job_location ?? ($chef->city ?: 'N/A'),
+                    'preference' => $chef->preference ?? 'Both',
                     'experience_range' => $chef->experience_range ?: '0',
                     'experience' => $chef->experience_range ?: '0',
+                    'experience_years' => $chef->experience_years ?: $chef->experience_range ?: '0',
+                    'preferred_role' => $chef->preferred_role ?: 'Chef',
+                    'current_employer' => $chef->current_employer ?: 'N/A',
+                    'profile_photo_path' => $chef->profile_photo_path,
                     'cuisine_specialty' => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
                     'specialties' => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
                     'bio' => $profile ? ($profile->bio ?: '') : '',
@@ -204,13 +222,30 @@ class AppointmentController extends Controller
                     'approval_status' => $status,
                     'status' => $status,
                     'availability_info' => $availability,
-                    'skills' => is_array($chef->skills) ? $chef->skills : [],
+                    'skills' => $skills,
+                    'user' => [
+                        'id' => $chef->id,
+                        'full_name' => $chef->full_name,
+                        'email' => $chef->email,
+                        'mobile_number' => $chef->mobile_number,
+                        'gender' => $chef->gender,
+                        'country' => $chef->country ?? 'India',
+                        'city' => $chef->city,
+                        'job_location' => $chef->job_location ?? ($chef->city ?: 'N/A'),
+                        'preference' => $chef->preference ?? 'Both',
+                        'experience_range' => $chef->experience_range,
+                        'preferred_role' => $chef->preferred_role,
+                        'current_employer' => $chef->current_employer,
+                        'skills' => $skills,
+                        'profile_photo_path' => $chef->profile_photo_path,
+                    ]
                 ];
             });
 
             return response()->json([
                 'success' => true,
-                'chefs' => $chefs
+                'chefs' => $chefs,
+                'data' => $chefs
             ]);
         } catch (\Exception $e) {
             return response()->json([
