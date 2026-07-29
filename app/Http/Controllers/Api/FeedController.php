@@ -57,16 +57,42 @@ class FeedController extends Controller
         // 2.  Mark which jobs the current user has applied to
         // ----------------------------------------------------------------
         $user = $request->user();
-        $appliedJobIds = [];
-        if ($user) {
-            $appliedJobIds = JobApplication::where('applicant_id', $user->id)
-                ->pluck('job_post_id')
-                ->toArray();
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            if (str_contains($tokenStr, '|')) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            } else {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
+        if (!$user) {
+            $user = \Illuminate\Support\Facades\Auth::user();
         }
 
-        $jobs->transform(function ($job) use ($appliedJobIds) {
-            $job->applied = in_array($job->id, $appliedJobIds);
-            $job->_type   = $job->is_referral ? 'referral_job' : 'job';
+        $appliedJobMap = [];
+        if ($user) {
+            $applications = JobApplication::where('applicant_id', $user->id)->get();
+            foreach ($applications as $appRecord) {
+                $appliedJobMap[$appRecord->job_post_id] = $appRecord->status ?: 'applied';
+            }
+        }
+
+        $jobs->transform(function ($job) use ($appliedJobMap) {
+            $hasApplied = isset($appliedJobMap[$job->id]);
+            $appStatus  = $hasApplied ? $appliedJobMap[$job->id] : null;
+
+            $job->applied            = $hasApplied;
+            $job->is_applied         = $hasApplied;
+            $job->has_applied        = $hasApplied;
+            $job->user_applied       = $hasApplied;
+            $job->application_status = $appStatus;
+            $job->_type              = $job->is_referral ? 'referral_job' : 'job';
 
             // Normalize and parse currency
             $curr = $job->salary_currency;
