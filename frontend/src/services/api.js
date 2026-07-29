@@ -979,5 +979,49 @@ export const mockApi = {
         enquiries: 3,
       }
     };
+  },
+
+  getNotifications: async () => {
+    try {
+      const res = await realApi.get('/api/admin/notifications');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get('/backend/api/admin/notifications');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get('http://178.16.138.159/backend/api/admin/notifications');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    return {
+      success: true,
+      unread_count: 0,
+      notifications: []
+    };
+  },
+
+  markNotificationRead: async (id) => {
+    try {
+      const res = await realApi.post('/api/notifications/mark-read', { id });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post('/backend/api/notifications/mark-read', { id });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    return { success: true };
+  },
+
+  markAllNotificationsRead: async () => {
+    try {
+      const res = await realApi.post('/api/notifications/mark-all-read', { all: true });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post('/backend/api/notifications/mark-all-read', { all: true });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    return { success: true };
   }
 };

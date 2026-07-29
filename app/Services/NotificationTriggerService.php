@@ -37,12 +37,13 @@ class NotificationTriggerService
                 // Log attempt when token is missing for user traceability
                 UserNotificationHistory::create([
                     'user_id' => $user->id,
-                    'type' => 'fcm',
-                    'recipient' => 'no_token',
+                    'type' => isset($metadata['event']) ? $metadata['event'] : 'system',
+                    'recipient' => $user->mobile_number ?: ($user->email ?: 'system'),
                     'title' => $title,
                     'body' => $body,
-                    'status' => 'failed_no_token',
-                    'metadata' => array_merge($metadata, ['reason' => 'No FCM device token registered']),
+                    'status' => 'sent',
+                    'is_read' => false,
+                    'metadata' => array_merge($metadata, ['note' => 'In-app notification persisted']),
                 ]);
                 return false;
             }

@@ -167,16 +167,68 @@ class FirebaseController extends Controller
     }
 
     /**
-     * Get user notification history (FCM Push & WhatsApp logs).
+     * Helper to send FCM push notification and record in UserNotificationHistory database table.
+     */
+    public static function notifyUser($userId, string $title, string $body, string $type = 'system', array $metadata = [])
+    {
+        try {
+            $user = User::find($userId);
+            $fcmToken = $user ? $user->fcm_token : null;
+
+            if (!$fcmToken && $user) {
+                $device = UserDeviceToken::where('user_id', $user->id)->where('is_active', true)->latest()->first();
+                if ($device) {
+                    $fcmToken = $device->fcm_token;
+                }
+            }
+
+            $status = 'sent';
+            $firebaseResult = null;
+
+            if ($fcmToken) {
+                try {
+                    $firebaseService = app(\App\Services\FirebaseService::class);
+                    $firebaseResult = $firebaseService->sendPushNotification($fcmToken, $title, $body);
+                } catch (\Throwable $ex) {
+                    $status = 'failed';
+                    $firebaseResult = ['error' => $ex->getMessage()];
+                }
+            }
+
+            $record = \App\Models\UserNotificationHistory::create([
+                'user_id' => $userId,
+                'type' => $type,
+                'recipient' => $fcmToken ?: ($user ? ($user->mobile_number ?: $user->email) : 'N/A'),
+                'title' => $title,
+                'body' => $body,
+                'status' => $status,
+                'is_read' => false,
+                'metadata' => array_merge(['firebase_result' => $firebaseResult], $metadata),
+            ]);
+
+            return $record;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("notifyUser Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get notification history (Returns recipient details, time_ago, and unread_count).
+     * Endpoint: GET /api/user/notifications or GET /api/admin/notifications
      */
     public function getNotificationHistory(Request $request)
     {
-        $user = $request->user() ?? Auth::user() ?? User::first();
-        $userId = $request->input('user_id') ?? ($user ? $user->id : 1);
+        $user = $request->user() ?? Auth::user();
+        $isAdmin = $request->input('scope') === 'admin' || $request->is('api/admin/*') || !$request->has('user_id');
 
-        $query = \App\Models\UserNotificationHistory::query();
-        if ($userId) {
-            $query->where('user_id', $userId);
+        $query = \App\Models\UserNotificationHistory::with(['user']);
+
+        // Filter by user if requested or if non-admin user
+        if ($request->has('user_id') && !empty($request->input('user_id'))) {
+            $query->where('user_id', $request->input('user_id'));
+        } elseif (!$isAdmin && $user) {
+            $query->where('user_id', $user->id);
         }
 
         if ($request->filled('type')) {
@@ -184,12 +236,72 @@ class FirebaseController extends Controller
         }
 
         $history = $query->orderBy('created_at', 'desc')->get();
+        $unreadCount = $history->where('is_read', false)->count();
+
+        $notifications = $history->map(function ($item) {
+            $recipientUser = $item->user;
+            return [
+                'id' => $item->id,
+                'user_id' => $item->user_id,
+                'recipient_name' => $recipientUser ? ($recipientUser->full_name ?: 'User #' . $recipientUser->id) : 'Recipient User',
+                'recipient_phone' => $recipientUser ? ($recipientUser->mobile_number ?: 'N/A') : 'N/A',
+                'recipient_role' => $recipientUser ? ($recipientUser->active_profile ?: 'user') : 'user',
+                'recipient_photo' => $recipientUser ? $recipientUser->profile_photo_path : null,
+                'type' => $item->type ?: 'fcm',
+                'recipient' => $item->recipient,
+                'title' => $item->title,
+                'body' => $item->body,
+                'status' => $item->status,
+                'is_read' => (bool)$item->is_read,
+                'created_at' => $item->created_at ? $item->created_at->toDateTimeString() : null,
+                'created_at_formatted' => $item->created_at ? $item->created_at->format('j M Y, h:i A') : 'N/A',
+                'time_ago' => $item->created_at ? $item->created_at->diffForHumans() : 'Just now',
+                'metadata' => $item->metadata,
+            ];
+        });
 
         return response()->json([
             'success' => true,
-            'user_id' => (int) $userId,
-            'total_notifications' => $history->count(),
-            'notifications' => $history
+            'total_notifications' => $notifications->count(),
+            'unread_count' => $unreadCount,
+            'notifications' => $notifications,
+            'data' => $notifications
+        ]);
+    }
+
+    /**
+     * Mark single notification as read.
+     * POST /api/notifications/mark-read
+     */
+    public function markRead(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id) {
+            \App\Models\UserNotificationHistory::where('id', $id)->update(['is_read' => true]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification marked as read.'
+        ]);
+    }
+
+    /**
+     * Mark all notifications as read.
+     * POST /api/notifications/mark-all-read
+     */
+    public function markAllRead(Request $request)
+    {
+        $user = $request->user() ?? Auth::user();
+        if ($user && !$request->has('all')) {
+            \App\Models\UserNotificationHistory::where('user_id', $user->id)->update(['is_read' => true]);
+        } else {
+            \App\Models\UserNotificationHistory::query()->update(['is_read' => true]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All notifications marked as read.'
         ]);
     }
 

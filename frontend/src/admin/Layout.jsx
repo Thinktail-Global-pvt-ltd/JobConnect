@@ -20,6 +20,22 @@ export default function Layout({ children }) {
     enquiries: 3,
   });
 
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await mockApi.getNotifications();
+      if (res && res.success) {
+        setNotifications(res.notifications || []);
+        setUnreadCount(res.unread_count || 0);
+      }
+    } catch (e) {
+      console.error("Failed to fetch notifications:", e);
+    }
+  };
+
   useEffect(() => {
     const fetchCounts = async () => {
       try {
@@ -32,7 +48,28 @@ export default function Layout({ children }) {
       }
     };
     fetchCounts();
+    fetchNotifications();
+
+    const timer = setInterval(() => {
+      fetchNotifications();
+    }, 15000);
+
+    return () => clearInterval(timer);
   }, []);
+
+  const handleMarkRead = async (id) => {
+    try {
+      await mockApi.markNotificationRead(id);
+      fetchNotifications();
+    } catch (e) {}
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await mockApi.markAllNotificationsRead();
+      fetchNotifications();
+    } catch (e) {}
+  };
 
   const isActive = (path) => {
     return location.pathname === path || (path !== '/admin/dashboard' && location.pathname.startsWith(path));
@@ -254,11 +291,95 @@ export default function Layout({ children }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-6">
-            <button className="relative w-8 h-8 rounded-full bg-[#1E293B] hover:bg-slate-700 flex items-center justify-center text-slate-300 transition-colors">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-            </button>
+          <div className="flex items-center gap-3 sm:gap-6 relative">
+            {/* Notification Bell Button */}
+            <div className="relative">
+              <button 
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="relative w-9 h-9 rounded-xl bg-[#1E293B] hover:bg-slate-700 flex items-center justify-center text-slate-200 transition-all cursor-pointer border border-slate-700/60"
+                title="View FCM Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white font-black text-[9px] min-w-[18px] text-center shadow-md animate-pulse">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Popover Dropdown Card */}
+              {notifOpen && (
+                <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#0B1120] border border-[#1E293B] shadow-2xl rounded-3xl overflow-hidden z-50 text-left">
+                  {/* Dropdown Header */}
+                  <div className="px-5 py-3.5 bg-[#0F172A] border-b border-[#1E293B] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-xs text-white uppercase tracking-wider block">FCM Notifications & Logs</span>
+                      {unreadCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-950 text-rose-400 border border-rose-800">
+                          {unreadCount} New
+                        </span>
+                      )}
+                    </div>
+                    <button 
+                      onClick={handleMarkAllRead}
+                      className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+
+                  {/* Notification Items List */}
+                  <div className="max-h-80 overflow-y-auto divide-y divide-[#1E293B]/60">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-slate-400 text-xs font-semibold">
+                        🔔 No system notifications recorded yet.
+                      </div>
+                    ) : (
+                      notifications.map(item => (
+                        <div 
+                          key={item.id} 
+                          onClick={() => handleMarkRead(item.id)}
+                          className={`p-4 transition-colors cursor-pointer flex gap-3 items-start ${!item.is_read ? 'bg-[#0F172A]/70 hover:bg-[#1E293B]/80' : 'hover:bg-[#1E293B]/40 opacity-85'}`}
+                        >
+                          {/* Type Icon Badge */}
+                          <div className="w-8 h-8 rounded-xl bg-[#1E293B] border border-slate-700/60 flex items-center justify-center text-sm shrink-0 mt-0.5">
+                            {item.type === 'job_approved' ? '💼' : item.type === 'chef_approved' ? '🌟' : item.type === 'consultation_booked' ? '📅' : item.type === 'application_received' ? '👤' : '🔔'}
+                          </div>
+
+                          <div className="flex-grow min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className="font-extrabold text-white text-xs truncate block">{item.title}</span>
+                              <span className="text-[9px] font-bold text-slate-400 shrink-0">{item.time_ago}</span>
+                            </div>
+
+                            <p className="text-[11px] font-semibold text-slate-300 leading-snug line-clamp-2">
+                              {item.body}
+                            </p>
+
+                            {/* Recipient User Badge */}
+                            <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-400">
+                              <span className="truncate">
+                                To: <strong className="text-emerald-400">{item.recipient_name}</strong> ({item.recipient_phone})
+                              </span>
+                              {!item.is_read && (
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Dropdown Footer */}
+                  <div className="px-5 py-2.5 bg-[#0F172A]/80 border-t border-[#1E293B] text-center">
+                    <span className="text-[10px] font-extrabold text-slate-400">
+                      Total {notifications.length} FCM notifications recorded in database
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="h-6 w-px bg-slate-800 hidden sm:block"></div>
 

@@ -18,10 +18,12 @@ class UserNotificationHistory extends Model
         'title',
         'body',
         'status',
+        'is_read',
         'metadata',
     ];
 
     protected $casts = [
+        'is_read' => 'boolean',
         'metadata' => 'array',
     ];
 

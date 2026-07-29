@@ -477,11 +477,15 @@ Route::match(['get', 'post'], '/chef/availability/toggle', [ChefProfileControlle
 // Account Deletion Route
 Route::match(['delete', 'post'], '/profile/delete', [ProfileController::class, 'deleteAccount']);
 
-// FCM Push & WhatsApp Notification History Routes
+// FCM Push & Notification History Routes
 Route::post('/user/fcm-token', [\App\Http\Controllers\FirebaseController::class, 'saveFcmToken']);
 Route::match(['get', 'post'], '/test/send-notification', [\App\Http\Controllers\FirebaseController::class, 'sendTestNotification']);
 Route::match(['get', 'post'], '/user/send-notification', [\App\Http\Controllers\FirebaseController::class, 'sendTestNotification']);
 Route::match(['get', 'post'], '/user/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+Route::match(['get', 'post'], '/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+Route::match(['get', 'post'], '/admin/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+Route::match(['get', 'post'], '/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);
 
 // Profile Completeness Routes
 Route::get('/profile/completeness', [ProfileController::class, 'getCompleteness']);
