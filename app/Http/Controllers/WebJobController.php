@@ -47,7 +47,15 @@ class WebJobController extends Controller
             ], 422);
         }
 
-        $preferredCallTime = $request->input('preferred_call_time', $request->input('call_time', null));
+        $preferredCallTime = $request->input('preferred_call_time') 
+            ?? $request->input('call_time') 
+            ?? $request->input('preferred_time') 
+            ?? $request->input('time') 
+            ?? $request->input('slot');
+
+        if (empty($preferredCallTime)) {
+            $preferredCallTime = '10:00 AM - 01:00 PM';
+        }
 
         // Create application
         $application = JobApplication::create([
@@ -55,7 +63,7 @@ class WebJobController extends Controller
             'job_post_id' => $job->id,
             'employer_id' => $job->created_by,
             'status' => 'new',
-            'preferred_call_time' => $preferredCallTime,
+            'preferred_call_time' => (string) $preferredCallTime,
         ]);
 
         // Shoot FCM Push Notification & Persist to UserNotificationHistory

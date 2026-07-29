@@ -525,7 +525,15 @@ Route::match(['get', 'post'], '/jobs/{job}/apply', function(\Illuminate\Http\Req
         $user = \App\Models\User::find(4);
     }
 
-    $preferredCallTime = $request->input('preferred_call_time', $request->input('call_time', null));
+    $preferredCallTime = $request->input('preferred_call_time') 
+        ?? $request->input('call_time') 
+        ?? $request->input('preferred_time') 
+        ?? $request->input('time') 
+        ?? $request->input('slot');
+
+    if (empty($preferredCallTime)) {
+        $preferredCallTime = '10:00 AM - 01:00 PM';
+    }
 
     $application = \App\Models\JobApplication::updateOrCreate(
         [
@@ -535,7 +543,7 @@ Route::match(['get', 'post'], '/jobs/{job}/apply', function(\Illuminate\Http\Req
         [
             'employer_id' => $job->created_by ?: 17,
             'status' => 'new',
-            'preferred_call_time' => $preferredCallTime,
+            'preferred_call_time' => (string) $preferredCallTime,
         ]
     );
 
