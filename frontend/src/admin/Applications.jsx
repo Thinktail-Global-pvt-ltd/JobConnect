@@ -202,8 +202,8 @@ export default function Applications() {
   };
 
   const handleUpdateStatus = async (id, status) => {
-    setApps(prev => prev.map(item => item.id === id ? { ...item, status } : item));
-    if (selectedApp && selectedApp.id === id) {
+    setApps(prev => prev.map(item => (item.id === id || item.application_id === id) ? { ...item, status } : item));
+    if (selectedApp && (selectedApp.id === id || selectedApp.application_id === id)) {
       setSelectedApp(prev => ({ ...prev, status }));
     }
     try {
@@ -871,11 +871,16 @@ export default function Applications() {
 
                 <div className="flex items-center gap-2">
                   <button onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
-                          className="bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-lg px-4 py-2 font-bold transition-all">
+                          className="bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-lg px-3.5 py-2 font-bold transition-all text-xs cursor-pointer">
                     Reject
                   </button>
+                  <button onClick={() => handleUpdateStatus(selectedApp.id, 'shortlisted')}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm flex items-center gap-1 cursor-pointer">
+                    <Check className="w-3.5 h-3.5" />
+                    Shortlist
+                  </button>
                   <button onClick={() => handleUpdateStatus(selectedApp.id, 'hired')}
-                          className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 font-bold transition-all shadow-sm">
+                          className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm cursor-pointer">
                     Hire Candidate
                   </button>
                 </div>
