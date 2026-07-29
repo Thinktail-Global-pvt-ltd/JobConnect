@@ -93,7 +93,17 @@ class ChefProfileController extends Controller
      */
     public function toggleAvailability(Request $request)
     {
-        $user = $request->user() ?? \App\Models\User::first();
+        $user = $request->user();
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+            if ($tokenObj) {
+                $user = $tokenObj->tokenable;
+            }
+        }
+        if (!$user) {
+            $user = Auth::user();
+        }
 
         if (!$user) {
             return response()->json([
@@ -102,14 +112,19 @@ class ChefProfileController extends Controller
             ], 401);
         }
 
-        $inputAvailability = $request->input('availability');
+        $inputAvailability = $request->input('availability') 
+            ?? $request->input('availability_status') 
+            ?? $request->input('is_available') 
+            ?? $request->input('status');
         
         $isAvailable = true;
         if (is_bool($inputAvailability)) {
             $isAvailable = $inputAvailability;
+        } elseif (is_numeric($inputAvailability)) {
+            $isAvailable = (int)$inputAvailability === 1;
         } elseif (is_string($inputAvailability)) {
             $normalized = strtolower(trim($inputAvailability));
-            if (in_array($normalized, ['unavailable', 'false', '0', 'off', 'hidden', 'inactive'])) {
+            if (in_array($normalized, ['unavailable', 'false', '0', 'off', 'hidden', 'inactive', 'not available'])) {
                 $isAvailable = false;
             } elseif (in_array($normalized, ['available', 'true', '1', 'on', 'active'])) {
                 $isAvailable = true;
@@ -127,10 +142,19 @@ class ChefProfileController extends Controller
         $user->availability_status = $statusString;
         $user->save();
 
-        // Also sync to ChefProfile model if present
-        if ($user->chefProfile) {
-            $user->chefProfile->availability_info = $statusString;
-            $user->chefProfile->save();
+        // Also sync to ChefProfile model if present, or create profile record
+        $chefProfile = $user->chefProfile;
+        if (!$chefProfile) {
+            $chefProfile = \App\Models\ChefProfile::create([
+                'user_id' => $user->id,
+                'cuisine_specialty' => 'Multi-Cuisine',
+                'bio' => 'Professional Chef',
+                'approval_status' => 'approved',
+                'availability_info' => $statusString,
+            ]);
+        } else {
+            $chefProfile->availability_info = $statusString;
+            $chefProfile->save();
         }
 
         return response()->json([
@@ -138,11 +162,13 @@ class ChefProfileController extends Controller
             'status' => 'success',
             'message' => 'Chef availability updated successfully.',
             'availability' => $statusString,
+            'availability_status' => $statusString,
             'is_available' => $isAvailable,
             'data' => [
                 'user_id' => $user->id,
                 'full_name' => $user->full_name,
                 'availability' => $statusString,
+                'availability_status' => $statusString,
                 'is_available' => $isAvailable
             ]
         ], 200);
