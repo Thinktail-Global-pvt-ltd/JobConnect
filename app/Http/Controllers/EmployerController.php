@@ -100,6 +100,7 @@ class EmployerController extends Controller
                         'mobile_number' => $applicant ? ($applicant->mobile_number ?: '') : '',
                         'gender' => $applicant ? ($applicant->gender ?: '') : '',
                         'status' => $app->status, // new, contacted, shortlisted, hired, rejected
+                        'preferred_call_time' => $app->preferred_call_time,
                         'created_at' => $createdAtRaw,
                         'applied_date' => $appliedDate,
                         'applied_time' => $appliedTime,
