@@ -499,11 +499,21 @@ export const mockApi = {
 
   updateApplicationStatus: async (id, status) => {
     try {
-      const res = await realApi.post(`/admin/applications/${id}/status`, { status });
+      const res = await realApi.post(`/api/employer/applicants/${id}/status`, { status });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios updateApplicationStatus failed, fallback to mock DB", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await realApi.post(`/api/applicants/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post(`/backend/api/employer/applicants/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post(`http://178.16.138.159/backend/api/employer/applicants/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return mockEndpoints.updateApplicationStatus(id, status);
   },
 

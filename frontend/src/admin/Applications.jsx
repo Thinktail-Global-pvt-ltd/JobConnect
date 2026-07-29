@@ -202,10 +202,16 @@ export default function Applications() {
   };
 
   const handleUpdateStatus = async (id, status) => {
-    await mockApi.updateApplicationStatus(id, status);
-    loadApps();
+    setApps(prev => prev.map(item => item.id === id ? { ...item, status } : item));
     if (selectedApp && selectedApp.id === id) {
       setSelectedApp(prev => ({ ...prev, status }));
+    }
+    try {
+      await mockApi.updateApplicationStatus(id, status);
+    } catch (err) {
+      console.error('Update status failed:', err);
+    } finally {
+      loadApps();
     }
   };
 
@@ -611,14 +617,19 @@ export default function Applications() {
                               <Eye className="w-4 h-4" />
                             </button>
                             
+                            <button onClick={() => handleUpdateStatus(a.id, 'shortlisted')}
+                                    className="w-8 h-8 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 flex items-center justify-center border border-emerald-800/60 transition-colors cursor-pointer" title="Shortlist Candidate">
+                              <Check className="w-4 h-4" />
+                            </button>
+
                             <button onClick={() => handleUpdateStatus(a.id, 'contacted')}
                                     className="w-8 h-8 rounded-lg bg-blue-950/60 hover:bg-blue-900 text-blue-400 flex items-center justify-center border border-blue-800/60 transition-colors cursor-pointer" title="Mark Contacted">
                               <span>📞</span>
                             </button>
 
                             <button onClick={() => handleUpdateStatus(a.id, 'hired')}
-                                    className="w-8 h-8 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 flex items-center justify-center border border-emerald-800/60 transition-colors cursor-pointer" title="Hire Candidate">
-                              <Check className="w-4 h-4" />
+                                    className="w-8 h-8 rounded-lg bg-amber-950/60 hover:bg-amber-900 text-amber-400 flex items-center justify-center border border-amber-800/60 transition-colors cursor-pointer" title="Hire Candidate">
+                              <span>🌟</span>
                             </button>
                           </div>
                         </td>
