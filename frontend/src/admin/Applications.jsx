@@ -624,7 +624,8 @@ export default function Applications() {
                         </td>
 
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
