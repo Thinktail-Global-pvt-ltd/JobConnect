@@ -33,7 +33,8 @@ class EmployerController extends Controller
                 ->delete();
 
             // Fetch job posts created by this user, eager loading applications, applicants, and chef profiles
-            $jobs = JobPost::with(['applications.applicant.chefProfile'])
+            // Fetch job posts created by this user, eager loading applications, applicants, chef profiles, and socials
+            $jobs = JobPost::with(['applications.applicant.chefProfile', 'applications.applicant.socials'])
                 ->where('created_by', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -72,6 +73,7 @@ class EmployerController extends Controller
                 $applicants = $job->applications->map(function ($app) {
                     $applicant = $app->applicant;
                     $chefProfile = $applicant ? $applicant->chefProfile : null;
+                    $socials = $applicant ? $applicant->socials : null;
 
                     // Format skills array
                     $skills = [];
@@ -89,6 +91,47 @@ class EmployerController extends Controller
                     $appliedTimeAgo = $app->created_at ? $app->created_at->diffForHumans() : 'N/A';
                     $appliedTimestamp = $app->created_at ? $app->created_at->timestamp : 0;
 
+                    $chefData = null;
+                    if ($chefProfile) {
+                        $availability = [];
+                        if ($chefProfile->availability_info) {
+                            $availability = is_array($chefProfile->availability_info) 
+                                ? $chefProfile->availability_info 
+                                : (json_decode($chefProfile->availability_info, true) ?: []);
+                        }
+
+                        $chefData = [
+                            'id' => $chefProfile->id,
+                            'user_id' => $chefProfile->user_id,
+                            'cuisine_specialty' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                            'specialties' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                            'bio' => $chefProfile->bio ?: '',
+                            'calendly_link' => $chefProfile->calendly_link ?: '',
+                            'approval_status' => $chefProfile->approval_status ?: 'approved',
+                            'availability_info' => $availability,
+                        ];
+                    }
+
+                    $othersList = [];
+                    if ($socials && $socials->others) {
+                        $othersList = is_array($socials->others) ? $socials->others : (json_decode($socials->others, true) ?: []);
+                    }
+
+                    $socialsData = $socials ? [
+                        'instagram' => $socials->instagram ?: '',
+                        'linkedin'  => $socials->linkedin ?: '',
+                        'facebook'  => $socials->facebook ?: '',
+                        'twitter'   => $socials->twitter ?: '',
+                        'youtube'   => $socials->youtube ?: '',
+                        'website'   => $socials->website ?: '',
+                        'github'    => $socials->github ?: '',
+                        'others'    => $othersList,
+                    ] : null;
+
+                    $country = $applicant ? ($applicant->country ?? 'India') : 'India';
+                    $city = $applicant ? ($applicant->city ?: 'N/A') : 'N/A';
+                    $experienceRange = $applicant ? ($applicant->experience_range ?: $applicant->experience_years ?: '0') : '0';
+
                     return [
                         'id' => $app->id,
                         'application_id' => $app->id,
@@ -99,6 +142,10 @@ class EmployerController extends Controller
                         'email' => $applicant ? ($applicant->email ?: '') : '',
                         'mobile_number' => $applicant ? ($applicant->mobile_number ?: '') : '',
                         'gender' => $applicant ? ($applicant->gender ?: '') : '',
+                        'country' => $country,
+                        'city' => $city,
+                        'job_location' => $applicant ? ($applicant->job_location ?? $city) : $city,
+                        'preference' => $applicant ? ($applicant->preference ?? 'Full Time') : 'Full Time',
                         'status' => $app->status, // new, contacted, shortlisted, hired, rejected
                         'preferred_call_time' => $app->preferred_call_time,
                         'created_at' => $createdAtRaw,
@@ -108,38 +155,50 @@ class EmployerController extends Controller
                         'applied_at' => $appliedAt,
                         'applied_time_ago' => $appliedTimeAgo,
                         'applied_timestamp' => $appliedTimestamp,
-                        'city' => $applicant ? ($applicant->city ?: 'N/A') : 'N/A',
-                        'experience_range' => $applicant ? ($applicant->experience_range ?: 'N/A') : 'N/A',
+                        'experience_range' => $experienceRange,
+                        'experience_years' => $experienceRange,
                         'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
                         'current_employer' => $applicant ? ($applicant->current_employer ?: 'N/A') : 'N/A',
                         'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
-                        'availability_status' => $applicant ? ($applicant->availability_status ?: 'available') : 'available',
+                        'availability_status' => $applicant ? ($applicant->availability_status ?: 'Available') : 'Available',
                         'is_available' => $applicant ? (bool)$applicant->is_available : true,
                         'selected_language' => $applicant ? ($applicant->selected_language ?: 'en') : 'en',
-                        'user_role' => $applicant ? $applicant->active_profile : 'job_seeker',
-                        'active_role' => $applicant ? $applicant->active_profile : 'job_seeker',
-                        'active_profile' => $applicant ? $applicant->active_profile : 'job_seeker',
+                        'user_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
+                        'active_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
+                        'active_profile' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
                         'skills' => $skills,
                         'bio' => $chefProfile ? $chefProfile->bio : null,
                         'cuisine_specialty' => $chefProfile ? $chefProfile->cuisine_specialty : null,
+                        'specialties' => $chefProfile ? $chefProfile->cuisine_specialty : null,
+                        'calendly_link' => $chefProfile ? $chefProfile->calendly_link : null,
+                        'chef_profile' => $chefData,
+                        'chef_profile_details' => $chefData,
+                        'socials' => $socialsData,
                         'user' => $applicant ? [
                             'id' => $applicant->id,
                             'full_name' => $applicant->full_name,
+                            'name' => $applicant->full_name,
                             'email' => $applicant->email,
                             'mobile_number' => $applicant->mobile_number,
                             'gender' => $applicant->gender,
-                            'city' => $applicant->city,
-                            'experience_range' => $applicant->experience_range,
+                            'country' => $country,
+                            'city' => $city,
+                            'job_location' => $applicant->job_location ?? $city,
+                            'preference' => $applicant->preference ?? 'Full Time',
+                            'experience_range' => $experienceRange,
+                            'experience_years' => $experienceRange,
                             'preferred_role' => $applicant->preferred_role,
                             'current_employer' => $applicant->current_employer,
                             'profile_photo_path' => $applicant->profile_photo_path,
-                            'availability_status' => $applicant->availability_status,
+                            'availability_status' => $applicant->availability_status ?: 'Available',
                             'is_available' => (bool)$applicant->is_available,
                             'selected_language' => $applicant->selected_language,
-                            'active_profile' => $applicant->active_profile,
-                            'active_role' => $applicant->active_role,
-                            'user_role' => $applicant->user_role,
+                            'active_profile' => $applicant->active_profile ?? 'job_seeker',
+                            'active_role' => $applicant->active_role ?? 'job_seeker',
+                            'user_role' => $applicant->user_role ?? 'job_seeker',
                             'skills' => $skills,
+                            'chef_profile' => $chefData,
+                            'socials' => $socialsData,
                         ] : null
                     ];
                 });
