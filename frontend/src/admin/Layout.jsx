@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 export default function Layout({ children }) {
@@ -252,15 +252,6 @@ export default function Layout({ children }) {
             >
               <Menu className="w-4 h-4" />
             </button>
-
-            <div className="relative w-44 sm:w-64 md:w-80">
-              <input
-                type="text"
-                placeholder="Search JobRito database, candidates, or jobs..."
-                className="w-full bg-[#1E293B] border border-slate-700/50 rounded-full py-2 pl-9 pr-3 text-xs font-medium text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#059669] transition-all"
-              />
-              <Search className="absolute left-3 top-2.5 text-slate-400 w-3.5 h-3.5" />
-            </div>
           </div>
 
           <div className="flex items-center gap-3 sm:gap-6">

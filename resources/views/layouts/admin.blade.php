@@ -143,11 +143,6 @@
 
             <!-- Right Controls -->
             <div class="flex items-center gap-6">
-                <!-- Search bar -->
-                <div class="relative w-64">
-                    <input type="text" placeholder="Search data, users..." class="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-600 focus:outline-none focus:border-brand-500 focus:bg-white transition-all duration-300">
-                    <span class="absolute left-3.5 top-2.5 text-slate-400 text-xs">🔍</span>
-                </div>
 
                 <!-- Notifications -->
                 <button class="relative w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors duration-200">
