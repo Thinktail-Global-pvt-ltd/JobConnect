@@ -24,6 +24,113 @@ export default function Applications() {
   const [submittingTest, setSubmittingTest] = useState(false);
   const [testMessage, setTestMessage] = useState({ type: '', text: '' });
 
+  // Calculate Match Percentage between Job Post Requirements and Applicant Candidate
+  const calculateMatchPercentage = (app) => {
+    if (!app) return { score: 0, locationScore: 0, expScore: 0, roleScore: 0, skillScore: 0 };
+
+    const applicant = app.applicant || {};
+    const job = app.job_post || {};
+    const chefProfile = applicant.chef_profile || applicant.chefProfile || {};
+    const availability = chefProfile.availability_info || {};
+
+    // 1. Role / Title Match (Weight: 35%)
+    let roleScore = 0;
+    const prefRole = (applicant.preferred_role || '').toLowerCase().trim();
+    const jobTitle = (job.title || '').toLowerCase().trim();
+
+    if (prefRole && jobTitle) {
+      if (prefRole === jobTitle || jobTitle.includes(prefRole) || prefRole.includes(jobTitle)) {
+        roleScore = 35;
+      } else {
+        const roleTokens = prefRole.split(/\s+/).filter(t => t.length > 2);
+        const titleTokens = jobTitle.split(/\s+/).filter(t => t.length > 2);
+        const matches = roleTokens.filter(t => titleTokens.some(jt => jt.includes(t) || t.includes(jt)));
+        if (matches.length > 0) {
+          roleScore = Math.round(35 * (matches.length / Math.max(roleTokens.length, 1)));
+        } else {
+          roleScore = 15;
+        }
+      }
+    } else {
+      roleScore = 15;
+    }
+
+    // 2. Location Match (Weight: 25%)
+    let locationScore = 0;
+    const userCity = (applicant.city || '').toLowerCase().trim();
+    const userLocPref = (availability.location_preference || '').toLowerCase().trim();
+    const jobLocation = (job.location || '').toLowerCase().trim();
+
+    if (jobLocation.includes('remote') || userLocPref === 'both' || userLocPref === 'overseas') {
+      locationScore = 25;
+    } else if (userCity && jobLocation) {
+      if (jobLocation.includes(userCity) || userCity.includes(jobLocation)) {
+        locationScore = 25;
+      } else {
+        const cityTokens = userCity.split(/[\s,]+/);
+        const locTokens = jobLocation.split(/[\s,]+/);
+        const locMatch = cityTokens.some(c => locTokens.some(l => l.includes(c) || c.includes(l)));
+        locationScore = locMatch ? 20 : 10;
+      }
+    } else {
+      locationScore = 15;
+    }
+
+    // 3. Experience Match (Weight: 25%)
+    let expScore = 0;
+    const userExp = (applicant.experience_range || applicant.experience_years || '').toLowerCase().trim();
+    const jobExp = (job.experience_range || '').toLowerCase().trim();
+
+    if (userExp && jobExp) {
+      if (userExp === jobExp) {
+        expScore = 25;
+      } else {
+        const extractYears = (str) => {
+          const nums = str.match(/\d+/g);
+          if (!nums) return [0, 10];
+          const val = nums.map(Number);
+          return val.length === 1 ? [val[0], val[0] + 3] : [val[0], val[1]];
+        };
+        const [uMin, uMax] = extractYears(userExp);
+        const [jMin, jMax] = extractYears(jobExp);
+
+        if (uMax >= jMin && uMin <= jMax) {
+          expScore = 25;
+        } else if (Math.abs(uMin - jMin) <= 3) {
+          expScore = 18;
+        } else {
+          expScore = 10;
+        }
+      }
+    } else {
+      expScore = 15;
+    }
+
+    // 4. Skills Match (Weight: 15%)
+    let skillScore = 0;
+    let userSkills = [];
+    if (Array.isArray(applicant.skills)) {
+      userSkills = applicant.skills;
+    } else if (typeof applicant.skills === 'string') {
+      userSkills = applicant.skills.split(/[\s,]+/);
+    }
+    const cuisineSpec = chefProfile.cuisine_specialty || '';
+    if (cuisineSpec) {
+      userSkills = [...userSkills, ...cuisineSpec.split(/[\s,]+/)];
+    }
+    skillScore = userSkills.length > 0 ? 15 : 8;
+
+    const totalScore = Math.min(100, Math.max(0, roleScore + locationScore + expScore + skillScore));
+
+    return {
+      score: totalScore,
+      roleScore,
+      locationScore,
+      expScore,
+      skillScore,
+    };
+  };
+
   const loadApps = async () => {
     setLoading(true);
     try {
@@ -419,6 +526,7 @@ export default function Applications() {
                   <thead>
                     <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
                       <th className="py-4 px-6">Applicant Candidate</th>
+                      <th className="py-4 px-6 text-center">Match %</th>
                       {!selectedJob && <th className="py-4 px-6">Applied Job Listing</th>}
                       <th className="py-4 px-6">Contact / Mobile</th>
                       <th className="py-4 px-6">Date Submitted</th>
@@ -427,19 +535,34 @@ export default function Applications() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
-                    {currentDisplayApps.map(a => (
-                      <tr key={a.id} className="hover:bg-slate-50/30 transition-colors">
-                        
-                        {/* Applicant details */}
-                        <td className="py-4.5 px-6 flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-white shadow-sm ${getAvatarColor(a.applicant?.full_name)}`}>
-                            {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
-                          </div>
-                          <div>
-                            <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{a.applicant?.full_name}</span>
-                            <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
-                          </div>
-                        </td>
+                    {currentDisplayApps.map(a => {
+                      const match = calculateMatchPercentage(a);
+                      return (
+                        <tr key={a.id} className="hover:bg-slate-50/30 transition-colors">
+                          
+                          {/* Applicant details */}
+                          <td className="py-4.5 px-6 flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-white shadow-sm ${getAvatarColor(a.applicant?.full_name)}`}>
+                              {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
+                            </div>
+                            <div>
+                              <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{a.applicant?.full_name}</span>
+                              <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
+                            </div>
+                          </td>
+
+                          {/* Match Percentage Badge */}
+                          <td className="py-4.5 px-6 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black shadow-2xs border ${
+                              match.score >= 80 
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                                : match.score >= 60 
+                                  ? 'bg-amber-100 text-amber-800 border-amber-300' 
+                                  : 'bg-slate-100 text-slate-700 border-slate-300'
+                            }`}>
+                              <span>🎯 {match.score}%</span>
+                            </span>
+                          </td>
 
                         {/* Job post detail (If in Flat List mode) */}
                         {!selectedJob && (
@@ -676,6 +799,44 @@ export default function Applications() {
                 <span className="font-extrabold text-emerald-900 text-xs block">{selectedApp.job_post?.title}</span>
                 <span className="text-[10px] text-emerald-700 font-semibold">{selectedApp.job_post?.company} ({selectedApp.job_post?.location})</span>
               </div>
+
+              {/* Detailed Candidate vs Job Match Breakdown Card */}
+              {(() => {
+                const modalMatch = calculateMatchPercentage(selectedApp);
+                return (
+                  <div className="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-3 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Candidate Match Score</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${
+                        modalMatch.score >= 80 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
+                        modalMatch.score >= 60 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
+                        'bg-slate-800 text-slate-300 border-slate-700'
+                      }`}>
+                        🎯 {modalMatch.score}% Match
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
+                        <span className="text-slate-400 block text-[9px]">📍 Location Match ({modalMatch.locationScore}/25)</span>
+                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{selectedApp.applicant?.city || 'N/A'} vs {selectedApp.job_post?.location || 'Remote'}</span>
+                      </div>
+                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
+                        <span className="text-slate-400 block text-[9px]">💼 Role Match ({modalMatch.roleScore}/35)</span>
+                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{selectedApp.applicant?.preferred_role || 'N/A'}</span>
+                      </div>
+                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
+                        <span className="text-slate-400 block text-[9px]">⏳ Experience Match ({modalMatch.expScore}/25)</span>
+                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{selectedApp.applicant?.experience_range || 'N/A'}</span>
+                      </div>
+                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
+                        <span className="text-slate-400 block text-[9px]">🛠️ Skills Match ({modalMatch.skillScore}/15)</span>
+                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{Array.isArray(selectedApp.applicant?.skills) ? selectedApp.applicant.skills.slice(0,2).join(', ') : 'General'}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Skills list */}
               <div className="border-t border-slate-100 pt-4">
