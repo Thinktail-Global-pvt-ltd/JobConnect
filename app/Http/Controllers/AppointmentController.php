@@ -151,10 +151,10 @@ class AppointmentController extends Controller
     public function registeredChefsList()
     {
         try {
-            // Find all users with role_type = 'chef' or active_profile = 'chef'
+            // Find all users with role_type = 'chef' or having chefProfile
             $chefUsers = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
-            })->orWhere('active_profile', 'chef')
+            })->orWhereHas('chefProfile')
             ->with(['chefProfile'])
             ->get();
 
@@ -173,7 +173,7 @@ class AppointmentController extends Controller
             // Reload all chefs with chefProfile
             $chefs = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
-            })->orWhere('active_profile', 'chef')
+            })->orWhereHas('chefProfile')
             ->with(['chefProfile'])
             ->get()
             ->map(function ($chef) {
