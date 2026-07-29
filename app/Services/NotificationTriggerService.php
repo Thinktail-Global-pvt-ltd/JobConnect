@@ -17,13 +17,25 @@ class NotificationTriggerService
     public static function sendToUser($userId, string $title, string $body, array $metadata = [])
     {
         try {
-            $user = $userId instanceof User ? $userId : User::find($userId);
-            if (!$user) {
-                return false;
+            $user = null;
+            $targetUserId = null;
+
+            if ($userId instanceof User) {
+                $user = $userId;
+                $targetUserId = $user->id;
+            } elseif ($userId) {
+                $user = User::find($userId);
+                if (!$user) {
+                    $chef = \App\Models\ChefProfile::find($userId);
+                    if ($chef) {
+                        $user = User::find($chef->user_id);
+                    }
+                }
+                $targetUserId = $user ? $user->id : (int)$userId;
             }
 
-            $fcmToken = $user->fcm_token;
-            if (empty($fcmToken)) {
+            $fcmToken = $user ? $user->fcm_token : null;
+            if (empty($fcmToken) && $user) {
                 $deviceRecord = UserDeviceToken::where('user_id', $user->id)
                     ->where('is_active', true)
                     ->latest()
@@ -33,31 +45,27 @@ class NotificationTriggerService
                 }
             }
 
-            if (empty($fcmToken)) {
-                // Log attempt when token is missing for user traceability
-                UserNotificationHistory::create([
-                    'user_id' => $user->id,
-                    'type' => isset($metadata['event']) ? $metadata['event'] : 'system',
-                    'recipient' => $user->mobile_number ?: ($user->email ?: 'system'),
-                    'title' => $title,
-                    'body' => $body,
-                    'status' => 'sent',
-                    'is_read' => false,
-                    'metadata' => array_merge($metadata, ['note' => 'In-app notification persisted']),
-                ]);
-                return false;
+            $result = null;
+            if (!empty($fcmToken)) {
+                try {
+                    $firebaseService = app(FirebaseService::class);
+                    $result = $firebaseService->sendPushNotification($fcmToken, $title, $body);
+                } catch (\Throwable $ex) {
+                    Log::error('FCM Push send error: ' . $ex->getMessage());
+                }
             }
 
-            $firebaseService = app(FirebaseService::class);
-            $result = $firebaseService->sendPushNotification($fcmToken, $title, $body);
+            $type = isset($metadata['event']) ? $metadata['event'] : 'fcm';
 
+            // Always create notification history record in database
             UserNotificationHistory::create([
-                'user_id' => $user->id,
-                'type' => 'fcm',
-                'recipient' => $fcmToken,
+                'user_id' => $targetUserId ?: 1,
+                'type' => $type,
+                'recipient' => $fcmToken ?: ($user ? ($user->mobile_number ?: $user->email) : 'User #' . ($targetUserId ?: 'N/A')),
                 'title' => $title,
                 'body' => $body,
                 'status' => 'sent',
+                'is_read' => false,
                 'metadata' => array_merge($metadata, is_array($result) ? $result : ['result' => $result]),
             ]);
 
