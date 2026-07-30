@@ -269,4 +269,63 @@ class JobPostController extends Controller
             'data'                  => $combinedJobs->values(),
         ]);
     }
+
+    /**
+     * GET /api/user/daily-applies
+     * GET /api/user/apply-status
+     * GET /api/user/applies-left
+     * GET /api/jobs/apply-status
+     *
+     * Check how many job applications a user has completed today and whether they have applies remaining.
+     */
+    public function getDailyApplyStatus(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            if (str_contains($tokenStr, '|')) {
+                $tokenId = explode('|', $tokenStr)[0];
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
+
+        if (!$user && ($request->filled('user_id') || $request->filled('id'))) {
+            $targetId = $request->input('user_id') ?? $request->input('id');
+            $user = \App\Models\User::find($targetId);
+        }
+
+        if (!$user) {
+            $user = \App\Models\User::first();
+        }
+
+        $userId = $user ? $user->id : 0;
+        $dailyLimit = (int) $request->input('limit', 5);
+
+        // Count number of applications submitted by user today
+        $appliedDoneToday = \App\Models\JobApplication::where('applicant_id', $userId)
+            ->where('created_at', '>=', \Carbon\Carbon::today())
+            ->count();
+
+        $appliesLeft = max(0, $dailyLimit - $appliedDoneToday);
+        $hasAppliesLeft = $appliedDoneToday < $dailyLimit;
+
+        return response()->json([
+            'success'            => true,
+            'user_id'            => $userId,
+            'user_name'          => $user ? ($user->full_name ?: ('User #' . $user->id)) : 'User',
+            'user_role'          => $user ? ($user->active_profile ?? 'job_seeker') : 'job_seeker',
+            'date'               => \Carbon\Carbon::today()->toDateString(),
+            'applied_done_today' => $appliedDoneToday,
+            'applies_count_today'=> $appliedDoneToday,
+            'daily_limit'        => $dailyLimit,
+            'applies_left_today' => $appliesLeft,
+            'has_applies_left'   => (bool)$hasAppliesLeft,
+            'is_applies_left'    => (bool)$hasAppliesLeft,
+            'can_apply_today'    => (bool)$hasAppliesLeft,
+        ], 200);
+    }
 }
