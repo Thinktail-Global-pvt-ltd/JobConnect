@@ -83,6 +83,12 @@ class JobModeratorController extends Controller
     {
         $job->update(['status' => 'rejected']);
 
+        try {
+            \App\Services\NotificationTriggerService::notifyJobRejected($job);
+        } catch (\Throwable $ne) {
+            \Illuminate\Support\Facades\Log::error('Job rejection notification error: ' . $ne->getMessage());
+        }
+
         if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
             return response()->json([
                 'success' => true,

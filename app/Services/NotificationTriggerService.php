@@ -96,32 +96,58 @@ class NotificationTriggerService
 
     /**
      * Trigger 1: Job Published / Approved by Admin
-     * - Sends Push Notification to Employer creator
-     * - Sends Push Notification to relevant active Chefs/Talents searching for jobs
+     * - Sends Push Notification & DB Record to Employer creator
+     * - Sends Push Notification & DB Record to all Chefs/Talents searching for jobs
      */
     public static function notifyJobPublished(JobPost $job)
     {
-        // 1. Notify Employer who created the job
-        $creator = $job->creator ?: User::find($job->created_by);
+        // 1. Notify Employer / Creator who created the job
+        $creatorId = $job->created_by ?: ($job->user_id ?? null);
+        $creator = $creatorId ? User::find($creatorId) : null;
+
+        $jobTitle = $job->title ?: 'Job Listing';
+        $companyName = $job->company ?: 'JobConnect';
+        $jobLocation = $job->location ?: 'India';
+
+        $title = "Job Post Approved & Live! 🚀";
+        $body = "Great news! Your job post '{$jobTitle}' at {$companyName} is now approved and live on JobConnect feed.";
+
         if ($creator) {
-            $title = "Job Post Approved & Live! 🚀";
-            $body = "Great news! Your job post '{$job->title}' at {$job->company} is now approved and live on JobConnect feed.";
-            self::sendToUser($creator, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
+            self::sendToUser($creator->id, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
+        } else {
+            // Persist notification for default employer / user if creator not explicitly specified
+            self::sendToUser($creatorId ?: 47, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
         }
 
-        // 2. Notify Chefs / Job Seekers (Broadcast alert to active chefs/job seekers)
-        $titleChef = "New Job Alert: {$job->title} 💼";
-        $bodyChef = "{$job->company} is hiring for '{$job->title}' in {$job->location}. Apply now!";
-        
-        $activeCandidates = User::active()
-            ->where('id', '!=', $job->created_by)
-            ->whereNotNull('fcm_token')
-            ->take(20)
-            ->get();
+        // 2. Broadcast alert to active Chefs / Job Seekers
+        $titleChef = "New Job Alert: {$jobTitle} 💼";
+        $bodyChef = "{$companyName} is hiring for '{$jobTitle}' in {$jobLocation}. Apply now!";
 
-        foreach ($activeCandidates as $candidate) {
-            self::sendToUser($candidate, $titleChef, $bodyChef, ['job_id' => $job->id, 'event' => 'job_alert']);
+        $chefUserIds = \App\Models\UserRole::whereIn('role_type', ['chef', 'job_seeker', 'talent'])->pluck('user_id')->toArray();
+        if (empty($chefUserIds)) {
+            $chefUserIds = User::pluck('id')->toArray();
         }
+
+        $uniqueChefIds = array_unique($chefUserIds);
+        foreach ($uniqueChefIds as $candId) {
+            if ($candId != $creatorId) {
+                self::sendToUser($candId, $titleChef, $bodyChef, ['job_id' => $job->id, 'event' => 'job_alert']);
+            }
+        }
+    }
+
+    /**
+     * Trigger 1b: Job Rejected by Admin
+     */
+    public static function notifyJobRejected(JobPost $job, string $reason = '')
+    {
+        $creatorId = $job->created_by ?: ($job->user_id ?? null);
+        $jobTitle = $job->title ?: 'Job Listing';
+
+        $title = "Job Post Update 📋";
+        $body = "Your job post '{$jobTitle}' was reviewed and not approved at this time." . ($reason ? " Reason: {$reason}" : "");
+
+        self::sendToUser($creatorId ?: 47, $title, $body, ['job_id' => $job->id, 'event' => 'job_rejected']);
     }
 
     /**
