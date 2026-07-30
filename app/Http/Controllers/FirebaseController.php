@@ -126,15 +126,17 @@ class FirebaseController extends Controller
                 $request->body
             );
 
-            // Log to database user_notification_histories table
+            // Log to database user_notification_histories table safely
+            $resolvedUserId = ($userId && User::where('id', $userId)->exists()) ? (int)$userId : ($user ? $user->id : null);
+
             \App\Models\UserNotificationHistory::create([
-                'user_id' => $userId ?? ($user ? $user->id : null),
+                'user_id' => $resolvedUserId,
                 'type' => 'fcm',
                 'recipient' => $fcmToken,
                 'title' => $request->title,
                 'body' => $request->body,
                 'status' => 'sent',
-                'metadata' => is_array($result) ? $result : ['result' => $result],
+                'metadata' => is_array($result) ? $result : ['result' => (string)$result],
             ]);
 
             return response()->json([
@@ -147,8 +149,9 @@ class FirebaseController extends Controller
                 'firebase_result' => $result
             ]);
         } catch (\Exception $e) {
+            $resolvedUserId = ($userId && User::where('id', $userId)->exists()) ? (int)$userId : ($user ? $user->id : null);
             \App\Models\UserNotificationHistory::create([
-                'user_id' => $userId ?? ($user ? $user->id : null),
+                'user_id' => $resolvedUserId,
                 'type' => 'fcm',
                 'recipient' => $fcmToken,
                 'title' => $request->title,

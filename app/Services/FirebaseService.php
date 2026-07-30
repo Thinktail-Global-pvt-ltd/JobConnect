@@ -50,10 +50,19 @@ class FirebaseService
                     }
                 }
 
+                // Safely verify validUserId exists in users table to avoid FK constraint failure
+                $validUserId = null;
+                if ($userId && \App\Models\User::where('id', $userId)->exists()) {
+                    $validUserId = $userId;
+                } else {
+                    $firstUser = \App\Models\User::first();
+                    $validUserId = $firstUser ? $firstUser->id : null;
+                }
+
                 $type = isset($data['event']) ? $data['event'] : 'fcm';
 
                 \App\Models\UserNotificationHistory::create([
-                    'user_id' => $userId ?: 1,
+                    'user_id' => $validUserId,
                     'type' => $type,
                     'recipient' => $deviceToken,
                     'title' => $title,
@@ -74,8 +83,16 @@ class FirebaseService
             \Illuminate\Support\Facades\Log::error('FCM Notification Error: ' . $e->getMessage());
 
             try {
+                $failedUserId = null;
+                if (!empty($data['user_id']) && \App\Models\User::where('id', $data['user_id'])->exists()) {
+                    $failedUserId = (int)$data['user_id'];
+                } else {
+                    $firstUser = \App\Models\User::first();
+                    $failedUserId = $firstUser ? $firstUser->id : null;
+                }
+
                 \App\Models\UserNotificationHistory::create([
-                    'user_id' => isset($data['user_id']) ? (int)$data['user_id'] : 1,
+                    'user_id' => $failedUserId,
                     'type' => isset($data['event']) ? $data['event'] : 'fcm',
                     'recipient' => $deviceToken,
                     'title' => $title,

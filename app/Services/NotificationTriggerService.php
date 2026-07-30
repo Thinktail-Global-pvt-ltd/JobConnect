@@ -57,16 +57,27 @@ class NotificationTriggerService
 
             $type = isset($metadata['event']) ? $metadata['event'] : 'fcm';
 
+            // Safely resolve valid user_id to prevent MySQL foreign key constraint failure
+            $validUserId = null;
+            if ($targetUserId && User::where('id', $targetUserId)->exists()) {
+                $validUserId = $targetUserId;
+            } elseif ($user && User::where('id', $user->id)->exists()) {
+                $validUserId = $user->id;
+            } else {
+                $firstUser = User::first();
+                $validUserId = $firstUser ? $firstUser->id : null;
+            }
+
             // Always create notification history record in database
             UserNotificationHistory::create([
-                'user_id' => $targetUserId ?: 1,
+                'user_id' => $validUserId,
                 'type' => $type,
-                'recipient' => $fcmToken ?: ($user ? ($user->mobile_number ?: $user->email) : 'User #' . ($targetUserId ?: 'N/A')),
+                'recipient' => $fcmToken ?: ($user ? ($user->mobile_number ?: $user->email) : ('User #' . ($targetUserId ?: 'N/A'))),
                 'title' => $title,
                 'body' => $body,
                 'status' => 'sent',
                 'is_read' => false,
-                'metadata' => array_merge($metadata, is_array($result) ? $result : ['result' => $result]),
+                'metadata' => array_merge($metadata, is_array($result) ? $result : ['result' => (string)$result]),
             ]);
 
             return true;
