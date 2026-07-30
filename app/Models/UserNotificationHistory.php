@@ -64,6 +64,29 @@ class UserNotificationHistory extends Model
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('ensureTableExists Exception: ' . $e->getMessage());
         }
+    /**
+     * Safely sanitize metadata to prevent json_encode failures.
+     */
+    public function setMetadataAttribute($value)
+    {
+        if (is_string($value)) {
+            $this->attributes['metadata'] = $value;
+            return;
+        }
+        if (!is_array($value)) {
+            $this->attributes['metadata'] = json_encode(['data' => (string)$value]);
+            return;
+        }
+
+        $clean = [];
+        foreach ($value as $k => $v) {
+            if (is_scalar($v) || is_null($v)) {
+                $clean[$k] = $v;
+            } else {
+                $clean[$k] = json_encode($v);
+            }
+        }
+        $this->attributes['metadata'] = json_encode($clean);
     }
 
     /**
