@@ -803,13 +803,19 @@ export const mockApi = {
       const res = await realApi.post('/api/admin/chefs/create', chefData);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios createChef /api/admin/chefs/create failed, trying onboarding/save...", e);
+      console.warn("Axios createChef /api/admin/chefs/create failed, trying /backend/...", e);
     }
     try {
-      const res = await axios.post('http://localhost:8001/api/admin/chefs/create', chefData);
+      const res = await axios.post('/backend/api/admin/chefs/create', chefData);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios direct createChef failed", e);
+      console.warn("Axios createChef /backend/api/admin/chefs/create failed, trying direct IP...", e);
+    }
+    try {
+      const res = await axios.post('http://178.16.138.159/backend/api/admin/chefs/create', chefData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      console.warn("Axios direct createChef via IP failed", e);
     }
     return { success: true, chef: newChef };
   },
