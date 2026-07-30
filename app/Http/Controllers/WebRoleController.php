@@ -30,11 +30,16 @@ class WebRoleController extends Controller
         $user = Auth::user();
         $targetRole = $request->role_type;
 
-        // Auto unlock/create the role if it doesn't exist yet
-        UserRole::firstOrCreate(
-            ['user_id' => $user->id, 'role_type' => $targetRole],
-            ['is_active' => false]
-        );
+        // Restrict multiple roles creation for the same account
+        $existingRole = $user->roles()->first();
+        if ($existingRole && $existingRole->role_type !== $targetRole) {
+            $displayExisting = str_replace('_', ' ', $existingRole->role_type);
+            $displayTarget = str_replace('_', ' ', $targetRole);
+            return response()->json([
+                'success' => false,
+                'message' => "Role restriction error: Account is registered as '{$displayExisting}'. Multiple roles creation for the same account is restricted.",
+            ], 400);
+        }
 
         // Auto approve Chef profile if target is chef
         if ($targetRole === UserRole::ROLE_CHEF) {

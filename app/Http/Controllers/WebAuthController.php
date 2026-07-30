@@ -286,14 +286,28 @@ class WebAuthController extends Controller
             ], 403);
         }
 
-        // Deactivate all user's roles
-        $user->roles()->update(['is_active' => false]);
+        // Restrict multiple roles creation for the same account
+        $existingRole = $user->roles()->first();
+        if ($existingRole && $existingRole->role_type !== $targetRole) {
+            $displayExisting = str_replace('_', ' ', $existingRole->role_type);
+            $displayTarget = str_replace('_', ' ', $targetRole);
+            return response()->json([
+                'success' => false,
+                'message' => "Role restriction error: Mobile number {$user->mobile_number} is registered as '{$displayExisting}'. Multiple roles for the same account are restricted.",
+            ], 400);
+        }
 
-        // Find or create the selected role and set it active
-        UserRole::updateOrCreate(
-            ['user_id' => $user->id, 'role_type' => $targetRole],
-            ['is_active' => true]
-        );
+        // Deactivate all roles and ensure primary assigned role is active
+        $user->roles()->update(['is_active' => false]);
+        if ($existingRole) {
+            $existingRole->update(['is_active' => true]);
+        } else {
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_type' => $targetRole,
+                'is_active' => true,
+            ]);
+        }
 
         // Login using Laravel Web guard
         Auth::login($user, true);
@@ -301,7 +315,12 @@ class WebAuthController extends Controller
         // Regenerate session ID for security
         $request->session()->regenerate();
 
-        // Generate Sanctum auth token for API/mobile app compatibility
+        // Restrict multiple active logins for the same account:
+        // Revoke all previous Sanctum tokens so any previous device login is automatically logged out
+        $user->tokens()->delete();
+        \App\Models\UserDeviceToken::where('user_id', $user->id)->update(['is_active' => false]);
+
+        // Generate single active Sanctum auth token for API/mobile app compatibility
         $user->load(['employerProfile', 'chefProfile', 'roles']);
         $token = $user->createToken('auth_token')->plainTextToken;
  

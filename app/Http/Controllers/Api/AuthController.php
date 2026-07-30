@@ -163,24 +163,25 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Make sure user has active profile
-        if (!$isNewUser) {
-            $activeRole = $user->activeRole()->first();
-            if (!$activeRole) {
-                $firstRole = $user->roles()->first();
-                if ($firstRole) {
-                    $firstRole->update(['is_active' => true]);
-                } else {
-                    UserRole::create([
-                        'user_id' => $user->id,
-                        'role_type' => $requestedRole ?? 'job_seeker',
-                        'is_active' => true,
-                    ]);
-                }
-            }
+        // Enforce single active role for the user
+        $user->roles()->update(['is_active' => false]);
+        $primaryRole = $user->roles()->first();
+        if ($primaryRole) {
+            $primaryRole->update(['is_active' => true]);
+        } else {
+            UserRole::create([
+                'user_id' => $user->id,
+                'role_type' => $requestedRole ?? 'job_seeker',
+                'is_active' => true,
+            ]);
         }
 
-        // Generate Sanctum auth token
+        // Restrict multiple active logins for the same account:
+        // Revoke all previous Sanctum tokens so any previous device login is automatically logged out
+        $user->tokens()->delete();
+        \App\Models\UserDeviceToken::where('user_id', $user->id)->update(['is_active' => false]);
+
+        // Generate new single active Sanctum auth token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         // Fetch roles details
