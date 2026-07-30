@@ -63,8 +63,8 @@ class ChefModeratorController extends Controller
 
         $chefs = $profiles;
 
-        // Fetch dynamic stats for dashboard cards
-        $allProfiles = ChefProfile::all();
+        // Fetch dynamic stats for dashboard cards from synced profiles
+        $allProfiles = $this->syncAndGetChefProfiles();
         $pendingCount = $allProfiles->where('approval_status', 'pending')->count();
         $approvedCount = $allProfiles->where('approval_status', 'approved')->count();
         $totalChefs = $allProfiles->count();
