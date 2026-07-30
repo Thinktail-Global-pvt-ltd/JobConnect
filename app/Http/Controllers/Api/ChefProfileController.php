@@ -142,18 +142,40 @@ class ChefProfileController extends Controller
         $user->availability_status = $statusString;
         $user->save();
 
-        // Also sync to ChefProfile model if present, or create profile record
+        // Also sync to ChefProfile model if present, safely preserving existing profile & schedule data
         $chefProfile = $user->chefProfile;
         if (!$chefProfile) {
             $chefProfile = \App\Models\ChefProfile::create([
                 'user_id' => $user->id,
-                'cuisine_specialty' => 'Multi-Cuisine',
+                'cuisine_specialty' => $user->preferred_role ?: 'Multi-Cuisine',
                 'bio' => 'Professional Chef',
                 'approval_status' => 'approved',
-                'availability_info' => $statusString,
+                'availability_info' => json_encode([
+                    'status' => $statusString,
+                    'availability_status' => $statusString,
+                    'is_available' => $isAvailable,
+                ]),
             ]);
         } else {
-            $chefProfile->availability_info = $statusString;
+            $existingInfo = [];
+            if (!empty($chefProfile->availability_info)) {
+                if (is_array($chefProfile->availability_info)) {
+                    $existingInfo = $chefProfile->availability_info;
+                } elseif (is_string($chefProfile->availability_info)) {
+                    $decoded = json_decode($chefProfile->availability_info, true);
+                    if (is_array($decoded)) {
+                        $existingInfo = $decoded;
+                    } else {
+                        $existingInfo['legacy_info'] = $chefProfile->availability_info;
+                    }
+                }
+            }
+
+            $existingInfo['status'] = $statusString;
+            $existingInfo['availability_status'] = $statusString;
+            $existingInfo['is_available'] = $isAvailable;
+
+            $chefProfile->availability_info = json_encode($existingInfo);
             $chefProfile->save();
         }
 

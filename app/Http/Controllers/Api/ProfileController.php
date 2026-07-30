@@ -410,7 +410,24 @@ class ProfileController extends Controller
                     $user->availability_status = $statusStr;
 
                     if ($user->chefProfile) {
-                        $user->chefProfile->availability_info = $statusStr;
+                        $existingInfo = [];
+                        if (!empty($user->chefProfile->availability_info)) {
+                            if (is_array($user->chefProfile->availability_info)) {
+                                $existingInfo = $user->chefProfile->availability_info;
+                            } elseif (is_string($user->chefProfile->availability_info)) {
+                                $decoded = json_decode($user->chefProfile->availability_info, true);
+                                if (is_array($decoded)) {
+                                    $existingInfo = $decoded;
+                                } else {
+                                    $existingInfo['legacy_info'] = $user->chefProfile->availability_info;
+                                }
+                            }
+                        }
+                        $existingInfo['status'] = $statusStr;
+                        $existingInfo['availability_status'] = $statusStr;
+                        $existingInfo['is_available'] = $isAvail;
+
+                        $user->chefProfile->availability_info = json_encode($existingInfo);
                         $user->chefProfile->save();
                     }
                 }
