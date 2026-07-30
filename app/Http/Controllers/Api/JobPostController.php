@@ -328,4 +328,73 @@ class JobPostController extends Controller
             'can_apply_today'    => (bool)$hasAppliesLeft,
         ], 200);
     }
+
+    /**
+     * GET /api/user/daily-posts
+     * GET /api/user/post-status
+     * GET /api/jobs/daily-count
+     * GET /api/jobs/post-status
+     *
+     * Return count of jobs & referral posts created by user today and remaining posts allowed.
+     */
+    public function getDailyPostStatus(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            if (str_contains($tokenStr, '|')) {
+                $tokenId = explode('|', $tokenStr)[0];
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
+
+        if (!$user && ($request->filled('user_id') || $request->filled('id'))) {
+            $targetId = $request->input('user_id') ?? $request->input('id');
+            $user = \App\Models\User::find($targetId);
+        }
+
+        if (!$user) {
+            $user = \App\Models\User::first();
+        }
+
+        $userId = $user ? $user->id : 0;
+        $activeRole = strtolower($user ? ($user->active_profile ?? 'job_seeker') : 'job_seeker');
+
+        // Determine daily limit: 1 for Chef/Jobseeker, 5 for Employer (or query override)
+        $isEmployer = ($activeRole === 'employer');
+        $defaultLimit = $isEmployer ? 5 : 1;
+        $dailyLimit = (int) $request->input('limit', $defaultLimit);
+
+        // Count jobs created by user today
+        $todayQuery = \App\Models\JobPost::where('created_by', $userId)
+            ->where('created_at', '>=', \Carbon\Carbon::today());
+
+        $totalPostedToday = (clone $todayQuery)->count();
+        $normalJobsPostedToday = (clone $todayQuery)->where('is_referral', false)->count();
+        $referralJobsPostedToday = (clone $todayQuery)->where('is_referral', true)->count();
+
+        $postsLeft = max(0, $dailyLimit - $totalPostedToday);
+        $hasPostsLeft = $totalPostedToday < $dailyLimit;
+
+        return response()->json([
+            'success'                    => true,
+            'user_id'                    => $userId,
+            'user_name'                  => $user ? ($user->full_name ?: ('User #' . $user->id)) : 'User',
+            'user_role'                  => $activeRole,
+            'date'                       => \Carbon\Carbon::today()->toDateString(),
+            'total_jobs_posted_today'    => $totalPostedToday,
+            'jobs_posted_today_count'    => $totalPostedToday,
+            'normal_jobs_posted_today'   => $normalJobsPostedToday,
+            'referral_jobs_posted_today' => $referralJobsPostedToday,
+            'daily_post_limit'           => $dailyLimit,
+            'daily_limit'                => $dailyLimit,
+            'posts_left_today'           => $postsLeft,
+            'has_posts_left'             => (bool)$hasPostsLeft,
+            'can_post_today'             => (bool)$hasPostsLeft,
+        ], 200);
+    }
 }
