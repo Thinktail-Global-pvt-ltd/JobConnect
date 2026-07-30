@@ -237,16 +237,8 @@ class FirebaseController extends Controller
 
             $isAdmin = $request->input('scope') === 'admin' || $request->is('api/admin/*') || $request->boolean('all');
 
-            // Safely check if user_notification_histories table exists
-            if (!\Illuminate\Support\Facades\Schema::hasTable('user_notification_histories')) {
-                return response()->json([
-                    'success' => true,
-                    'total_notifications' => 0,
-                    'unread_count' => 0,
-                    'notifications' => [],
-                    'data' => []
-                ], 200);
-            }
+            // Ensure table and columns exist automatically
+            \App\Models\UserNotificationHistory::ensureTableExists();
 
             $query = \App\Models\UserNotificationHistory::query();
 
