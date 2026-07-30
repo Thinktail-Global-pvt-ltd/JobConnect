@@ -15,35 +15,30 @@ class ChefModeratorController extends Controller
      */
     private function syncAndGetChefProfiles()
     {
-        // 1. Find all user IDs who have role_type = 'chef' in user_roles
-        $chefRoleUserIds = UserRole::where('role_type', 'chef')->pluck('user_id')->toArray();
+        // 1. Simple flow: Get all user_ids from user_roles table where role_type = 'chef'
+        $chefUserIds = UserRole::where('role_type', 'chef')->pluck('user_id')->toArray();
 
-        // 2. Find all user IDs who have active_profile = 'chef' or preferred_role containing chef/cook in users table
-        $userModelChefIds = User::where('active_profile', 'chef')
-            ->orWhere('preferred_role', 'like', '%chef%')
-            ->orWhere('preferred_role', 'like', '%cook%')
-            ->pluck('id')
-            ->toArray();
+        // 2. Also include users table active_profile = 'chef' and existing ChefProfiles
+        $userChefIds = User::where('active_profile', 'chef')->pluck('id')->toArray();
+        $existingProfileIds = ChefProfile::pluck('user_id')->toArray();
 
-        $allChefUserIds = array_unique(array_merge($chefRoleUserIds, $userModelChefIds));
+        $allChefIds = array_values(array_unique(array_merge($chefUserIds, $userChefIds, $existingProfileIds)));
 
-        // 3. Ensure every such user has a ChefProfile record
-        if (!empty($allChefUserIds)) {
-            $existingProfileUserIds = ChefProfile::whereIn('user_id', $allChefUserIds)->pluck('user_id')->toArray();
-            $missingUserIds = array_diff($allChefUserIds, $existingProfileUserIds);
-
+        if (!empty($allChefIds)) {
+            $missingUserIds = array_diff($allChefIds, $existingProfileIds);
             foreach ($missingUserIds as $userId) {
-                ChefProfile::create([
-                    'user_id' => $userId,
-                    'cuisine_specialty' => 'Multi-Cuisine',
-                    'bio' => 'Professional Chef',
-                    'approval_status' => 'pending',
-                ]);
+                if (User::where('id', $userId)->exists()) {
+                    ChefProfile::create([
+                        'user_id' => $userId,
+                        'cuisine_specialty' => 'Multi-Cuisine',
+                        'bio' => 'Professional Chef',
+                        'approval_status' => 'approved',
+                    ]);
+                }
             }
         }
 
-        // 4. Fetch all ChefProfile records with user relation
-        return ChefProfile::with('user')->latest()->get();
+        return ChefProfile::with('user')->whereIn('user_id', $allChefIds)->latest()->get();
     }
 
     /**
