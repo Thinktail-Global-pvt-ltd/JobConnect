@@ -110,15 +110,24 @@ class ChefOnboardingController extends Controller
                 $user->city = $request->city;
                 $user->experience_range = $request->experience_range;
                 $user->skills = $request->skills;
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'availability_status')) {
+                    $user->availability_status = $request->input('availability', 'Available Immediately');
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_available')) {
+                    $user->is_available = true;
+                }
                 $user->save();
 
                 // 3. Serialize chef-specific selections into availability_info
+                $availValue = $request->input('availability', 'Available Immediately');
                 $availabilityDetails = [
                     'languages' => $request->input('languages', []),
                     'regional_experience' => $request->input('regional_experience', []),
                     'location_preference' => $request->input('location_preference', 'Both'),
                     'employment_preference' => $request->input('employment_preference', []),
-                    'availability_status' => $request->input('availability', 'Available Immediately'),
+                    'availability_status' => $availValue,
+                    'status' => $availValue,
+                    'is_available' => true,
                 ];
 
                 // 4. Update or create Chef Profile
