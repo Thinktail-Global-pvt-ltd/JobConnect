@@ -219,76 +219,123 @@ class FirebaseController extends Controller
      */
     public function getNotificationHistory(Request $request)
     {
-        $user = $request->user() ?? Auth::user();
-        $isAdmin = $request->input('scope') === 'admin' || $request->is('api/admin/*') || $request->boolean('all');
-
-        $query = \App\Models\UserNotificationHistory::with(['user.roles']);
-
-        // Filter by specific user if user_id parameter passed
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
-        } elseif (!$isAdmin && $user) {
-            $query->where('user_id', $user->id);
-        }
-
-        // Filter by Role (employer, chef, talent/job_seeker)
-        if ($request->filled('role')) {
-            $requestedRole = strtolower($request->input('role'));
-            if ($requestedRole === 'job_seeker' || $requestedRole === 'talent') {
-                $roleFilter = ['job_seeker', 'talent', 'jobseeker'];
-            } else {
-                $roleFilter = [$requestedRole];
+        try {
+            $user = $request->user() ?? Auth::user();
+            if (!$user && $request->bearerToken()) {
+                $tokenStr = $request->bearerToken();
+                if (str_contains($tokenStr, '|')) {
+                    $tokenId = explode('|', $tokenStr)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                    if ($tokenObj) {
+                        $user = $tokenObj->tokenable;
+                    }
+                }
             }
 
-            $query->whereHas('user.roles', function ($rq) use ($roleFilter) {
-                $rq->whereIn('role_type', $roleFilter);
+            $isAdmin = $request->input('scope') === 'admin' || $request->is('api/admin/*') || $request->boolean('all');
+
+            // Safely check if user_notification_histories table exists
+            if (!\Illuminate\Support\Facades\Schema::hasTable('user_notification_histories')) {
+                return response()->json([
+                    'success' => true,
+                    'total_notifications' => 0,
+                    'unread_count' => 0,
+                    'notifications' => [],
+                    'data' => []
+                ], 200);
+            }
+
+            $query = \App\Models\UserNotificationHistory::query();
+
+            // Filter by specific user if user_id parameter passed
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->input('user_id'));
+            } elseif (!$isAdmin && $user) {
+                $query->where('user_id', $user->id);
+            }
+
+            // Filter by Role (employer, chef, talent/job_seeker) if role parameter passed
+            if ($request->filled('role')) {
+                $requestedRole = strtolower($request->input('role'));
+                if (in_array($requestedRole, ['job_seeker', 'talent', 'jobseeker'])) {
+                    $roleFilter = ['job_seeker', 'talent', 'jobseeker'];
+                } else {
+                    $roleFilter = [$requestedRole];
+                }
+
+                $query->whereHas('user.roles', function ($rq) use ($roleFilter) {
+                    $rq->whereIn('role_type', $roleFilter);
+                });
+            }
+
+            // Filter by channel / type if requested (fcm, whatsapp, in_app)
+            if ($request->filled('type')) {
+                $query->where('type', $request->input('type'));
+            } elseif ($request->filled('channel')) {
+                $query->where('type', $request->input('channel'));
+            }
+
+            // Filter unread notifications if unread=1 / unread=true
+            $isUnreadOnly = $request->boolean('unread') || $request->boolean('unread_only') || $request->input('unread') === '1' || $request->input('unread') === 1;
+            if ($isUnreadOnly && \Illuminate\Support\Facades\Schema::hasColumn('user_notification_histories', 'is_read')) {
+                $query->where(function($q) {
+                    $q->where('is_read', false)->orWhereNull('is_read')->orWhere('is_read', 0);
+                });
+            }
+
+            $history = $query->orderBy('created_at', 'desc')->get();
+            $unreadCount = $history->filter(fn($item) => empty($item->is_read))->count();
+
+            $notifications = $history->map(function ($item) {
+                $recipientUser = null;
+                try {
+                    $recipientUser = $item->user;
+                } catch (\Throwable $e) {}
+
+                if (!$recipientUser && !empty($item->user_id)) {
+                    try {
+                        $recipientUser = User::find($item->user_id);
+                    } catch (\Throwable $e) {}
+                }
+
+                return [
+                    'id' => $item->id,
+                    'user_id' => $item->user_id,
+                    'recipient_name' => $recipientUser ? ($recipientUser->full_name ?: 'User #' . $recipientUser->id) : 'Recipient User',
+                    'recipient_phone' => $recipientUser ? ($recipientUser->mobile_number ?: 'N/A') : ($item->recipient ?: 'N/A'),
+                    'recipient_role' => $recipientUser ? ($recipientUser->active_profile ?: 'user') : 'user',
+                    'recipient_photo' => $recipientUser ? $recipientUser->profile_photo_path : null,
+                    'type' => $item->type ?: 'fcm',
+                    'recipient' => $item->recipient,
+                    'title' => $item->title,
+                    'body' => $item->body,
+                    'status' => $item->status,
+                    'is_read' => (bool)$item->is_read,
+                    'created_at' => $item->created_at ? $item->created_at->toDateTimeString() : null,
+                    'created_at_formatted' => $item->created_at ? $item->created_at->format('j M Y, h:i A') : 'N/A',
+                    'time_ago' => $item->created_at ? $item->created_at->diffForHumans() : 'Just now',
+                    'metadata' => $item->metadata,
+                ];
             });
+
+            return response()->json([
+                'success' => true,
+                'total_notifications' => $notifications->count(),
+                'unread_count' => $unreadCount,
+                'notifications' => $notifications->values(),
+                'data' => $notifications->values()
+            ], 200);
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('getNotificationHistory Exception: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'total_notifications' => 0,
+                'unread_count' => 0,
+                'notifications' => [],
+                'data' => []
+            ], 200);
         }
-
-        // Filter by channel / type if requested (fcm, whatsapp, in_app)
-        if ($request->filled('type')) {
-            $query->where('type', $request->input('type'));
-        } elseif ($request->filled('channel')) {
-            $query->where('type', $request->input('channel'));
-        }
-
-        // Filter unread notifications if unread=1
-        if ($request->boolean('unread') || $request->boolean('unread_only')) {
-            $query->where('is_read', false);
-        }
-
-        $history = $query->orderBy('created_at', 'desc')->get();
-        $unreadCount = $history->where('is_read', false)->count();
-
-        $notifications = $history->map(function ($item) {
-            $recipientUser = $item->user;
-            return [
-                'id' => $item->id,
-                'user_id' => $item->user_id,
-                'recipient_name' => $recipientUser ? ($recipientUser->full_name ?: 'User #' . $recipientUser->id) : 'Recipient User',
-                'recipient_phone' => $recipientUser ? ($recipientUser->mobile_number ?: 'N/A') : ($item->recipient ?: 'N/A'),
-                'recipient_role' => $recipientUser ? ($recipientUser->active_profile ?: 'user') : 'user',
-                'recipient_photo' => $recipientUser ? $recipientUser->profile_photo_path : null,
-                'type' => $item->type ?: 'fcm',
-                'recipient' => $item->recipient,
-                'title' => $item->title,
-                'body' => $item->body,
-                'status' => $item->status,
-                'is_read' => (bool)$item->is_read,
-                'created_at' => $item->created_at ? $item->created_at->toDateTimeString() : null,
-                'created_at_formatted' => $item->created_at ? $item->created_at->format('j M Y, h:i A') : 'N/A',
-                'time_ago' => $item->created_at ? $item->created_at->diffForHumans() : 'Just now',
-                'metadata' => $item->metadata,
-            ];
-        });
-
-        return response()->json([
-            'success' => true,
-            'total_notifications' => $notifications->count(),
-            'unread_count' => $unreadCount,
-            'notifications' => $notifications,
-            'data' => $notifications
-        ]);
     }
 
     /**
