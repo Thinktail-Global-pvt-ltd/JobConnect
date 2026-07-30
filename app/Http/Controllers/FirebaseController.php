@@ -292,20 +292,51 @@ class FirebaseController extends Controller
     }
 
     /**
-     * Mark single notification as read.
+     * Mark single, multiple, or user notifications as read/seen.
      * POST /api/notifications/mark-read
+     * POST /api/notifications/seen
+     * POST /api/fcm/notifications/read
      */
     public function markRead(Request $request)
     {
-        $id = $request->input('id');
-        if ($id) {
-            \App\Models\UserNotificationHistory::where('id', $id)->update(['is_read' => true]);
+        $user = $request->user() ?? Auth::user();
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            if (str_contains($tokenStr, '|')) {
+                $tokenId = explode('|', $tokenStr)[0];
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
+
+        $userId = $request->input('user_id') ?? ($user ? $user->id : null);
+        $singleId = $request->input('id') ?? $request->input('notification_id');
+        $multipleIds = $request->input('ids') ?? $request->input('notification_ids');
+
+        $affectedRows = 0;
+
+        if (!empty($singleId)) {
+            $affectedRows = \App\Models\UserNotificationHistory::where('id', $singleId)->update(['is_read' => true]);
+        } elseif (!empty($multipleIds) && is_array($multipleIds)) {
+            $affectedRows = \App\Models\UserNotificationHistory::whereIn('id', $multipleIds)->update(['is_read' => true]);
+        } elseif (!empty($userId)) {
+            $affectedRows = \App\Models\UserNotificationHistory::where('user_id', $userId)->where('is_read', false)->update(['is_read' => true]);
+        } elseif ($user) {
+            $affectedRows = \App\Models\UserNotificationHistory::where('user_id', $user->id)->where('is_read', false)->update(['is_read' => true]);
+        } else {
+            // Fallback: Mark all unread notifications as read
+            $affectedRows = \App\Models\UserNotificationHistory::where('is_read', false)->update(['is_read' => true]);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification marked as read.'
-        ]);
+            'status' => 'success',
+            'message' => 'Notification(s) marked as seen/read successfully. They will no longer appear in unread GET results.',
+            'affected_notifications_count' => $affectedRows,
+            'user_id' => $userId ? (int)$userId : null
+        ], 200);
     }
 
     /**
@@ -314,17 +345,7 @@ class FirebaseController extends Controller
      */
     public function markAllRead(Request $request)
     {
-        $user = $request->user() ?? Auth::user();
-        if ($user && !$request->has('all')) {
-            \App\Models\UserNotificationHistory::where('user_id', $user->id)->update(['is_read' => true]);
-        } else {
-            \App\Models\UserNotificationHistory::query()->update(['is_read' => true]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'All notifications marked as read.'
-        ]);
+        return $this->markRead($request);
     }
 
     /**

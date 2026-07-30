@@ -506,6 +506,12 @@ Route::match(['get', 'post'], '/notifications/all', [\App\Http\Controllers\Fireb
 Route::match(['get', 'post'], '/fcm/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/admin/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/notifications/seen', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/fcm/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/fcm/notifications/seen', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/fcm/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/user/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
 Route::match(['get', 'post'], '/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);
 
 // Profile Completeness Routes
@@ -515,6 +521,16 @@ Route::get('/chef/completeness', [ProfileController::class, 'getChefCompleteness
 Route::get('/employer/profile/completeness', [ProfileController::class, 'getEmployerCompleteness']);
 Route::get('/employer/completeness', [ProfileController::class, 'getEmployerCompleteness']);
 Route::get('/talent/profile/completeness', [ProfileController::class, 'getTalentCompleteness']);
+
+// Daily Post & Apply Status Routes (Public & Auth)
+Route::match(['get', 'post'], '/user/daily-posts', [JobPostController::class, 'getDailyPostStatus']);
+Route::match(['get', 'post'], '/user/post-status', [JobPostController::class, 'getDailyPostStatus']);
+Route::match(['get', 'post'], '/jobs/daily-count', [JobPostController::class, 'getDailyPostStatus']);
+Route::match(['get', 'post'], '/jobs/post-status', [JobPostController::class, 'getDailyPostStatus']);
+Route::match(['get', 'post'], '/user/daily-applies', [JobPostController::class, 'getDailyApplyStatus']);
+Route::match(['get', 'post'], '/user/apply-status', [JobPostController::class, 'getDailyApplyStatus']);
+Route::match(['get', 'post'], '/user/applies-left', [JobPostController::class, 'getDailyApplyStatus']);
+Route::match(['get', 'post'], '/jobs/apply-status', [JobPostController::class, 'getDailyApplyStatus']);
 
 // Daily Profile Completion Notification Scheduler Trigger Route
 Route::match(['get', 'post'], '/scheduler/send-profile-reminders', [\App\Http\Controllers\FirebaseController::class, 'triggerProfileCompletionReminders']);
