@@ -16,24 +16,33 @@ class ChefModeratorController extends Controller
     private function syncAndGetChefProfiles()
     {
         // 1. Find all user IDs who have role_type = 'chef' in user_roles
-        $chefUserIds = UserRole::where('role_type', 'chef')->pluck('user_id')->toArray();
+        $chefRoleUserIds = UserRole::where('role_type', 'chef')->pluck('user_id')->toArray();
 
-        // 2. Ensure every such user has a ChefProfile record
-        if (!empty($chefUserIds)) {
-            $existingProfileUserIds = ChefProfile::whereIn('user_id', $chefUserIds)->pluck('user_id')->toArray();
-            $missingUserIds = array_diff($chefUserIds, $existingProfileUserIds);
+        // 2. Find all user IDs who have active_profile = 'chef' or preferred_role containing chef/cook in users table
+        $userModelChefIds = User::where('active_profile', 'chef')
+            ->orWhere('preferred_role', 'like', '%chef%')
+            ->orWhere('preferred_role', 'like', '%cook%')
+            ->pluck('id')
+            ->toArray();
+
+        $allChefUserIds = array_unique(array_merge($chefRoleUserIds, $userModelChefIds));
+
+        // 3. Ensure every such user has a ChefProfile record
+        if (!empty($allChefUserIds)) {
+            $existingProfileUserIds = ChefProfile::whereIn('user_id', $allChefUserIds)->pluck('user_id')->toArray();
+            $missingUserIds = array_diff($allChefUserIds, $existingProfileUserIds);
 
             foreach ($missingUserIds as $userId) {
                 ChefProfile::create([
                     'user_id' => $userId,
                     'cuisine_specialty' => 'Multi-Cuisine',
                     'bio' => 'Professional Chef',
-                    'approval_status' => 'approved',
+                    'approval_status' => 'pending',
                 ]);
             }
         }
 
-        // 3. Fetch all ChefProfile records with user relation
+        // 4. Fetch all ChefProfile records with user relation
         return ChefProfile::with('user')->latest()->get();
     }
 
@@ -44,7 +53,7 @@ class ChefModeratorController extends Controller
     {
         $profiles = $this->syncAndGetChefProfiles();
 
-        if ($request->has('status') && in_array($request->status, ['pending', 'approved', 'rejected'])) {
+        if ($request->filled('status') && $request->status !== 'all' && in_array($request->status, ['pending', 'approved', 'rejected'])) {
             $profiles = $profiles->filter(fn($p) => $p->approval_status === $request->status)->values();
         }
 
@@ -74,17 +83,19 @@ class ChefModeratorController extends Controller
         try {
             $profiles = $this->syncAndGetChefProfiles();
 
-            $chefs = $profiles->map(function ($chef) {
-                $user = $chef->user;
+            $allChefs = $profiles->map(function ($chef) {
+                $user = $chef->user ?: User::find($chef->user_id);
 
                 $availability = [];
                 if ($chef->availability_info) {
-                    $availability = json_decode($chef->availability_info, true) ?: [];
+                    $availability = is_array($chef->availability_info)
+                        ? $chef->availability_info
+                        : (json_decode($chef->availability_info, true) ?: []);
                 }
 
                 $fullName = ($user && $user->full_name) ? $user->full_name : ('Chef #' . $chef->user_id);
                 $email = $user ? ($user->email ?: '') : '';
-                $mobile = $user ? ($user->mobile_number ?: '') : '';
+                $mobile = $user ? ($user->mobile_number ?: '') : ($user ? $user->mobile : '');
                 $city = $user ? ($user->city ?: '') : '';
                 $exp = $user ? ($user->experience_range ?: '0') : '0';
                 $photo = $user ? $user->profile_photo_path : null;
@@ -106,22 +117,28 @@ class ChefModeratorController extends Controller
                     'bio' => $chef->bio ?: '',
                     'calendly_link' => $chef->calendly_link ?: '',
                     'calendly' => !empty($chef->calendly_link),
-                    'approval_status' => $chef->approval_status ?: 'approved',
-                    'status' => $chef->approval_status ?: 'approved',
+                    'approval_status' => $chef->approval_status ?: 'pending',
+                    'status' => $chef->approval_status ?: 'pending',
                     'availability_info' => $availability,
                     'skills' => $skills,
                 ];
             });
 
-            if ($request->has('status') && !empty($request->status) && in_array($request->status, ['pending', 'approved', 'rejected'])) {
-                $chefs = $chefs->filter(function($c) use ($request) {
-                    return $c['status'] === $request->status;
+            $filteredChefs = $allChefs;
+            $statusParam = $request->query('status');
+            if (!empty($statusParam) && $statusParam !== 'all' && in_array($statusParam, ['pending', 'approved', 'rejected'])) {
+                $filteredChefs = $allChefs->filter(function($c) use ($statusParam) {
+                    return $c['status'] === $statusParam;
                 })->values();
             }
 
             return response()->json([
                 'success' => true,
-                'chefs' => $chefs->values()
+                'total' => $filteredChefs->count(),
+                'total_all' => $allChefs->count(),
+                'pending_count' => $allChefs->where('status', 'pending')->count(),
+                'approved_count' => $allChefs->where('status', 'approved')->count(),
+                'chefs' => $filteredChefs->values()
             ]);
         } catch (\Exception $e) {
             return response()->json([
