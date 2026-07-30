@@ -284,9 +284,15 @@ class ProfileController extends Controller
 
             $photoUrl = null;
 
-            // 1. Check for File Uploads across all possible form keys safely
+            // 1. Check for File Uploads across all possible form keys safely (including company_logo)
             $fileKey = null;
-            if ($request->hasFile('profile_photo_path')) {
+            if ($request->hasFile('company_logo')) {
+                $fileKey = 'company_logo';
+            } elseif ($request->hasFile('company_logo_path')) {
+                $fileKey = 'company_logo_path';
+            } elseif ($request->hasFile('logo')) {
+                $fileKey = 'logo';
+            } elseif ($request->hasFile('profile_photo_path')) {
                 $fileKey = 'profile_photo_path';
             } elseif ($request->hasFile('profile_photo')) {
                 $fileKey = 'profile_photo';
@@ -312,7 +318,7 @@ class ProfileController extends Controller
                 $photoUrl = url('uploads/' . $filename);
             } else {
                 // 2. Check for URL string input if no valid file was uploaded
-                $inputPhoto = $request->input('profile_photo_path') ?? $request->input('profile_photo') ?? $request->input('image');
+                $inputPhoto = $request->input('company_logo') ?? $request->input('company_logo_path') ?? $request->input('logo') ?? $request->input('profile_photo_path') ?? $request->input('profile_photo') ?? $request->input('image');
                 if (!empty($inputPhoto) && is_string($inputPhoto) && !str_contains($inputPhoto, '@')) {
                     $photoUrl = $inputPhoto;
                 }

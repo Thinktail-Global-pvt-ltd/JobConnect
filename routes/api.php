@@ -33,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'updatePersonal']);
     Route::match(['post', 'put'], '/employer/profile', [ProfileController::class, 'updateEmployerProfile']);
     Route::match(['post', 'put'], '/employer/onboarding', [ProfileController::class, 'updateEmployerProfile']);
+    Route::match(['post', 'put'], '/employer/onboarding/save', [ProfileController::class, 'updateEmployerProfile']);
+    Route::match(['post', 'put'], '/employer/onboarding/update', [ProfileController::class, 'updateEmployerProfile']);
     Route::get('/profile/completeness', [ProfileController::class, 'getCompleteness']);
     Route::get('/chef/profile/completeness', [ProfileController::class, 'getChefCompleteness']);
     Route::get('/chef/completeness', [ProfileController::class, 'getChefCompleteness']);

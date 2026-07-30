@@ -168,73 +168,139 @@ class ProfileProgressService
     }
 
     /**
-     * Calculate profile completeness for Employer role.
+     * Calculate profile completeness for Employer role based on onboarding API fields.
      */
     public static function calculateEmployer(User $user): array
     {
         $breakdown = [];
         $percentage = 0;
+
         $empProfile = $user->employerProfile ?: \App\Models\EmployerProfile::where('user_id', $user->id)->first();
 
-        // 1. Company Name / Recruiter Name / Business Name (20%)
-        $companyName = $user->full_name 
-            ?: ($user->company_name 
-            ?: ($user->current_employer 
-            ?: ($empProfile ? ($empProfile->business_name ?: $empProfile->contact_person_name) : null)));
-
-        if (self::isFilled($companyName)) {
-            $percentage += 20;
-            $breakdown['company_name'] = 20;
+        // 1. Business Name / Company Name (10%)
+        $businessName = $empProfile ? $empProfile->business_name : null;
+        if (!self::isFilled($businessName)) {
+            $businessName = $user->current_employer;
+        }
+        if (self::isFilled($businessName)) {
+            $percentage += 10;
+            $breakdown['business_name'] = 10;
         } else {
-            $breakdown['company_name'] = 0;
+            $breakdown['business_name'] = 0;
         }
 
-        // 2. Profile Photo / Company Logo (15%)
+        // 2. Industry Segment (10%)
+        $industry = $empProfile ? $empProfile->industry_segment : null;
+        if (self::isFilled($industry)) {
+            $percentage += 10;
+            $breakdown['industry_segment'] = 10;
+        } else {
+            $breakdown['industry_segment'] = 0;
+        }
+
+        // 3. Business Location / City (10%)
+        $location = $empProfile ? $empProfile->business_location : null;
+        if (!self::isFilled($location)) {
+            $location = $user->city;
+        }
+        if (self::isFilled($location)) {
+            $percentage += 10;
+            $breakdown['business_location'] = 10;
+        } else {
+            $breakdown['business_location'] = 0;
+        }
+
+        // 4. Contact Person Name / Full Name (10%)
+        $contactPerson = $empProfile ? $empProfile->contact_person_name : null;
+        if (!self::isFilled($contactPerson)) {
+            $contactPerson = $user->full_name;
+        }
+        if (self::isFilled($contactPerson)) {
+            $percentage += 10;
+            $breakdown['contact_person_name'] = 10;
+        } else {
+            $breakdown['contact_person_name'] = 0;
+        }
+
+        // 5. Business Mobile / Contact Mobile (10%)
+        $mobile = $empProfile ? $empProfile->business_mobile : null;
+        if (!self::isFilled($mobile)) {
+            $mobile = $user->mobile_number;
+        }
+        if (self::isFilled($mobile)) {
+            $percentage += 10;
+            $breakdown['business_mobile'] = 10;
+        } else {
+            $breakdown['business_mobile'] = 0;
+        }
+
+        // 6. Business Email / Email (10%)
+        $email = $empProfile ? $empProfile->business_email : null;
+        if (!self::isFilled($email)) {
+            $email = $user->email;
+        }
+        if (self::isFilled($email)) {
+            $percentage += 10;
+            $breakdown['business_email'] = 10;
+        } else {
+            $breakdown['business_email'] = 0;
+        }
+
+        // 7. Company Logo / Profile Photo on Users Table (10%)
         $logo = $user->profile_photo_path ?: ($empProfile ? $empProfile->company_logo_path : null);
         if (self::isFilled($logo)) {
-            $percentage += 15;
-            $breakdown['company_logo'] = 15;
+            $percentage += 10;
+            $breakdown['company_logo'] = 10;
         } else {
             $breakdown['company_logo'] = 0;
         }
 
-        // 3. Mobile Number / Contact Mobile (15%)
-        $mobile = $user->mobile_number ?: ($empProfile ? $empProfile->business_mobile : null);
-        if (self::isFilled($mobile)) {
-            $percentage += 15;
-            $breakdown['contact_number'] = 15;
+        // 8. Operational Locations (10%)
+        $opsLocations = $empProfile ? $empProfile->operational_locations : null;
+        if (self::isFilled($opsLocations)) {
+            $percentage += 10;
+            $breakdown['operational_locations'] = 10;
         } else {
-            $breakdown['contact_number'] = 0;
+            $breakdown['operational_locations'] = 0;
         }
 
-        // 4. City / Operating Location / Business Location (20%)
-        $location = $user->city ?: ($empProfile ? ($empProfile->business_location ?: $empProfile->operational_locations) : null);
-        if (self::isFilled($location)) {
-            $percentage += 20;
-            $breakdown['location'] = 20;
+        // 9. Nominee Name (5%)
+        $nomineeName = $empProfile ? $empProfile->nominee_name : null;
+        if (self::isFilled($nomineeName) && $nomineeName !== 'N/A') {
+            $percentage += 5;
+            $breakdown['nominee_name'] = 5;
         } else {
-            $breakdown['location'] = 0;
+            $breakdown['nominee_name'] = 0;
         }
 
-        // 5. Posted Jobs / Email / Industry Details (15%)
-        $jobCount = JobPost::where('created_by', $user->id)->count();
-        $hasEmailOrJobs = ($jobCount > 0) 
-            || self::isFilled($user->email) 
-            || ($empProfile && (self::isFilled($empProfile->business_email) || self::isFilled($empProfile->industry_segment)));
-
-        if ($hasEmailOrJobs) {
-            $percentage += 15;
-            $breakdown['posted_jobs'] = 15;
+        // 10. Nominee Relationship (5%)
+        $nomineeRel = $empProfile ? $empProfile->nominee_relationship : null;
+        if (self::isFilled($nomineeRel) && $nomineeRel !== 'N/A') {
+            $percentage += 5;
+            $breakdown['nominee_relationship'] = 5;
         } else {
-            $breakdown['posted_jobs'] = 0;
+            $breakdown['nominee_relationship'] = 0;
         }
 
-        // 6. Social Media Links (15%)
-        if (self::hasSocialLinks($user)) {
-            $percentage += 15;
-            $breakdown['social_links'] = 15;
+        // 11. Nominee Mobile (5%)
+        $nomineeMobile = $empProfile ? $empProfile->nominee_mobile : null;
+        if (self::isFilled($nomineeMobile) && $nomineeMobile !== 'N/A') {
+            $percentage += 5;
+            $breakdown['nominee_mobile'] = 5;
         } else {
-            $breakdown['social_links'] = 0;
+            $breakdown['nominee_mobile'] = 0;
+        }
+
+        // 12. Preferred Language (5%)
+        $prefLang = $empProfile ? $empProfile->preferred_language : null;
+        if (!self::isFilled($prefLang)) {
+            $prefLang = $user->selected_language;
+        }
+        if (self::isFilled($prefLang)) {
+            $percentage += 5;
+            $breakdown['preferred_language'] = 5;
+        } else {
+            $breakdown['preferred_language'] = 0;
         }
 
         $missing = array_keys(array_filter($breakdown, function($val) {
