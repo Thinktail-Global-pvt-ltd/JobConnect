@@ -44,13 +44,44 @@ class JobPostController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            if (str_contains($tokenStr, '|')) {
+                $tokenId = explode('|', $tokenStr)[0];
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
 
-        // Enforce rate limit: max 1 community/referral post every 24 hours per user
-        if ($request->category === 'community' && JobPost::hasExceededDailyLimit($user)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Rate limit exceeded: You can only submit 1 community or referral job post every 24 hours.',
-            ], 429);
+        if ($user) {
+            $userRole = strtolower($user->active_profile ?? 'job_seeker');
+            if ($request->filled('submitted_by_role')) {
+                $userRole = strtolower(str_replace('_', '', $request->input('submitted_by_role')));
+            }
+
+            $isEmployer = in_array($userRole, ['employer', 'agency', 'administrator', 'admin']);
+            $maxDailyAllowed = $isEmployer ? 5 : 1;
+
+            $todayJobsCount = JobPost::where('created_by', $user->id)
+                ->where('created_at', '>=', \Carbon\Carbon::today())
+                ->count();
+
+            if ($todayJobsCount >= $maxDailyAllowed) {
+                if ($isEmployer) {
+                    $msg = 'Daily posting limit reached: Employers can post a maximum of 5 jobs per day. Please try again tomorrow.';
+                } else {
+                    $msg = 'Daily posting limit reached: Chef and Jobseeker users can only post 1 referral job per day. Please try again tomorrow.';
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                    'daily_limit' => $maxDailyAllowed,
+                    'posted_today' => $todayJobsCount,
+                ], 429);
+            }
         }
 
         $validator = Validator::make($request->all(), [
