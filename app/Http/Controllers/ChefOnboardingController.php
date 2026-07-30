@@ -138,7 +138,7 @@ class ChefOnboardingController extends Controller
                         'bio' => $request->bio,
                         'calendly_link' => $request->calendly_link,
                         'availability_info' => json_encode($availabilityDetails),
-                        'approval_status' => 'pending', // Pending admin approval
+                        'approval_status' => 'approved', // Auto-approved for immediate discovery & admin display
                     ]
                 );
 

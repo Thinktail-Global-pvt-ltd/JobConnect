@@ -41,6 +41,13 @@ class ChefModeratorController extends Controller
                         ]);
                     }
                 }
+
+                // Ensure all chef profiles are marked approved so they appear immediately in admin directory & employer discovery
+                ChefProfile::whereIn('user_id', $allChefIds)
+                    ->where(function($q) {
+                        $q->whereNull('approval_status')->orWhere('approval_status', 'pending');
+                    })
+                    ->update(['approval_status' => 'approved']);
             }
 
             return ChefProfile::with('user')->whereIn('user_id', $allChefIds)->latest()->get();
@@ -57,16 +64,12 @@ class ChefModeratorController extends Controller
     {
         $profiles = $this->syncAndGetChefProfiles();
 
-        if ($request->filled('status') && $request->status !== 'all' && in_array($request->status, ['pending', 'approved', 'rejected'])) {
-            $profiles = $profiles->filter(fn($p) => $p->approval_status === $request->status)->values();
-        }
-
         $chefs = $profiles;
 
         // Fetch dynamic stats for dashboard cards from synced profiles
-        $allProfiles = $this->syncAndGetChefProfiles();
-        $pendingCount = $allProfiles->where('approval_status', 'pending')->count();
-        $approvedCount = $allProfiles->where('approval_status', 'approved')->count();
+        $allProfiles = $profiles;
+        $pendingCount = 0;
+        $approvedCount = $allProfiles->count();
         $totalChefs = $allProfiles->count();
         $calendlyLinkedCount = $allProfiles->filter(fn($p) => !empty($p->calendly_link))->count();
         $calendlySyncPercentage = $totalChefs > 0 ? round(($calendlyLinkedCount / $totalChefs) * 100) : 0;
@@ -121,28 +124,20 @@ class ChefModeratorController extends Controller
                     'bio' => $chef->bio ?: '',
                     'calendly_link' => $chef->calendly_link ?: '',
                     'calendly' => !empty($chef->calendly_link),
-                    'approval_status' => $chef->approval_status ?: 'approved',
-                    'status' => $chef->approval_status ?: 'approved',
+                    'approval_status' => 'approved',
+                    'status' => 'approved',
                     'availability_info' => $availability,
                     'skills' => $skills,
                 ];
             });
 
-            $filteredChefs = $allChefs;
-            $statusParam = $request->query('status');
-            if (!empty($statusParam) && $statusParam !== 'all' && in_array($statusParam, ['pending', 'approved', 'rejected'])) {
-                $filteredChefs = $allChefs->filter(function($c) use ($statusParam) {
-                    return $c['status'] === $statusParam;
-                })->values();
-            }
-
             return response()->json([
                 'success' => true,
-                'total' => $filteredChefs->count(),
+                'total' => $allChefs->count(),
                 'total_all' => $allChefs->count(),
-                'pending_count' => $allChefs->where('status', 'pending')->count(),
-                'approved_count' => $allChefs->where('status', 'approved')->count(),
-                'chefs' => $filteredChefs->values()
+                'pending_count' => 0,
+                'approved_count' => $allChefs->count(),
+                'chefs' => $allChefs->values()
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('apiIndex Error: ' . $e->getMessage());
