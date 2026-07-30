@@ -220,19 +220,41 @@ class FirebaseController extends Controller
     public function getNotificationHistory(Request $request)
     {
         $user = $request->user() ?? Auth::user();
-        $isAdmin = $request->input('scope') === 'admin' || $request->is('api/admin/*') || !$request->has('user_id');
+        $isAdmin = $request->input('scope') === 'admin' || $request->is('api/admin/*') || $request->boolean('all');
 
-        $query = \App\Models\UserNotificationHistory::with(['user']);
+        $query = \App\Models\UserNotificationHistory::with(['user.roles']);
 
-        // Filter by user if requested or if non-admin user
-        if ($request->has('user_id') && !empty($request->input('user_id'))) {
+        // Filter by specific user if user_id parameter passed
+        if ($request->filled('user_id')) {
             $query->where('user_id', $request->input('user_id'));
         } elseif (!$isAdmin && $user) {
             $query->where('user_id', $user->id);
         }
 
+        // Filter by Role (employer, chef, talent/job_seeker)
+        if ($request->filled('role')) {
+            $requestedRole = strtolower($request->input('role'));
+            if ($requestedRole === 'job_seeker' || $requestedRole === 'talent') {
+                $roleFilter = ['job_seeker', 'talent', 'jobseeker'];
+            } else {
+                $roleFilter = [$requestedRole];
+            }
+
+            $query->whereHas('user.roles', function ($rq) use ($roleFilter) {
+                $rq->whereIn('role_type', $roleFilter);
+            });
+        }
+
+        // Filter by channel / type if requested (fcm, whatsapp, in_app)
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('type', $request->input('type'));
+        } elseif ($request->filled('channel')) {
+            $query->where('type', $request->input('channel'));
+        }
+
+        // Filter unread notifications if unread=1
+        if ($request->boolean('unread') || $request->boolean('unread_only')) {
+            $query->where('is_read', false);
         }
 
         $history = $query->orderBy('created_at', 'desc')->get();
@@ -244,7 +266,7 @@ class FirebaseController extends Controller
                 'id' => $item->id,
                 'user_id' => $item->user_id,
                 'recipient_name' => $recipientUser ? ($recipientUser->full_name ?: 'User #' . $recipientUser->id) : 'Recipient User',
-                'recipient_phone' => $recipientUser ? ($recipientUser->mobile_number ?: 'N/A') : 'N/A',
+                'recipient_phone' => $recipientUser ? ($recipientUser->mobile_number ?: 'N/A') : ($item->recipient ?: 'N/A'),
                 'recipient_role' => $recipientUser ? ($recipientUser->active_profile ?: 'user') : 'user',
                 'recipient_photo' => $recipientUser ? $recipientUser->profile_photo_path : null,
                 'type' => $item->type ?: 'fcm',

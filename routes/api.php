@@ -487,6 +487,8 @@ Route::match(['get', 'post'], '/test/send-notification', [\App\Http\Controllers\
 Route::match(['get', 'post'], '/user/send-notification', [\App\Http\Controllers\FirebaseController::class, 'sendTestNotification']);
 Route::match(['get', 'post'], '/user/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+Route::match(['get', 'post'], '/notifications/all', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+Route::match(['get', 'post'], '/fcm/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/admin/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
 Route::match(['get', 'post'], '/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);
