@@ -484,6 +484,8 @@ Route::post('/chef-views/history', [ChefProfileViewController::class, 'getViews'
 Route::get('/chef-views/history', [ChefProfileViewController::class, 'getViews']);
 // Chef Availability Toggle Routes
 Route::match(['get', 'post'], '/chef/availability/toggle', [ChefProfileController::class, 'toggleAvailability']);
+Route::match(['get', 'post'], '/availability/toggle', [ChefProfileController::class, 'toggleAvailability']);
+Route::match(['get', 'post'], '/user/availability', [ChefProfileController::class, 'toggleAvailability']);
 
 // Account Deletion Route
 Route::match(['delete', 'post'], '/profile/delete', [ProfileController::class, 'deleteAccount']);
