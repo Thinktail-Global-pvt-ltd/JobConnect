@@ -15,30 +15,39 @@ class ChefModeratorController extends Controller
      */
     private function syncAndGetChefProfiles()
     {
-        // 1. Simple flow: Get all user_ids from user_roles table where role_type = 'chef'
-        $chefUserIds = UserRole::where('role_type', 'chef')->pluck('user_id')->toArray();
+        try {
+            // 1. Get all user IDs from user_roles table where role_type = 'chef'
+            $chefUserIds = UserRole::where('role_type', 'chef')->pluck('user_id')->toArray();
 
-        // 2. Also include users table active_profile = 'chef' and existing ChefProfiles
-        $userChefIds = User::where('active_profile', 'chef')->pluck('id')->toArray();
-        $existingProfileIds = ChefProfile::pluck('user_id')->toArray();
+            // 2. Safely check if users table has active_profile column
+            $userChefIds = [];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                $userChefIds = User::where('active_profile', 'chef')->pluck('id')->toArray();
+            }
 
-        $allChefIds = array_values(array_unique(array_merge($chefUserIds, $userChefIds, $existingProfileIds)));
+            $existingProfileIds = ChefProfile::pluck('user_id')->toArray();
 
-        if (!empty($allChefIds)) {
-            $missingUserIds = array_diff($allChefIds, $existingProfileIds);
-            foreach ($missingUserIds as $userId) {
-                if (User::where('id', $userId)->exists()) {
-                    ChefProfile::create([
-                        'user_id' => $userId,
-                        'cuisine_specialty' => 'Multi-Cuisine',
-                        'bio' => 'Professional Chef',
-                        'approval_status' => 'approved',
-                    ]);
+            $allChefIds = array_values(array_unique(array_merge($chefUserIds, $userChefIds, $existingProfileIds)));
+
+            if (!empty($allChefIds)) {
+                $missingUserIds = array_diff($allChefIds, $existingProfileIds);
+                foreach ($missingUserIds as $userId) {
+                    if (User::where('id', $userId)->exists()) {
+                        ChefProfile::create([
+                            'user_id' => $userId,
+                            'cuisine_specialty' => 'Multi-Cuisine',
+                            'bio' => 'Professional Chef',
+                            'approval_status' => 'approved',
+                        ]);
+                    }
                 }
             }
-        }
 
-        return ChefProfile::with('user')->whereIn('user_id', $allChefIds)->latest()->get();
+            return ChefProfile::with('user')->whereIn('user_id', $allChefIds)->latest()->get();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('syncAndGetChefProfiles Error: ' . $e->getMessage());
+            return ChefProfile::with('user')->latest()->get();
+        }
     }
 
     /**
@@ -90,7 +99,7 @@ class ChefModeratorController extends Controller
 
                 $fullName = ($user && $user->full_name) ? $user->full_name : ('Chef #' . $chef->user_id);
                 $email = $user ? ($user->email ?: '') : '';
-                $mobile = $user ? ($user->mobile_number ?: '') : ($user ? $user->mobile : '');
+                $mobile = $user ? ($user->mobile_number ?: '') : '';
                 $city = $user ? ($user->city ?: '') : '';
                 $exp = $user ? ($user->experience_range ?: '0') : '0';
                 $photo = $user ? $user->profile_photo_path : null;
@@ -112,8 +121,8 @@ class ChefModeratorController extends Controller
                     'bio' => $chef->bio ?: '',
                     'calendly_link' => $chef->calendly_link ?: '',
                     'calendly' => !empty($chef->calendly_link),
-                    'approval_status' => $chef->approval_status ?: 'pending',
-                    'status' => $chef->approval_status ?: 'pending',
+                    'approval_status' => $chef->approval_status ?: 'approved',
+                    'status' => $chef->approval_status ?: 'approved',
                     'availability_info' => $availability,
                     'skills' => $skills,
                 ];
@@ -135,11 +144,13 @@ class ChefModeratorController extends Controller
                 'approved_count' => $allChefs->where('status', 'approved')->count(),
                 'chefs' => $filteredChefs->values()
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('apiIndex Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load chefs: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Failed to load chefs: ' . $e->getMessage(),
+                'chefs' => []
+            ], 200);
         }
     }
 
