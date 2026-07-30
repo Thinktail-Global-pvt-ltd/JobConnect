@@ -174,9 +174,15 @@ class ProfileProgressService
     {
         $breakdown = [];
         $percentage = 0;
+        $empProfile = $user->employerProfile ?: \App\Models\EmployerProfile::where('user_id', $user->id)->first();
 
-        // 1. Company Name / Recruiter Name (20%)
-        if (self::isFilled($user->full_name) || self::isFilled($user->current_employer) || self::isFilled($user->company_name)) {
+        // 1. Company Name / Recruiter Name / Business Name (20%)
+        $companyName = $user->full_name 
+            ?: ($user->company_name 
+            ?: ($user->current_employer 
+            ?: ($empProfile ? ($empProfile->business_name ?: $empProfile->contact_person_name) : null)));
+
+        if (self::isFilled($companyName)) {
             $percentage += 20;
             $breakdown['company_name'] = 20;
         } else {
@@ -184,32 +190,39 @@ class ProfileProgressService
         }
 
         // 2. Profile Photo / Company Logo (15%)
-        if (self::isFilled($user->profile_photo_path)) {
+        $logo = $user->profile_photo_path ?: ($empProfile ? $empProfile->company_logo_path : null);
+        if (self::isFilled($logo)) {
             $percentage += 15;
             $breakdown['company_logo'] = 15;
         } else {
             $breakdown['company_logo'] = 0;
         }
 
-        // 3. Mobile Number (15%)
-        if (self::isFilled($user->mobile_number)) {
+        // 3. Mobile Number / Contact Mobile (15%)
+        $mobile = $user->mobile_number ?: ($empProfile ? $empProfile->business_mobile : null);
+        if (self::isFilled($mobile)) {
             $percentage += 15;
             $breakdown['contact_number'] = 15;
         } else {
             $breakdown['contact_number'] = 0;
         }
 
-        // 4. City / Operating Location (20%)
-        if (self::isFilled($user->city)) {
+        // 4. City / Operating Location / Business Location (20%)
+        $location = $user->city ?: ($empProfile ? ($empProfile->business_location ?: $empProfile->operational_locations) : null);
+        if (self::isFilled($location)) {
             $percentage += 20;
             $breakdown['location'] = 20;
         } else {
             $breakdown['location'] = 0;
         }
 
-        // 5. Posted Jobs / Email (15%)
+        // 5. Posted Jobs / Email / Industry Details (15%)
         $jobCount = JobPost::where('created_by', $user->id)->count();
-        if ($jobCount > 0) {
+        $hasEmailOrJobs = ($jobCount > 0) 
+            || self::isFilled($user->email) 
+            || ($empProfile && (self::isFilled($empProfile->business_email) || self::isFilled($empProfile->industry_segment)));
+
+        if ($hasEmailOrJobs) {
             $percentage += 15;
             $breakdown['posted_jobs'] = 15;
         } else {

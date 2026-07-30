@@ -477,6 +477,33 @@ class ProfileController extends Controller
                             'github'    => $github,
                             'others'    => $others,
                         ], fn($val) => !is_null($val))
+                // Sync to EmployerProfile model if user is an employer or employer profile fields are provided
+                if ($user && ($user->active_profile === 'employer' || $request->hasAny(['business_name', 'company_name', 'industry_segment', 'business_location', 'contact_person_name', 'business_mobile', 'business_email', 'operational_locations', 'company_logo']))) {
+                    $businessName = $request->input('business_name') ?? $request->input('company_name') ?? $user->current_employer;
+                    $industrySegment = $request->input('industry_segment') ?? $request->input('description') ?? 'Hospitality';
+                    $businessLocation = $request->input('business_location') ?? $request->input('city') ?? $user->city ?? 'India';
+                    $contactPersonName = $request->input('contact_person_name') ?? $request->input('full_name') ?? $user->full_name ?? 'Recruiter';
+                    $businessMobile = $request->input('business_mobile') ?? $request->input('mobile_number') ?? $user->mobile_number ?? '9876543210';
+                    $businessEmail = $request->input('business_email') ?? $request->input('email') ?? $user->email ?? 'recruiter@hospitality.com';
+                    $opsLocations = $request->input('operational_locations');
+
+                    \App\Models\EmployerProfile::updateOrCreate(
+                        ['user_id' => $user->id],
+                        array_filter([
+                            'business_name' => $businessName,
+                            'industry_segment' => $industrySegment,
+                            'business_location' => $businessLocation,
+                            'contact_person_name' => $contactPersonName,
+                            'business_mobile' => $businessMobile,
+                            'business_email' => $businessEmail,
+                            'preferred_language' => $request->input('preferred_language') ?? ($user->selected_language ?? 'en'),
+                            'nominee_name' => $request->input('nominee_name') ?? 'N/A',
+                            'nominee_relationship' => $request->input('nominee_relationship') ?? 'N/A',
+                            'nominee_mobile' => $request->input('nominee_mobile') ?? 'N/A',
+                            'company_logo_path' => $photoUrl,
+                            'operational_locations' => is_array($opsLocations) ? json_encode($opsLocations) : $opsLocations,
+                            'is_completed' => true,
+                        ], fn($val) => !is_null($val))
                     );
                 }
             }
@@ -669,5 +696,31 @@ class ProfileController extends Controller
         } else {
             return $this->getTalentCompleteness($request);
         }
+    }
+
+    /**
+     * Dedicated API method for posting / updating Employer profile data.
+     * POST /api/employer/profile
+     */
+    public function updateEmployerProfile(Request $request)
+    {
+        $res = $this->updatePersonal($request);
+        $user = $request->user() ?: auth('sanctum')->user();
+        if (!$user) {
+            $user = User::first();
+        }
+
+        if ($user) {
+            $completeness = \App\Services\ProfileProgressService::calculateEmployer($user);
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Employer profile saved successfully!',
+                'completeness' => $completeness['completeness'],
+                'employer_profile' => $user->employerProfile ? $user->employerProfile->fresh() : null,
+            ]);
+        }
+
+        return $res;
     }
 }

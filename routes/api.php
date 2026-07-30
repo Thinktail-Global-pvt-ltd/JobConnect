@@ -28,7 +28,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User Profile & Completeness Routes
     Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile', [ProfileController::class, 'updatePersonal']);
+    Route::put('/profile', [ProfileController::class, 'updatePersonal']);
+    Route::post('/profile/update', [ProfileController::class, 'updatePersonal']);
+    Route::match(['post', 'put'], '/employer/profile', [ProfileController::class, 'updateEmployerProfile']);
+    Route::match(['post', 'put'], '/employer/onboarding', [ProfileController::class, 'updateEmployerProfile']);
     Route::get('/profile/completeness', [ProfileController::class, 'getCompleteness']);
     Route::get('/chef/profile/completeness', [ProfileController::class, 'getChefCompleteness']);
     Route::get('/chef/completeness', [ProfileController::class, 'getChefCompleteness']);
