@@ -56,7 +56,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/jobs/store', [JobPostController::class, 'store']);
     Route::post('/jobs/referrals', [JobPostController::class, 'storeReferral']);
     Route::match(['get', 'post'], '/jobs/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
-    Route::get('/my-jobs', [JobPostController::class, 'myJobs']);
+    Route::match(['get', 'post'], '/my-jobs', [JobPostController::class, 'myJobs']);
+    Route::match(['get', 'post'], '/my-applications', [JobPostController::class, 'myJobs']);
+    Route::match(['get', 'post'], '/jobs/applied', [JobPostController::class, 'myJobs']);
+    Route::match(['get', 'post'], '/user/applied-jobs', [JobPostController::class, 'myJobs']);
     Route::post('/chefs', [ChefProfileController::class, 'store']);
     Route::post('/chef/onboarding/save', [\App\Http\Controllers\ChefOnboardingController::class, 'save']);
     Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);

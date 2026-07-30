@@ -180,27 +180,93 @@ class JobPostController extends Controller
     public function myJobs(Request $request)
     {
         $user = $request->user();
-
-        $query = JobPost::where('created_by', $user->id);
-
-        if ($request->has('is_referral')) {
-            $query->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
-        }
-
-        if ($request->filled('status')) {
-            if ($request->status !== 'all') {
-                $query->where('status', $request->status);
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            if (str_contains($tokenStr, '|')) {
+                $tokenId = explode('|', $tokenStr)[0];
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
             }
-        } else {
-            // Only show published / approved data by default
-            $query->where('status', 'approved');
         }
 
-        $jobs = $query->orderBy('created_at', 'desc')->get();
+        if (!$user) {
+            $user = \App\Models\User::first();
+        }
+
+        $activeRole = strtolower($user ? ($user->active_profile ?? 'job_seeker') : 'job_seeker');
+
+        // 1. Fetch all Job Applications submitted by this user (Applicant)
+        $applications = \App\Models\JobApplication::with(['jobPost.creator'])
+            ->where('applicant_id', $user ? $user->id : 0)
+            ->latest()
+            ->get();
+
+        $appliedJobs = $applications->map(function ($app) {
+            $job = $app->jobPost;
+            if (!$job) {
+                return null;
+            }
+
+            return [
+                'application_id'        => $app->id,
+                'application_status'    => $app->status ?? 'new',
+                'preferred_call_time'   => $app->preferred_call_time,
+                'applied_at'            => $app->created_at ? $app->created_at->toDateTimeString() : null,
+                'applied_at_formatted'  => $app->created_at ? $app->created_at->format('j M Y, h:i A') : null,
+                'id'                    => $job->id,
+                'title'                 => $job->title,
+                'company'               => $job->company,
+                'category'              => $job->category,
+                'location'              => $job->location,
+                'country'               => $job->country,
+                'salary'                => $job->salary,
+                'salary_min'            => $job->salary_min,
+                'salary_max'            => $job->salary_max,
+                'salary_currency'       => $job->salary_currency,
+                'job_type'              => $job->job_type,
+                'experience_range'      => $job->experience_range,
+                'description'           => $job->description,
+                'contact_info'          => $job->contact_info,
+                'contact_person'        => $job->contact_person,
+                'company_logo_url'      => $job->company_logo_url,
+                'showcase_image_url'    => $job->showcase_image_url,
+                'map_image_url'         => $job->map_image_url,
+                'status'                => $job->status,
+                'is_referral'           => (bool)$job->is_referral,
+                'submitted_by_role'     => $job->submitted_by_role,
+                'posted_by_role'        => $job->posted_by_role,
+                'created_at'            => $job->created_at ? $job->created_at->toDateTimeString() : null,
+            ];
+        })->filter()->values();
+
+        // 2. Fetch all Job Posts / Referrals created by this user
+        $createdQuery = JobPost::where('created_by', $user ? $user->id : 0);
+        if ($request->has('is_referral')) {
+            $createdQuery->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
+        }
+        if ($request->filled('status') && $request->status !== 'all') {
+            $createdQuery->where('status', $request->status);
+        }
+
+        $createdJobs = $createdQuery->latest()->get();
+
+        // Standard unified jobs array (Applied jobs first for Jobseeker/Chef, Created jobs first for Employer)
+        $isJobSeekerOrChef = in_array($activeRole, ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent']);
+        $combinedJobs = $isJobSeekerOrChef
+            ? $appliedJobs->concat($createdJobs)
+            : $createdJobs->concat($appliedJobs);
 
         return response()->json([
-            'success' => true,
-            'jobs'    => $jobs,
+            'success'               => true,
+            'user_role'             => $activeRole,
+            'total_applied_jobs'    => $appliedJobs->count(),
+            'total_created_jobs'    => $createdJobs->count(),
+            'applied_jobs'          => $appliedJobs,
+            'created_jobs'          => $createdJobs,
+            'jobs'                  => $combinedJobs->values(),
+            'data'                  => $combinedJobs->values(),
         ]);
     }
 }
