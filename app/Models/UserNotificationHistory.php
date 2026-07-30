@@ -64,6 +64,7 @@ class UserNotificationHistory extends Model
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('ensureTableExists Exception: ' . $e->getMessage());
         }
+    }
     /**
      * Safely sanitize metadata to prevent json_encode failures.
      */
