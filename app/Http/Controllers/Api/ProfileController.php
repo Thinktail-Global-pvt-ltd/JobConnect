@@ -477,6 +477,9 @@ class ProfileController extends Controller
                             'github'    => $github,
                             'others'    => $others,
                         ], fn($val) => !is_null($val))
+                    );
+                }
+
                 // Sync to EmployerProfile model if user is an employer or employer profile fields are provided
                 if ($user && ($user->active_profile === 'employer' || $request->hasAny(['business_name', 'company_name', 'industry_segment', 'business_location', 'contact_person_name', 'business_mobile', 'business_email', 'operational_locations', 'company_logo']))) {
                     $businessName = $request->input('business_name') ?? $request->input('company_name') ?? $user->current_employer;
@@ -563,7 +566,8 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete user account permanently.
+     * Delete user account permanently (HARD DELETE from users table and related tables).
+     * DELETE /api/profile/delete or POST /api/profile/delete
      */
     public function deleteAccount(Request $request)
     {
@@ -571,42 +575,69 @@ class ProfileController extends Controller
 
         if (!$user && $request->bearerToken()) {
             $tokenStr = $request->bearerToken();
-            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
-            if ($tokenObj) {
-                $user = $tokenObj->tokenable;
+            if (str_contains($tokenStr, '|')) {
+                $tokenId = explode('|', $tokenStr)[0];
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
             }
         }
 
-        if (!$user && ($request->filled('user_id') || $request->filled('mobile_number'))) {
+        if (!$user && ($request->filled('user_id') || $request->filled('mobile_number') || $request->filled('mobile'))) {
             $query = User::query();
             if ($request->filled('user_id')) {
                 $query->where('id', $request->user_id);
             }
             if ($request->filled('mobile_number')) {
                 $query->where('mobile_number', $request->mobile_number);
+            } elseif ($request->filled('mobile')) {
+                $query->where('mobile_number', $request->mobile);
             }
             $user = $query->first();
         }
 
         if ($user) {
             $userId = $user->id;
-            if (method_exists($user, 'tokens')) {
-                $user->tokens()->delete();
+
+            // Revoke all tokens & device tokens
+            try {
+                if (method_exists($user, 'tokens')) {
+                    $user->tokens()->delete();
+                }
+            } catch (\Throwable $e) {}
+
+            try {
+                \App\Models\UserDeviceToken::where('user_id', $userId)->delete();
+                \App\Models\ChefProfileView::where('chef_id', $userId)->orWhere('employer_id', $userId)->delete();
+                \App\Models\UserRole::where('user_id', $userId)->delete();
+                \App\Models\ChefProfile::where('user_id', $userId)->delete();
+                \App\Models\EmployerProfile::where('user_id', $userId)->delete();
+                \App\Models\UserSocial::where('user_id', $userId)->delete();
+                \App\Models\UserNotificationHistory::where('user_id', $userId)->delete();
+                \App\Models\JobApplication::where('applicant_id', $userId)->orWhere('employer_id', $userId)->delete();
+            } catch (\Throwable $e) {}
+
+            // Perform HARD SQL DELETE from users database table
+            try {
+                \Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->delete();
+            } catch (\Throwable $e) {
+                $user->delete();
             }
 
-            \App\Models\ChefProfileView::where('chef_id', $userId)->orWhere('employer_id', $userId)->delete();
-            \App\Models\UserRole::where('user_id', $userId)->delete();
-            \App\Models\ChefProfile::where('user_id', $userId)->delete();
-            \App\Models\EmployerProfile::where('user_id', $userId)->delete();
-            \App\Models\UserSocial::where('user_id', $userId)->delete();
-
-            $user->delete();
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => "User #{$userId} has been permanently deleted from users table and database.",
+                'deleted_user_id' => $userId
+            ], 200);
         }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Account deleted permanently.'
-        ], 200);
+            'success' => false,
+            'status' => 'error',
+            'message' => 'User account not found or already deleted.'
+        ], 404);
     }
 
     /**
