@@ -11,36 +11,25 @@ use Illuminate\Support\Facades\Cache;
 class ProfileController extends Controller
 {
     /**
-     * Get latest uploaded photo from Disk, Cache, or Database
+     * Get user photo directly from users table profile_photo_path column (no auto-fill/cache fallback)
      */
-    private function getLatestPhoto($user = null)
+    private function getUserPhoto($user = null)
     {
-        // 1. Check disk uploads directory for latest uploaded file
-        $uploads = glob(public_path('uploads/*'));
-        if (!empty($uploads)) {
-            usort($uploads, function($a, $b) {
-                return filemtime($b) - filemtime($a);
-            });
-            return url('uploads/' . basename($uploads[0]));
+        if (!$user) {
+            return null;
         }
 
-        // 2. Check Cache
-        $cached = Cache::get('latest_profile_photo');
-        if ($cached) {
-            return $cached;
-        }
-
-        // 3. Check User DB column
-        if ($user && !empty($user->profile_photo_path)) {
+        // 1. Return direct profile_photo_path from users table if set
+        if (!empty($user->profile_photo_path)) {
             return $user->profile_photo_path;
         }
 
-        $latestDbPhoto = User::whereNotNull('profile_photo_path')->where('profile_photo_path', '!=', '')->latest()->value('profile_photo_path');
-        if ($latestDbPhoto) {
-            return $latestDbPhoto;
+        // 2. If user has employer profile with company_logo_path, return that
+        if ($user->employerProfile && !empty($user->employerProfile->company_logo_path)) {
+            return $user->employerProfile->company_logo_path;
         }
 
-        return 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=300&q=80';
+        return null;
     }
 
     /**
@@ -64,7 +53,7 @@ class ProfileController extends Controller
             $user->load(['chefProfile', 'employerProfile', 'socials']);
         }
         
-        $photo = $this->getLatestPhoto($user);
+        $photo = $this->getUserPhoto($user);
 
         $activeRole = $user ? ($user->active_profile ?: 'job_seeker') : 'job_seeker';
 
@@ -324,11 +313,8 @@ class ProfileController extends Controller
                 }
             }
 
-            // Cache the uploaded photo URL
-            if ($photoUrl) {
-                Cache::forever('latest_profile_photo', $photoUrl);
-            } else {
-                $photoUrl = $this->getLatestPhoto($user);
+            if (!$photoUrl && $user) {
+                $photoUrl = $this->getUserPhoto($user);
             }
 
             // Parse skills input safely into array
