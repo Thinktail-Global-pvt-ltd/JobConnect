@@ -42,12 +42,13 @@ class ChefModeratorController extends Controller
                     }
                 }
 
-                // Ensure all chef profiles are marked approved so they appear immediately in admin directory & employer discovery
-                ChefProfile::whereIn('user_id', $allChefIds)
-                    ->where(function($q) {
-                        $q->whereNull('approval_status')->orWhere('approval_status', 'pending');
-                    })
-                    ->update(['approval_status' => 'approved']);
+                // Only auto-approve newly created profiles (those with no status set)
+                // Do NOT override existing 'pending' or 'rejected' statuses set by admin actions
+                if (!empty($missingUserIds)) {
+                    ChefProfile::whereIn('user_id', $missingUserIds)
+                        ->whereNull('approval_status')
+                        ->update(['approval_status' => 'approved']);
+                }
             }
 
             return ChefProfile::with('user')->whereIn('user_id', $allChefIds)->latest()->get();
@@ -71,8 +72,8 @@ class ChefModeratorController extends Controller
 
         // Fetch dynamic stats for dashboard cards from synced profiles
         $allProfiles = $profiles;
-        $pendingCount = 0;
-        $approvedCount = $allProfiles->count();
+        $pendingCount = $allProfiles->where('approval_status', 'pending')->count();
+        $approvedCount = $allProfiles->where('approval_status', 'approved')->count();
         $totalChefs = $allProfiles->count();
         $calendlyLinkedCount = $allProfiles->filter(fn($p) => !empty($p->calendly_link))->count();
         $calendlySyncPercentage = $totalChefs > 0 ? round(($calendlyLinkedCount / $totalChefs) * 100) : 0;
@@ -127,8 +128,8 @@ class ChefModeratorController extends Controller
                     'bio' => $chef->bio ?: '',
                     'calendly_link' => $chef->calendly_link ?: '',
                     'calendly' => !empty($chef->calendly_link),
-                    'approval_status' => 'approved',
-                    'status' => 'approved',
+                    'approval_status' => $chef->approval_status ?: 'pending',
+                    'status' => $chef->approval_status ?: 'pending',
                     'availability_info' => $availability,
                     'skills' => $skills,
                 ];
@@ -136,6 +137,10 @@ class ChefModeratorController extends Controller
 
             $chefList = $allChefs->values();
             $totalCount = $chefList->count();
+            $approvedCount = $chefList->where('approval_status', 'approved')->count();
+            $pendingCount = $chefList->where('approval_status', 'pending')->count();
+            $calendlyCount = $chefList->filter(fn($c) => !empty($c['calendly_link']))->count();
+            $calendlySync = $totalCount > 0 ? round(($calendlyCount / $totalCount) * 100) : 0;
 
             return response()->json([
                 'success' => true,
@@ -144,18 +149,18 @@ class ChefModeratorController extends Controller
                 'total_all' => $totalCount,
                 'total_chefs' => $totalCount,
                 'total_applications' => $totalCount,
-                'pending_count' => 0,
-                'approved_count' => $totalCount,
-                'active_count' => $totalCount,
-                'published_count' => $totalCount,
-                'active_published_chefs' => $totalCount,
+                'pending_count' => $pendingCount,
+                'approved_count' => $approvedCount,
+                'active_count' => $approvedCount,
+                'published_count' => $approvedCount,
+                'active_published_chefs' => $approvedCount,
                 'stats' => [
                     'total' => $totalCount,
-                    'pending' => 0,
-                    'approved' => $totalCount,
-                    'active' => $totalCount,
-                    'published' => $totalCount,
-                    'calendly_sync' => 100
+                    'pending' => $pendingCount,
+                    'approved' => $approvedCount,
+                    'active' => $approvedCount,
+                    'published' => $approvedCount,
+                    'calendly_sync' => $calendlySync
                 ],
                 'chefs' => $chefList,
                 'profiles' => $chefList,
@@ -262,5 +267,106 @@ class ChefModeratorController extends Controller
         ]);
 
         return redirect()->back()->with('success', "Appointment scheduled successfully.");
+    }
+
+    /**
+     * Store/Onboard a new chef profile (Handles modal & API requests).
+     */
+    public function store(Request $request)
+    {
+        try {
+            $fullName = $request->input('full_name') ?? $request->input('name') ?? $request->input('chef_name') ?? 'Chef';
+            $city = $request->input('city') ?? 'India';
+            $expRange = $request->input('experience_range') ?? $request->input('experience') ?? '1-3 Years';
+            $cuisine = $request->input('cuisine_specialty') ?? $request->input('cuisine_specialties') ?? $request->input('specialties') ?? $request->input('cuisine') ?? 'Multi-Cuisine';
+            $mobile = $request->input('mobile_number') ?? $request->input('mobile') ?? $request->input('phone') ?? ('9' . rand(100000000, 999999999));
+            $email = $request->input('email') ?: ('chef.' . time() . rand(100, 999) . '@hospitality.com');
+            $preferredRole = $request->input('preferred_role') ?? $request->input('role') ?? 'Executive Chef';
+            $bio = $request->input('bio') ?? $request->input('summary') ?? 'Professional Chef';
+            $calendly = $request->input('calendly_link') ?? $request->input('calendly') ?? '';
+
+            // Find existing user by email or mobile, or create new user
+            $user = User::where('email', $email)
+                ->orWhere('mobile_number', $mobile)
+                ->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'email' => $email,
+                    'full_name' => $fullName,
+                    'mobile_number' => $mobile,
+                    'city' => $city,
+                    'experience_range' => $expRange,
+                    'preferred_role' => $preferredRole,
+                    'is_available' => true,
+                    'availability_status' => 'Available',
+                    'skills' => is_array($request->skills) ? $request->skills : array_filter(array_map('trim', explode(',', $request->skills ?? ''))),
+                ]);
+            } else {
+                $user->update([
+                    'full_name' => $fullName,
+                    'city' => $city,
+                    'experience_range' => $expRange,
+                    'preferred_role' => $preferredRole,
+                    'is_available' => true,
+                    'availability_status' => 'Available',
+                ]);
+            }
+
+            UserRole::updateOrCreate(
+                ['user_id' => $user->id, 'role_type' => 'chef'],
+                ['is_active' => true]
+            );
+
+            $profile = ChefProfile::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'cuisine_specialty' => $cuisine,
+                    'bio' => $bio,
+                    'calendly_link' => $calendly,
+                    'availability_info' => json_encode([
+                        'languages' => is_array($request->languages) ? $request->languages : array_filter(array_map('trim', explode(',', $request->languages ?? 'English,Hindi'))),
+                        'regional_experience' => ['Pan-India'],
+                        'location_preference' => $request->input('location_preference', 'Both'),
+                        'employment_preference' => ['Permanent'],
+                        'availability_status' => 'Available',
+                        'is_available' => true,
+                    ]),
+                    'approval_status' => 'approved',
+                ]
+            );
+
+            if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Chef profile onboarded and published successfully!',
+                    'chef' => [
+                        'id' => $profile->id,
+                        'user_id' => $user->id,
+                        'full_name' => $user->full_name,
+                        'name' => $user->full_name,
+                        'email' => $user->email,
+                        'mobile_number' => $user->mobile_number,
+                        'city' => $user->city,
+                        'experience_range' => $user->experience_range,
+                        'experience' => $user->experience_range,
+                        'cuisine_specialty' => $profile->cuisine_specialty,
+                        'specialties' => $profile->cuisine_specialty,
+                        'bio' => $profile->bio,
+                        'calendly_link' => $profile->calendly_link,
+                        'approval_status' => 'approved',
+                        'status' => 'approved',
+                    ]
+                ], 200);
+            }
+
+            return redirect('/admin/chefs')->with('success', "Chef {$user->full_name} onboarded and published successfully!");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('ChefModeratorController store Error: ' . $e->getMessage());
+            if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error onboarding chef: ' . $e->getMessage()], 500);
+            }
+            return redirect()->back()->withErrors(['error' => 'Error onboarding chef: ' . $e->getMessage()]);
+        }
     }
 }
