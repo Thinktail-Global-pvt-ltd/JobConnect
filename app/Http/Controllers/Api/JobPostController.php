@@ -241,18 +241,29 @@ class JobPostController extends Controller
             ];
         })->filter()->values();
 
-        // 2. Fetch all Job Posts / Referrals created by this user
-        // NOTE: status filter only applies to created_jobs, NOT applied_jobs
-        // Applied jobs always show all applications regardless of job status
+        // 2. Fetch Job Posts created by this user
+        // DEFAULT: Only show admin-approved created jobs (so employer sees only live jobs)
+        // Pass ?status=all to see everything, ?status=pending to see pending ones
         $createdQuery = JobPost::where('created_by', $user ? $user->id : 0);
         if ($request->has('is_referral')) {
             $createdQuery->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
         }
-        if ($request->filled('status') && $request->status !== 'all') {
+        if ($request->filled('status') && $request->status === 'all') {
+            // status=all → show everything (no status filter)
+        } elseif ($request->filled('status') && $request->status !== 'all') {
+            // explicit status passed (pending, closed, etc.) → filter by it
             $createdQuery->where('status', $request->status);
+        } else {
+            // No status param → default: only show admin-approved jobs
+            $createdQuery->where('status', 'approved');
         }
 
         $createdJobs = $createdQuery->latest()->get();
+
+        // Also fetch pending/rejected created jobs separately (for employer dashboard tracking)
+        $pendingCreatedJobs = JobPost::where('created_by', $user ? $user->id : 0)
+            ->where('status', 'pending')
+            ->latest()->get();
 
         // Standard unified jobs array (Applied jobs first for Jobseeker/Chef, Created jobs first for Employer)
         $isJobSeekerOrChef = in_array($activeRole, ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent']);
@@ -261,14 +272,16 @@ class JobPostController extends Controller
             : $createdJobs->concat($appliedJobs);
 
         return response()->json([
-            'success'               => true,
-            'user_role'             => $activeRole,
-            'total_applied_jobs'    => $appliedJobs->count(),
-            'total_created_jobs'    => $createdJobs->count(),
-            'applied_jobs'          => $appliedJobs,
-            'created_jobs'          => $createdJobs,
-            'jobs'                  => $combinedJobs->values(),
-            'data'                  => $combinedJobs->values(),
+            'success'                   => true,
+            'user_role'                 => $activeRole,
+            'total_applied_jobs'        => $appliedJobs->count(),
+            'total_created_jobs'        => $createdJobs->count(),
+            'total_pending_jobs'        => $pendingCreatedJobs->count(),
+            'applied_jobs'              => $appliedJobs,
+            'created_jobs'              => $createdJobs,          // Admin-approved only (default)
+            'pending_created_jobs'      => $pendingCreatedJobs,   // Awaiting admin approval
+            'jobs'                      => $combinedJobs->values(),
+            'data'                      => $combinedJobs->values(),
         ]);
     }
 
