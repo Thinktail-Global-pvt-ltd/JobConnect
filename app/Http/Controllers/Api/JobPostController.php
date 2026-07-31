@@ -242,6 +242,8 @@ class JobPostController extends Controller
         })->filter()->values();
 
         // 2. Fetch all Job Posts / Referrals created by this user
+        // NOTE: status filter only applies to created_jobs, NOT applied_jobs
+        // Applied jobs always show all applications regardless of job status
         $createdQuery = JobPost::where('created_by', $user ? $user->id : 0);
         if ($request->has('is_referral')) {
             $createdQuery->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
