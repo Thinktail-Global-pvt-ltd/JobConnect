@@ -283,10 +283,9 @@ class EmployerController extends Controller
                 $company = $existingPost->company;
             }
 
-            $dbStatus = 'approved';
-            if ($validated['status'] === 'pending') {
-                $dbStatus = 'pending';
-            } elseif ($validated['status'] === 'closed') {
+            // Always start as pending — admin must approve before job goes live
+            $dbStatus = 'pending';
+            if ($validated['status'] === 'closed') {
                 $dbStatus = 'closed';
             }
 

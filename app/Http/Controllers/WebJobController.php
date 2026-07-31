@@ -189,12 +189,12 @@ class WebJobController extends Controller
             'showcase_image_url' => $request->showcase_image_url,
             'map_image_url' => $request->map_image_url,
             'open_positions' => $request->open_positions ?? 1,
-            'status' => 'approved', // Auto-approved for frictionless prototype testing
+            'status' => 'pending', // Requires admin approval before going live
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Job vacancy posted successfully and is now active!',
+            'message' => 'Job vacancy submitted successfully and is pending admin approval.',
         ]);
     }
 
