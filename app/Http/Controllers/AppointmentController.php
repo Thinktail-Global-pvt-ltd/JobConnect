@@ -170,12 +170,18 @@ class AppointmentController extends Controller
                 }
             }
 
-            // Reload all chefs with chefProfile
+            // Reload all chefs with chefProfile — only return APPROVED/PUBLISHED chefs for employer discovery
             $chefs = User::whereHas('roles', function ($q) {
                 $q->where('role_type', 'chef');
             })->orWhereHas('chefProfile')
             ->with(['chefProfile'])
             ->get()
+            ->filter(function ($chef) {
+                // Only include chefs whose profile is approved
+                $profile = $chef->chefProfile;
+                if (!$profile) return false;
+                return $profile->approval_status === 'approved';
+            })
             ->map(function ($chef) {
                 $profile = $chef->chefProfile;
                 $availability = [];
@@ -219,13 +225,13 @@ class AppointmentController extends Controller
                     'bio' => $profile ? ($profile->bio ?: '') : '',
                     'calendly_link' => $profile ? ($profile->calendly_link ?: '') : '',
                     'calendly' => !empty($profile ? $profile->calendly_link : ''),
-                    'approval_status' => 'approved',
-                    'status' => 'approved',
-                    'is_approved' => true,
-                    'is_published' => true,
-                    'published' => true,
-                    'is_active' => true,
-                    'active' => true,
+                    'approval_status' => $profile->approval_status ?: 'pending',
+                    'status' => $profile->approval_status ?: 'pending',
+                    'is_approved' => $profile->approval_status === 'approved',
+                    'is_published' => $profile->approval_status === 'approved',
+                    'published' => $profile->approval_status === 'approved',
+                    'is_active' => $profile->approval_status === 'approved',
+                    'active' => $profile->approval_status === 'approved',
                     'availability_info' => $availability,
                     'skills' => $skills,
                     'user' => [
@@ -248,7 +254,7 @@ class AppointmentController extends Controller
             });
 
             $chefList = $chefs->values();
-            $totalCount = $chefList->count();
+            $totalCount = $chefList->count(); // Already filtered to approved only
 
             return response()->json([
                 'success' => true,

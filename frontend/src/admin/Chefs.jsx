@@ -75,18 +75,20 @@ export default function Chefs() {
     } catch (err) {
       console.error('Approve failed:', err);
     } finally {
-      fetchPublishedEmployerChefs();
+      await loadChefs();
     }
   };
 
   const handleUnpublish = async (id) => {
+    // Optimistic UI: instantly flip status to pending and show Publish button
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'pending', approval_status: 'pending' } : c));
     try {
       await mockApi.unpublishChef(id);
     } catch (err) {
       console.error('Unpublish failed:', err);
     } finally {
-      fetchPublishedEmployerChefs();
+      // Refresh both admin table and employer preview
+      await loadChefs();
     }
   };
 
@@ -97,7 +99,7 @@ export default function Chefs() {
     } catch (err) {
       console.error('Reject failed:', err);
     } finally {
-      fetchPublishedEmployerChefs();
+      await loadChefs();
     }
   };
 
