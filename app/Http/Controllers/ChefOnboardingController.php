@@ -131,15 +131,22 @@ class ChefOnboardingController extends Controller
                 ];
 
                 // 4. Update or create Chef Profile
+                // New profiles → 'pending' (require admin approval before appearing in employer discovery)
+                // Existing profiles → keep their current approval_status (don't reset approved chefs)
+                $existingProfile = ChefProfile::where('user_id', $user->id)->first();
+                $updateData = [
+                    'cuisine_specialty' => $request->cuisine_specialty,
+                    'bio'               => $request->bio,
+                    'calendly_link'     => $request->calendly_link,
+                    'availability_info' => json_encode($availabilityDetails),
+                ];
+                if (!$existingProfile) {
+                    // Brand new chef — start as pending, admin must approve
+                    $updateData['approval_status'] = 'pending';
+                }
                 ChefProfile::updateOrCreate(
                     ['user_id' => $user->id],
-                    [
-                        'cuisine_specialty' => $request->cuisine_specialty,
-                        'bio' => $request->bio,
-                        'calendly_link' => $request->calendly_link,
-                        'availability_info' => json_encode($availabilityDetails),
-                        'approval_status' => 'approved', // Auto-approved for immediate discovery & admin display
-                    ]
+                    $updateData
                 );
 
                 // 5. Update or create Social Profiles
