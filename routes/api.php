@@ -306,39 +306,87 @@ Route::get('/admin/training-opportunities', function() {
     }
 });
 
-Route::post('/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'curriculum' => 'nullable|string|max:255',
-        'countries' => 'required|string|max:255',
-        'duration' => 'required|string|max:255',
-        'status' => 'nullable|string',
-        'is_pinned' => 'nullable|boolean',
-    ]);
-
-    $t = \App\Models\TrainingOpportunity::create([
-        'program_name' => $validated['name'],
-        'provider_name' => $validated['curriculum'] ?? 'JobConnect Curricula',
-        'location' => $validated['countries'],
-        'duration' => $validated['duration'],
-        'status' => $validated['status'] ?? 'Published',
-        'is_pinned' => $request->boolean('is_pinned'),
-    ]);
-
-    return response()->json(['success' => true, 'message' => 'Training program created successfully.', 'program' => $t], 201);
+Route::match(['get', 'post'], '/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
+    return createTrainingOpportunityRecord($request);
 });
 
-Route::post('/admin/training-opportunities/{id}/status', function($id, \Illuminate\Http\Request $request) {
-    $t = \App\Models\TrainingOpportunity::findOrFail($id);
-    $t->update(['status' => $request->status]);
-    return response()->json(['success' => true, 'message' => "Program status updated to {$request->status}."]);
+Route::match(['get', 'post'], '/api/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
+    return createTrainingOpportunityRecord($request);
 });
 
-Route::post('/admin/training-opportunities/{id}/toggle-pin', function($id) {
-    $t = \App\Models\TrainingOpportunity::findOrFail($id);
-    $t->is_pinned = !$t->is_pinned;
-    $t->save();
-    return response()->json(['success' => true, 'is_pinned' => (bool)$t->is_pinned, 'message' => 'Training pin status updated successfully.']);
+function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
+    try {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'curriculum' => 'nullable|string|max:255',
+            'countries' => 'required|string|max:255',
+            'duration' => 'nullable|string|max:255',
+            'status' => 'nullable|string',
+            'description' => 'nullable|string',
+            'contact_information' => 'nullable|string',
+            'is_pinned' => 'nullable|boolean',
+        ]);
+
+        $programName = $validated['name'];
+        $providerName = !empty($validated['curriculum']) ? $validated['curriculum'] : 'JobConnect Curricula';
+        $location = $validated['countries'];
+        $duration = !empty($validated['duration']) ? $validated['duration'] : '12 Months';
+        $status = !empty($validated['status']) ? $validated['status'] : 'Published';
+        $description = !empty($validated['description']) ? $validated['description'] : 'Professional hospitality placement and specialized training curriculum.';
+        $contactInfo = !empty($validated['contact_information']) ? $validated['contact_information'] : 'admissions@jobrito.com';
+        $isPinned = $request->boolean('is_pinned') ? 1 : 0;
+
+        $insertData = [
+            'program_name' => $programName,
+            'provider_name' => $providerName,
+            'description' => $description,
+            'contact_information' => $contactInfo,
+            'location' => $location,
+            'duration' => $duration,
+            'status' => $status,
+            'is_pinned' => $isPinned,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        $id = \Illuminate\Support\Facades\DB::table('training_opportunities')->insertGetId($insertData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Training program created successfully.',
+            'id' => $id,
+            'program' => array_merge(['id' => $id], $insertData)
+        ], 201);
+    } catch (\Illuminate\Validation\ValidationException $ve) {
+        $firstError = collect($ve->errors())->first()[0] ?? 'Validation failed';
+        return response()->json(['success' => false, 'message' => $firstError], 422);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => 'Failed to create record: ' . $e->getMessage()], 500);
+    }
+}
+
+Route::match(['get', 'post'], '/admin/training-opportunities/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    try {
+        \Illuminate\Support\Facades\DB::table('training_opportunities')
+            ->where('id', $id)
+            ->update(['status' => $request->input('status', 'Published'), 'updated_at' => now()]);
+        return response()->json(['success' => true, 'message' => "Program status updated."]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::match(['get', 'post'], '/admin/training-opportunities/{id}/toggle-pin', function($id) {
+    try {
+        $item = \Illuminate\Support\Facades\DB::table('training_opportunities')->where('id', $id)->first();
+        if ($item) {
+            $newPin = !empty($item->is_pinned) ? 0 : 1;
+            \Illuminate\Support\Facades\DB::table('training_opportunities')
+                ->where('id', $id)
+                ->update(['is_pinned' => $newPin, 'updated_at' => now()]);
+        }
+        return response()->json(['success' => true, 'message' => "Pin status toggled."]);
+    } catch (\Throwable $e) {
 });
 
 // Admin Community Feed Post Management Routes (Unified Feed Stream of Jobs, Community Posts, & Training)

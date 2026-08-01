@@ -95,39 +95,39 @@ export default function Training() {
     }
   };
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.countries) return;
+    setErrorMsg('');
+
+    if (!formData.name || !formData.countries) {
+      setErrorMsg('Please fill in both Program Name and Deployment Countries.');
+      return;
+    }
     setSubmitting(true);
 
-    const tempNewProg = {
-      id: Date.now(),
-      name: formData.name,
-      curriculum: formData.curriculum || 'Hospitality Curriculum',
-      countries: formData.countries.split(',').map(c => c.trim()),
-      duration: formData.duration || '12 Months',
-      status: formData.status,
-      date: 'Just Now',
-      is_pinned: false
-    };
-
-    setPrograms(prev => [tempNewProg, ...prev]);
-    setIsModalOpen(false);
-
     try {
-      await mockApi.createTrainingProgram(formData);
+      const res = await mockApi.createTrainingProgram(formData);
+      if (res && (res.success || res.id || res.program)) {
+        setIsModalOpen(false);
+        setErrorMsg('');
+        setFormData({
+          name: '',
+          curriculum: '',
+          countries: '',
+          duration: '12 Months',
+          status: 'Published'
+        });
+        loadPrograms();
+      } else {
+        setErrorMsg(res?.message || 'Failed to create training program record on server.');
+      }
     } catch (err) {
       console.error('Create program failed:', err);
+      setErrorMsg(err?.response?.data?.message || err?.message || 'Failed to create training program record.');
     } finally {
       setSubmitting(false);
-      setFormData({
-        name: '',
-        curriculum: '',
-        countries: '',
-        duration: '12 Months',
-        status: 'Published'
-      });
-      loadPrograms();
     }
   };
 
@@ -397,6 +397,11 @@ export default function Training() {
             </div>
 
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+              {errorMsg && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                  <span>⚠️ {errorMsg}</span>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Program Name *</label>
                 <input 
