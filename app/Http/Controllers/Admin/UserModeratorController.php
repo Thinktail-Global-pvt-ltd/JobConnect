@@ -54,6 +54,60 @@ class UserModeratorController extends Controller
     }
 
     /**
+     * Display employers list (users with active employer role).
+     */
+    public function employers(Request $request)
+    {
+        $query = User::with(['roles'])
+            ->withCount(['jobPosts'])
+            ->whereHas('roles', function ($rq) {
+                $rq->whereIn('role_type', ['employer', 'agency'])
+                   ->where('is_active', 1);
+            });
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('mobile_number', 'like', "%{$search}%")
+                  ->orWhere('full_name', 'like', "%{$search}%")
+                  ->orWhere('current_employer', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
+            });
+        }
+
+        // Tab filter
+        if ($request->tab === 'active') {
+            $query->where('is_suspended', false);
+        } elseif ($request->tab === 'suspended') {
+            $query->where('is_suspended', true);
+        }
+
+        $employers = $query->latest()->get()->map(function ($user) {
+            return [
+                'id'            => $user->id,
+                'name'          => $user->current_employer ?: ($user->full_name ?: 'Unknown Company'),
+                'contact'       => $user->full_name ?: 'N/A',
+                'phone'         => $user->mobile_number ?: 'N/A',
+                'email'         => $user->email ?: '',
+                'hq'            => $user->city ?: 'India',
+                'posted_count'  => $user->job_posts_count ?? 0,
+                'status'        => $user->is_suspended ? 'Suspended' : 'Active',
+                'is_suspended'  => (bool) $user->is_suspended,
+                'created_at'    => $user->created_at,
+                'role_type'     => optional($user->roles->where('is_active', 1)->first())->role_type ?? 'employer',
+            ];
+        });
+
+        return response()->json([
+            'success'   => true,
+            'employers' => $employers,
+            'total'     => $employers->count(),
+        ]);
+    }
+
+    /**
      * Suspend a user.
      */
     public function suspend(User $user)

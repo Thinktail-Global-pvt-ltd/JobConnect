@@ -18,65 +18,38 @@ export default function Employers() {
     hq: '',
   });
 
-  // Fetch real employers from backend or mock fallback
+  // Fetch real employers from backend — GET /api/admin/employers
   const fetchEmployers = async () => {
     try {
       setLoading(true);
-      // Attempt real API call
-      const res = await realApi.get('/feed?filter=all');
-      if (res.data && res.data.feed && res.data.feed.data) {
-        const feedJobs = res.data.feed.data;
-        const employerMap = new Map();
+      // Try via Vite proxy first (local dev), then /backend/ fallback (production)
+      let res = null;
+      try {
+        res = await realApi.get('/api/admin/employers', { params: { search, tab } });
+      } catch (e) {}
+      if (!res || !res.data || !res.data.success) {
+        try {
+          const axios = (await import('axios')).default;
+          res = await axios.get('/backend/api/admin/employers', { params: { search, tab } });
+        } catch (e) {}
+      }
+      if (!res || !res.data || !res.data.success) {
+        try {
+          const axios = (await import('axios')).default;
+          res = await axios.get('http://178.16.138.159/backend/api/admin/employers', { params: { search, tab } });
+        } catch (e) {}
+      }
 
-        feedJobs.forEach(item => {
-          if (item.creator && !employerMap.has(item.creator.id)) {
-            employerMap.set(item.creator.id, {
-              id: String(item.creator.id),
-              name: item.company || item.creator.current_employer || item.creator.full_name || 'Employer Company',
-              hq: item.location || item.creator.city || 'India',
-              contact: item.creator.full_name || 'Main Contact',
-              phone: item.creator.mobile_number || 'N/A',
-              email: item.creator.email || '',
-              posted_count: 1,
-              status: item.creator.is_suspended ? 'Suspended' : 'Active',
-              created_at: item.creator.created_at || new Date().toISOString()
-            });
-          } else if (item.creator && employerMap.has(item.creator.id)) {
-            const existing = employerMap.get(item.creator.id);
-            existing.posted_count += 1;
-          }
-        });
-
-        const list = Array.from(employerMap.values());
-        if (list.length > 0) {
-          // Sort latest top-first
-          list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-          setEmployers(list);
-          setLoading(false);
-          return;
-        }
+      if (res && res.data && res.data.success && Array.isArray(res.data.employers)) {
+        setEmployers(res.data.employers);
+        return;
       }
     } catch (e) {
-      console.log('Real API unavailable, using dynamic state');
+      console.error('fetchEmployers failed:', e);
+    } finally {
+      setLoading(false);
     }
-
-    // Fallback to local dynamic state
-    const stored = mockDb.getUsers().filter(u => u.role_type === 'employer' || u.role_type === 'agency');
-    const mapped = stored.map(u => ({
-      id: u.id,
-      name: u.current_employer || u.full_name || 'Company Name',
-      hq: u.city || 'India',
-      contact: u.full_name,
-      phone: u.mobile_number,
-      email: u.email || '',
-      posted_count: 1,
-      status: u.is_suspended ? 'Suspended' : 'Active',
-      created_at: u.created_at || new Date().toISOString()
-    }));
-    // Sort latest top-first
-    mapped.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    setEmployers(mapped);
-    setLoading(false);
+    setEmployers([]);
   };
 
   useEffect(() => {
