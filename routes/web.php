@@ -586,3 +586,9 @@ function getWebTrainingOpportunities() {
         ], 500);
     }
 }
+
+// Admin Employer Store Endpoints in web.php
+Route::match(['get', 'post'], '/admin/employers/create', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
+Route::match(['get', 'post'], '/api/admin/employers/create', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
+Route::post('/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
+Route::post('/api/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);

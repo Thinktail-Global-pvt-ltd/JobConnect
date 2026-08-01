@@ -98,16 +98,31 @@ class EmployerModeratorController extends Controller
 
         // Use DB Transaction to ensure atomic inserts into all 3 tables
         $user = \Illuminate\Support\Facades\DB::transaction(function () use ($businessName, $fullName, $mobileNumber, $email, $location, $industrySegment, $prefLang) {
-            // 1. Create or update User in `users` table
-            $userObj = User::updateOrCreate(
-                ['mobile_number' => $mobileNumber],
-                [
+            // Find existing user by email or mobile_number to avoid unique key errors
+            $userObj = null;
+            if (!empty($email)) {
+                $userObj = User::where('email', $email)->first();
+            }
+            if (!$userObj && !empty($mobileNumber)) {
+                $userObj = User::where('mobile_number', $mobileNumber)->first();
+            }
+
+            if ($userObj) {
+                $userObj->update([
+                    'full_name' => $fullName ?: $userObj->full_name,
+                    'email' => $email ?: $userObj->email,
+                    'city' => $location ?: $userObj->city,
+                    'current_employer' => $businessName ?: $userObj->current_employer,
+                ]);
+            } else {
+                $userObj = User::create([
+                    'mobile_number' => $mobileNumber,
                     'full_name' => $fullName,
                     'email' => $email,
                     'city' => $location,
                     'current_employer' => $businessName,
-                ]
-            );
+                ]);
+            }
 
             // 2. Assign active employer role in `user_roles` table
             \App\Models\UserRole::updateOrCreate(

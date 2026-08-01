@@ -122,28 +122,44 @@ class UserModeratorController extends Controller
     /**
      * Get single employer details with real DB stats and posted jobs.
      */
-    public function showEmployer(User $user)
+    public function showEmployer($user)
     {
-        $user->load(['employerProfile', 'roles']);
+        $userModel = $user instanceof User ? $user : User::find($user);
 
-        $jobs = \App\Models\JobPost::where('created_by', $user->id)->latest()->get();
+        if (!$userModel) {
+            $empProfile = \App\Models\EmployerProfile::where('user_id', $user)->orWhere('id', $user)->first();
+            if ($empProfile && $empProfile->user_id) {
+                $userModel = User::find($empProfile->user_id);
+            }
+        }
+
+        if (!$userModel) {
+            return response()->json([
+                'success' => false,
+                'message' => "Employer profile ID #{$user} not found in database."
+            ], 404);
+        }
+
+        $userModel->load(['employerProfile', 'roles']);
+
+        $jobs = \App\Models\JobPost::where('created_by', $userModel->id)->latest()->get();
 
         $totalJobs = $jobs->count();
         $activeJobs = $jobs->where('status', 'approved')->count();
         $pendingJobs = $jobs->where('status', 'pending')->count();
 
-        $empProfile = $user->employerProfile;
+        $empProfile = $userModel->employerProfile;
 
         $employerData = [
-            'id'            => $user->id,
-            'name'          => optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company')),
-            'contact'       => optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A'),
-            'phone'         => optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A'),
-            'email'         => optional($empProfile)->business_email ?: ($user->email ?: 'N/A'),
-            'hq'            => optional($empProfile)->business_location ?: ($user->city ?: 'India'),
-            'status'        => $user->is_suspended ? 'Suspended' : 'Active',
-            'is_suspended'  => (bool) $user->is_suspended,
-            'created_at'    => $user->created_at ? $user->created_at->format('M Y') : 'Jan 2023',
+            'id'            => $userModel->id,
+            'name'          => optional($empProfile)->business_name ?: ($userModel->current_employer ?: ($userModel->full_name ?: 'Employer Company')),
+            'contact'       => optional($empProfile)->contact_person_name ?: ($userModel->full_name ?: 'N/A'),
+            'phone'         => optional($empProfile)->business_mobile ?: ($userModel->mobile_number ?: 'N/A'),
+            'email'         => optional($empProfile)->business_email ?: ($userModel->email ?: 'N/A'),
+            'hq'            => optional($empProfile)->business_location ?: ($userModel->city ?: 'India'),
+            'status'        => $userModel->is_suspended ? 'Suspended' : 'Active',
+            'is_suspended'  => (bool) $userModel->is_suspended,
+            'created_at'    => $userModel->created_at ? $userModel->created_at->format('M Y') : 'Jan 2023',
             'total_jobs'    => $totalJobs,
             'active_jobs'   => $activeJobs,
             'pending_jobs'  => $pendingJobs,
