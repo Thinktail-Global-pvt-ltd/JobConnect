@@ -8,16 +8,14 @@ export default function Layout({ children }) {
   const [usersOpen, setUsersOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [counts, setCounts] = useState({
-    users: 24,
-    talent: 14,
-    employers: 6,
-    chefs: 4,
-    jobs: 21,
-    referrals: 5,
-    community: 12,
-    training: 6,
-    applications: 21,
-    enquiries: 3,
+    users: 0,
+    talent: 0,
+    employers: 0,
+    chefs: 0,
+    jobs: 0,
+    community: 0,
+    training: 0,
+    applications: 0,
   });
 
   const [notifOpen, setNotifOpen] = useState(false);
@@ -91,12 +89,9 @@ export default function Layout({ children }) {
 
   const secondaryNavItems = [
     { name: 'Jobs', path: '/admin/jobs', icon: '💼', countKey: 'jobs' },
-    { name: 'Referrals', path: '/admin/jobs?category=community', icon: '🔗', countKey: 'referrals' },
     { name: 'Community Feed', path: '/admin/community', icon: '📶', countKey: 'community' },
     { name: 'Training & Overseas', path: '/admin/training', icon: '🎓', countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: '📄', countKey: 'applications' },
-    { name: 'Enquiries', path: '/admin/enquiries', icon: '❓', countKey: 'enquiries' },
-    { name: 'Settings', path: '/admin/settings', icon: '⚙️', countKey: null },
   ];
 
   const handleLogout = () => {

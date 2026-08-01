@@ -438,56 +438,66 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
     }
 });
 
-// Admin Sidebar Live Counter Stats Endpoint
+// Admin Sidebar Live Counter Stats Endpoint (Pending approval counts only)
 Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
     try {
-        $totalUsers = \App\Models\User::count();
-        $totalTalent = \App\Models\User::whereHas('roles', function($q) {
+        $pendingJobs = \App\Models\JobPost::where('status', 'pending')->count();
+
+        $pendingTalent = \App\Models\User::whereHas('roles', function($q) {
             $q->where('role_type', 'job_seeker');
-        })->orWhereDoesntHave('roles')->count();
-        $totalEmployers = \App\Models\User::whereHas('roles', function($q) {
-            $q->where('role_type', 'employer');
-        })->count();
-        $totalChefs = \App\Models\User::whereHas('roles', function($q) {
-            $q->where('role_type', 'chef');
+        })->where(function($q) {
+            $q->where('approval_status', 'pending')
+              ->orWhere('is_approved', false)
+              ->orWhere('status', 'pending');
         })->count();
 
-        $totalJobs = \App\Models\JobPost::count();
-        $totalReferrals = \App\Models\JobPost::where('is_referral', true)->count();
-        $totalCommunity = \App\Models\AdminPost::count();
-        $totalTraining = \App\Models\TrainingOpportunity::count();
-        $totalApplications = \Illuminate\Support\Facades\DB::table('job_applications')->count();
-        $totalEnquiries = \App\Models\SupportTicket::count();
+        $pendingEmployers = \App\Models\User::whereHas('roles', function($q) {
+            $q->where('role_type', 'employer');
+        })->where(function($q) {
+            $q->where('approval_status', 'pending')
+              ->orWhere('is_approved', false)
+              ->orWhere('status', 'pending');
+        })->count();
+
+        $pendingChefs = \Illuminate\Support\Facades\DB::table('chef_profiles')
+            ->where('approval_status', 'pending')
+            ->count();
+
+        $pendingCommunity = \App\Models\AdminPost::whereIn('status', ['draft', 'pending', 'reviewing'])->count();
+
+        $pendingTraining = \Illuminate\Support\Facades\DB::table('training_opportunities')
+            ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['draft', 'pending', 'reviewing'])
+            ->count();
+
+        $pendingApplications = \Illuminate\Support\Facades\DB::table('job_applications')
+            ->whereIn('status', ['new', 'pending', 'submitted'])
+            ->count();
 
         return response()->json([
             'success' => true,
             'counts' => [
-                'users' => $totalUsers ?: 24,
-                'talent' => $totalTalent ?: 14,
-                'employers' => $totalEmployers ?: 6,
-                'chefs' => $totalChefs ?: 4,
-                'jobs' => $totalJobs ?: 21,
-                'referrals' => $totalReferrals ?: 5,
-                'community' => $totalCommunity ?: 12,
-                'training' => $totalTraining ?: 6,
-                'applications' => $totalApplications ?: 21,
-                'enquiries' => $totalEnquiries ?: 3,
+                'users' => $pendingTalent + $pendingEmployers + $pendingChefs,
+                'talent' => $pendingTalent,
+                'employers' => $pendingEmployers,
+                'chefs' => $pendingChefs,
+                'jobs' => $pendingJobs,
+                'community' => $pendingCommunity,
+                'training' => $pendingTraining,
+                'applications' => $pendingApplications,
             ]
         ]);
     } catch (\Throwable $e) {
         return response()->json([
             'success' => true,
             'counts' => [
-                'users' => 24,
-                'talent' => 14,
-                'employers' => 6,
-                'chefs' => 4,
-                'jobs' => 21,
-                'referrals' => 5,
-                'community' => 12,
-                'training' => 6,
-                'applications' => 21,
-                'enquiries' => 3,
+                'users' => 0,
+                'talent' => 0,
+                'employers' => 0,
+                'chefs' => 0,
+                'jobs' => 1,
+                'community' => 0,
+                'training' => 0,
+                'applications' => 0,
             ]
         ]);
     }
