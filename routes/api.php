@@ -121,6 +121,8 @@ Route::post('/admin/users/{user}/suspend', [\App\Http\Controllers\Admin\UserMode
 Route::post('/admin/users/{user}/activate', [\App\Http\Controllers\Admin\UserModeratorController::class, 'activate']);
 Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserModeratorController::class, 'destroy']);
 Route::get('/admin/employers', [\App\Http\Controllers\Admin\UserModeratorController::class, 'employers']);
+Route::post('/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
+Route::match(['get', 'post'], '/admin/employers/create', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
 Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::get('/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
 Route::match(['get', 'post'], '/admin/chefs/create', function(\Illuminate\Http\Request $request) {

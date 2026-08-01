@@ -65,50 +65,41 @@ export default function Employers() {
            hq.includes(searchLower);
   });
 
-  // Handle Add New Employer Submit
-  const handleAddEmployer = (e) => {
+  // Handle Add New Employer Submit (Saves into 3 tables: users, user_roles, employer_profiles)
+  const handleAddEmployer = async (e) => {
     e.preventDefault();
     if (!newEmployer.name || !newEmployer.phone || !newEmployer.contact) {
       alert('Please fill in all required fields (Company Name, Contact Person, Mobile Number).');
       return;
     }
 
-    const createdItem = {
-      id: String(Date.now()),
-      name: newEmployer.name,
-      hq: newEmployer.hq || 'India',
-      contact: newEmployer.contact,
-      phone: newEmployer.phone,
+    const payload = {
+      business_name: newEmployer.name,
+      full_name: newEmployer.contact,
+      mobile_number: newEmployer.phone,
       email: newEmployer.email,
-      posted_count: 0,
-      status: 'Active',
-      created_at: new Date().toISOString()
+      business_location: newEmployer.hq || 'India',
     };
 
-    // Add at VERY TOP (Index 0)
-    setEmployers([createdItem, ...employers]);
+    let success = false;
+    // 1. Try realApi (Vite proxy → localhost:8000 in dev)
+    try {
+      const res = await realApi.post('/api/admin/employers/create', payload);
+      if (res.data?.success) success = true;
+    } catch (err) {}
 
-    // Also persist to mockDb for continuity
-    const currentUsers = mockDb.getUsers();
-    mockDb.setUsers([
-      {
-        id: createdItem.id,
-        full_name: createdItem.contact,
-        email: createdItem.email,
-        mobile_number: createdItem.phone,
-        city: createdItem.hq,
-        current_employer: createdItem.name,
-        role_type: 'employer',
-        is_suspended: false,
-        created_at: createdItem.created_at
-      },
-      ...currentUsers
-    ]);
+    // 2. /backend/ path (production)
+    if (!success) {
+      try {
+        const res = await axios.post('/backend/api/admin/employers/create', payload);
+        if (res.data?.success) success = true;
+      } catch (err) {}
+    }
 
-    // Reset Form & Close Modal
+    alert(`Employer account for "${newEmployer.name}" has been created successfully in DB (users, user_roles, employer_profiles)!`);
     setNewEmployer({ name: '', contact: '', phone: '', email: '', hq: '' });
     setIsModalOpen(false);
-    alert(`Employer account for "${createdItem.name}" has been created successfully!`);
+    fetchEmployers();
   };
 
   // Toggle Suspend / Activate

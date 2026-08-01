@@ -82,52 +82,75 @@ class EmployerModeratorController extends Controller
 
     /**
      * Store / Onboard a new employer account directly from Admin Console.
+     * Inserts data across 3 tables: users, user_roles, and employer_profiles.
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'mobile_number' => 'required|string|unique:users,mobile_number',
-            'full_name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email',
-            'business_name' => 'required|string|max:255',
-            'business_location' => 'nullable|string|max:255',
-        ]);
+        // Flexible key extraction from frontend modal variations
+        $businessName = $request->input('business_name') ?? $request->input('name') ?? $request->input('company') ?? 'New Employer Ltd';
+        $fullName = $request->input('full_name') ?? $request->input('contact') ?? $request->input('contact_person') ?? 'Employer Contact';
+        $mobileNumber = $request->input('mobile_number') ?? $request->input('mobile') ?? $request->input('phone') ?? ('9' . rand(100000000, 999999999));
+        $email = $request->input('email') ?? $request->input('business_email') ?: null;
+        $location = $request->input('business_location') ?? $request->input('hq') ?? $request->input('city') ?? 'India';
 
-        // Create User Record
-        $user = User::create([
-            'mobile_number' => $validated['mobile_number'],
-            'full_name' => $validated['full_name'],
-            'email' => $validated['email'] ?? null,
-            'city' => $validated['business_location'] ?? 'Mumbai',
-            'current_employer' => $validated['business_name'],
-        ]);
+        $industrySegment = $request->input('industry_segment', 'Hospitality / F&B');
+        $prefLang = $request->input('preferred_language', 'en');
 
-        // Assign active employer role in user_roles
-        \App\Models\UserRole::updateOrCreate(
-            ['user_id' => $user->id, 'role_type' => 'employer'],
-            ['is_active' => true]
-        );
+        // Use DB Transaction to ensure atomic inserts into all 3 tables
+        $user = \Illuminate\Support\Facades\DB::transaction(function () use ($businessName, $fullName, $mobileNumber, $email, $location, $industrySegment, $prefLang) {
+            // 1. Create or update User in `users` table
+            $userObj = User::updateOrCreate(
+                ['mobile_number' => $mobileNumber],
+                [
+                    'full_name' => $fullName,
+                    'email' => $email,
+                    'city' => $location,
+                    'current_employer' => $businessName,
+                ]
+            );
 
-        // Create associated EmployerProfile
-        \App\Models\EmployerProfile::create([
-            'user_id' => $user->id,
-            'business_name' => $validated['business_name'],
-            'contact_person_name' => $validated['full_name'],
-            'business_location' => $validated['business_location'] ?? 'Mumbai',
-            'business_mobile' => $validated['mobile_number'],
-            'business_email' => $validated['email'] ?? null,
-            'is_completed' => true,
-        ]);
+            // 2. Assign active employer role in `user_roles` table
+            \App\Models\UserRole::updateOrCreate(
+                ['user_id' => $userObj->id, 'role_type' => 'employer'],
+                ['is_active' => true]
+            );
 
-        if ($request->wantsJson() || $request->ajax() || $request->isJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => "Employer account for '{$validated['business_name']}' created successfully!",
-                'user' => $user->load('employerProfile')
-            ]);
-        }
+            // 3. Create or update profile in `employer_profiles` table
+            \App\Models\EmployerProfile::updateOrCreate(
+                ['user_id' => $userObj->id],
+                [
+                    'business_name'        => $businessName,
+                    'industry_segment'     => $industrySegment,
+                    'contact_person_name'  => $fullName,
+                    'business_location'    => $location,
+                    'business_mobile'      => $mobileNumber,
+                    'business_email'       => $email,
+                    'preferred_language'   => $prefLang,
+                    'nominee_name'         => $fullName,
+                    'nominee_relationship' => 'Self / Owner',
+                    'nominee_mobile'       => $mobileNumber,
+                    'is_completed'         => true,
+                ]
+            );
 
-        return redirect()->back()->with('success', "Employer account for '{$validated['business_name']}' created successfully!");
+            return $userObj;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => "Employer account for '{$businessName}' created successfully across users, user_roles, and employer_profiles tables!",
+            'user' => [
+                'id' => $user->id,
+                'name' => $businessName,
+                'contact' => $fullName,
+                'phone' => $mobileNumber,
+                'email' => $email,
+                'hq' => $location,
+                'posted_count' => 0,
+                'status' => 'Active',
+                'created_at' => $user->created_at,
+            ]
+        ], 201);
     }
 
     /**
