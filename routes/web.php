@@ -506,3 +506,78 @@ Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
 Route::match(['get', 'post'], '/api/admin/sidebar-stats', function() {
     return redirect('/admin/sidebar-stats');
 });
+
+// Admin Training Opportunities Endpoints in web.php
+Route::match(['get', 'post'], '/admin/training-opportunities', function() {
+    return getWebTrainingOpportunities();
+});
+
+Route::match(['get', 'post'], '/api/admin/training-opportunities', function() {
+    return getWebTrainingOpportunities();
+});
+
+function getWebTrainingOpportunities() {
+    try {
+        $hasIsPinned = \Illuminate\Support\Facades\Schema::hasColumn('training_opportunities', 'is_pinned');
+        $hasStatus = \Illuminate\Support\Facades\Schema::hasColumn('training_opportunities', 'status');
+
+        $query = \Illuminate\Support\Facades\DB::table('training_opportunities');
+        if ($hasIsPinned) {
+            $query->orderBy('is_pinned', 'desc');
+        }
+        $trainings = $query->orderBy('id', 'desc')->get();
+
+        $allCountries = [];
+        $mapped = $trainings->map(function($t) use (&$allCountries, $hasStatus, $hasIsPinned) {
+            $loc = $t->location ?? 'Overseas';
+            if ($loc) {
+                $parts = array_map('trim', explode(',', $loc));
+                foreach ($parts as $p) {
+                    if ($p && !in_array($p, $allCountries)) $allCountries[] = $p;
+                }
+            }
+
+            $rawStatus = $hasStatus ? ($t->status ?? 'Published') : 'Published';
+            $statusVal = ucfirst(strtolower($rawStatus ?: 'Published'));
+            $isPinnedVal = $hasIsPinned ? (bool)($t->is_pinned ?? false) : false;
+
+            return [
+                'id' => $t->id,
+                'name' => $t->program_name ?? 'Training Program',
+                'title' => $t->program_name ?? 'Training Program',
+                'curriculum' => $t->provider_name ?? 'Hospitality Curricula',
+                'provider_name' => $t->provider_name ?? 'Hospitality Curricula',
+                'description' => $t->description ?? '',
+                'contact_information' => $t->contact_information ?? '',
+                'countries' => array_map('trim', explode(',', $loc)),
+                'location' => $loc,
+                'duration' => $t->duration ?? '12 Months',
+                'status' => $statusVal,
+                'is_pinned' => $isPinnedVal,
+                'date' => isset($t->created_at) ? \Carbon\Carbon::parse($t->created_at)->format('M d, Y') : 'Recently',
+            ];
+        });
+
+        $activeCount = $mapped->filter(fn($p) => in_array(strtolower($p['status']), ['published', 'active', '']))->count();
+        $pendingCount = $mapped->filter(fn($p) => in_array(strtolower($p['status']), ['draft', 'reviewing', 'pending']))->count();
+        $pinnedCount = $mapped->filter(fn($p) => (bool)$p['is_pinned'])->count();
+
+        return response()->json([
+            'success' => true,
+            'programs' => $mapped->values(),
+            'stats' => [
+                'total' => $mapped->count(),
+                'active' => $activeCount,
+                'pending' => $pendingCount,
+                'pinned' => $pinnedCount,
+                'countries_count' => count($allCountries),
+                'countries_list' => $allCountries,
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
