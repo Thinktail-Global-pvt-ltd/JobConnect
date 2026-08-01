@@ -725,6 +725,136 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
     }
 });
 
+// Profile Match Score API Endpoint for Application ID
+Route::match(['get', 'post'], '/applications/match-score', function(\Illuminate\Http\Request $request) {
+    $id = $request->input('application_id') ?? $request->input('id');
+    if (!$id) {
+        return response()->json(['success' => false, 'message' => 'Please provide application_id or id in request.'], 400);
+    }
+    return getApplicationMatchScore($id);
+});
+
+Route::match(['get', 'post'], '/applications/{id}/match-score', function($id) {
+    return getApplicationMatchScore($id);
+});
+
+Route::match(['get', 'post'], '/admin/applications/{id}/match-score', function($id) {
+    return getApplicationMatchScore($id);
+});
+
+function getApplicationMatchScore($applicationId) {
+    try {
+        $app = \Illuminate\Support\Facades\DB::table('job_applications')
+            ->leftJoin('users', 'job_applications.applicant_id', '=', 'users.id')
+            ->leftJoin('job_posts', 'job_applications.job_post_id', '=', 'job_posts.id')
+            ->where('job_applications.id', $applicationId)
+            ->select(
+                'job_applications.id as application_id',
+                'job_applications.status as application_status',
+                'users.id as applicant_id',
+                'users.full_name as applicant_name',
+                'users.mobile_number as applicant_mobile',
+                'users.city as applicant_city',
+                'users.experience_range as applicant_experience',
+                'users.preferred_role as applicant_preferred_role',
+                'users.skills as applicant_skills',
+                'job_posts.id as job_id',
+                'job_posts.title as job_title',
+                'job_posts.location as job_location',
+                'job_posts.company as job_company',
+                'job_posts.experience_range as job_experience'
+            )
+            ->first();
+
+        if (!$app) {
+            return response()->json([
+                'success' => false,
+                'message' => "Application ID #{$applicationId} not found in database."
+            ], 44);
+        }
+
+        // 1. Role Match Score (35%)
+        $roleScore = 15;
+        $prefRole = strtolower(trim($app->applicant_preferred_role ?? ''));
+        $jobTitle = strtolower(trim($app->job_title ?? ''));
+        if ($prefRole && $jobTitle) {
+            if ($prefRole === $jobTitle || str_contains($jobTitle, $prefRole) || str_contains($prefRole, $jobTitle)) {
+                $roleScore = 35;
+            } else {
+                $roleTokens = array_filter(explode(' ', $prefRole), fn($t) => strlen($t) > 2);
+                $titleTokens = array_filter(explode(' ', $jobTitle), fn($t) => strlen($t) > 2);
+                $matches = array_filter($roleTokens, fn($t) => array_filter($titleTokens, fn($jt) => str_contains($jt, $t) || str_contains($t, $jt)));
+                if (count($matches) > 0 && count($roleTokens) > 0) {
+                    $roleScore = (int) round(35 * (count($matches) / count($roleTokens)));
+                }
+            }
+        }
+
+        // 2. Location Match Score (25%)
+        $locationScore = 15;
+        $userCity = strtolower(trim($app->applicant_city ?? ''));
+        $jobLocation = strtolower(trim($app->job_location ?? ''));
+        if (str_contains($jobLocation, 'remote')) {
+            $locationScore = 25;
+        } elseif ($userCity && $jobLocation) {
+            if (str_contains($jobLocation, $userCity) || str_contains($userCity, $jobLocation)) {
+                $locationScore = 25;
+            } else {
+                $locationScore = 10;
+            }
+        }
+
+        // 3. Experience Match Score (25%)
+        $expScore = 15;
+        $userExp = strtolower(trim($app->applicant_experience ?? ''));
+        $jobExp = strtolower(trim($app->job_experience ?? ''));
+        if ($userExp && $jobExp && $userExp === $jobExp) {
+            $expScore = 25;
+        }
+
+        // 4. Skills Match Score (15%)
+        $skillScore = 0;
+        if ($app->applicant_skills) {
+            $skillScore = 10;
+        }
+
+        $totalScore = $roleScore + $locationScore + $expScore + $skillScore;
+        if ($totalScore > 100) $totalScore = 100;
+
+        return response()->json([
+            'success' => true,
+            'application_id' => (int) $app->application_id,
+            'match_percentage' => $totalScore,
+            'status' => $app->application_status ?? 'new',
+            'score_breakdown' => [
+                'role_match' => $roleScore,
+                'location_match' => $locationScore,
+                'experience_match' => $expScore,
+                'skills_match' => $skillScore,
+            ],
+            'applicant' => [
+                'id' => $app->applicant_id,
+                'name' => $app->applicant_name ?: ('Candidate #' . $app->applicant_id),
+                'mobile_number' => $app->applicant_mobile,
+                'preferred_role' => $app->applicant_preferred_role,
+                'city' => $app->applicant_city,
+                'experience_range' => $app->applicant_experience,
+            ],
+            'job_post' => [
+                'id' => $app->job_id,
+                'title' => $app->job_title,
+                'location' => $app->job_location,
+                'company' => $app->job_company,
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
 Route::get('/admin/test-apply-options', function() {
     $jobs = \App\Models\JobPost::latest()->get();
     $users = \App\Models\User::with('roles')->latest()->get();
