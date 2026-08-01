@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
 import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin } from 'lucide-react';
@@ -21,50 +22,24 @@ export default function Jobs() {
     setCategory(cat);
   }, [location.search]);
 
-  // Load real jobs and dynamic stats from backend API
+  // Load real jobs directly from job_posts table via admin API
   const loadJobs = async () => {
     setLoading(true);
+    let data = null;
+
     try {
-      // 1. Attempt fetching from real backend API feed
-      const res = await realApi.get('/feed?filter=all');
-      if (res.data && res.data.feed && res.data.feed.data) {
-        const feedJobs = res.data.feed.data.map(j => ({
-          id: j.id,
-          title: j.title,
-          company: j.company || j.creator?.current_employer || j.creator?.full_name || 'Hospitality Employer',
-          salary: j.salary || (j.salary_min ? `${j.salary_currency || ''} ${j.salary_min} - ${j.salary_max}` : 'Negotiable'),
-          location: j.location || 'India',
-          category: j.category || (j.is_referral ? 'community' : 'india'),
-          job_type: j.job_type || 'Full-time',
-          created_at: j.created_at,
-          status: j.status || 'approved',
-          is_pinned: Boolean(j.is_pinned),
-          creator: j.creator || { full_name: j.company }
-        }));
+      data = await mockApi.getJobs(status, category);
+    } catch (err) {}
 
-        let filtered = feedJobs;
-        if (status) filtered = filtered.filter(j => j.status === status);
-        if (category) filtered = filtered.filter(j => j.category === category);
-
-        setJobs(filtered);
-        setStats({
-          total: feedJobs.length,
-          pending: feedJobs.filter(j => j.status === 'pending').length,
-          approved: feedJobs.filter(j => j.status === 'approved').length,
-          rejected: feedJobs.filter(j => j.status === 'rejected').length,
-          pinned: feedJobs.filter(j => j.is_pinned).length
-        });
-        setLoading(false);
-        return;
-      }
-    } catch (err) {
-      console.error('Failed to fetch real feed jobs, using fallback:', err);
+    if (!data || !data.jobs || data.jobs.length === 0) {
+      try {
+        const res = await axios.get('/backend/api/admin/jobs', { params: { status, category } });
+        if (res.data?.success && Array.isArray(res.data.jobs)) data = res.data;
+      } catch (err) {}
     }
 
-    // 2. Fallback to mockApi
-    try {
-      const data = await mockApi.getJobs(status, category);
-      const allJobs = data.jobs || [];
+    if (data && Array.isArray(data.jobs)) {
+      const allJobs = data.jobs;
       setJobs(allJobs);
       setStats({
         total: data.stats?.total ?? allJobs.length,
@@ -73,11 +48,10 @@ export default function Jobs() {
         rejected: data.stats?.rejected ?? allJobs.filter(j => j.status === 'rejected').length,
         pinned: data.stats?.pinned ?? allJobs.filter(j => Boolean(j.is_pinned)).length
       });
-    } catch (err) {
-      console.error('Failed to load jobs:', err);
-    } finally {
-      setLoading(false);
+    } else {
+      setJobs([]);
     }
+    setLoading(false);
   };
 
   useEffect(() => {

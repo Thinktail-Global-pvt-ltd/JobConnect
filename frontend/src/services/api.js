@@ -371,16 +371,12 @@ export const mockApi = {
     try {
       const res = await realApi.get('/api/admin/jobs', { params: { status, category } });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getJobs /api/admin/jobs failed, trying direct localhost...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.get('http://localhost:8001/api/admin/jobs', { params: { status, category } });
+      const res = await axios.get('/backend/api/admin/jobs', { params: { status, category } });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct getJobs failed", e);
-    }
-    return mockEndpoints.getJobs(status, category);
+    } catch (e) {}
+    return { success: true, jobs: [], stats: { total: 0, pending: 0, approved: 0, rejected: 0, pinned: 0 } };
   },
 
   getJobDetail: async (id) => {

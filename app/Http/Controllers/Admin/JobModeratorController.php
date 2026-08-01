@@ -16,13 +16,21 @@ class JobModeratorController extends Controller
         $query = JobPost::with('creator');
 
         // Optional filter by status
-        if ($request->has('status') && in_array($request->status, ['pending', 'approved', 'rejected'])) {
+        if ($request->filled('status') && in_array($request->status, ['pending', 'approved', 'rejected'])) {
             $query->where('status', $request->status);
         }
 
         // Optional filter by category
-        if ($request->has('category') && in_array($request->category, ['india', 'overseas', 'community'])) {
-            $query->where('category', $request->category);
+        if ($request->filled('category')) {
+            $cat = strtolower(trim($request->category));
+            if (in_array($cat, ['community', 'referrals', 'referral'])) {
+                $query->where(function($q) {
+                    $q->where('category', 'community')
+                      ->orWhere('is_referral', true);
+                });
+            } elseif (in_array($cat, ['india', 'overseas'])) {
+                $query->where('category', $cat);
+            }
         }
 
         $jobs = $query->latest()->get();
