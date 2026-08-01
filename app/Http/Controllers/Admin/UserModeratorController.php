@@ -108,6 +108,53 @@ class UserModeratorController extends Controller
     }
 
     /**
+     * Get single employer details with real DB stats and posted jobs.
+     */
+    public function showEmployer(User $user)
+    {
+        $user->load(['employerProfile', 'roles']);
+
+        $jobs = \App\Models\JobPost::where('created_by', $user->id)->latest()->get();
+
+        $totalJobs = $jobs->count();
+        $activeJobs = $jobs->where('status', 'approved')->count();
+        $pendingJobs = $jobs->where('status', 'pending')->count();
+
+        $empProfile = $user->employerProfile;
+
+        $employerData = [
+            'id'            => $user->id,
+            'name'          => optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company')),
+            'contact'       => optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A'),
+            'phone'         => optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A'),
+            'email'         => optional($empProfile)->business_email ?: ($user->email ?: 'N/A'),
+            'hq'            => optional($empProfile)->business_location ?: ($user->city ?: 'India'),
+            'status'        => $user->is_suspended ? 'Suspended' : 'Active',
+            'is_suspended'  => (bool) $user->is_suspended,
+            'created_at'    => $user->created_at ? $user->created_at->format('M Y') : 'Jan 2023',
+            'total_jobs'    => $totalJobs,
+            'active_jobs'   => $activeJobs,
+            'pending_jobs'  => $pendingJobs,
+            'jobs'          => $jobs->map(function ($j) {
+                return [
+                    'id'           => $j->id,
+                    'title'        => $j->title,
+                    'date'         => $j->created_at ? $j->created_at->format('M d, Y') : 'N/A',
+                    'status'       => $j->status === 'approved' ? 'Active' : ($j->status === 'pending' ? 'Pending Approval' : 'Closed'),
+                    'status_color' => $j->status === 'approved' 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                        : ($j->status === 'pending' ? 'bg-orange-50 text-orange-700 border-orange-100' : 'bg-slate-50 text-slate-500 border-slate-100'),
+                ];
+            }),
+        ];
+
+        return response()->json([
+            'success'  => true,
+            'employer' => $employerData,
+        ]);
+    }
+
+    /**
      * Suspend a user.
      */
     public function suspend(User $user)
