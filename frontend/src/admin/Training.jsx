@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin } from 'lucide-react';
-import { mockApi } from '../services/api';
+import axios from 'axios';
+import { realApi, mockApi } from '../services/api';
 
 export default function Training() {
   const [programs, setPrograms] = useState([]);
@@ -22,26 +23,35 @@ export default function Training() {
 
   const loadPrograms = async () => {
     setLoading(true);
+    let data = null;
+
     try {
-      const data = await mockApi.getTrainingPrograms();
-      if (data && data.programs) {
-        setPrograms(data.programs);
-        const allProgs = data.programs;
-        const countries = new Set();
-        allProgs.forEach(p => (p.countries || []).forEach(c => countries.add(c)));
-        setStats({
-          total: allProgs.length,
-          active: allProgs.filter(p => p.status === 'Published' || p.status === 'Active').length,
-          pending: allProgs.filter(p => p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending').length,
-          countries_count: countries.size,
-          pinned: allProgs.filter(p => p.is_pinned).length
-        });
-      }
-    } catch (err) {
-      console.error('Failed to load training programs:', err);
-    } finally {
-      setLoading(false);
+      data = await mockApi.getTrainingPrograms();
+    } catch (err) {}
+
+    if (!data || !data.programs || data.programs.length === 0) {
+      try {
+        const res = await axios.get('/backend/api/admin/training-opportunities');
+        if (res.data?.success && Array.isArray(res.data.programs)) data = res.data;
+      } catch (err) {}
     }
+
+    if (data && Array.isArray(data.programs)) {
+      setPrograms(data.programs);
+      const allProgs = data.programs;
+      const countries = new Set();
+      allProgs.forEach(p => (p.countries || []).forEach(c => countries.add(c)));
+      setStats({
+        total: data.stats?.total ?? allProgs.length,
+        active: data.stats?.active ?? allProgs.filter(p => p.status === 'Published' || p.status === 'Active').length,
+        pending: data.stats?.pending ?? allProgs.filter(p => p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending').length,
+        countries_count: data.stats?.countries_count ?? countries.size,
+        pinned: data.stats?.pinned ?? allProgs.filter(p => p.is_pinned).length
+      });
+    } else {
+      setPrograms([]);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {

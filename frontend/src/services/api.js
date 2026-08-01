@@ -796,15 +796,11 @@ export const mockApi = {
     try {
       const res = await realApi.get('/api/admin/training-opportunities');
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getTrainingPrograms failed, trying direct localhost...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.get('http://localhost:8001/api/admin/training-opportunities');
+      const res = await axios.get('/backend/api/admin/training-opportunities');
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct getTrainingPrograms failed", e);
-    }
+    } catch (e) {}
     return { success: true, programs: [], stats: { total: 0, active: 0, pending: 0, countries_count: 0 } };
   },
 
@@ -812,15 +808,11 @@ export const mockApi = {
     try {
       const res = await realApi.post('/api/admin/training-opportunities/create', data);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios createTrainingProgram failed, trying direct localhost...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.post('http://localhost:8001/api/admin/training-opportunities/create', data);
+      const res = await axios.post('/backend/api/admin/training-opportunities/create', data);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct createTrainingProgram failed", e);
-    }
+    } catch (e) {}
     return { success: true };
   },
 
@@ -828,15 +820,11 @@ export const mockApi = {
     try {
       const res = await realApi.post(`/api/admin/training-opportunities/${id}/status`, { status });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios updateTrainingStatus failed, trying direct localhost...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.post(`http://localhost:8001/api/admin/training-opportunities/${id}/status`, { status });
+      const res = await axios.post(`/backend/api/admin/training-opportunities/${id}/status`, { status });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct updateTrainingStatus failed", e);
-    }
+    } catch (e) {}
     return { success: true };
   },
 
@@ -844,15 +832,11 @@ export const mockApi = {
     try {
       const res = await realApi.post(`/api/admin/training-opportunities/${id}/toggle-pin`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios togglePinTraining failed, trying direct localhost...", e);
-    }
+    } catch (e) {}
     try {
-      const res = await axios.post(`http://localhost:8001/api/admin/training-opportunities/${id}/toggle-pin`);
+      const res = await axios.post(`/backend/api/admin/training-opportunities/${id}/toggle-pin`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct togglePinTraining failed", e);
-    }
+    } catch (e) {}
     return { success: true };
   },
 
