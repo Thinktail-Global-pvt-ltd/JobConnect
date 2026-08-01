@@ -119,11 +119,10 @@ class FeedController extends Controller
         });
 
         // ----------------------------------------------------------------
-        // 3.  Fetch published admin posts (ordered newest first)
-        //     We use inject_every to know how frequently to inject each post.
-        //     Default inject_every = 2 → insert after every 2 job items.
+        // 3. Fetch published admin community posts & training opportunities
         // ----------------------------------------------------------------
         $adminPosts = AdminPost::with('creator')->published()
+            ->orderByDesc('is_pinned')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($p) {
@@ -137,26 +136,37 @@ class FeedController extends Controller
                 return $p;
             });
 
+        $trainingOpportunities = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($t) {
+                return [
+                    'id'                  => $t->id,
+                    'program_name'        => $t->program_name,
+                    'title'               => $t->program_name,
+                    'provider_name'       => $t->provider_name,
+                    'company'             => $t->provider_name,
+                    'description'         => $t->description,
+                    'contact_information' => $t->contact_information,
+                    'location'            => $t->location,
+                    'duration'            => $t->duration ?? '12 Months',
+                    'status'              => $t->status ?? 'Published',
+                    'is_pinned'           => (bool) $t->is_pinned,
+                    '_type'               => 'training_opportunity',
+                    'category'            => 'training',
+                    'applied'             => false,
+                    'created_at'          => $t->created_at ? $t->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
         // ----------------------------------------------------------------
-        // 4.  Interleave: inject admin posts into the job list
-        //
-        //     Algorithm:
-        //       - Walk through jobs
-        //       - Keep a job counter
-        //       - Keep an admin post pointer
-        //       - Every `inject_every` jobs, splice the next admin post in
-        //
-        //     If multiple admin posts exist with different inject_every values,
-        //     each uses its own counter independently.
-        //     For simplicity (and most real-world use), we rotate through all
-        //     admin posts every avg(inject_every) jobs.
+        // 4. Interleave & sort: Pinned items first, then chronological feed
         // ----------------------------------------------------------------
-        $merged     = [];
+        $merged = [];
         $jobCounter = 0;
         $adminIndex = 0;
         $totalAdmin = count($adminPosts);
 
-        // Default injection interval = 2 jobs per 1 admin post
         $injectEvery = $totalAdmin > 0
             ? (int) round($adminPosts->avg('inject_every'))
             : 999;
@@ -165,24 +175,43 @@ class FeedController extends Controller
             $merged[] = $job;
             $jobCounter++;
 
-            // After every $injectEvery jobs, inject the next admin post (cycling)
             if ($totalAdmin > 0 && $jobCounter % $injectEvery === 0) {
-                $merged[]   = $adminPosts[$adminIndex % $totalAdmin];
+                $merged[] = $adminPosts[$adminIndex % $totalAdmin];
                 $adminIndex++;
             }
         }
 
+        // Add training opportunities into feed
+        foreach ($trainingOpportunities as $tOp) {
+            $merged[] = $tOp;
+        }
+
+        // Sort all items: Pinned first (is_pinned = true), then by creation date
+        usort($merged, function ($a, $b) {
+            $aPinned = is_array($a) ? ($a['is_pinned'] ?? false) : ($a->is_pinned ?? false);
+            $bPinned = is_array($b) ? ($b['is_pinned'] ?? false) : ($b->is_pinned ?? false);
+
+            if ($aPinned !== $bPinned) {
+                return $bPinned <=> $aPinned;
+            }
+
+            $aDate = is_array($a) ? ($a['created_at'] ?? '') : ($a->created_at ?? '');
+            $bDate = is_array($b) ? ($b['created_at'] ?? '') : ($b->created_at ?? '');
+
+            return strcmp((string) $bDate, (string) $aDate);
+        });
+
         // ----------------------------------------------------------------
-        // 5.  Return response preserving pagination meta
+        // 5. Return unified feed response
         // ----------------------------------------------------------------
         return response()->json([
             'success' => true,
             'feed'    => [
-                'data'          => $merged,
+                'data'          => array_values($merged),
                 'current_page'  => $jobsPaginated->currentPage(),
                 'last_page'     => $jobsPaginated->lastPage(),
                 'per_page'      => $jobsPaginated->perPage(),
-                'total'         => $jobsPaginated->total(),
+                'total'         => count($merged),
                 'next_page_url' => $jobsPaginated->nextPageUrl(),
                 'prev_page_url' => $jobsPaginated->previousPageUrl(),
             ],
