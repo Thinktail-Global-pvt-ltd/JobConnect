@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Filter, Eye, X, Building2, Plus } from 'lucide-react';
-import { realApi, mockDb } from '../services/api';
+import axios from 'axios';
+import { realApi } from '../services/api';
 
 export default function Employers() {
   const [employers, setEmployers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [tab, setTab] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State for Add Employer
@@ -18,43 +20,43 @@ export default function Employers() {
     hq: '',
   });
 
-  // Fetch real employers from backend — GET /api/admin/employers
-  const fetchEmployers = async () => {
-    try {
-      setLoading(true);
-      // Try via Vite proxy first (local dev), then /backend/ fallback (production)
-      let res = null;
-      try {
-        res = await realApi.get('/api/admin/employers', { params: { search, tab } });
-      } catch (e) {}
-      if (!res || !res.data || !res.data.success) {
-        try {
-          const axios = (await import('axios')).default;
-          res = await axios.get('/backend/api/admin/employers', { params: { search, tab } });
-        } catch (e) {}
-      }
-      if (!res || !res.data || !res.data.success) {
-        try {
-          const axios = (await import('axios')).default;
-          res = await axios.get('http://178.16.138.159/backend/api/admin/employers', { params: { search, tab } });
-        } catch (e) {}
-      }
+  // Fetch real employers from backend
+  // Query: users JOIN user_roles WHERE role_type='employer' AND user_roles.is_active=1 AND users.id=user_roles.user_id
+  const fetchEmployers = async (searchVal = search, tabVal = tab) => {
+    setLoading(true);
+    const params = { search: searchVal, tab: tabVal };
+    let data = null;
 
-      if (res && res.data && res.data.success && Array.isArray(res.data.employers)) {
-        setEmployers(res.data.employers);
-        return;
-      }
-    } catch (e) {
-      console.error('fetchEmployers failed:', e);
-    } finally {
-      setLoading(false);
+    // 1. Try realApi (Vite proxy → localhost:8000 in dev)
+    try {
+      const res = await realApi.get('/api/admin/employers', { params });
+      if (res.data?.success && Array.isArray(res.data.employers)) data = res.data.employers;
+    } catch (e) {}
+
+    // 2. /backend/ path (production: jobrito.com)
+    if (!data) {
+      try {
+        const res = await axios.get('/backend/api/admin/employers', { params });
+        if (res.data?.success && Array.isArray(res.data.employers)) data = res.data.employers;
+      } catch (e) {}
     }
-    setEmployers([]);
+
+    // 3. Direct IP fallback
+    if (!data) {
+      try {
+        const res = await axios.get('http://178.16.138.159/backend/api/admin/employers', { params });
+        if (res.data?.success && Array.isArray(res.data.employers)) data = res.data.employers;
+      } catch (e) {}
+    }
+
+    setEmployers(data || []);
+    setLoading(false);
   };
 
+  // Re-fetch whenever search or tab changes
   useEffect(() => {
-    fetchEmployers();
-  }, []);
+    fetchEmployers(search, tab);
+  }, [search, tab]);
 
   // Filter employers based on search
   const filteredEmployers = employers.filter(emp =>
