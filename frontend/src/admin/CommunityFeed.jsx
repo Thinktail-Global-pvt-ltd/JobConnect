@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Megaphone, FileText, Plus, Trash2, ArrowUpRight, RotateCcw, Sparkles, CheckCircle2, Bookmark, Briefcase, Signal, Wifi, Battery, MapPin, Building2, Clock, Smartphone, List, Eye, EyeOff, Pin } from 'lucide-react';
-import { mockApi } from '../services/api';
+import axios from 'axios';
+
+const BACKEND = 'http://178.16.138.159/backend';
 
 export default function CommunityFeed() {
   const [viewMode, setViewMode] = useState('phone'); // 'phone' or 'table'
@@ -24,29 +26,16 @@ export default function CommunityFeed() {
     is_pinned: false
   });
 
-  // Fetch Public Candidate Feed (GET /api/feed?filter=all)
-  const fetchPublicCandidateFeed = async () => {
-    try {
-      const data = await mockApi.getPublicFeed('all');
-      if (data && data.success && data.feed) {
-        const feedData = data.feed.data || [];
-        // Sort pinned items top first
-        feedData.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
-        setPublicFeed(feedData);
-      }
-    } catch (err) {
-      console.error('Failed to load candidate public feed:', err);
-    }
-  };
-
-  // Load unified admin stream
+  // Load unified admin stream directly from production backend
   const loadPosts = async () => {
     setLoading(true);
     try {
-      await fetchPublicCandidateFeed();
-      const data = await mockApi.getCommunityPosts();
-      if (data && data.posts && data.posts.length > 0) {
-        const postData = data.posts;
+      const res = await axios.get(`${BACKEND}/api/admin/community-posts`, {
+        headers: { Accept: 'application/json' }
+      });
+      const data = res.data;
+      if (data && data.success) {
+        const postData = Array.isArray(data.posts) ? data.posts : [];
         postData.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
         setPosts(postData);
         setStats({
@@ -126,7 +115,9 @@ export default function CommunityFeed() {
     setIsModalOpen(false);
 
     try {
-      await mockApi.createCommunityPost(formData);
+      await axios.post(`${BACKEND}/api/admin/community-posts`, formData, {
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' }
+      });
     } catch (err) {
       console.error('Create post failed:', err);
     } finally {
