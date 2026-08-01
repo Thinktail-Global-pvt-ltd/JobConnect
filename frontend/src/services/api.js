@@ -613,66 +613,72 @@ export const mockApi = {
   // COMMUNITY POSTS APIs (live Laravel backend)
   // ==========================================
   getCommunityPosts: async () => {
+    // 1. Direct IP Production Backend
+    try {
+      const res = await axios.get('http://178.16.138.159/backend/api/admin/community-posts');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    // 2. Relative /backend/ path
+    try {
+      const res = await axios.get('/backend/api/admin/community-posts');
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    // 3. realApi relative
     try {
       const res = await realApi.get('/api/admin/community-posts');
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getCommunityPosts failed, trying direct localhost...", e);
-    }
-    try {
-      const res = await axios.get('http://localhost:8001/api/admin/community-posts');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct getCommunityPosts failed", e);
-    }
-    return { success: true, posts: [] };
+    } catch (e) {}
+    return { success: true, posts: [], stats: { total: 0, published: 0, drafts: 0, archived: 0, pinned: 0 } };
   },
 
   createCommunityPost: async (postData) => {
+    // 1. Direct IP Production Backend
+    try {
+      const res = await axios.post('http://178.16.138.159/backend/api/admin/community-posts', postData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    // 2. Relative /backend/ path
+    try {
+      const res = await axios.post('/backend/api/admin/community-posts', postData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    // 3. realApi relative
     try {
       const res = await realApi.post('/api/admin/community-posts', postData);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios createCommunityPost failed, trying direct localhost...", e);
-    }
-    try {
-      const res = await axios.post('http://localhost:8001/api/admin/community-posts', postData);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct createCommunityPost failed", e);
-    }
+    } catch (e) {}
     return { success: false };
   },
 
   updateCommunityPostStatus: async (id, status) => {
     try {
+      const res = await axios.post(`http://178.16.138.159/backend/api/admin/community-posts/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post(`/backend/api/admin/community-posts/${id}/status`, { status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
       const res = await realApi.post(`/api/admin/community-posts/${id}/status`, { status });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios updateCommunityPostStatus failed", e);
-    }
-    try {
-      const res = await axios.post(`http://localhost:8001/api/admin/community-posts/${id}/status`, { status });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct updateCommunityPostStatus failed", e);
-    }
+    } catch (e) {}
     return { success: false };
   },
 
   deleteCommunityPost: async (id) => {
     try {
+      const res = await axios.delete(`http://178.16.138.159/backend/api/admin/community-posts/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.delete(`/backend/api/admin/community-posts/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
       const res = await realApi.delete(`/api/admin/community-posts/${id}`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios deleteCommunityPost failed", e);
-    }
-    try {
-      const res = await axios.delete(`http://localhost:8001/api/admin/community-posts/${id}`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct deleteCommunityPost failed", e);
-    }
+    } catch (e) {}
     return { success: false };
   },
 
@@ -894,33 +900,33 @@ export const mockApi = {
 
   getPublicFeed: async (filter = 'all') => {
     try {
+      const res = await axios.get('http://178.16.138.159/backend/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get('/backend/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
       const res = await realApi.get('/api/feed', { params: { filter } });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getPublicFeed /api/feed failed, trying direct localhost...", e);
-    }
-    try {
-      const res = await axios.get('http://localhost:8001/api/feed', { params: { filter } });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct getPublicFeed failed", e);
-    }
+    } catch (e) {}
     return { success: false };
   },
 
   updateFeedItemStatus: async (id, source, status) => {
     try {
+      const res = await axios.post('http://178.16.138.159/backend/api/admin/feed-item/status', { id, source, status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post('/backend/api/admin/feed-item/status', { id, source, status });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
       const res = await realApi.post('/api/admin/feed-item/status', { id, source, status });
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios updateFeedItemStatus failed, trying direct localhost...", e);
-    }
-    try {
-      const res = await axios.post('http://localhost:8001/api/admin/feed-item/status', { id, source, status });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct updateFeedItemStatus failed", e);
-    }
+    } catch (e) {}
     return { success: false };
   },
 
