@@ -132,8 +132,9 @@ export default function Training() {
   };
 
   const filteredPrograms = programs.filter(p => {
-    if (tab === 'published') return p.status === 'Published' || p.status === 'Active';
-    if (tab === 'drafts') return p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending';
+    const s = (p.status || 'Published').toLowerCase();
+    if (tab === 'published') return s === 'published' || s === 'active';
+    if (tab === 'drafts') return s === 'draft' || s === 'reviewing' || s === 'pending';
     if (tab === 'pinned') return Boolean(p.is_pinned);
     return true;
   });

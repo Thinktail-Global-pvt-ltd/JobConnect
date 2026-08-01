@@ -241,54 +241,69 @@ Route::delete('/admin/referrals/{id}', [\App\Http\Controllers\Admin\ReferralCont
 
 // Admin Training & Overseas Opportunities API Routes
 Route::get('/admin/training-opportunities', function() {
-    $trainings = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')->latest()->get();
-    
-    if ($trainings->isEmpty()) {
-        $initials = [
-            ['program_name' => 'Advanced Culinary Arts - London', 'provider_name' => 'Michelin Prep', 'location' => 'UK, Ireland', 'duration' => '12 Months', 'status' => 'Published', 'is_pinned' => true, 'created_at' => now()],
-            ['program_name' => 'Hospitality Leadership - Dubai', 'provider_name' => 'Operations Mgmt', 'location' => 'UAE, Qatar', 'duration' => '24 Months', 'status' => 'Active', 'is_pinned' => false, 'created_at' => now()->subDays(2)],
-            ['program_name' => 'Luxury Resort Management', 'provider_name' => 'Guest Experience', 'location' => 'Maldives, Seychelles', 'duration' => '18 Months', 'status' => 'Draft', 'is_pinned' => false, 'created_at' => now()->subDays(5)],
-            ['program_name' => 'Sommelier Certification', 'provider_name' => 'Wine Science', 'location' => 'France, Italy', 'duration' => '6 Months', 'status' => 'Reviewing', 'is_pinned' => false, 'created_at' => now()->subDays(10)],
-        ];
-        foreach ($initials as $init) {
-            \App\Models\TrainingOpportunity::create($init);
-        }
-        $trainings = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')->latest()->get();
-    }
+    try {
+        $hasIsPinned = \Illuminate\Support\Facades\Schema::hasColumn('training_opportunities', 'is_pinned');
+        $hasStatus = \Illuminate\Support\Facades\Schema::hasColumn('training_opportunities', 'status');
 
-    $allCountries = [];
-    foreach ($trainings as $t) {
-        if ($t->location) {
-            $parts = array_map('trim', explode(',', $t->location));
-            foreach ($parts as $p) {
-                if ($p && !in_array($p, $allCountries)) $allCountries[] = $p;
+        $query = \Illuminate\Support\Facades\DB::table('training_opportunities');
+        if ($hasIsPinned) {
+            $query->orderBy('is_pinned', 'desc');
+        }
+        $trainings = $query->orderBy('id', 'desc')->get();
+
+        $allCountries = [];
+        $mapped = $trainings->map(function($t) use (&$allCountries, $hasStatus, $hasIsPinned) {
+            $loc = $t->location ?? 'Overseas';
+            if ($loc) {
+                $parts = array_map('trim', explode(',', $loc));
+                foreach ($parts as $p) {
+                    if ($p && !in_array($p, $allCountries)) $allCountries[] = $p;
+                }
             }
-        }
-    }
 
-    return response()->json([
-        'success' => true,
-        'programs' => $trainings->map(function($t) {
+            $rawStatus = $hasStatus ? ($t->status ?? 'Published') : 'Published';
+            $statusVal = ucfirst(strtolower($rawStatus ?: 'Published'));
+            $isPinnedVal = $hasIsPinned ? (bool)($t->is_pinned ?? false) : false;
+
             return [
                 'id' => $t->id,
-                'name' => $t->program_name,
+                'name' => $t->program_name ?? 'Training Program',
+                'title' => $t->program_name ?? 'Training Program',
                 'curriculum' => $t->provider_name ?? 'Hospitality Curricula',
-                'countries' => array_map('trim', explode(',', $t->location ?? 'Overseas')),
+                'provider_name' => $t->provider_name ?? 'Hospitality Curricula',
+                'description' => $t->description ?? '',
+                'contact_information' => $t->contact_information ?? '',
+                'countries' => array_map('trim', explode(',', $loc)),
+                'location' => $loc,
                 'duration' => $t->duration ?? '12 Months',
-                'status' => ucfirst($t->status ?? 'Published'),
-                'is_pinned' => (bool)$t->is_pinned,
-                'date' => $t->created_at ? $t->created_at->format('M d, Y') : 'Recently',
+                'status' => $statusVal,
+                'is_pinned' => $isPinnedVal,
+                'date' => isset($t->created_at) ? \Carbon\Carbon::parse($t->created_at)->format('M d, Y') : 'Recently',
             ];
-        }),
-        'stats' => [
-            'total' => $trainings->count(),
-            'active' => $trainings->filter(fn($t) => in_array(strtolower($t->status), ['published', 'active']))->count(),
-            'pending' => $trainings->filter(fn($t) => in_array(strtolower($t->status), ['draft', 'reviewing', 'pending']))->count(),
-            'pinned' => $trainings->filter(fn($t) => (bool)$t->is_pinned)->count(),
-            'countries_count' => count($allCountries),
-            'countries_list' => $allCountries,
-        ]
-    ]);
+        });
+
+        $activeCount = $mapped->filter(fn($p) => in_array(strtolower($p['status']), ['published', 'active', '']))->count();
+        $pendingCount = $mapped->filter(fn($p) => in_array(strtolower($p['status']), ['draft', 'reviewing', 'pending']))->count();
+        $pinnedCount = $mapped->filter(fn($p) => (bool)$p['is_pinned'])->count();
+
+        return response()->json([
+            'success' => true,
+            'programs' => $mapped->values(),
+            'stats' => [
+                'total' => $mapped->count(),
+                'active' => $activeCount,
+                'pending' => $pendingCount,
+                'pinned' => $pinnedCount,
+                'countries_count' => count($allCountries),
+                'countries_list' => $allCountries,
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
 });
 
 Route::post('/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
