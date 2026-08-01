@@ -521,6 +521,60 @@ Route::match(['get', 'post'], '/api/admin/training-opportunities', function() {
     return getWebTrainingOpportunities();
 });
 
+Route::match(['get', 'post'], '/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
+    return createWebTrainingOpportunityRecord($request);
+});
+
+Route::match(['get', 'post'], '/api/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
+    return createWebTrainingOpportunityRecord($request);
+});
+
+if (!function_exists('createWebTrainingOpportunityRecord')) {
+function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
+    try {
+        $programName = $request->input('name') ?? $request->input('program_name');
+        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'JobConnect Curricula';
+        $location = $request->input('countries') ?? $request->input('location');
+        $duration = $request->input('duration') ?? '12 Months';
+        $status = $request->input('status') ?? 'Published';
+        $description = $request->input('description') ?? 'Professional hospitality placement and specialized training curriculum.';
+        $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
+        $isPinned = $request->boolean('is_pinned') ? 1 : 0;
+
+        if (empty($programName)) {
+            return response()->json(['success' => false, 'message' => 'Program Name is required.'], 422);
+        }
+        if (empty($location)) {
+            return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
+        }
+
+        $insertData = [
+            'program_name' => $programName,
+            'provider_name' => $providerName,
+            'description' => $description,
+            'contact_information' => $contactInfo,
+            'location' => $location,
+            'duration' => $duration,
+            'status' => $status,
+            'is_pinned' => $isPinned,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        $id = \Illuminate\Support\Facades\DB::table('training_opportunities')->insertGetId($insertData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Training program created successfully.',
+            'id' => $id,
+            'program' => array_merge(['id' => $id], $insertData)
+        ], 201);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => 'Database error: ' . $e->getMessage()], 500);
+    }
+}
+}
+
 function getWebTrainingOpportunities() {
     try {
         $hasIsPinned = \Illuminate\Support\Facades\Schema::hasColumn('training_opportunities', 'is_pinned');
