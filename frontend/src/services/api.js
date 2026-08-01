@@ -305,15 +305,7 @@ export const mockApi = {
     try {
       const res = await axios.get('/backend/api/admin/users', { params: { search, tab } });
       if (res.data && res.data.success && Array.isArray(res.data.users)) return res.data;
-    } catch (e) {
-      console.warn("getUsers /backend/api/admin/users failed, trying IP...", e);
-    }
-    try {
-      const res = await axios.get('http://178.16.138.159/backend/api/admin/users', { params: { search, tab } });
-      if (res.data && res.data.success && Array.isArray(res.data.users)) return res.data;
-    } catch (e) {
-      console.warn("getUsers direct IP failed", e);
-    }
+    } catch (e) {}
     return mockEndpoints.getUsers(search, tab);
   },
 
@@ -324,10 +316,6 @@ export const mockApi = {
     } catch (e) {}
     try {
       const res = await axios.post(`/backend/api/admin/users/${id}/suspend`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`http://178.16.138.159/backend/api/admin/users/${id}/suspend`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return mockEndpoints.suspendUser(id);
@@ -342,10 +330,6 @@ export const mockApi = {
       const res = await axios.post(`/backend/api/admin/users/${id}/activate`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
-    try {
-      const res = await axios.post(`http://178.16.138.159/backend/api/admin/users/${id}/activate`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
     return mockEndpoints.activateUser(id);
   },
 
@@ -358,10 +342,6 @@ export const mockApi = {
       const res = await axios.delete(`/backend/api/admin/users/${id}`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
-    try {
-      const res = await axios.delete(`http://178.16.138.159/backend/api/admin/users/${id}`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
     return mockEndpoints.deleteUser(id);
   },
 
@@ -372,10 +352,6 @@ export const mockApi = {
     } catch (e) {}
     try {
       const res = await axios.get(`/backend/api/admin/users/${id}/posted-jobs`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get(`http://178.16.138.159/backend/api/admin/users/${id}/posted-jobs`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return mockEndpoints.getUserJobs(id);
@@ -526,10 +502,6 @@ export const mockApi = {
     } catch (e) {}
     try {
       const res = await axios.post(`/backend/api/employer/applicants/${id}/status`, { status });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`http://178.16.138.159/backend/api/employer/applicants/${id}/status`, { status });
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return mockEndpoints.updateApplicationStatus(id, status);
@@ -724,12 +696,6 @@ export const mockApi = {
         return res.data;
       }
     } catch (e) {}
-    try {
-      const res = await axios.get('http://178.16.138.159/backend/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
-        return res.data;
-      }
-    } catch (e) {}
     return { success: true, chefs: [] };
   },
 
@@ -746,12 +712,6 @@ export const mockApi = {
         return res.data;
       }
     } catch (e) {}
-    try {
-      const res = await axios.get('http://178.16.138.159/backend/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
-        return res.data;
-      }
-    } catch (e) {}
     return { success: true, chefs: [] };
   },
 
@@ -762,10 +722,6 @@ export const mockApi = {
     } catch (e) {}
     try {
       const res = await axios.post(`/backend/api/admin/chefs/${id}/approve`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`http://178.16.138.159/backend/api/admin/chefs/${id}/approve`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return { success: true };
@@ -780,10 +736,6 @@ export const mockApi = {
       const res = await axios.post(`/backend/api/admin/chefs/${id}/reject`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
-    try {
-      const res = await axios.post(`http://178.16.138.159/backend/api/admin/chefs/${id}/reject`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
     return { success: true };
   },
 
@@ -794,10 +746,6 @@ export const mockApi = {
     } catch (e) {}
     try {
       const res = await axios.post(`/backend/api/admin/chefs/${id}/unpublish`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`http://178.16.138.159/backend/api/admin/chefs/${id}/unpublish`);
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return { success: true };
@@ -839,13 +787,7 @@ export const mockApi = {
       const res = await axios.post('/backend/api/admin/chefs/create', chefData);
       if (res.data && res.data.success) return res.data;
     } catch (e) {
-      console.warn("Axios createChef /backend/api/admin/chefs/create failed, trying direct IP...", e);
-    }
-    try {
-      const res = await axios.post('http://178.16.138.159/backend/api/admin/chefs/create', chefData);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios direct createChef via IP failed", e);
+      console.warn("Axios createChef /backend/api/admin/chefs/create failed", e);
     }
     return { success: true, chef: newChef };
   },
@@ -999,10 +941,6 @@ export const mockApi = {
     } catch (e) {}
     try {
       const res = await axios.get('/backend/api/admin/notifications');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get('http://178.16.138.159/backend/api/admin/notifications');
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return {

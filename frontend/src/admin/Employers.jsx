@@ -41,14 +41,6 @@ export default function Employers() {
       } catch (e) {}
     }
 
-    // 3. Direct IP fallback
-    if (!data) {
-      try {
-        const res = await axios.get('http://178.16.138.159/backend/api/admin/employers', { params });
-        if (res.data?.success && Array.isArray(res.data.employers)) data = res.data.employers;
-      } catch (e) {}
-    }
-
     setEmployers(data || []);
     setLoading(false);
   };
@@ -58,13 +50,20 @@ export default function Employers() {
     fetchEmployers(search, tab);
   }, [search, tab]);
 
-  // Filter employers based on search
-  const filteredEmployers = employers.filter(emp =>
-    emp.name.toLowerCase().includes(search.toLowerCase()) ||
-    emp.contact.toLowerCase().includes(search.toLowerCase()) ||
-    emp.phone.includes(search) ||
-    emp.hq.toLowerCase().includes(search.toLowerCase())
-  );
+  // Safe filter employers based on search
+  const filteredEmployers = employers.filter(emp => {
+    if (!emp) return false;
+    const searchLower = (search || '').toLowerCase();
+    const name = String(emp.name || '').toLowerCase();
+    const contact = String(emp.contact || '').toLowerCase();
+    const phone = String(emp.phone || '').toLowerCase();
+    const hq = String(emp.hq || '').toLowerCase();
+
+    return name.includes(searchLower) ||
+           contact.includes(searchLower) ||
+           phone.includes(searchLower) ||
+           hq.includes(searchLower);
+  });
 
   // Handle Add New Employer Submit
   const handleAddEmployer = (e) => {
