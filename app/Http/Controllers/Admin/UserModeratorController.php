@@ -55,17 +55,20 @@ class UserModeratorController extends Controller
 
     /**
      * Display employers list (users with active employer role).
+    /**
+     * Display employers list (users with active employer role).
+     * Fetches combined data from users table and employer_profiles table.
      */
     public function employers(Request $request)
     {
-        $query = User::with(['roles'])
+        $query = User::with(['roles', 'employerProfile'])
             ->withCount(['jobPosts'])
             ->whereHas('roles', function ($rq) {
                 $rq->whereIn('role_type', ['employer', 'agency'])
                    ->where('is_active', 1);
             });
 
-        // Search filter
+        // Search filter across users and employer_profiles tables
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -73,7 +76,14 @@ class UserModeratorController extends Controller
                   ->orWhere('full_name', 'like', "%{$search}%")
                   ->orWhere('current_employer', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('city', 'like', "%{$search}%");
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhereHas('employerProfile', function ($epq) use ($search) {
+                      $epq->where('business_name', 'like', "%{$search}%")
+                          ->orWhere('contact_person_name', 'like', "%{$search}%")
+                          ->orWhere('business_mobile', 'like', "%{$search}%")
+                          ->orWhere('business_email', 'like', "%{$search}%")
+                          ->orWhere('business_location', 'like', "%{$search}%");
+                  });
             });
         }
 
@@ -85,13 +95,15 @@ class UserModeratorController extends Controller
         }
 
         $employers = $query->latest()->get()->map(function ($user) {
+            $empProfile = $user->employerProfile;
+
             return [
                 'id'            => $user->id,
-                'name'          => $user->current_employer ?: ($user->full_name ?: 'Unknown Company'),
-                'contact'       => $user->full_name ?: 'N/A',
-                'phone'         => $user->mobile_number ?: 'N/A',
-                'email'         => $user->email ?: '',
-                'hq'            => $user->city ?: 'India',
+                'name'          => optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company')),
+                'contact'       => optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A'),
+                'phone'         => optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A'),
+                'email'         => optional($empProfile)->business_email ?: ($user->email ?: ''),
+                'hq'            => optional($empProfile)->business_location ?: ($user->city ?: 'India'),
                 'posted_count'  => $user->job_posts_count ?? 0,
                 'status'        => $user->is_suspended ? 'Suspended' : 'Active',
                 'is_suspended'  => (bool) $user->is_suspended,
