@@ -800,29 +800,55 @@ export const mockApi = {
     return { success: true, programs: [], stats: { total: 0, active: 0, pending: 0, countries_count: 0 } };
   },
 
-  createTrainingProgram: async (data) => {
+  createTrainingProgram: async (formData) => {
     let errorResp = null;
+    const payload = {
+      program_name: formData.name || formData.program_name,
+      provider_name: formData.curriculum || formData.provider_name || 'Hospitality Curricula',
+      location: formData.countries || formData.location,
+      duration: formData.duration || '12 Months',
+      status: formData.status || 'Published',
+      description: formData.description || 'Professional hospitality placement and specialized training curriculum.',
+      contact_information: formData.contact_information || 'admissions@jobrito.com',
+      is_pinned: Boolean(formData.is_pinned)
+    };
+
+    // 1. Direct IP Production Backend Endpoint
     try {
-      const res = await realApi.post('/api/admin/training-opportunities/create', data);
-      if (res.data && (res.data.success || res.data.id)) return res.data;
+      const res = await axios.post('http://178.16.138.159/backend/api/admin/training-opportunities/create', payload);
+      if (res.data && (res.data.success || res.data.id || res.data.program)) return res.data;
       if (res.data && res.data.message) errorResp = res.data;
     } catch (e) {
       if (e.response?.data) errorResp = e.response.data;
     }
+
+    // 2. Relative realApi Endpoint
     try {
-      const res = await axios.post('/backend/api/admin/training-opportunities/create', data);
-      if (res.data && (res.data.success || res.data.id)) return res.data;
+      const res = await realApi.post('/api/admin/training-opportunities/create', payload);
+      if (res.data && (res.data.success || res.data.id || res.data.program)) return res.data;
       if (res.data && res.data.message) errorResp = res.data;
     } catch (e) {
       if (e.response?.data) errorResp = e.response.data;
     }
+
+    // 3. Fallback /backend/ Relative Endpoint
     try {
-      const res = await axios.post('/admin/training-opportunities/create', data);
-      if (res.data && (res.data.success || res.data.id)) return res.data;
+      const res = await axios.post('/backend/api/admin/training-opportunities/create', payload);
+      if (res.data && (res.data.success || res.data.id || res.data.program)) return res.data;
       if (res.data && res.data.message) errorResp = res.data;
     } catch (e) {
       if (e.response?.data) errorResp = e.response.data;
     }
+
+    // 4. Fallback /admin/ Relative Endpoint
+    try {
+      const res = await axios.post('/admin/training-opportunities/create', payload);
+      if (res.data && (res.data.success || res.data.id || res.data.program)) return res.data;
+      if (res.data && res.data.message) errorResp = res.data;
+    } catch (e) {
+      if (e.response?.data) errorResp = e.response.data;
+    }
+
     return errorResp || { success: false, message: 'Server connection failed. Could not create record.' };
   },
 
