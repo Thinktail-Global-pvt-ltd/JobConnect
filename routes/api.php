@@ -387,6 +387,8 @@ Route::match(['get', 'post'], '/admin/training-opportunities/{id}/toggle-pin', f
         }
         return response()->json(['success' => true, 'message' => "Pin status toggled."]);
     } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
 });
 
 // Admin Community Feed Post Management Routes (Unified Feed Stream of Jobs, Community Posts, & Training)
