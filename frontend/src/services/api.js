@@ -300,54 +300,84 @@ export const mockApi = {
       const res = await realApi.get('/api/admin/users', { params: { search, tab } });
       if (res.data && res.data.success && Array.isArray(res.data.users)) return res.data;
     } catch (e) {
-      console.warn("Axios getUsers /api/admin/users failed, trying direct localhost...", e);
+      console.warn("getUsers /api/admin/users failed, trying /backend/...", e);
     }
     try {
-      const res = await axios.get('http://localhost:8001/api/admin/users', { params: { search, tab } });
+      const res = await axios.get('/backend/api/admin/users', { params: { search, tab } });
       if (res.data && res.data.success && Array.isArray(res.data.users)) return res.data;
     } catch (e) {
-      console.warn("Axios direct getUsers failed", e);
+      console.warn("getUsers /backend/api/admin/users failed, trying IP...", e);
+    }
+    try {
+      const res = await axios.get('http://178.16.138.159/backend/api/admin/users', { params: { search, tab } });
+      if (res.data && res.data.success && Array.isArray(res.data.users)) return res.data;
+    } catch (e) {
+      console.warn("getUsers direct IP failed", e);
     }
     return mockEndpoints.getUsers(search, tab);
   },
 
   suspendUser: async (id) => {
     try {
-      const res = await realApi.post(`/admin/users/${id}/suspend`);
+      const res = await realApi.post(`/api/admin/users/${id}/suspend`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios suspendUser failed, fallback to mock DB", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.post(`/backend/api/admin/users/${id}/suspend`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post(`http://178.16.138.159/backend/api/admin/users/${id}/suspend`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return mockEndpoints.suspendUser(id);
   },
 
   activateUser: async (id) => {
     try {
-      const res = await realApi.post(`/admin/users/${id}/activate`);
+      const res = await realApi.post(`/api/admin/users/${id}/activate`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios activateUser failed, fallback to mock DB", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.post(`/backend/api/admin/users/${id}/activate`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.post(`http://178.16.138.159/backend/api/admin/users/${id}/activate`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return mockEndpoints.activateUser(id);
   },
 
   deleteUser: async (id) => {
     try {
-      const res = await realApi.delete(`/admin/users/${id}`);
+      const res = await realApi.delete(`/api/admin/users/${id}`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios deleteUser failed, fallback to mock DB", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.delete(`/backend/api/admin/users/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.delete(`http://178.16.138.159/backend/api/admin/users/${id}`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return mockEndpoints.deleteUser(id);
   },
 
   getUserJobs: async (id) => {
     try {
-      const res = await realApi.get(`/admin/users/${id}/posted-jobs`);
+      const res = await realApi.get(`/api/admin/users/${id}/posted-jobs`);
       if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios getUserJobs failed, fallback to mock DB", e);
-    }
+    } catch (e) {}
+    try {
+      const res = await axios.get(`/backend/api/admin/users/${id}/posted-jobs`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await axios.get(`http://178.16.138.159/backend/api/admin/users/${id}/posted-jobs`);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
     return mockEndpoints.getUserJobs(id);
   },
 
