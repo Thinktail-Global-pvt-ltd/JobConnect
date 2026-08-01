@@ -801,15 +801,29 @@ export const mockApi = {
   },
 
   createTrainingProgram: async (data) => {
+    let errorResp = null;
     try {
       const res = await realApi.post('/api/admin/training-opportunities/create', data);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+      if (res.data && (res.data.success || res.data.id)) return res.data;
+      if (res.data && res.data.message) errorResp = res.data;
+    } catch (e) {
+      if (e.response?.data) errorResp = e.response.data;
+    }
     try {
       const res = await axios.post('/backend/api/admin/training-opportunities/create', data);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    return { success: true };
+      if (res.data && (res.data.success || res.data.id)) return res.data;
+      if (res.data && res.data.message) errorResp = res.data;
+    } catch (e) {
+      if (e.response?.data) errorResp = e.response.data;
+    }
+    try {
+      const res = await axios.post('/admin/training-opportunities/create', data);
+      if (res.data && (res.data.success || res.data.id)) return res.data;
+      if (res.data && res.data.message) errorResp = res.data;
+    } catch (e) {
+      if (e.response?.data) errorResp = e.response.data;
+    }
+    return errorResp || { success: false, message: 'Server connection failed. Could not create record.' };
   },
 
   updateTrainingStatus: async (id, status) => {

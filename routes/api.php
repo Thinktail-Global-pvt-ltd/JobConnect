@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\FeedController;
 use App\Http\Controllers\Api\JobPostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserSocialController;
+use App\Http\Controllers\Api\ChefProfileViewController;
 use App\Http\Controllers\AppointmentController;
 use Illuminate\Support\Facades\Route;
 
@@ -314,27 +315,24 @@ Route::match(['get', 'post'], '/api/admin/training-opportunities/create', functi
     return createTrainingOpportunityRecord($request);
 });
 
+if (!function_exists('createTrainingOpportunityRecord')) {
 function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
     try {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'curriculum' => 'nullable|string|max:255',
-            'countries' => 'required|string|max:255',
-            'duration' => 'nullable|string|max:255',
-            'status' => 'nullable|string',
-            'description' => 'nullable|string',
-            'contact_information' => 'nullable|string',
-            'is_pinned' => 'nullable|boolean',
-        ]);
-
-        $programName = $validated['name'];
-        $providerName = !empty($validated['curriculum']) ? $validated['curriculum'] : 'JobConnect Curricula';
-        $location = $validated['countries'];
-        $duration = !empty($validated['duration']) ? $validated['duration'] : '12 Months';
-        $status = !empty($validated['status']) ? $validated['status'] : 'Published';
-        $description = !empty($validated['description']) ? $validated['description'] : 'Professional hospitality placement and specialized training curriculum.';
-        $contactInfo = !empty($validated['contact_information']) ? $validated['contact_information'] : 'admissions@jobrito.com';
+        $programName = $request->input('name') ?? $request->input('program_name');
+        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'JobConnect Curricula';
+        $location = $request->input('countries') ?? $request->input('location');
+        $duration = $request->input('duration') ?? '12 Months';
+        $status = $request->input('status') ?? 'Published';
+        $description = $request->input('description') ?? 'Professional hospitality placement and specialized training curriculum.';
+        $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
         $isPinned = $request->boolean('is_pinned') ? 1 : 0;
+
+        if (empty($programName)) {
+            return response()->json(['success' => false, 'message' => 'Program Name is required.'], 422);
+        }
+        if (empty($location)) {
+            return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
+        }
 
         $insertData = [
             'program_name' => $programName,
@@ -357,12 +355,10 @@ function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             'id' => $id,
             'program' => array_merge(['id' => $id], $insertData)
         ], 201);
-    } catch (\Illuminate\Validation\ValidationException $ve) {
-        $firstError = collect($ve->errors())->first()[0] ?? 'Validation failed';
-        return response()->json(['success' => false, 'message' => $firstError], 422);
     } catch (\Throwable $e) {
-        return response()->json(['success' => false, 'message' => 'Failed to create record: ' . $e->getMessage()], 500);
+        return response()->json(['success' => false, 'message' => 'Database error: ' . $e->getMessage()], 500);
     }
+}
 }
 
 Route::match(['get', 'post'], '/admin/training-opportunities/{id}/status', function($id, \Illuminate\Http\Request $request) {
@@ -550,8 +546,6 @@ Route::get('/support-tickets', [\App\Http\Controllers\SupportTicketController::c
 Route::get('/webhook/whatsapp', [\App\Http\Controllers\Api\WhatsAppController::class, 'verifyWebhook']);
 Route::post('/webhook/whatsapp', [\App\Http\Controllers\Api\WhatsAppController::class, 'handleWebhook']);
 Route::post('/whatsapp/send-message', [\App\Http\Controllers\Api\WhatsAppController::class, 'sendMessage']);
-
-use App\Http\Controllers\Api\ChefProfileViewController;
 
 // Public Personal Profile Routes
 Route::get('/profile/personal', [ProfileController::class, 'showPersonal']);
@@ -807,6 +801,7 @@ Route::match(['get', 'post'], '/admin/applications/{id}/match-score', function($
     return getApplicationMatchScore($id);
 });
 
+if (!function_exists('getApplicationMatchScore')) {
 function getApplicationMatchScore($applicationId) {
     try {
         $app = \Illuminate\Support\Facades\DB::table('job_applications')
@@ -835,7 +830,7 @@ function getApplicationMatchScore($applicationId) {
             return response()->json([
                 'success' => false,
                 'message' => "Application ID #{$applicationId} not found in database."
-            ], 44);
+            ], 404);
         }
 
         // 1. Role Match Score (35%)
@@ -918,6 +913,7 @@ function getApplicationMatchScore($applicationId) {
             'message' => $e->getMessage()
         ], 500);
     }
+}
 }
 
 Route::get('/admin/test-apply-options', function() {

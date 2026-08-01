@@ -29,6 +29,11 @@ use Illuminate\Support\Facades\Route;
 // Root Feed Page Route (View)
 Route::get('/', [WebHomeController::class, 'index'])->name('home');
 
+// Backend API Prefix Route Group (enables /backend/api/... endpoints directly)
+Route::prefix('backend/api')->middleware('api')->group(function () {
+    require __DIR__ . '/api.php';
+});
+
 // GitHub Auto-Deployment Webhook Route (API)
 Route::post('/webhook/deploy', [WebhookController::class, 'deploy'])->name('webhook.deploy');
 
