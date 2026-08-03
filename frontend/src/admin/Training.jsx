@@ -264,11 +264,11 @@ export default function Training() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 px-6">Program Name</th>
-                  <th className="py-4 px-6">Deployment Countries</th>
+                  <th className="py-4 px-6">Program & Employer</th>
+                  <th className="py-4 px-6">Deployment & Skills</th>
+                  <th className="py-4 px-6">Benefits & Opportunities</th>
                   <th className="py-4 px-6">Duration</th>
                   <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6">Created Date</th>
                   <th className="py-4 px-6 text-center">Actions</th>
                 </tr>
               </thead>
@@ -278,46 +278,74 @@ export default function Training() {
 
                   return (
                     <tr key={prog.id} className={`hover:bg-slate-50/50 transition-colors ${prog.is_pinned ? 'bg-purple-50/30' : ''}`}>
-                      {/* Name & Curriculum with Pin Indicator */}
-                      <td className="py-4.5 px-6">
-                        <div className="flex items-center gap-2">
+                      {/* Name, Provider & Employer */}
+                      <td className="py-4.5 px-6 max-w-xs">
+                        <div className="flex items-start gap-2">
                           {prog.is_pinned && (
-                            <span className="text-purple-600 text-sm shrink-0" title="Pinned to top feed priority">📌</span>
+                            <span className="text-purple-600 text-sm shrink-0 mt-0.5" title="Pinned to top feed priority">📌</span>
                           )}
                           <div>
                             <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{prog.name}</span>
-                            <span className="text-[10px] text-slate-400 font-bold block mt-1">Curriculum: {prog.curriculum}</span>
+                            <span className="text-[10px] text-slate-500 font-semibold block mt-1">
+                              <strong>Provider:</strong> {prog.curriculum || 'Hospitality Curricula'}
+                            </span>
+                            {prog.employer_details && (
+                              <span className="text-[10px] text-blue-600 font-semibold block mt-0.5">
+                                🏢 <strong>Employer:</strong> {prog.employer_details}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>
 
-                      {/* Countries badges */}
-                      <td className="py-4.5 px-6">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {(prog.countries || []).map((c, idx) => (
-                            <span key={idx} className="bg-slate-100 text-slate-700 text-[9px] font-extrabold px-2.5 py-0.5 rounded-md border border-slate-200 inline-flex items-center gap-1">
-                              <MapPin className="w-2.5 h-2.5 text-rose-500" />
-                              {c}
+                      {/* Deployment Countries & Skills Covered */}
+                      <td className="py-4.5 px-6 max-w-xs">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {(prog.countries || []).map((c, idx) => (
+                              <span key={idx} className="bg-slate-100 text-slate-700 text-[9px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200 inline-flex items-center gap-0.5">
+                                <MapPin className="w-2.5 h-2.5 text-rose-500" />
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                          {prog.skills_covered && (
+                            <span className="text-[10px] text-slate-500 font-medium block truncate" title={prog.skills_covered}>
+                              💡 <strong>Skills:</strong> {prog.skills_covered}
                             </span>
-                          ))}
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Benefits & Placement Opportunities */}
+                      <td className="py-4.5 px-6 max-w-xs">
+                        <div className="space-y-1">
+                          {prog.benefits ? (
+                            <span className="text-[10px] text-emerald-700 font-semibold block truncate" title={prog.benefits}>
+                              ✨ {prog.benefits}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 font-medium block italic">No specific benefits listed</span>
+                          )}
+
+                          {prog.placement_opportunities && (
+                            <span className="text-[10px] text-purple-700 font-semibold block truncate" title={prog.placement_opportunities}>
+                              🎯 {prog.placement_opportunities}
+                            </span>
+                          )}
                         </div>
                       </td>
 
                       {/* Duration */}
-                      <td className="py-4.5 px-6 text-slate-600 font-bold">
-                        {prog.duration}
+                      <td className="py-4.5 px-6 text-slate-600 font-bold whitespace-nowrap">
+                        {prog.duration || '12 Months'}
                       </td>
 
                       {/* Status badge */}
-                      <td className="py-4.5 px-6">
+                      <td className="py-4.5 px-6 whitespace-nowrap">
                         <span className={`px-2.5 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider border ${getStatusBadgeClass(prog.status)}`}>
                           {prog.status}
                         </span>
-                      </td>
-
-                      {/* Created date */}
-                      <td className="py-4.5 px-6 text-slate-400 font-bold">
-                        {prog.date}
                       </td>
 
                       {/* Actions buttons */}
