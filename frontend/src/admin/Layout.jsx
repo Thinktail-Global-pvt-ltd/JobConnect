@@ -151,50 +151,75 @@ export default function Layout({ children }) {
       
       {/* Responsive Collapsible Sidebar */}
       <aside className={`${isCollapsed ? 'w-16' : 'w-64'} ${sidebarClass} flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
-        <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
+        <div className={`py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'px-2 justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
-            <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
-              <div className="bg-white px-3 py-1.5 rounded-2xl shadow-md border border-white/20 flex items-center justify-center overflow-hidden">
-                <img 
-                  src={orbLogo} 
-                  alt="Jobrito - Connecting Hospitality Talent" 
-                  className="h-14 w-auto object-contain max-w-[190px] scale-110" 
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = logoWhiteImg;
-                  }}
-                />
-              </div>
-            </Link>
+            <>
+              <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
+                <div className="bg-white px-3 py-1.5 rounded-2xl shadow-md border border-white/20 flex items-center justify-center overflow-hidden">
+                  <img 
+                    src={orbLogo} 
+                    alt="Jobrito - Connecting Hospitality Talent" 
+                    className="h-14 w-auto object-contain max-w-[190px] scale-110" 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = logoWhiteImg;
+                    }}
+                  />
+                </div>
+              </Link>
+              <button 
+                onClick={() => setIsCollapsed(true)}
+                className="p-1.5 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-400 hover:text-white transition-all"
+                title="Collapse Sidebar"
+              >
+                <PanelLeftClose className="w-4 h-4 text-slate-400" />
+              </button>
+            </>
           ) : (
-            <Link to="/admin/dashboard" className="flex items-center justify-center">
-              <div className="w-8 h-8 rounded-xl bg-emerald-950 text-emerald-400 font-black text-sm flex items-center justify-center border border-emerald-800">
-                J
-              </div>
+            <Link to="/admin/dashboard" title="Jobrito Dashboard" className="w-10 h-10 rounded-2xl bg-white p-1 shadow-md border border-slate-200 flex items-center justify-center overflow-hidden hover:scale-105 transition-all">
+              <img 
+                src={orbLogo} 
+                alt="Jobrito" 
+                className="w-full h-full object-contain scale-125" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = logoWhiteImg;
+                }}
+              />
             </Link>
           )}
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-400 hover:text-white transition-all"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isCollapsed ? <PanelLeftOpen className="w-5 h-5 text-[#059669]" /> : <PanelLeftClose className="w-4 h-4 text-slate-400" />}
-          </button>
         </div>
 
-        <nav className="flex-grow py-3 space-y-0.5 overflow-y-auto custom-scrollbar">
+        <nav className="flex-grow py-3 space-y-1 overflow-y-auto custom-scrollbar">
           
           {/* Main Items before Users */}
           {mainNavItems.map((item) => {
             const active = isActive(item.path);
+            if (isCollapsed) {
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className="flex items-center justify-center py-1 relative group transition-all"
+                >
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
+                    active
+                      ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
+                      : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                  }`}>
+                    {item.icon}
+                  </div>
+                  <div className="absolute left-16 bg-[#0B1120] text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border border-[#1E293B] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                    {item.name}
+                  </div>
+                </Link>
+              );
+            }
             return (
               <Link
                 key={item.name}
                 to={item.path}
-                title={isCollapsed ? item.name : ''}
-                className={`flex items-center justify-between py-2.5 transition-all border-l-4 ${
-                  isCollapsed ? 'px-0 justify-center' : 'px-6'
-                } ${
+                className={`flex items-center justify-between py-2.5 px-6 transition-all border-l-4 ${
                   active
                     ? 'bg-[#1E293B] border-[#059669] text-white font-bold'
                     : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
@@ -202,7 +227,7 @@ export default function Layout({ children }) {
               >
                 <div className="flex items-center gap-3.5">
                   <span className="text-base leading-none">{item.icon}</span>
-                  {!isCollapsed && <span className="text-xs font-semibold">{item.name}</span>}
+                  <span className="text-xs font-semibold">{item.name}</span>
                 </div>
               </Link>
             );
@@ -210,25 +235,35 @@ export default function Layout({ children }) {
 
           {/* Group Header: Users with Sub-items */}
           <div>
-            <button
-              onClick={() => {
-                if (isCollapsed) setIsCollapsed(false);
-                setUsersOpen(!usersOpen);
-              }}
-              title={isCollapsed ? "Users Management" : ""}
-              className={`w-full flex items-center justify-between py-2.5 transition-all border-l-4 text-left ${
-                isCollapsed ? 'px-0 justify-center' : 'px-6'
-              } ${
-                isUsersGroupActive
-                  ? 'bg-[#1E293B] border-[#059669] text-white font-bold'
-                  : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200 font-semibold'
-              }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <span className="text-base leading-none">👥</span>
-                {!isCollapsed && <span className="text-xs font-bold uppercase tracking-wider">Users</span>}
-              </div>
-              {!isCollapsed && (
+            {isCollapsed ? (
+              <button
+                onClick={() => setIsCollapsed(false)}
+                className="w-full flex items-center justify-center py-1 relative group transition-all"
+              >
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
+                  isUsersGroupActive
+                    ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
+                    : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                }`}>
+                  👥
+                </div>
+                <div className="absolute left-16 bg-[#0B1120] text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border border-[#1E293B] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                  Users Management
+                </div>
+              </button>
+            ) : (
+              <button
+                onClick={() => setUsersOpen(!usersOpen)}
+                className={`w-full flex items-center justify-between py-2.5 px-6 transition-all border-l-4 text-left ${
+                  isUsersGroupActive
+                    ? 'bg-[#1E293B] border-[#059669] text-white font-bold'
+                    : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200 font-semibold'
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <span className="text-base leading-none">👥</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">Users</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#059669] text-white shadow-sm border border-emerald-500">
                     {counts.users ?? (counts.talent + counts.employers + counts.chefs)}
@@ -239,8 +274,8 @@ export default function Layout({ children }) {
                     <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                   )}
                 </div>
-              )}
-            </button>
+              </button>
+            )}
 
             {/* Nested Sub-items (Talent/Jobseeker, Employer, Chef) */}
             {(!isCollapsed && usersOpen) && (
@@ -276,14 +311,31 @@ export default function Layout({ children }) {
           {secondaryNavItems.map((item) => {
             const active = isActive(item.path);
             const countVal = item.countKey ? (counts[item.countKey] ?? 0) : null;
+            if (isCollapsed) {
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className="flex items-center justify-center py-1 relative group transition-all"
+                >
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
+                    active
+                      ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
+                      : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                  }`}>
+                    {item.icon}
+                  </div>
+                  <div className="absolute left-16 bg-[#0B1120] text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border border-[#1E293B] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                    {item.name}
+                  </div>
+                </Link>
+              );
+            }
             return (
               <Link
                 key={item.name}
                 to={item.path}
-                title={isCollapsed ? item.name : ''}
-                className={`flex items-center justify-between py-2.5 transition-all border-l-4 ${
-                  isCollapsed ? 'px-0 justify-center' : 'px-6'
-                } ${
+                className={`flex items-center justify-between py-2.5 px-6 transition-all border-l-4 ${
                   active
                     ? 'bg-[#1E293B] border-[#059669] text-white font-bold'
                     : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
@@ -291,9 +343,9 @@ export default function Layout({ children }) {
               >
                 <div className="flex items-center gap-3.5">
                   <span className="text-base leading-none">{item.icon}</span>
-                  {!isCollapsed && <span className="text-xs font-semibold">{item.name}</span>}
+                  <span className="text-xs font-semibold">{item.name}</span>
                 </div>
-                {(!isCollapsed && countVal !== null) && (
+                {countVal !== null && (
                   <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
                     {countVal}
                   </span>
