@@ -540,6 +540,10 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
         $status = $request->input('status') ?? 'Published';
         $description = $request->input('description') ?? 'Professional hospitality placement and specialized training curriculum.';
         $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
+        $employerDetails = $request->input('employer_details') ?? '';
+        $skillsCovered = $request->input('skills_covered') ?? '';
+        $benefits = $request->input('benefits') ?? $request->input('training_benefits') ?? '';
+        $placementOpportunities = $request->input('placement_opportunities') ?? '';
         $isPinned = $request->boolean('is_pinned') ? 1 : 0;
 
         if (empty($programName)) {
@@ -556,6 +560,10 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             'contact_information' => $contactInfo,
             'location' => $location,
             'duration' => $duration,
+            'employer_details' => $employerDetails,
+            'skills_covered' => $skillsCovered,
+            'benefits' => $benefits,
+            'placement_opportunities' => $placementOpportunities,
             'status' => $status,
             'is_pinned' => $isPinned,
             'created_at' => now(),
@@ -612,6 +620,10 @@ function getWebTrainingOpportunities() {
                 'countries' => array_map('trim', explode(',', $loc)),
                 'location' => $loc,
                 'duration' => $t->duration ?? '12 Months',
+                'employer_details' => $t->employer_details ?? '',
+                'skills_covered' => $t->skills_covered ?? '',
+                'benefits' => $t->benefits ?? '',
+                'placement_opportunities' => $t->placement_opportunities ?? '',
                 'status' => $statusVal,
                 'is_pinned' => $isPinnedVal,
                 'date' => isset($t->created_at) ? \Carbon\Carbon::parse($t->created_at)->format('M d, Y') : 'Recently',

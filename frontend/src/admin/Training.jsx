@@ -18,6 +18,10 @@ export default function Training() {
     curriculum: '',
     countries: '',
     duration: '12 Months',
+    employer_details: '',
+    skills_covered: '',
+    benefits: '',
+    placement_opportunities: '',
     status: 'Published'
   });
 
@@ -117,6 +121,10 @@ export default function Training() {
           curriculum: '',
           countries: '',
           duration: '12 Months',
+          employer_details: '',
+          skills_covered: '',
+          benefits: '',
+          placement_opportunities: '',
           status: 'Published'
         });
         loadPrograms();
@@ -396,53 +404,70 @@ export default function Training() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               {errorMsg && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
                   <span>⚠️ {errorMsg}</span>
                 </div>
               )}
+              
+              {/* Field 1: Training Program Name */}
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Program Name *</label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Training Program Name *</label>
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. Advanced Culinary Arts - London"
+                  placeholder="e.g. Advanced Culinary Arts & Overseas Deployment"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Curriculum / Provider</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Michelin Prep"
-                  value={formData.curriculum}
-                  onChange={(e) => setFormData(prev => ({ ...prev, curriculum: e.target.value }))}
-                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              {/* Field 2 & 3: Curriculum/Provider & Deployment Country */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Deployment Countries *</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Curriculum / Provider</label>
                   <input 
                     type="text" 
-                    required
-                    placeholder="e.g. UK, Ireland"
-                    value={formData.countries}
-                    onChange={(e) => setFormData(prev => ({ ...prev, countries: e.target.value }))}
+                    placeholder="e.g. Michelin Prep Institute"
+                    value={formData.curriculum}
+                    onChange={(e) => setFormData(prev => ({ ...prev, curriculum: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Duration</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Deployment Countries *</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. 12 Months"
+                    required
+                    placeholder="e.g. UK, UAE, Saudi Arabia"
+                    value={formData.countries}
+                    onChange={(e) => setFormData(prev => ({ ...prev, countries: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+              </div>
+
+              {/* Field 4 & 5: Employer Details & Training Duration */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Employer Details</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Marriott International, Hyatt UK"
+                    value={formData.employer_details}
+                    onChange={(e) => setFormData(prev => ({ ...prev, employer_details: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Training Duration</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 12 Months (6m Training + 6m Placement)"
                     value={formData.duration}
                     onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -450,6 +475,43 @@ export default function Training() {
                 </div>
               </div>
 
+              {/* Field 6: Skills Covered */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Skills Covered</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Pastry & Bakery, Fine Dining Service, HACCP Safety, Tandoor"
+                  value={formData.skills_covered}
+                  onChange={(e) => setFormData(prev => ({ ...prev, skills_covered: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
+
+              {/* Field 7: Training Benefits */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Training Benefits</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. UK Skilled Worker Visa Support, Free Accommodation, Paid Stipend"
+                  value={formData.benefits}
+                  onChange={(e) => setFormData(prev => ({ ...prev, benefits: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
+
+              {/* Field 8: Placement Opportunities */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Placement Opportunities</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Guaranteed 100% International Placement upon course completion"
+                  value={formData.placement_opportunities}
+                  onChange={(e) => setFormData(prev => ({ ...prev, placement_opportunities: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
+
+              {/* Field 9: Initial Status */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Initial Status</label>
                 <select 
@@ -486,7 +548,7 @@ export default function Training() {
       {/* PROGRAM DETAILS VIEW MODAL */}
       {selectedProgram && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 border border-slate-100 shadow-2xl space-y-4 text-left">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 border border-slate-100 shadow-2xl space-y-4 text-left max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-outfit font-extrabold text-lg text-slate-800">
@@ -505,14 +567,21 @@ export default function Training() {
             <div className="space-y-3 text-xs text-slate-600 font-medium">
               <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                 <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Curriculum</span>
-                  <span className="font-bold text-slate-700">{selectedProgram.curriculum}</span>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Curriculum / Provider</span>
+                  <span className="font-bold text-slate-700">{selectedProgram.curriculum || selectedProgram.provider_name || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Duration</span>
-                  <span className="font-bold text-slate-700">{selectedProgram.duration}</span>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Training Duration</span>
+                  <span className="font-bold text-slate-700">{selectedProgram.duration || 'N/A'}</span>
                 </div>
               </div>
+
+              {selectedProgram.employer_details && (
+                <div className="bg-blue-50/60 p-3.5 rounded-2xl border border-blue-100">
+                  <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider block mb-1">Employer Details</span>
+                  <span className="font-semibold text-slate-800 text-xs block">{selectedProgram.employer_details}</span>
+                </div>
+              )}
 
               <div>
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Deployment Countries</span>
@@ -525,6 +594,33 @@ export default function Training() {
                   ))}
                 </div>
               </div>
+
+              {selectedProgram.skills_covered && (
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Skills Covered</span>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-slate-700 font-semibold">
+                    {selectedProgram.skills_covered}
+                  </div>
+                </div>
+              )}
+
+              {selectedProgram.benefits && (
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Training Benefits</span>
+                  <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 text-emerald-900 font-semibold">
+                    ✨ {selectedProgram.benefits}
+                  </div>
+                </div>
+              )}
+
+              {selectedProgram.placement_opportunities && (
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Placement Opportunities</span>
+                  <div className="bg-purple-50/60 p-3 rounded-xl border border-purple-100 text-purple-900 font-semibold">
+                    🎯 {selectedProgram.placement_opportunities}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Status</span>

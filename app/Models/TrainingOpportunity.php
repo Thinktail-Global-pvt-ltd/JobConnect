@@ -17,6 +17,10 @@ class TrainingOpportunity extends Model
         'duration',
         'status',
         'is_pinned',
+        'employer_details',
+        'skills_covered',
+        'benefits',
+        'placement_opportunities',
     ];
 
     protected $casts = [

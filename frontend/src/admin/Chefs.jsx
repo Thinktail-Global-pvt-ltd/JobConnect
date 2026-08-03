@@ -397,7 +397,6 @@ export default function Chefs() {
             </div>
           </div>
         </div>
-      )}
 
       {/* ONBOARD NEW CHEF MODAL */}
       {isOnboardModalOpen && (
