@@ -25,6 +25,7 @@ import EmployerDetail from "./admin/EmployerDetail";
 import Enquiries from "./admin/Enquiries";
 import Settings from "./admin/Settings";
 import Applications from "./admin/Applications";
+import NotificationsLog from "./admin/NotificationsLog";
 import Layout from "./admin/Layout";
 
 // Protected Admin Route Guard
@@ -135,6 +136,8 @@ function App() {
         <Route path="/admin/enquiries" element={<ProtectedAdminRoute><Layout><Enquiries /></Layout></ProtectedAdminRoute>} />
         <Route path="/admin/settings" element={<ProtectedAdminRoute><Layout><Settings /></Layout></ProtectedAdminRoute>} />
         <Route path="/admin/applications" element={<ProtectedAdminRoute><Layout><Applications /></Layout></ProtectedAdminRoute>} />
+        <Route path="/admin/notifications" element={<ProtectedAdminRoute><Layout><NotificationsLog /></Layout></ProtectedAdminRoute>} />
+        <Route path="/admin/activity-logs" element={<ProtectedAdminRoute><Layout><NotificationsLog /></Layout></ProtectedAdminRoute>} />
 
         {/* Fallback not found */}
         <Route path="*" element={<NotFound />} />

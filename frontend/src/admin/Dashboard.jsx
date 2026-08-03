@@ -5,13 +5,48 @@ import { mockApi } from '../services/api';
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const [notificationsList, setNotificationsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await mockApi.getStats();
+        const [res, notifRes] = await Promise.all([
+          mockApi.getStats(),
+          mockApi.getNotifications()
+        ]);
+
         setData(res);
+
+        if (notifRes && notifRes.success) {
+          const rawList = notifRes.notifications || [];
+          
+          // Filter out WhatsApp & login_auth_code logs
+          const fcmList = rawList.filter(item => {
+            const type = String(item.type || '').toLowerCase();
+            const title = String(item.title || '').toLowerCase();
+            const body = String(item.body || item.message || '').toLowerCase();
+            return !type.includes('whatsapp') && !title.includes('whatsapp') && !body.includes('whatsapp') && !type.includes('login_auth_code') && !title.includes('login_auth_code');
+          });
+
+          // Deduplicate
+          const dedupedList = [];
+          const seenMap = new Map();
+
+          for (const notif of fcmList) {
+            const recipientId = notif.user_id || notif.recipient_phone || notif.recipient_name || 'anon';
+            const cleanTitle = (notif.title || '').trim().toLowerCase();
+            const cleanBody = (notif.body || notif.message || '').trim().toLowerCase();
+            const key = `${recipientId}_${cleanTitle}_${cleanBody}`;
+
+            if (!seenMap.has(key)) {
+              seenMap.set(key, true);
+              dedupedList.push(notif);
+            }
+          }
+
+          setNotificationsList(dedupedList);
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -249,15 +284,46 @@ export default function Dashboard() {
 
         {/* Right: Recent Activity Feed (2/5) */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden flex flex-col justify-between">
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden flex flex-col justify-between h-full">
             <div>
-              <div className="p-6 border-b border-slate-100 flex items-center gap-2 bg-slate-50/10">
-                <Clock className="w-4 h-4 text-slate-500" />
-                <h3 className="font-outfit font-extrabold text-base text-slate-800">Recent Activity Feed</h3>
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/10">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#059669]" />
+                  <h3 className="font-outfit font-extrabold text-base text-slate-800">Recent Activity Feed</h3>
+                </div>
+                <span className="text-[10px] font-bold bg-emerald-50 text-[#059669] px-2 py-0.5 rounded-full border border-emerald-200">
+                  {notificationsList.length} Total Logs
+                </span>
               </div>
 
-              <div className="p-6 space-y-6">
-                {feed.length === 0 ? (
+              <div className="p-6 space-y-4">
+                {notificationsList.length > 0 ? (
+                  notificationsList.slice(0, 5).map((notif, index) => (
+                    <div key={notif.id || index} className="flex gap-3 pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#059669] border border-emerald-200 flex items-center justify-center text-xs shrink-0 font-bold">
+                        🔔
+                      </div>
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-800 leading-snug truncate" title={notif.title}>
+                          {notif.title || 'System Notification'}
+                        </p>
+                        <p className="text-[11px] font-semibold text-slate-500 line-clamp-2 leading-relaxed">
+                          {notif.body || notif.message || 'No details provided.'}
+                        </p>
+                        <div className="flex items-center gap-2 pt-1 flex-wrap">
+                          {(notif.recipient_name || notif.user_id) && (
+                            <span className="text-[9px] font-extrabold text-[#059669] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 truncate max-w-[120px]">
+                              To: {notif.recipient_name || notif.user_id}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-semibold text-slate-400">
+                            {notif.created_at || notif.time || 'Recently'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : feed.length === 0 ? (
                   <p className="text-xs font-semibold text-slate-400 text-center py-6">No recent actions logged.</p>
                 ) : (
                   feed.map((act, index) => (
@@ -277,10 +343,10 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="px-6 py-4.5 border-t border-slate-100 bg-[#eff6ff]/30 text-center">
-              <button className="text-xs font-bold text-[#1d4ed8] hover:underline w-full">
-                Full Audit Log
-              </button>
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 text-center">
+              <Link to="/admin/notifications" className="text-xs font-bold text-[#059669] hover:underline flex items-center justify-center gap-1.5 w-full">
+                View Full Audit Logs & Notifications →
+              </Link>
             </div>
           </div>
         </div>
