@@ -258,11 +258,20 @@ export default function Jobs() {
                       </div>
                     </td>
 
-                    {/* Employer / Creator */}
+                    {/* Employer / Business Name */}
                     <td className="py-4.5 px-6 font-extrabold text-slate-200">
                       <div className="flex items-center gap-2">
                         <span className="w-6 h-6 rounded-md bg-[#1E293B] text-slate-300 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-700">🏢</span>
-                        <span>{job.creator ? (job.creator.full_name || job.creator.company_name) : (job.company || 'Hospitality Employer')}</span>
+                        <div className="flex flex-col">
+                          <span className="text-white font-extrabold block">
+                            {job.business_name || job.company_name || job.company || (job.creator ? (job.creator.business_name || job.creator.company_name || job.creator.full_name) : 'Hospitality Employer')}
+                          </span>
+                          {job.creator && job.creator.full_name && (job.business_name || job.company_name || job.company) && (
+                            <span className="text-[10px] font-semibold text-slate-400 block">
+                              By: {job.creator.full_name}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
 

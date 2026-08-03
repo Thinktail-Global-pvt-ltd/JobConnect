@@ -4,6 +4,7 @@ import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLef
 import { mockApi } from '../services/api';
 import logoImg from '../assets/Jobrito full logo.png';
 import logoWhiteImg from '../assets/jobrito-logo-white-text.png';
+import orbLogo from '../assets/jobrito-orb-logo.png';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -138,17 +139,17 @@ export default function Layout({ children }) {
       <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-[#0B1120] border-r border-[#1E293B] flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
         <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
-            <Link to="/admin/dashboard" className="flex items-center gap-2.5 group py-1">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-outfit font-black text-lg flex items-center justify-center shadow-lg shadow-emerald-950/40 border border-emerald-400/30 shrink-0">
-                J
-              </div>
-              <div>
-                <span className="font-outfit font-black text-xl text-white tracking-tight leading-none block group-hover:text-slate-200 transition-colors">
-                  Jobrito
-                </span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
-                  Connecting Talent
-                </span>
+            <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
+              <div className="bg-white/95 px-2.5 py-1 rounded-2xl shadow-sm border border-white/20 flex items-center justify-center">
+                <img 
+                  src={orbLogo} 
+                  alt="Jobrito - Connecting Hospitality Talent" 
+                  className="h-10 w-auto object-contain max-w-[170px]" 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = logoWhiteImg;
+                  }}
+                />
               </div>
             </Link>
           ) : (

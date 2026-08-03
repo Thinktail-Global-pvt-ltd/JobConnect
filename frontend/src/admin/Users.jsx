@@ -14,6 +14,7 @@ export default function Users() {
   const [modalData, setModalData] = useState([]);
   const [modalType, setModalType] = useState(''); 
   const [modalLoading, setModalLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -41,29 +42,21 @@ export default function Users() {
     loadUsers();
   };
 
-  const handleShowPosted = async (id, name) => {
+  const handleViewUserDetail = async (userItem) => {
+    setSelectedUser(userItem);
     setModalOpen(true);
-    setModalTitle(`Jobs Posted by ${name}`);
-    setModalType('posted');
+    setModalTitle(`User Profile Details - ${userItem.full_name || userItem.mobile_number}`);
+    setModalType('user_detail');
     setModalLoading(true);
     try {
-      const data = await mockApi.getUserJobs(id);
-      setModalData(data.jobs);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  const handleShowApplied = async (id, name) => {
-    setModalOpen(true);
-    setModalTitle(`Jobs Applied by ${name}`);
-    setModalType('applied');
-    setModalLoading(true);
-    try {
-      const data = await mockApi.getUserApplications(id);
-      setModalData(data.applications);
+      const [jobsData, appsData] = await Promise.all([
+        mockApi.getUserJobs(userItem.id).catch(() => ({ jobs: [] })),
+        mockApi.getUserApplications(userItem.id).catch(() => ({ applications: [] }))
+      ]);
+      setModalData({
+        jobs: jobsData.jobs || [],
+        applications: appsData.applications || []
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -185,9 +178,9 @@ export default function Users() {
 
                     {/* Actions Links */}
                     <td className="py-4 px-6 text-right space-x-2">
-                      <button onClick={() => handleShowPosted(user.id, user.full_name || user.mobile_number)} 
-                              className="px-3 py-1.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-extrabold transition-all cursor-pointer">
-                        View Profile
+                      <button onClick={() => handleViewUserDetail(user)} 
+                              className="px-3 py-1.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-[#059669] hover:text-white border border-slate-700 text-xs font-extrabold transition-all cursor-pointer inline-flex items-center gap-1">
+                        👁️ View Details
                       </button>
 
                       {user.is_suspended ? (
@@ -207,7 +200,7 @@ export default function Users() {
           </div>
         )}
 
-        {/* Footer info (ALL LOADED AT ONCE - NO PAGINATION) */}
+        {/* Footer info */}
         <div className="px-6 py-4 flex justify-between items-center border-t border-[#1E293B] bg-[#0F172A]/40">
           <span className="text-xs text-slate-400 font-extrabold">
             Showing all {users.length} Talent
@@ -221,9 +214,9 @@ export default function Users() {
       </div>
 
       {/* AJAX Detail Modals */}
-      {modalOpen && (
+      {modalOpen && selectedUser && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0B1120] border border-[#1E293B] rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col shadow-2xl text-left">
+          <div className="bg-[#0B1120] border border-[#1E293B] rounded-3xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col shadow-2xl text-left">
             <div className="px-6 py-5 border-b border-[#1E293B] flex justify-between items-center bg-[#0F172A]/60">
               <h3 className="font-outfit font-black text-white text-base">{modalTitle}</h3>
               <button type="button" onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold transition-all">✕</button>
@@ -231,37 +224,110 @@ export default function Users() {
             
             <div className="p-6 overflow-y-auto space-y-4 text-xs font-semibold text-slate-300">
               {modalLoading ? (
-                <p className="text-xs font-semibold text-slate-400 text-center py-6">Loading details...</p>
-              ) : modalData.length === 0 ? (
-                <p className="text-xs font-semibold text-slate-400 text-center py-6">No records found.</p>
-              ) : modalType === 'posted' ? (
-                modalData.map(job => (
-                  <div key={job.id} className="p-4 bg-[#1E293B]/60 border border-slate-800 rounded-2xl text-left space-y-3">
-                    <div>
-                      <div className="font-extrabold text-white text-sm">{job.title}</div>
-                      <div className="text-[11px] font-semibold text-slate-400 mt-1">📍 {job.location} • 💼 {job.job_type}</div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-emerald-400 font-extrabold text-xs">{job.salary}</span>
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${job.status === 'approved' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-amber-950 text-amber-400 border-amber-800'}`}>
-                        {job.status}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                <p className="text-xs font-semibold text-slate-400 text-center py-6">Loading user details...</p>
               ) : (
-                modalData.map(app => (
-                  <div key={app.id} className="p-4 bg-[#1E293B]/60 border border-slate-800 rounded-2xl text-left space-y-2">
-                    <div className="font-extrabold text-white text-sm">{app.job_post?.title || 'Unknown Job'}</div>
-                    <div className="text-[11px] font-semibold text-slate-400">📍 {app.job_post?.location} • 💼 {app.job_post?.company}</div>
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-[10px] font-bold">
-                      <span className="text-slate-400">Status</span>
-                      <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border bg-blue-950 text-blue-400 border-blue-800">
-                        {app.status}
+                <div className="space-y-4">
+                  {/* User Profile Banner & Image */}
+                  <div className="flex items-center gap-4 p-4 bg-[#1E293B] rounded-2xl border border-slate-800">
+                    {selectedUser.profile_photo_path || selectedUser.profile_photo || selectedUser.image || selectedUser.avatar ? (
+                      <img 
+                        src={selectedUser.profile_photo_path || selectedUser.profile_photo || selectedUser.image || selectedUser.avatar} 
+                        alt={selectedUser.full_name} 
+                        className="w-16 h-16 rounded-2xl object-cover border-2 border-emerald-500 shadow-md shrink-0" 
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black font-outfit text-xl border border-slate-700 shadow-md shrink-0 ${getAvatarStyle(selectedUser.full_name)}`}>
+                        {selectedUser.full_name ? selectedUser.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="font-outfit font-black text-lg text-white">{selectedUser.full_name || 'Not Provided'}</h4>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                          Role: {selectedUser.active_profile || selectedUser.role || 'Jobseeker'}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${selectedUser.is_suspended ? 'bg-rose-950 text-rose-400 border-rose-800' : 'bg-emerald-950 text-emerald-400 border-emerald-800'}`}>
+                          {selectedUser.is_suspended ? 'Suspended' : 'Active Account'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Full User Attributes Table Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Full Name</span>
+                      <span className="font-extrabold text-white block">{selectedUser.full_name || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Mobile Phone</span>
+                      <span className="font-extrabold text-emerald-400 block font-mono">📱 {selectedUser.mobile_number || selectedUser.phone || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Email Address</span>
+                      <span className="font-extrabold text-blue-400 block truncate">{selectedUser.email || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">City / Location</span>
+                      <span className="font-extrabold text-white block">📍 {selectedUser.city || selectedUser.location || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Experience Level</span>
+                      <span className="font-extrabold text-amber-400 block">⭐ {selectedUser.experience || selectedUser.experience_range || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Preferred Role</span>
+                      <span className="font-extrabold text-purple-400 block">{selectedUser.preferred_role || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  {/* Skills & Bio */}
+                  {(selectedUser.cuisine_specialty || selectedUser.skills || selectedUser.additional_skills) && (
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-1">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Cuisine & Skills Specialty</span>
+                      <p className="text-xs font-bold text-emerald-300">
+                        {selectedUser.cuisine_specialty || selectedUser.skills || selectedUser.additional_skills}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedUser.bio && (
+                    <div className="bg-[#1E293B]/60 p-3 rounded-xl border border-slate-800 space-y-1">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Bio / Summary</span>
+                      <p className="text-xs font-semibold text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {selectedUser.bio}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Activity Stats Summary */}
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                      <span className="text-[9px] font-extrabold text-slate-400 uppercase block">Jobs Posted</span>
+                      <span className="font-outfit font-black text-lg text-emerald-400 mt-0.5 block">
+                        {modalData.jobs ? modalData.jobs.length : 0}
+                      </span>
+                    </div>
+                    <div className="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                      <span className="text-[9px] font-extrabold text-slate-400 uppercase block">Applications Submitted</span>
+                      <span className="font-outfit font-black text-lg text-blue-400 mt-0.5 block">
+                        {modalData.applications ? modalData.applications.length : 0}
                       </span>
                     </div>
                   </div>
-                ))
+
+                  {/* System Metadata */}
+                  <div className="bg-[#1E293B]/40 p-3 rounded-xl border border-slate-800/80 flex justify-between items-center text-[10px] font-bold text-slate-400">
+                    <span>User ID: #{selectedUser.id}</span>
+                    <span>Joined: {selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                </div>
               )}
             </div>
           </div>

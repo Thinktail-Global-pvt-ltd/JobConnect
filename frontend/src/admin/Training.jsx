@@ -456,9 +456,9 @@ export default function Training() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Curriculum / Provider</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Michelin Prep Institute"
+                  <textarea 
+                    rows={2}
+                    placeholder="e.g. Michelin Prep Institute Curriculum & Specialized Culinary Certifications"
                     value={formData.curriculum}
                     onChange={(e) => setFormData(prev => ({ ...prev, curriculum: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -506,8 +506,8 @@ export default function Training() {
               {/* Field 6: Skills Covered */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Skills Covered</label>
-                <input 
-                  type="text" 
+                <textarea 
+                  rows={2}
                   placeholder="e.g. Pastry & Bakery, Fine Dining Service, HACCP Safety, Tandoor"
                   value={formData.skills_covered}
                   onChange={(e) => setFormData(prev => ({ ...prev, skills_covered: e.target.value }))}
@@ -518,9 +518,9 @@ export default function Training() {
               {/* Field 7: Training Benefits */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Training Benefits</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. UK Skilled Worker Visa Support, Free Accommodation, Paid Stipend"
+                <textarea 
+                  rows={3}
+                  placeholder="e.g. UK Skilled Worker Visa Support, Free Accommodation, Paid Stipend, Health Insurance"
                   value={formData.benefits}
                   onChange={(e) => setFormData(prev => ({ ...prev, benefits: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -530,8 +530,8 @@ export default function Training() {
               {/* Field 8: Placement Opportunities */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Placement Opportunities</label>
-                <input 
-                  type="text" 
+                <textarea 
+                  rows={2}
                   placeholder="e.g. Guaranteed 100% International Placement upon course completion"
                   value={formData.placement_opportunities}
                   onChange={(e) => setFormData(prev => ({ ...prev, placement_opportunities: e.target.value }))}

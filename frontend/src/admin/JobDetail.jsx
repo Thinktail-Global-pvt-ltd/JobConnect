@@ -237,36 +237,6 @@ export default function JobDetail() {
             </div>
           </div>
 
-          {/* Card 2: Checklist */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm text-left space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-base">📋</span>
-              <h4 className="font-outfit font-extrabold text-sm text-slate-800">Approval Checklist</h4>
-            </div>
-
-            <div className="space-y-3 pt-1">
-              <button onClick={() => toggleCheck('status')} className="flex items-center gap-2.5 w-full text-left text-xs font-bold text-slate-600 transition-colors cursor-pointer">
-                {checklist.status ? <CheckSquare className="w-4 h-4 text-[#059669]" /> : <Square className="w-4 h-4 text-slate-300" />}
-                <span>Employer status verified</span>
-              </button>
-
-              <button onClick={() => toggleCheck('salary')} className="flex items-center gap-2.5 w-full text-left text-xs font-bold text-slate-600 transition-colors cursor-pointer">
-                {checklist.salary ? <CheckSquare className="w-4 h-4 text-[#059669]" /> : <Square className="w-4 h-4 text-slate-300" />}
-                <span>Salary range meets guidelines</span>
-              </button>
-
-              <button onClick={() => toggleCheck('content')} className="flex items-center gap-2.5 w-full text-left text-xs font-bold text-slate-600 transition-colors cursor-pointer">
-                {checklist.content ? <CheckSquare className="w-4 h-4 text-[#059669]" /> : <Square className="w-4 h-4 text-slate-300" />}
-                <span>Content clear and professional</span>
-              </button>
-
-              <button onClick={() => toggleCheck('contact')} className="flex items-center gap-2.5 w-full text-left text-xs font-bold text-slate-600 transition-colors cursor-pointer">
-                {checklist.contact ? <CheckSquare className="w-4 h-4 text-[#059669]" /> : <Square className="w-4 h-4 text-slate-300" />}
-                <span>Contact information valid</span>
-              </button>
-            </div>
-          </div>
-
         </div>
 
       </div>
