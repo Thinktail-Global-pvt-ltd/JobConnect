@@ -33,12 +33,12 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden font-sans text-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans text-slate-800">
       {/* Background Ambient Elements */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#059669]/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#059669]/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-slate-100 shadow-2xl relative z-10 space-y-6">
+      <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-slate-200/80 shadow-2xl relative z-10 space-y-6">
         
         {/* Header */}
         <div className="text-center space-y-2">
