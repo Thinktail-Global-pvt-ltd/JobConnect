@@ -162,14 +162,6 @@ export default function Chefs() {
   return (
     <div className="space-y-6 text-left">
       
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm">
-        <div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">ChefConnect Moderation</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Review, publish or unpublish professional chef profiles for candidate & employer discovery.</p>
-        </div>
-      </div>
-
       {/* ADMIN CHEF MODERATION TABLE VIEW DIRECTLY */}
       <div className="space-y-6">
           
@@ -178,10 +170,6 @@ export default function Chefs() {
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Chef Moderation Directory</h2>
-                <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  OPERATIONAL STATUS
-                </span>
               </div>
               <p className="text-xs font-semibold text-slate-400 mt-1">Review, publish or unpublish professional chef profiles for candidate & employer discovery.</p>
             </div>
@@ -242,7 +230,6 @@ export default function Chefs() {
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Applications</div>
               <div className="mt-2">
                 <span className="font-outfit font-black text-3xl text-white block">{totalCount}</span>
-                <span className="text-[10px] font-extrabold text-slate-400 block mt-0.5">Loaded at once</span>
               </div>
             </div>
           </div>
