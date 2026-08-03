@@ -374,11 +374,8 @@ export default function Employers() {
                 </div>
               )}
 
-              <div className="pt-2 flex justify-between items-center">
-                <Link to={`/admin/employers/${selectedEmp.id}`} className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm">
-                  Open Full Profile Page →
-                </Link>
-                <button type="button" onClick={() => setViewEmpModalOpen(false)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition-all">
+              <div className="pt-2 flex justify-end">
+                <button type="button" onClick={() => setViewEmpModalOpen(false)} className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer">
                   Close
                 </button>
               </div>
