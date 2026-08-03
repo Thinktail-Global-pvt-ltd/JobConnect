@@ -130,18 +130,37 @@ export default function EmployerDetail() {
             {/* Info Items */}
             <div className="space-y-4 text-xs font-semibold text-slate-500">
               <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Primary Contact</span>
-                <span className="text-slate-800 font-extrabold mt-1 block">{employer.contact || 'N/A'}</span>
-                <span className="text-slate-400 text-[10px] block mt-0.5">HR / Account Manager</span>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Company / Business Name</span>
+                <span className="text-slate-800 font-extrabold mt-1 block">{employer.business_name || employer.name || 'N/A'}</span>
               </div>
-              <div className="border-t border-slate-50 pt-4">
+              <div className="border-t border-slate-50 pt-3">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Primary Contact Person</span>
+                <span className="text-slate-800 font-extrabold mt-1 block">{employer.contact_person_name || employer.contact || 'N/A'}</span>
+              </div>
+              <div className="border-t border-slate-50 pt-3">
                 <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Mobile Number</span>
-                <span className="text-slate-800 font-extrabold mt-1 block"><code>{employer.phone || 'N/A'}</code></span>
+                <span className="text-emerald-600 font-extrabold mt-1 block font-mono">📱 {employer.business_mobile || employer.phone || 'N/A'}</span>
               </div>
-              <div className="border-t border-slate-50 pt-4">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
-                <span className="text-[#059669] font-extrabold mt-1 block">{employer.email || 'N/A'}</span>
+              <div className="border-t border-slate-50 pt-3">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Official Email</span>
+                <span className="text-blue-600 font-extrabold mt-1 block truncate">{employer.business_email || employer.email || 'N/A'}</span>
               </div>
+              <div className="border-t border-slate-50 pt-3">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Industry Segment</span>
+                <span className="text-slate-800 font-extrabold mt-1 block">🏢 {employer.industry_segment || 'Hospitality'}</span>
+              </div>
+              <div className="border-t border-slate-50 pt-3">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Business Location</span>
+                <span className="text-slate-800 font-extrabold mt-1 block">📍 {employer.business_location || employer.hq || 'India'}</span>
+              </div>
+
+              {employer.nominee_name && (
+                <div className="border-t border-slate-50 pt-3">
+                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Nominee Details</span>
+                  <span className="text-slate-800 font-extrabold mt-1 block">{employer.nominee_name} ({employer.nominee_relationship || 'Nominee'})</span>
+                  <span className="text-slate-400 text-[10px] block">📱 {employer.nominee_mobile || 'N/A'}</span>
+                </div>
+              )}
             </div>
 
             <button className="w-full bg-white border border-[#e2e8f0] hover:bg-slate-50 text-slate-700 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">

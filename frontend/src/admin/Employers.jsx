@@ -10,6 +10,8 @@ export default function Employers() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEmp, setSelectedEmp] = useState(null);
+  const [viewEmpModalOpen, setViewEmpModalOpen] = useState(false);
 
   // Form State for Add Employer
   const [newEmployer, setNewEmployer] = useState({
@@ -275,13 +277,14 @@ export default function Employers() {
 
                     {/* Actions Links */}
                     <td className="py-4.5 px-6 text-center space-x-2">
-                      <Link 
-                        to={`/admin/employers/${emp.id}`}
-                        className="px-3 py-1.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-extrabold transition-all inline-flex items-center gap-1 cursor-pointer"
+                      <button 
+                        type="button"
+                        onClick={() => { setSelectedEmp(emp); setViewEmpModalOpen(true); }}
+                        className="px-3 py-1.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-[#059669] hover:text-white border border-slate-700 text-xs font-extrabold transition-all inline-flex items-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View</span>
-                      </Link>
+                      </button>
 
                       <button 
                         onClick={() => toggleSuspend(emp.id)}
@@ -312,6 +315,77 @@ export default function Employers() {
           </span>
         </div>
       </div>
+
+      {/* View Employer Detail Modal */}
+      {viewEmpModalOpen && selectedEmp && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0B1120] border border-[#1E293B] rounded-3xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col shadow-2xl text-left">
+            <div className="px-6 py-5 border-b border-[#1E293B] flex justify-between items-center bg-[#0F172A]/60">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center font-bold text-lg">
+                  🏢
+                </div>
+                <div>
+                  <h3 className="font-outfit font-black text-white text-base">{selectedEmp.business_name || selectedEmp.name || 'Employer Profile'}</h3>
+                  <span className="text-[10px] font-bold text-slate-400">Employer ID: #{selectedEmp.id}</span>
+                </div>
+              </div>
+              <button type="button" onClick={() => setViewEmpModalOpen(false)} className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold transition-all">✕</button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 text-xs font-semibold text-slate-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Company / Business Name</span>
+                  <span className="font-extrabold text-white text-sm block mt-0.5">{selectedEmp.business_name || selectedEmp.name || 'N/A'}</span>
+                </div>
+
+                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Primary Contact Person</span>
+                  <span className="font-extrabold text-white text-sm block mt-0.5">{selectedEmp.contact_person_name || selectedEmp.contact || 'N/A'}</span>
+                </div>
+
+                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Mobile Phone</span>
+                  <span className="font-extrabold text-emerald-400 block font-mono mt-0.5">📱 {selectedEmp.business_mobile || selectedEmp.mobile_number || selectedEmp.phone || 'N/A'}</span>
+                </div>
+
+                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Official Email</span>
+                  <span className="font-extrabold text-blue-400 block truncate mt-0.5">{selectedEmp.business_email || selectedEmp.email || 'N/A'}</span>
+                </div>
+
+                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Business Location / HQ</span>
+                  <span className="font-extrabold text-white block mt-0.5">📍 {selectedEmp.business_location || selectedEmp.hq || 'India'}</span>
+                </div>
+
+                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Industry Segment</span>
+                  <span className="font-extrabold text-purple-400 block mt-0.5">🏢 {selectedEmp.industry_segment || 'Hospitality'}</span>
+                </div>
+              </div>
+
+              {selectedEmp.nominee_name && (
+                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800 space-y-1">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Nominee Information</span>
+                  <span className="font-extrabold text-white block">{selectedEmp.nominee_name} ({selectedEmp.nominee_relationship || 'Nominee'})</span>
+                  <span className="text-[10px] font-mono text-emerald-400 block">📱 {selectedEmp.nominee_mobile || 'N/A'}</span>
+                </div>
+              )}
+
+              <div className="pt-2 flex justify-between items-center">
+                <Link to={`/admin/employers/${selectedEmp.id}`} className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm">
+                  Open Full Profile Page →
+                </Link>
+                <button type="button" onClick={() => setViewEmpModalOpen(false)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition-all">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Employer Modal */}
       {isModalOpen && (
