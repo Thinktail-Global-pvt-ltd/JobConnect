@@ -140,11 +140,11 @@ export default function Layout({ children }) {
         <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
             <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
-              <div className="bg-white/95 px-2.5 py-1 rounded-2xl shadow-sm border border-white/20 flex items-center justify-center">
+              <div className="bg-white px-3 py-1.5 rounded-2xl shadow-md border border-white/20 flex items-center justify-center overflow-hidden">
                 <img 
                   src={orbLogo} 
                   alt="Jobrito - Connecting Hospitality Talent" 
-                  className="h-10 w-auto object-contain max-w-[170px]" 
+                  className="h-14 w-auto object-contain max-w-[190px] scale-110" 
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = logoWhiteImg;
