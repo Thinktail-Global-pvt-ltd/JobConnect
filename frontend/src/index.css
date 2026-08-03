@@ -176,3 +176,91 @@
     display: inline-block !important;
   }
 }
+
+/* ==========================================
+   GLOBAL ADMIN APPLICATION THEME OVERRIDES
+   ========================================== */
+
+/* ☀️ LIGHT MODE OVERRIDES (Default White Cards & Tables) */
+html[data-theme="light"] .bg-\[\#0B1120\],
+html[data-theme="light"] .bg-\[\#070A13\],
+html[data-theme="light"] .bg-\[\#090D16\],
+html[data-theme="light"] .bg-\[\#0d1527\] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .bg-\[\#0F172A\] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .bg-\[\#1E293B\] {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] .border-\[\#1E293B\] {
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .text-slate-100,
+html[data-theme="light"] .text-slate-200,
+html[data-theme="light"] .text-slate-300 {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .text-slate-400 {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] table th {
+  color: #475569 !important;
+  background-color: #f8fafc !important;
+}
+
+html[data-theme="light"] table tr:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 🟩 EMERALD MODE OVERRIDES */
+html[data-theme="emerald"] .bg-\[\#0B1120\],
+html[data-theme="emerald"] .bg-\[\#070A13\],
+html[data-theme="emerald"] .bg-\[\#090D16\] {
+  background-color: #042F24 !important;
+  color: #ecfdf5 !important;
+  border-color: #047857 !important;
+}
+
+html[data-theme="emerald"] .bg-\[\#0F172A\] {
+  background-color: #02281D !important;
+  color: #ecfdf5 !important;
+  border-color: #047857 !important;
+}
+
+html[data-theme="emerald"] .bg-\[\#1E293B\] {
+  background-color: #064E3B !important;
+  color: #ecfdf5 !important;
+  border-color: #059669 !important;
+}
+
+html[data-theme="emerald"] .border-\[\#1E293B\] {
+  border-color: #047857 !important;
+}
+
+html[data-theme="emerald"] table th {
+  color: #6ee7b7 !important;
+  background-color: #02281D !important;
+}
+
+html[data-theme="emerald"] table tr:hover {
+  background-color: #064e3b !important;
+}
+

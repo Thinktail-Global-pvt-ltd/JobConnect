@@ -11,7 +11,7 @@ export const THEMES = {
 export const ThemeProvider = ({ children }) => {
   const [theme, setThemeState] = useState(() => {
     const saved = localStorage.getItem('jobrito_admin_theme');
-    return saved && Object.values(THEMES).includes(saved) ? saved : THEMES.DARK;
+    return saved && Object.values(THEMES).includes(saved) ? saved : THEMES.LIGHT;
   });
 
   const setTheme = (newTheme) => {
