@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { mockApi } from '../services/api';
 import logoImg from '../assets/Jobrito full logo.png';
+import logoWhiteImg from '../assets/jobrito-logo-white-text.png';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -137,18 +138,16 @@ export default function Layout({ children }) {
       <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-[#0B1120] border-r border-[#1E293B] flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
         <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
-            <Link to="/admin/dashboard" className="flex items-center gap-2">
-              <div className="bg-white px-2.5 py-1 rounded-xl shadow-xs border border-white/20 flex items-center justify-center">
-                <img 
-                  src={logoImg} 
-                  alt="Jobrito - Connecting Hospitality Talent" 
-                  className="h-7 w-auto object-contain max-w-[150px]" 
-                  onError={(e) => { 
-                    e.target.onerror = null; 
-                    e.target.src = "https://jobrito.com/images/jobrito-logo-full.png"; 
-                  }}
-                />
-              </div>
+            <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
+              <img 
+                src={logoWhiteImg} 
+                alt="Jobrito - Connecting Hospitality Talent" 
+                className="h-10 w-auto object-contain max-w-[170px]" 
+                onError={(e) => { 
+                  e.target.onerror = null; 
+                  e.target.src = logoImg; 
+                }}
+              />
             </Link>
           ) : (
             <Link to="/admin/dashboard" className="flex items-center justify-center">
