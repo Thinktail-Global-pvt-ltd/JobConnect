@@ -15,23 +15,90 @@ class AdminPostController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AdminPost::with('creator')->latest();
+        $feedItems = collect();
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        // 1. Job Posts
+        try {
+            $jobPosts = \App\Models\JobPost::latest()->get();
+            foreach ($jobPosts as $job) {
+                $statusStr = $job->status === 'approved' ? 'Published' : ($job->status === 'rejected' ? 'Archived' : 'Draft');
+                $feedItems->push([
+                    'id'         => 'job_' . $job->id,
+                    'raw_id'     => $job->id,
+                    'source'     => 'job_post',
+                    'uid'        => 'JOB-' . sprintf('%04d', $job->id),
+                    'title'      => $job->title,
+                    'body'       => ($job->company ?? 'Employer') . ' • ' . ($job->location ?? 'India'),
+                    'post_type'  => 'Job Listing (' . ucfirst($job->category ?? 'india') . ')',
+                    'status'     => $statusStr,
+                    'is_pinned'  => (bool)$job->is_pinned,
+                    'created_at' => $job->created_at ? $job->created_at->toIso8601String() : null,
+                    'timestamp'  => $job->created_at ? $job->created_at->timestamp : 0,
+                    'date'       => $job->created_at ? $job->created_at->format('M d, Y') : 'Recently',
+                ]);
+            }
+        } catch (\Throwable $e) {}
 
-        $posts = $query->paginate(15);
+        // 2. Admin Posts
+        try {
+            $adminPosts = AdminPost::latest()->get();
+            foreach ($adminPosts as $post) {
+                $statusStr = $post->status === 'published' ? 'Published' : ($post->status === 'archived' ? 'Archived' : 'Draft');
+                $feedItems->push([
+                    'id'         => 'post_' . $post->id,
+                    'raw_id'     => $post->id,
+                    'source'     => 'admin_post',
+                    'uid'        => 'AN-' . sprintf('%04d', $post->id),
+                    'title'      => $post->title,
+                    'body'       => $post->body,
+                    'post_type'  => $post->post_type ?? 'Community Announcement',
+                    'status'     => $statusStr,
+                    'is_pinned'  => (bool)$post->is_pinned,
+                    'created_at' => $post->created_at ? $post->created_at->toIso8601String() : null,
+                    'timestamp'  => $post->created_at ? $post->created_at->timestamp : 0,
+                    'date'       => $post->created_at ? $post->created_at->format('M d, Y') : 'Recently',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        // 3. Training Opportunities
+        try {
+            $trainings = \App\Models\TrainingOpportunity::latest()->get();
+            foreach ($trainings as $train) {
+                $feedItems->push([
+                    'id'         => 'train_' . $train->id,
+                    'raw_id'     => $train->id,
+                    'source'     => 'training',
+                    'uid'        => 'TO-' . sprintf('%04d', $train->id),
+                    'title'      => $train->program_name ?? 'Training Program',
+                    'body'       => ($train->provider_name ?? 'JobConnect') . ' • ' . ($train->location ?? 'Overseas'),
+                    'post_type'  => 'Training & Overseas',
+                    'status'     => 'Published',
+                    'is_pinned'  => (bool)$train->is_pinned,
+                    'created_at' => $train->created_at ? $train->created_at->toIso8601String() : null,
+                    'timestamp'  => $train->created_at ? $train->created_at->timestamp : 0,
+                    'date'       => $train->created_at ? $train->created_at->format('M d, Y') : 'Recently',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        $sortedItems = $feedItems->sort(function($a, $b) {
+            if ($a['is_pinned'] !== $b['is_pinned']) {
+                return $b['is_pinned'] ? 1 : -1;
+            }
+            return $b['timestamp'] - $a['timestamp'];
+        })->values();
 
         return response()->json([
             'success' => true,
-            'posts'   => $posts,
+            'posts'   => $sortedItems,
             'stats'   => [
-                'total'     => AdminPost::count(),
-                'published' => AdminPost::where('status', 'published')->count(),
-                'draft'     => AdminPost::where('status', 'draft')->count(),
-                'archived'  => AdminPost::where('status', 'archived')->count(),
-            ],
+                'total'     => $sortedItems->count(),
+                'published' => $sortedItems->where('status', 'Published')->count(),
+                'drafts'    => $sortedItems->where('status', 'Draft')->count(),
+                'archived'  => $sortedItems->where('status', 'Archived')->count(),
+                'pinned'    => $sortedItems->where('is_pinned', true)->count(),
+            ]
         ]);
     }
 

@@ -24,35 +24,68 @@ export default function CommunityFeed() {
     is_pinned: false
   });
 
-  // Load unified admin stream directly from production backend
+  // Load unified admin stream
   const loadPosts = async () => {
     setLoading(true);
     setError(null);
-    try {
-      const res = await axios.get(`${BACKEND}/api/admin/community-posts`, {
-        headers: { Accept: 'application/json' }
-      });
-      const data = res.data;
-      if (data && data.success) {
-        const postData = Array.isArray(data.posts) ? data.posts : [];
-        postData.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
-        setPosts(postData);
-        setStats({
-          total: postData.length,
-          published: postData.filter(p => p.status === 'Published').length,
-          drafts: postData.filter(p => p.status === 'Draft' || p.status === 'Pending').length,
-          archived: postData.filter(p => p.status === 'Archived').length,
-          pinned: postData.filter(p => Boolean(p.is_pinned)).length
-        });
-      } else {
-        setError('API responded but success flag was false.');
+
+    const endpoints = [
+      '/api/admin/community-posts',
+      '/backend/api/admin/community-posts',
+      'https://jobrito.com/api/admin/community-posts',
+      `${BACKEND}/api/admin/community-posts`
+    ];
+
+    let data = null;
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) {
+          data = res.data;
+          break;
+        }
+      } catch (e) {
+        // Continue fallback
       }
-    } catch (err) {
-      console.error('Failed to load community posts:', err);
-      setError(err?.message || 'Failed to load community posts.');
-    } finally {
-      setLoading(false);
     }
+
+    if (data) {
+      let rawPosts = [];
+      if (Array.isArray(data.posts)) {
+        rawPosts = data.posts;
+      } else if (data.posts && Array.isArray(data.posts.data)) {
+        rawPosts = data.posts.data;
+      } else if (Array.isArray(data.data)) {
+        rawPosts = data.data;
+      }
+
+      const postData = rawPosts.map(p => ({
+        id: p.id || `post_${p.raw_id || Math.random()}`,
+        raw_id: p.raw_id || p.id,
+        source: p.source || 'admin_post',
+        uid: p.uid || `AN-${p.id}`,
+        title: p.title || p.program_name || 'Community Announcement',
+        body: p.body || p.description || '',
+        post_type: p.post_type || 'Community Announcement',
+        status: p.status === 'published' ? 'Published' : (p.status === 'archived' ? 'Archived' : (p.status || 'Published')),
+        is_pinned: Boolean(p.is_pinned),
+        created_at: p.created_at,
+        date: p.date || (p.created_at ? String(p.created_at).slice(0, 10) : 'Recently')
+      }));
+
+      postData.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
+      setPosts(postData);
+      setStats({
+        total: postData.length,
+        published: postData.filter(p => p.status === 'Published').length,
+        drafts: postData.filter(p => p.status === 'Draft' || p.status === 'Pending').length,
+        archived: postData.filter(p => p.status === 'Archived').length,
+        pinned: postData.filter(p => Boolean(p.is_pinned)).length
+      });
+    } else {
+      setError('Could not connect to community posts API.');
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
