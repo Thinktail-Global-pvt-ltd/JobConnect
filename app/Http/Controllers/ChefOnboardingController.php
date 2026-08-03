@@ -130,7 +130,18 @@ class ChefOnboardingController extends Controller
                 // 2. Update User details
                 $user->full_name = $request->full_name;
                 $user->preferred_role = $request->preferred_role;
-                $user->city = $request->city;
+                if ($request->has('city')) {
+                    $user->city = $request->city;
+                }
+                if ($request->has('country')) {
+                    $user->country = $request->country;
+                }
+                if ($request->has('current_employer')) {
+                    $user->current_employer = $request->current_employer;
+                }
+                if ($request->has('gender') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
+                    $user->gender = $request->gender;
+                }
                 $user->experience_range = $request->experience_range;
                 $user->skills = $request->skills;
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'availability_status')) {
