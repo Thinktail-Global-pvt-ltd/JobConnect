@@ -48,10 +48,8 @@ Route::middleware('guest')->group(function () {
 });
 
 // Guest APIs (JSON)
-Route::prefix('api')->group(function () {
-    Route::post('/login', [WebAuthController::class, 'submitLogin'])->name('login.submit');
-    Route::post('/verify-otp', [WebAuthController::class, 'submitVerify'])->name('verify-otp.submit');
-});
+Route::post('/api/login', [\App\Http\Controllers\Api\AuthController::class, 'login']);
+Route::post('/api/verify-otp', [\App\Http\Controllers\Api\AuthController::class, 'verifyOtp']);
 
 // ==========================================
 // Secured Routes (Views and APIs)
