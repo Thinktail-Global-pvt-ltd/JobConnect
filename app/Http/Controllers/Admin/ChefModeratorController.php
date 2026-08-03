@@ -51,10 +51,10 @@ class ChefModeratorController extends Controller
                 }
             }
 
-            return ChefProfile::with('user')->whereIn('user_id', $allChefIds)->latest()->get();
+            return ChefProfile::with(['user.socials'])->whereIn('user_id', $allChefIds)->latest()->get();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('syncAndGetChefProfiles Error: ' . $e->getMessage());
-            return ChefProfile::with('user')->latest()->get();
+            return ChefProfile::with(['user.socials'])->latest()->get();
         }
     }
 
@@ -95,7 +95,7 @@ class ChefModeratorController extends Controller
             $profiles = $this->syncAndGetChefProfiles();
 
             $allChefs = $profiles->map(function ($chef) {
-                $user = $chef->user ?: User::find($chef->user_id);
+                $user = $chef->user ?: User::with('socials')->find($chef->user_id);
 
                 $availability = [];
                 if ($chef->availability_info) {
@@ -107,12 +107,36 @@ class ChefModeratorController extends Controller
                 $fullName = ($user && $user->full_name) ? $user->full_name : ('Chef #' . $chef->user_id);
                 $email = $user ? ($user->email ?: null) : null;
                 $mobile = $user ? ($user->mobile_number ?: null) : null;
+                $gender = $user ? ($user->gender ?: null) : null;
                 $city = $user ? ($user->city ?: null) : null;
                 $country = $user ? ($user->country ?: null) : null;
                 $preferredRole = $user ? ($user->preferred_role ?: null) : null;
+                $currentEmployer = $user ? ($user->current_employer ?: null) : null;
                 $exp = $user ? ($user->experience_range ?: $user->experience_years ?: null) : null;
                 $photo = $user ? $user->profile_photo_path : null;
-                $skills = ($user && is_array($user->skills)) ? $user->skills : [];
+
+                $skills = [];
+                if ($user) {
+                    if (is_array($user->skills)) {
+                        $skills = $user->skills;
+                    } elseif (is_string($user->skills) && !empty($user->skills)) {
+                        $skills = json_decode($user->skills, true) ?: array_values(array_filter(array_map('trim', explode(',', $user->skills))));
+                    }
+                }
+
+                $availabilityStatus = $user ? ($user->availability_status ?: null) : null;
+                $isAvailable = $user ? (bool)$user->is_available : true;
+                $selectedLanguage = $user ? ($user->selected_language ?: null) : null;
+
+                $socialsObj = $user ? $user->socials : null;
+                $socialsData = $socialsObj ? [
+                    'instagram' => $socialsObj->instagram ?: null,
+                    'linkedin'  => $socialsObj->linkedin ?: null,
+                    'facebook'  => $socialsObj->facebook ?: null,
+                    'twitter'   => $socialsObj->twitter ?: null,
+                    'youtube'   => $socialsObj->youtube ?: null,
+                    'website'   => $socialsObj->website ?: null,
+                ] : null;
 
                 return [
                     'id' => $chef->id,
@@ -122,9 +146,11 @@ class ChefModeratorController extends Controller
                     'email' => $email,
                     'mobile_number' => $mobile,
                     'phone' => $mobile,
+                    'gender' => $gender,
                     'city' => $city,
                     'country' => $country,
                     'preferred_role' => $preferredRole,
+                    'current_employer' => $currentEmployer,
                     'profile_photo_path' => $photo,
                     'experience_range' => $exp,
                     'experience' => $exp,
@@ -136,8 +162,12 @@ class ChefModeratorController extends Controller
                     'approval_status' => $chef->approval_status ?: 'pending',
                     'status' => $chef->approval_status ?: 'pending',
                     'availability_info' => $availability,
-                    'skills' => $skills,
-                    'created_at' => $chef->created_at ? $chef->created_at->toIso8601String() : null,
+                    'availability_status' => $availabilityStatus,
+                    'is_available' => $isAvailable,
+                    'selected_language' => $selectedLanguage,
+                    'skills' => !empty($skills) ? $skills : null,
+                    'socials' => $socialsData,
+                    'created_at' => $user && $user->created_at ? $user->created_at->toIso8601String() : ($chef->created_at ? $chef->created_at->toIso8601String() : null),
                     'updated_at' => $chef->updated_at ? $chef->updated_at->toIso8601String() : null,
                 ];
             });

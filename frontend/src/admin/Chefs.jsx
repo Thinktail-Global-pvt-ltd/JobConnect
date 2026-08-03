@@ -624,77 +624,115 @@ export default function Chefs() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 border border-slate-100 shadow-2xl space-y-4 text-left">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-outfit font-extrabold text-lg text-slate-800">
-                  {selectedChef.full_name || selectedChef.name || 'Chef Profile'}
-                </h3>
-                <p className="text-xs font-semibold text-slate-400">Onboarded Chef Profile Details</p>
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-950 text-emerald-400 border border-emerald-800/80 flex items-center justify-center font-black text-lg shadow-sm shrink-0">
+                  {selectedChef.profile_photo_path ? (
+                    <img src={selectedChef.profile_photo_path} alt={selectedChef.full_name} className="w-full h-full object-cover rounded-2xl" />
+                  ) : (
+                    (selectedChef.full_name || selectedChef.name || 'C')[0].toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-outfit font-black text-lg text-slate-800 leading-tight">
+                    {selectedChef.full_name || selectedChef.name || 'Chef Profile'}
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-500">
+                    {selectedChef.preferred_role || 'Executive Chef'} • {selectedChef.city || 'Location N/A'}
+                  </p>
+                </div>
               </div>
               <button 
                 onClick={() => setSelectedChef(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs"
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-600 font-medium">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Email</span>
-                  <span className="font-bold text-slate-700 break-all">{selectedChef.email || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Phone</span>
-                  <span className="font-bold text-slate-700">{selectedChef.mobile_number || selectedChef.phone || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">City / Location</span>
-                  <span className="font-bold text-slate-700">{[selectedChef.city, selectedChef.country].filter(Boolean).join(', ') || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Experience</span>
-                  <span className="font-bold text-slate-700">{selectedChef.experience_range || selectedChef.experience || '0 Years'}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Preferred Role</span>
-                  <span className="font-bold text-slate-700">{selectedChef.preferred_role || 'Chef'}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Status</span>
-                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                    selectedChef.approval_status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {selectedChef.approval_status || 'Pending'}
-                  </span>
+            <div className="space-y-3.5 text-xs text-slate-600 font-medium max-h-[75vh] overflow-y-auto pr-1">
+              
+              {/* Core User Details Grid */}
+              <div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1.5">User Account Information</span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Email</span>
+                    <span className="font-bold text-slate-700 break-all">{selectedChef.email || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Phone Number</span>
+                    <span className="font-bold text-slate-700">{selectedChef.mobile_number || selectedChef.phone || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Location (City, Country)</span>
+                    <span className="font-bold text-slate-700">{[selectedChef.city, selectedChef.country].filter(Boolean).join(', ') || 'Not Specified'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Experience</span>
+                    <span className="font-bold text-slate-700">{selectedChef.experience_range || selectedChef.experience || '0 Years'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Gender</span>
+                    <span className="font-bold text-slate-700 capitalize">{selectedChef.gender || 'Not Specified'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Current Employer</span>
+                    <span className="font-bold text-slate-700">{selectedChef.current_employer || 'Not Provided'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Availability Status</span>
+                    <span className="font-bold text-emerald-700">{selectedChef.availability_status || (selectedChef.is_available ? 'Available' : 'Not Available')}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Spoken Languages</span>
+                    <span className="font-bold text-slate-700">{selectedChef.selected_language || 'Not Specified'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Approval Status</span>
+                    <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide ${
+                      selectedChef.approval_status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {selectedChef.approval_status || 'Pending'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
+              {/* Chef Profile Details */}
               <div>
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Cuisine Specialties</span>
-                <p className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 font-semibold text-slate-700">
-                  {selectedChef.cuisine_specialty || selectedChef.specialties || 'Not specified'}
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Cuisine Specialties (Chef Profile)</span>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 font-semibold text-slate-700">
+                  {selectedChef.cuisine_specialty || selectedChef.specialties || 'Multi-Cuisine'}
+                </div>
+              </div>
+
+              {/* Skills */}
+              {selectedChef.skills && (
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Skills & Key Competencies (User Account)</span>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 font-semibold text-slate-700 flex flex-wrap gap-1.5">
+                    {Array.isArray(selectedChef.skills) ? (
+                      selectedChef.skills.map((sk, idx) => (
+                        <span key={idx} className="bg-emerald-50 text-emerald-800 border border-emerald-200/60 px-2 py-0.5 rounded-md text-[11px] font-bold">
+                          {sk}
+                        </span>
+                      ))
+                    ) : (
+                      <span>{selectedChef.skills}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Bio */}
+              <div>
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Bio / Profile Description (Chef Profile)</span>
+                <p className="bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed text-slate-700">
+                  {selectedChef.bio || 'No bio description provided.'}
                 </p>
               </div>
 
-              {selectedChef.skills && (
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Skills & Expertise</span>
-                  <p className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 font-semibold text-slate-700">
-                    {Array.isArray(selectedChef.skills) ? selectedChef.skills.join(', ') : selectedChef.skills}
-                  </p>
-                </div>
-              )}
-
-              {selectedChef.bio && (
-                <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Bio / Profile Description</span>
-                  <p className="bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed text-slate-700">
-                    {selectedChef.bio}
-                  </p>
-                </div>
-              )}
-
+              {/* Calendly */}
               {selectedChef.calendly_link && (
                 <div>
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Calendly Scheduling Link</span>
@@ -704,7 +742,7 @@ export default function Chefs() {
                     rel="noreferrer"
                     className="text-emerald-700 font-bold underline break-all block bg-emerald-50 p-2.5 rounded-xl border border-emerald-100"
                   >
-                    {selectedChef.calendly_link}
+                    🔗 {selectedChef.calendly_link}
                   </a>
                 </div>
               )}
