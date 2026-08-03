@@ -90,13 +90,16 @@ class WebJobController extends Controller
             : false;
 
         if ($isTraining) {
+            $trainingId = $request->input('training_id') ?: ($jobModel ? $jobModel->id : 1);
+
             $application = \App\Models\TrainingApplication::updateOrCreate(
                 [
                     'applicant_id' => $user->id,
-                    'job_post_id'  => $jobModel->id,
+                    'training_id'  => $trainingId,
                 ],
                 [
-                    'employer_id'         => $jobModel->created_by ?: 17,
+                    'job_post_id'         => $jobModel ? $jobModel->id : null,
+                    'employer_id'         => $jobModel ? ($jobModel->created_by ?: 17) : 17,
                     'status'              => 'new',
                     'preferred_call_time' => (string) $preferredCallTime,
                     'is_training'         => true,
@@ -109,6 +112,7 @@ class WebJobController extends Controller
                 'application' => [
                     'id'                  => $application->id,
                     'applicant_id'        => $application->applicant_id,
+                    'training_id'         => $application->training_id,
                     'job_post_id'         => $application->job_post_id,
                     'employer_id'         => $application->employer_id,
                     'status'              => $application->status,

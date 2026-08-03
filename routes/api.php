@@ -762,13 +762,16 @@ Route::match(['get', 'post'], '/jobs/{job}/apply', function(\Illuminate\Http\Req
         : false;
 
     if ($isTraining) {
+        $trainingId = $request->input('training_id') ?: $jobId;
+
         $application = \App\Models\TrainingApplication::updateOrCreate(
             [
                 'applicant_id' => $user ? $user->id : 4,
-                'job_post_id'  => $job->id,
+                'training_id'  => $trainingId,
             ],
             [
-                'employer_id'         => $job->created_by ?: 17,
+                'job_post_id'         => $job ? $job->id : null,
+                'employer_id'         => $job ? ($job->created_by ?: 17) : 17,
                 'status'              => 'new',
                 'preferred_call_time' => (string) $preferredCallTime,
                 'is_training'         => true,
@@ -781,6 +784,7 @@ Route::match(['get', 'post'], '/jobs/{job}/apply', function(\Illuminate\Http\Req
             'application' => [
                 'id'                  => $application->id,
                 'applicant_id'        => $application->applicant_id,
+                'training_id'         => $application->training_id,
                 'job_post_id'         => $application->job_post_id,
                 'employer_id'         => $application->employer_id,
                 'status'              => $application->status,
