@@ -998,5 +998,54 @@ export const mockApi = {
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return { success: true };
+  },
+
+  // ENQUIRIES APIs
+  getEnquiries: async (status = '') => {
+    const endpoints = [
+      '/admin/enquiries',
+      '/api/admin/enquiries',
+      'http://178.16.138.159/backend/api/admin/enquiries',
+      'https://jobrito.com/api/admin/enquiries'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { params: { status }, headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
+    return { success: true, enquiries: [], stats: { total: 0, pending: 0, contacted: 0 } };
+  },
+
+  createEnquiry: async (data) => {
+    const endpoints = [
+      '/admin/enquiries/create',
+      '/api/admin/enquiries/create',
+      'http://178.16.138.159/backend/api/admin/enquiries/create',
+      'https://jobrito.com/api/admin/enquiries/create'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, data, { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
+    return { success: false, message: 'Failed to save enquiry.' };
+  },
+
+  updateEnquiryStatus: async (id, status) => {
+    const endpoints = [
+      `/admin/enquiries/${id}/status`,
+      `/api/admin/enquiries/${id}/status`,
+      `http://178.16.138.159/backend/api/admin/enquiries/${id}/status`,
+      `https://jobrito.com/api/admin/enquiries/${id}/status`
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, { status }, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
+    return { success: false };
   }
 };

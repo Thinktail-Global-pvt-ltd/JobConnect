@@ -23,7 +23,7 @@ class WebHomeController extends Controller
         $trainings = collect();
 
         // 1. Query Job Posts based on filter
-        if (in_array($filter, ['all', 'india', 'overseas', 'community'])) {
+        if (in_array($filter, ['all', 'dubai', 'overseas', 'community'])) {
             $jobsQuery = JobPost::approved()->with('creator');
             if ($filter !== 'all') {
                 $jobsQuery->where('category', $filter);

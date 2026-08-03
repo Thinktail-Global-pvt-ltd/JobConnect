@@ -133,7 +133,7 @@ class DatabaseSeeder extends Seeder
         JobPost::create([
             'created_by' => $user2->id,
             'title' => 'Head Chef - New Mumbai Branch',
-            'category' => 'india',
+            'category' => 'dubai',
             'company' => 'Fine Dine Group',
             'salary' => '₹12L - ₹18L PA',
             'location' => 'Mumbai, India',
@@ -195,7 +195,7 @@ class DatabaseSeeder extends Seeder
         JobPost::create([
             'created_by' => $user1->id,
             'title' => 'Restaurant Captain / Lead Waiter',
-            'category' => 'india',
+            'category' => 'dubai',
             'company' => 'Taj Palace Bistro',
             'salary' => '₹25,000 - ₹30,000',
             'location' => 'New Delhi, India',

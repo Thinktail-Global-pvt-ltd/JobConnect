@@ -1048,6 +1048,13 @@ Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
             ->whereIn('status', ['new', 'pending', 'submitted'])
             ->count();
 
+        $pendingEnquiries = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('enquiries')) {
+                $pendingEnquiries = \Illuminate\Support\Facades\DB::table('enquiries')->whereIn('status', ['New Enquiry', 'Urgent Follow-up'])->count();
+            }
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'counts' => [
@@ -1059,7 +1066,7 @@ Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
                 'community' => $pendingCommunity,
                 'training' => $pendingTraining,
                 'applications' => $pendingApplications,
-                'enquiries' => 0,
+                'enquiries' => $pendingEnquiries,
             ]
         ]);
     } catch (\Throwable $e) {
@@ -1074,7 +1081,165 @@ Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
                 'community' => 0,
                 'training' => 0,
                 'applications' => 0,
+                'enquiries' => 0,
             ]
         ]);
     }
 });
+
+// ==========================================
+// ADMIN ENQUIRIES API ENDPOINTS (Live Database)
+// ==========================================
+
+if (!function_exists('ensureEnquiriesTableExists')) {
+    function ensureEnquiriesTableExists() {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('enquiries')) {
+            \Illuminate\Support\Facades\Schema::create('enquiries', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('email')->nullable();
+                $table->string('phone');
+                $table->string('program');
+                $table->text('query')->nullable();
+                $table->string('priority')->default('STANDARD');
+                $table->string('status')->default('New Enquiry');
+                $table->timestamps();
+            });
+
+            \Illuminate\Support\Facades\DB::table('enquiries')->insert([
+                [
+                    'name' => 'Adrian Smith',
+                    'email' => 'adrian.s@email.com',
+                    'phone' => '+44 7700 900077',
+                    'program' => 'Chef Internship - Dubai',
+                    'query' => "I have 3 years of experience in London hotels and I'm looking to move to Dubai for fine dining. Does this program include visa sponsorship?",
+                    'priority' => 'HIGH PRIORITY',
+                    'status' => 'New Enquiry',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'name' => 'Maria Lopez',
+                    'email' => 'm.lopez@globemail.net',
+                    'phone' => '+34 612 345 678',
+                    'program' => 'Culinary Arts Training',
+                    'query' => 'Hi, I am interested in pastry cooking. Can I enroll in this program part-time while keeping my job?',
+                    'priority' => 'STANDARD',
+                    'status' => 'Contacted',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'name' => 'James Kang',
+                    'email' => 'jkang_99@provider.com',
+                    'phone' => '+82 10 1234 5678',
+                    'program' => 'Overseas Placement - USA',
+                    'query' => 'URGENT: My passport verification was delayed. Who can I contact to adjust my flight details?',
+                    'priority' => 'CRITICAL',
+                    'status' => 'Urgent Follow-up',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            ]);
+        }
+    }
+}
+
+Route::match(['get', 'post'], '/admin/enquiries', function(\Illuminate\Http\Request $request) {
+    try {
+        ensureEnquiriesTableExists();
+        $query = \Illuminate\Support\Facades\DB::table('enquiries')->latest();
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $items = $query->get()->map(function($e) {
+            return [
+                'id' => (string)$e->id,
+                'name' => $e->name,
+                'email' => $e->email ?? '',
+                'phone' => $e->phone,
+                'program' => $e->program,
+                'query' => $e->query ?? '',
+                'priority' => $e->priority ?? 'STANDARD',
+                'status' => $e->status ?? 'New Enquiry',
+                'date' => $e->created_at ? \Carbon\Carbon::parse($e->created_at)->format('M d, Y, h:i A') : 'Recently',
+            ];
+        });
+
+        $totalCount = \Illuminate\Support\Facades\DB::table('enquiries')->count();
+        $pendingCount = \Illuminate\Support\Facades\DB::table('enquiries')->whereIn('status', ['New Enquiry', 'Urgent Follow-up'])->count();
+        $contactedCount = \Illuminate\Support\Facades\DB::table('enquiries')->where('status', 'Contacted')->count();
+
+        return response()->json([
+            'success' => true,
+            'enquiries' => $items,
+            'stats' => [
+                'total' => $totalCount,
+                'pending' => $pendingCount,
+                'contacted' => $contactedCount,
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::match(['get', 'post'], '/api/admin/enquiries', function(\Illuminate\Http\Request $request) {
+    return redirect('/admin/enquiries');
+});
+
+Route::match(['get', 'post'], '/admin/enquiries/create', function(\Illuminate\Http\Request $request) {
+    try {
+        ensureEnquiriesTableExists();
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:100',
+            'email' => 'nullable|string|max:255',
+            'program' => 'required|string|max:255',
+            'query' => 'nullable|string',
+            'priority' => 'nullable|string|max:50',
+            'status' => 'nullable|string|max:50',
+        ]);
+
+        $id = \Illuminate\Support\Facades\DB::table('enquiries')->insertGetId([
+            'name' => $validated['name'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'],
+            'program' => $validated['program'],
+            'query' => $validated['query'] ?? null,
+            'priority' => $validated['priority'] ?? 'STANDARD',
+            'status' => $validated['status'] ?? 'New Enquiry',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Enquiry recorded successfully in database.',
+            'id' => $id
+        ], 201);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::match(['get', 'post'], '/api/admin/enquiries/create', function(\Illuminate\Http\Request $request) {
+    return redirect('/admin/enquiries/create');
+});
+
+Route::match(['get', 'post'], '/admin/enquiries/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    try {
+        ensureEnquiriesTableExists();
+        $status = $request->input('status', 'Contacted');
+        \Illuminate\Support\Facades\DB::table('enquiries')
+            ->where('id', $id)
+            ->update(['status' => $status, 'updated_at' => now()]);
+
+        return response()->json(['success' => true, 'message' => 'Enquiry status updated.']);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+

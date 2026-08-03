@@ -28,7 +28,7 @@ class JobModeratorController extends Controller
                     $q->where('category', 'community')
                       ->orWhere('is_referral', true);
                 });
-            } elseif (in_array($cat, ['india', 'overseas'])) {
+            } elseif (in_array($cat, ['dubai', 'overseas'])) {
                 $query->where('category', $cat);
             }
         }

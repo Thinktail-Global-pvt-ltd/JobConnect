@@ -14,14 +14,15 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/backend': {
-        target: 'http://localhost:8001',
+      '/api': {
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
-      '/api': {
-        target: 'http://localhost:8001',
+      '/backend': {
+        target: 'http://localhost:8000',
         changeOrigin: true,
-      }
+        rewrite: (path) => path.replace(/^\/backend/, ''),
+      },
     }
   }
 })

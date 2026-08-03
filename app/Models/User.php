@@ -21,6 +21,7 @@ class User extends Authenticatable
         'email',
         'gender',
         'profile_photo_path',
+        'country',
         'city',
         'experience_range',
         'preferred_role',

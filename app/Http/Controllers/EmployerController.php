@@ -128,24 +128,32 @@ class EmployerController extends Controller
                         'others'    => $othersList,
                     ] : null;
 
-                    $country = $applicant ? ($applicant->country ?? 'India') : 'India';
-                    $city = $applicant ? ($applicant->city ?: 'N/A') : 'N/A';
-                    $experienceRange = $applicant ? ($applicant->experience_range ?: $applicant->experience_years ?: '0') : '0';
+                    $country = $applicant ? ($applicant->country ?: null) : null;
+                    $city = $applicant ? ($applicant->city ?: null) : null;
+                    $experienceRange = $applicant ? ($applicant->experience_range ?: $applicant->experience_years ?: null) : null;
+                    $photoPath = $applicant ? $applicant->profile_photo_path : null;
+
+                    if ($chefData) {
+                        $chefData['profile_photo_path'] = $photoPath;
+                        $chefData['profile_photo'] = $photoPath;
+                        $chefData['photo_url'] = $photoPath;
+                        $chefData['avatar'] = $photoPath;
+                    }
 
                     return [
                         'id' => $app->id,
                         'application_id' => $app->id,
                         'job_post_id' => $app->job_post_id,
                         'applicant_id' => $app->applicant_id,
-                        'name' => $applicant ? ($applicant->full_name ?: 'Unknown Candidate') : 'Unknown Candidate',
-                        'full_name' => $applicant ? ($applicant->full_name ?: 'Unknown Candidate') : 'Unknown Candidate',
-                        'email' => $applicant ? ($applicant->email ?: '') : '',
-                        'mobile_number' => $applicant ? ($applicant->mobile_number ?: '') : '',
-                        'gender' => $applicant ? ($applicant->gender ?: '') : '',
+                        'name' => $applicant ? ($applicant->full_name ?: null) : null,
+                        'full_name' => $applicant ? ($applicant->full_name ?: null) : null,
+                        'email' => $applicant ? ($applicant->email ?: null) : null,
+                        'mobile_number' => $applicant ? ($applicant->mobile_number ?: null) : null,
+                        'gender' => $applicant ? ($applicant->gender ?: null) : null,
                         'country' => $country,
                         'city' => $city,
-                        'job_location' => $applicant ? ($applicant->job_location ?? $city) : $city,
-                        'preference' => $applicant ? ($applicant->preference ?? 'Full Time') : 'Full Time',
+                        'job_location' => $applicant ? ($applicant->city ?: null) : null,
+                        'preference' => $applicant ? ($applicant->preferred_role ?: null) : null,
                         'status' => $app->status, // new, contacted, shortlisted, hired, rejected
                         'preferred_call_time' => $app->preferred_call_time,
                         'created_at' => $createdAtRaw,
@@ -157,12 +165,15 @@ class EmployerController extends Controller
                         'applied_timestamp' => $appliedTimestamp,
                         'experience_range' => $experienceRange,
                         'experience_years' => $experienceRange,
-                        'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
-                        'current_employer' => $applicant ? ($applicant->current_employer ?: 'N/A') : 'N/A',
-                        'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
-                        'availability_status' => $applicant ? ($applicant->availability_status ?: 'Available') : 'Available',
+                        'preferred_role' => $applicant ? ($applicant->preferred_role ?: null) : null,
+                        'current_employer' => $applicant ? ($applicant->current_employer ?: null) : null,
+                        'profile_photo_path' => $photoPath,
+                        'profile_photo' => $photoPath,
+                        'photo_url' => $photoPath,
+                        'avatar' => $photoPath,
+                        'availability_status' => $applicant ? ($applicant->availability_status ?: null) : null,
                         'is_available' => $applicant ? (bool)$applicant->is_available : true,
-                        'selected_language' => $applicant ? ($applicant->selected_language ?: 'en') : 'en',
+                        'selected_language' => $applicant ? ($applicant->selected_language ?: null) : null,
                         'user_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
                         'active_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
                         'active_profile' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
@@ -183,14 +194,17 @@ class EmployerController extends Controller
                             'gender' => $applicant->gender,
                             'country' => $country,
                             'city' => $city,
-                            'job_location' => $applicant->job_location ?? $city,
-                            'preference' => $applicant->preference ?? 'Full Time',
+                            'job_location' => $applicant->city,
+                            'preference' => $applicant->preferred_role,
                             'experience_range' => $experienceRange,
                             'experience_years' => $experienceRange,
                             'preferred_role' => $applicant->preferred_role,
                             'current_employer' => $applicant->current_employer,
-                            'profile_photo_path' => $applicant->profile_photo_path,
-                            'availability_status' => $applicant->availability_status ?: 'Available',
+                            'profile_photo_path' => $photoPath,
+                            'profile_photo' => $photoPath,
+                            'photo_url' => $photoPath,
+                            'avatar' => $photoPath,
+                            'availability_status' => $applicant->availability_status ?: null,
                             'is_available' => (bool)$applicant->is_available,
                             'selected_language' => $applicant->selected_language,
                             'active_profile' => $applicant->active_profile ?? 'job_seeker',
@@ -292,7 +306,7 @@ class EmployerController extends Controller
             $job = JobPost::create([
                 'created_by' => $user->id,
                 'title' => $validated['title'],
-                'category' => 'india',
+                'category' => 'dubai',
                 'company' => $company,
                 'location' => $validated['location'],
                 'contact_info' => $user->email ?? 'recruitment@grandhyatt.com',

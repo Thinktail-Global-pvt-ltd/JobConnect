@@ -16,7 +16,7 @@ class JobPostController extends Controller
      *
      * Required fields:
      *   - title         (string)
-     *   - category      (india | overseas | community)
+     *   - category      (dubai | overseas | community)
      *   - company       (string)
      *   - contact_info  (string)
      *   - description   (string)
@@ -48,7 +48,7 @@ class JobPostController extends Controller
             $tokenStr = $request->bearerToken();
             if (str_contains($tokenStr, '|')) {
                 $tokenId = explode('|', $tokenStr)[0];
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
                 if ($tokenObj) {
                     $user = $tokenObj->tokenable;
                 }
@@ -86,7 +86,7 @@ class JobPostController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title'                  => 'required|string|max:255',
-            'category'               => 'required|string|in:india,overseas,community',
+            'category'               => 'required|string|in:dubai,overseas,community',
             'company'                => 'required|string|max:255',
             'contact_info'           => 'required|string',
             'description'            => 'required|string',

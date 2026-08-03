@@ -23,7 +23,7 @@ class FeedController extends Controller
      *   - "admin_post" → community announcement injected by admin
      *
      * Query params:
-     *   - category  : india | overseas | community  (optional filter on jobs)
+     *   - category  : dubai | overseas | community  (optional filter on jobs)
      *   - page      : pagination page number
      */
     public function index(Request $request)
@@ -44,7 +44,7 @@ class FeedController extends Controller
                     $q->where('category', 'community')
                       ->orWhere('is_referral', true);
                 });
-            } else if (in_array($filter, ['india', 'overseas'])) {
+            } else if (in_array($filter, ['dubai', 'overseas'])) {
                 $query->where('category', $filter);
             }
         }

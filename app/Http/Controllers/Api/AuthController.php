@@ -275,7 +275,7 @@ class AuthController extends Controller
         if (is_array($user->skills)) {
             $skills = $user->skills;
         } elseif (is_string($user->skills)) {
-            $skills = json_decode($user->skills, true) ?: [];
+            $skills = json_decode($user->skills, true) ?: array_values(array_filter(array_map('trim', explode(',', $user->skills))));
         }
 
         $completeness = \App\Services\ProfileProgressService::calculate($user);
@@ -283,10 +283,37 @@ class AuthController extends Controller
         $chefProfile = $user->chefProfile()->first();
         $chefAvailability = ($chefProfile && $chefProfile->availability_info) ? (json_decode($chefProfile->availability_info, true) ?: []) : [];
 
-        $jobLocation = $user->city ?: ($chefAvailability['location_preference'] ?? 'India');
-        $preference = $user->preferred_role ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? 'Full Time'));
-        $country = $user->country ?: 'India';
-        $city = $user->city ?: ($employerData['city'] ?? 'N/A');
+        $jobLocation = $user->city ?: ($chefAvailability['location_preference'] ?? null);
+        $preference = $user->preferred_role ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? null));
+        $country = $user->country ?: null;
+        $city = $user->city ?: ($employerData['city'] ?? null);
+        $availabilityStatus = $user->availability_status ?: null;
+
+        $talentCompleteness = \App\Services\ProfileProgressService::calculateTalent($user)['completeness'];
+        $talentData = [
+            'id' => $user->id,
+            'user_id' => $user->id,
+            'full_name' => $user->full_name ?: null,
+            'name' => $user->full_name ?: null,
+            'email' => $user->email ?: null,
+            'gender' => $user->gender ?: null,
+            'mobile_number' => $user->mobile_number ?: null,
+            'country' => $country,
+            'city' => $city,
+            'experience_range' => $user->experience_range ?: ($user->experience_years ?: null),
+            'experience_years' => $user->experience_range ?: ($user->experience_years ?: null),
+            'preferred_role' => $user->preferred_role ?: null,
+            'current_employer' => $user->current_employer ?: null,
+            'skills' => !empty($skills) ? $skills : null,
+            'availability_status' => $availabilityStatus,
+            'is_available' => (bool)$user->is_available,
+            'selected_language' => $user->selected_language ?: null,
+            'profile_photo_path' => $user->profile_photo_path,
+            'completeness' => $talentCompleteness,
+            'profile_completeness' => $talentCompleteness,
+            'created_at' => $user->created_at ? $user->created_at->toIso8601String() : null,
+            'updated_at' => $user->updated_at ? $user->updated_at->toIso8601String() : null,
+        ];
 
         return response()->json([
             'success' => true,
@@ -295,23 +322,23 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'mobile_number' => $user->mobile_number,
-                'full_name' => $user->full_name ?: '',
-                'name' => $user->full_name ?: '',
-                'email' => $user->email ?: '',
-                'gender' => $user->gender ?: '',
+                'full_name' => $user->full_name ?: null,
+                'name' => $user->full_name ?: null,
+                'email' => $user->email ?: null,
+                'gender' => $user->gender ?: null,
                 'profile_photo_path' => $user->profile_photo_path,
                 'country' => $country,
                 'city' => $city,
                 'job_location' => $jobLocation,
                 'preference' => $preference,
-                'experience_years' => $user->experience_range ?: ($user->experience_years ?: '0'),
-                'experience_range' => $user->experience_range ?: ($user->experience_years ?: '0'),
-                'preferred_role' => $user->preferred_role ?: '',
-                'current_employer' => $user->current_employer ?: '',
-                'skills' => $skills,
-                'availability_status' => $user->availability_status ?: 'available',
+                'experience_years' => $user->experience_range ?: ($user->experience_years ?: null),
+                'experience_range' => $user->experience_range ?: ($user->experience_years ?: null),
+                'preferred_role' => $user->preferred_role ?: null,
+                'current_employer' => $user->current_employer ?: null,
+                'skills' => !empty($skills) ? $skills : null,
+                'availability_status' => $availabilityStatus,
                 'is_available' => (bool)$user->is_available,
-                'selected_language' => $user->selected_language ?? 'en',
+                'selected_language' => $user->selected_language ?: null,
                 'fcm_token' => $user->fcm_token,
                 'completeness' => $completeness,
                 'profile_completeness' => $completeness,
@@ -324,11 +351,23 @@ class AuthController extends Controller
                         'is_active' => $r->is_active,
                     ];
                 }),
+                'talent_profile' => $talentData,
+                'talent_profile_details' => $talentData,
+                'job_seeker_profile' => $talentData,
                 'chef_profile' => $chefData,
                 'chef_profile_details' => $chefData,
                 'employer_profile' => $employerData,
                 'socials' => $socialsData,
             ],
+            'country' => $country,
+            'city' => $city,
+            'job_location' => $jobLocation,
+            'preference' => $preference,
+            'availability_status' => $availabilityStatus,
+            'is_available' => (bool)$user->is_available,
+            'talent_profile' => $talentData,
+            'talent_profile_details' => $talentData,
+            'job_seeker_profile' => $talentData,
             'chef_profile' => $chefData,
             'employer_profile' => $employerData,
             'socials' => $socialsData,

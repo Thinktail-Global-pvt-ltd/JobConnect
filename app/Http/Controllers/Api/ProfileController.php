@@ -64,15 +64,15 @@ class ProfileController extends Controller
             if ($user && $user->chefProfile) {
                 $availability = [];
                 if ($user->chefProfile->availability_info) {
-                    $availability = json_decode($user->chefProfile->availability_info, true) ?: [];
+                    $availability = is_array($user->chefProfile->availability_info) ? $user->chefProfile->availability_info : (json_decode($user->chefProfile->availability_info, true) ?: []);
                 }
                 $chefData = [
                     'id' => $user->chefProfile->id,
                     'user_id' => $user->chefProfile->user_id,
-                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
-                    'specialties' => $user->chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
-                    'bio' => $user->chefProfile->bio ?: '',
-                    'calendly_link' => $user->chefProfile->calendly_link ?: '',
+                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty ?: null,
+                    'specialties' => $user->chefProfile->cuisine_specialty ?: null,
+                    'bio' => $user->chefProfile->bio ?: null,
+                    'calendly_link' => $user->chefProfile->calendly_link ?: null,
                     'availability_info' => $availability,
                     'approval_status' => $user->chefProfile->approval_status ?: 'approved',
                     'status' => $user->chefProfile->approval_status ?: 'approved',
@@ -87,28 +87,66 @@ class ProfileController extends Controller
                 $employerData = [
                     'id' => $user->employerProfile->id,
                     'user_id' => $user->employerProfile->user_id,
-                    'business_name' => $user->employerProfile->business_name ?: '',
-                    'company_name' => $user->employerProfile->business_name ?: '',
-                    'industry_segment' => $user->employerProfile->industry_segment ?: '',
-                    'description' => $user->employerProfile->industry_segment ?: '',
-                    'business_location' => $user->employerProfile->business_location ?: '',
-                    'city' => $user->employerProfile->business_location ?: '',
-                    'contact_person_name' => $user->employerProfile->contact_person_name ?: '',
-                    'designation' => $user->employerProfile->contact_person_name ?: '',
-                    'business_mobile' => $user->employerProfile->business_mobile ?: '',
-                    'business_email' => $user->employerProfile->business_email ?: '',
-                    'preferred_language' => $user->employerProfile->preferred_language ?: 'en',
-                    'company_logo_path' => $user->employerProfile->company_logo_path ?: '',
-                    'company_logo_url' => $user->employerProfile->company_logo_path ?: '',
+                    'business_name' => $user->employerProfile->business_name ?: null,
+                    'company_name' => $user->employerProfile->business_name ?: null,
+                    'industry_segment' => $user->employerProfile->industry_segment ?: null,
+                    'description' => $user->employerProfile->industry_segment ?: null,
+                    'business_location' => $user->employerProfile->business_location ?: null,
+                    'city' => $user->employerProfile->business_location ?: null,
+                    'contact_person_name' => $user->employerProfile->contact_person_name ?: null,
+                    'designation' => $user->employerProfile->contact_person_name ?: null,
+                    'business_mobile' => $user->employerProfile->business_mobile ?: null,
+                    'business_email' => $user->employerProfile->business_email ?: null,
+                    'preferred_language' => $user->employerProfile->preferred_language ?: null,
+                    'company_logo_path' => $user->employerProfile->company_logo_path ?: null,
+                    'company_logo_url' => $user->employerProfile->company_logo_path ?: null,
                     'operational_locations' => is_array($ops) ? $ops : [],
-                    'nominee_name' => $user->employerProfile->nominee_name ?: '',
-                    'nominee_relationship' => $user->employerProfile->nominee_relationship ?: '',
-                    'nominee_mobile' => $user->employerProfile->nominee_mobile ?: '',
+                    'nominee_name' => $user->employerProfile->nominee_name ?: null,
+                    'nominee_relationship' => $user->employerProfile->nominee_relationship ?: null,
+                    'nominee_mobile' => $user->employerProfile->nominee_mobile ?: null,
                     'is_completed' => (bool)$user->employerProfile->is_completed,
                     'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
                     'updated_at' => $user->employerProfile->updated_at ? $user->employerProfile->updated_at->toIso8601String() : null,
                 ];
             }
+        }
+
+        // Talent Side Profile Data Construction
+        $talentData = null;
+        if ($user) {
+            $skillsArray = [];
+            if (is_array($user->skills)) {
+                $skillsArray = $user->skills;
+            } elseif (is_string($user->skills) && !empty($user->skills)) {
+                $skillsArray = json_decode($user->skills, true) ?: array_values(array_filter(array_map('trim', explode(',', $user->skills))));
+            }
+
+            $talentCompleteness = \App\Services\ProfileProgressService::calculateTalent($user)['completeness'];
+
+            $talentData = [
+                'id' => $user->id,
+                'user_id' => $user->id,
+                'full_name' => $user->full_name ?: null,
+                'name' => $user->full_name ?: null,
+                'email' => $user->email ?: null,
+                'gender' => $user->gender ?: null,
+                'mobile_number' => $user->mobile_number ?: null,
+                'country' => $user->country ?: null,
+                'city' => $user->city ?: null,
+                'experience_range' => $user->experience_range ?: ($user->experience_years ?: null),
+                'experience_years' => $user->experience_range ?: ($user->experience_years ?: null),
+                'preferred_role' => $user->preferred_role ?: null,
+                'current_employer' => $user->current_employer ?: null,
+                'skills' => !empty($skillsArray) ? $skillsArray : null,
+                'availability_status' => $user->availability_status ?: null,
+                'is_available' => (bool)$user->is_available,
+                'selected_language' => $user->selected_language ?: null,
+                'profile_photo_path' => $photo,
+                'completeness' => $talentCompleteness,
+                'profile_completeness' => $talentCompleteness,
+                'created_at' => $user->created_at ? $user->created_at->toIso8601String() : null,
+                'updated_at' => $user->updated_at ? $user->updated_at->toIso8601String() : null,
+            ];
         }
 
         // Ensure social media schema includes youtube, website, github, others
@@ -132,13 +170,13 @@ class ProfileController extends Controller
         }
 
         $socialsData = [
-            'instagram' => $socialsObj ? ($socialsObj->instagram ?: '') : '',
-            'linkedin'  => $socialsObj ? ($socialsObj->linkedin ?: '') : '',
-            'facebook'  => $socialsObj ? ($socialsObj->facebook ?: '') : '',
-            'twitter'   => $socialsObj ? ($socialsObj->twitter ?: '') : '',
-            'youtube'   => $socialsObj ? ($socialsObj->youtube ?: '') : '',
-            'website'   => $socialsObj ? ($socialsObj->website ?: '') : '',
-            'github'    => $socialsObj ? ($socialsObj->github ?: '') : '',
+            'instagram' => $socialsObj ? ($socialsObj->instagram ?: null) : null,
+            'linkedin'  => $socialsObj ? ($socialsObj->linkedin ?: null) : null,
+            'facebook'  => $socialsObj ? ($socialsObj->facebook ?: null) : null,
+            'twitter'   => $socialsObj ? ($socialsObj->twitter ?: null) : null,
+            'youtube'   => $socialsObj ? ($socialsObj->youtube ?: null) : null,
+            'website'   => $socialsObj ? ($socialsObj->website ?: null) : null,
+            'github'    => $socialsObj ? ($socialsObj->github ?: null) : null,
             'others'    => $othersList,
         ];
 
@@ -150,13 +188,13 @@ class ProfileController extends Controller
             ? (is_array($user->chefProfile->availability_info) ? $user->chefProfile->availability_info : (json_decode($user->chefProfile->availability_info, true) ?: []))
             : [];
             
-        $jobLocation = $user->city ?: ($chefAvailability['location_preference'] ?? 'India');
-        $preference = $user->preferred_role ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? 'Full Time'));
-        $country = $user->country ?: 'India';
-        $city = $user->city ?: ($employerData['city'] ?? 'N/A');
+        $jobLocation = ($user && $user->city) ? $user->city : ($chefAvailability['location_preference'] ?? null);
+        $preference = ($user && $user->preferred_role) ? $user->preferred_role : (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? null));
+        $country = ($user && !empty($user->country)) ? $user->country : null;
+        $city = ($user && !empty($user->city)) ? $user->city : ($employerData['city'] ?? null);
 
         $isAvailable = $user ? (bool)$user->is_available : true;
-        $availabilityStatus = $user ? ($user->availability_status ?: 'Available') : 'Available';
+        $availabilityStatus = ($user && !empty($user->availability_status)) ? $user->availability_status : null;
 
         return response()->json([
             'success' => true,
@@ -179,12 +217,15 @@ class ProfileController extends Controller
                 'skills' => $user ? $user->skills : null,
                 'availability_status' => $availabilityStatus,
                 'is_available' => $isAvailable,
-                'selected_language' => ($user && $user->selected_language) ? $user->selected_language : 'en',
+                'selected_language' => ($user && $user->selected_language) ? $user->selected_language : null,
                 'active_profile' => $activeRole,
                 'active_role' => $activeRole,
                 'user_role' => $activeRole,
                 'completeness' => $completeness,
                 'profile_completeness' => $completeness,
+                'talent_profile' => $talentData,
+                'talent_profile_details' => $talentData,
+                'job_seeker_profile' => $talentData,
                 'chef_profile' => $chefData,
                 'chef_profile_details' => $chefData,
                 'employer_profile' => $employerData,
@@ -196,6 +237,9 @@ class ProfileController extends Controller
             'preference' => $preference,
             'availability_status' => $availabilityStatus,
             'is_available' => $isAvailable,
+            'talent_profile' => $talentData,
+            'talent_profile_details' => $talentData,
+            'job_seeker_profile' => $talentData,
             'chef_profile' => $chefData,
             'employer_profile' => $employerData,
             'socials' => $socialsData,
@@ -217,19 +261,30 @@ class ProfileController extends Controller
     {
         try {
             $user = $request->user() ?? User::first();
-            $photo = $this->getLatestPhoto($user);
+            $photo = $this->getUserPhoto($user);
+
+            $skillsData = null;
+            if ($user && $user->skills) {
+                if (is_array($user->skills)) {
+                    $skillsData = implode(', ', $user->skills);
+                } elseif (is_string($user->skills) && !empty($user->skills)) {
+                    $skillsData = $user->skills;
+                }
+            }
 
             $profileData = [
-                'full_name' => $user ? ($user->full_name ?? 'Alex Smith') : 'Alex Smith',
-                'email' => $user ? ($user->email ?? 'alex.smith@hospitality.com') : 'alex.smith@hospitality.com',
-                'city' => $user ? ($user->city ?? 'London, UK') : 'London, UK',
-                'gender' => $user ? ($user->gender ?? 'male') : 'male',
-                'experience_range' => ($user && $user->experience_years) ? ($user->experience_years . ' Years') : '3-5 Years',
-                'current_employer' => $user ? ($user->current_employer ?? 'The Ritz Hotel') : 'The Ritz Hotel',
-                'job_type' => 'Full Time',
-                'location_preference' => 'Overseas',
-                'preferred_role' => $user ? ($user->preferred_role ?? 'Executive Chef') : 'Executive Chef',
-                'skills' => ($user && is_array($user->skills)) ? implode(', ', $user->skills) : ($user->skills ?? 'Fine Dining, Menu Engineering, Food Safety'),
+                'full_name' => $user ? $user->full_name : null,
+                'email' => $user ? $user->email : null,
+                'country' => $user ? $user->country : null,
+                'city' => $user ? $user->city : null,
+                'gender' => $user ? $user->gender : null,
+                'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
+                'experience_years' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
+                'current_employer' => $user ? $user->current_employer : null,
+                'job_type' => $user ? $user->preferred_role : null,
+                'location_preference' => $user ? $user->city : null,
+                'preferred_role' => $user ? $user->preferred_role : null,
+                'skills' => $skillsData,
                 'profile_photo_path' => $photo
             ];
 
@@ -313,76 +368,58 @@ class ProfileController extends Controller
                 }
             }
 
-            if (!$photoUrl && $user) {
-                $photoUrl = $this->getUserPhoto($user);
-            }
-
-            // Parse skills input safely into array
-            $skillsInput = $request->input('skills');
-            $skillsArray = [];
-            if (is_array($skillsInput)) {
-                $skillsArray = array_values(array_filter(array_map('trim', $skillsInput)));
-            } elseif (is_string($skillsInput) && !empty($skillsInput)) {
-                $skillsArray = array_values(array_filter(array_map('trim', explode(',', $skillsInput))));
-            } else {
-                $skillsArray = ['Fine Dining', 'Menu Engineering', 'Food Safety'];
-            }
-
-            $requestedEmail = $request->input('email');
-            $finalEmail = $user ? $user->email : 'alex.smith@hospitality.com';
-
-            if ($requestedEmail) {
-                $isEmailTakenByOther = User::where('email', $requestedEmail)
-                    ->where('id', '!=', $user ? $user->id : 0)
-                    ->exists();
-
-                if (!$isEmailTakenByOther) {
-                    $finalEmail = $requestedEmail;
-                }
-            }
-
-            $profileData = [
-                'full_name' => $request->input('full_name', $user ? $user->full_name : 'Alex Smith'),
-                'email' => $finalEmail,
-                'city' => $request->input('city', $user ? $user->city : 'London, UK'),
-                'gender' => $request->input('gender', $user ? ($user->gender ?? 'male') : 'male'),
-                'experience_range' => $request->input('experience_range', $user ? ($user->experience_range ?? '3-5 Years') : '3-5 Years'),
-                'current_employer' => $request->input('current_employer', $user ? $user->current_employer : 'The Ritz Hotel'),
-                'job_type' => $request->input('job_type', 'Full Time'),
-                'location_preference' => $request->input('location_preference', 'Overseas'),
-                'preferred_role' => $request->input('preferred_role', $user ? $user->preferred_role : 'Executive Chef'),
-                'skills' => implode(', ', $skillsArray),
-                'profile_photo_path' => $photoUrl
-            ];
-
-            // Persist to User Database Model
+            // Strictly update ONLY fields present in the request
             if ($user) {
-                // Auto-create gender column in users table if missing on database
-                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
-                    try {
-                        \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
-                            $table->string('gender', 50)->nullable()->after('email');
-                        });
-                    } catch (\Throwable $e) {
-                        // Fallback if column addition is handled concurrently
+                if ($request->has('full_name')) {
+                    $user->full_name = $request->input('full_name');
+                }
+                if ($request->has('email')) {
+                    $requestedEmail = $request->input('email');
+                    if ($requestedEmail) {
+                        $isEmailTakenByOther = User::where('email', $requestedEmail)
+                            ->where('id', '!=', $user->id)
+                            ->exists();
+
+                        if (!$isEmailTakenByOther) {
+                            $user->email = $requestedEmail;
+                        }
                     }
                 }
-
-                $user->full_name = $profileData['full_name'];
-                $user->email = $profileData['email'];
-                $user->city = $profileData['city'];
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
-                    $user->gender = $profileData['gender'];
+                if ($request->has('country')) {
+                    $user->country = $request->input('country');
                 }
-                $user->experience_range = $profileData['experience_range'];
-                $user->current_employer = $profileData['current_employer'];
-                $user->preferred_role = $profileData['preferred_role'];
-                $user->skills = $skillsArray;
+                if ($request->has('city')) {
+                    $user->city = $request->input('city');
+                }
+                if ($request->has('gender') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
+                    $user->gender = $request->input('gender');
+                }
+                if ($request->has('experience_range')) {
+                    $user->experience_range = $request->input('experience_range');
+                } elseif ($request->has('experience_years')) {
+                    $user->experience_range = $request->input('experience_years');
+                }
+                if ($request->has('current_employer')) {
+                    $user->current_employer = $request->input('current_employer');
+                }
+                if ($request->has('preferred_role')) {
+                    $user->preferred_role = $request->input('preferred_role');
+                }
+                if ($request->has('skills')) {
+                    $skillsInput = $request->input('skills');
+                    $skillsArray = [];
+                    if (is_array($skillsInput)) {
+                        $skillsArray = array_values(array_filter(array_map('trim', $skillsInput)));
+                    } elseif (is_string($skillsInput) && !empty($skillsInput)) {
+                        $skillsArray = array_values(array_filter(array_map('trim', explode(',', $skillsInput))));
+                    }
+                    $user->skills = $skillsArray;
+                }
                 if ($photoUrl) {
                     $user->profile_photo_path = $photoUrl;
                 }
 
-                // Parse and update Availability if provided
+                // Parse and update Availability if provided in request
                 if ($request->has('availability_status') || $request->has('is_available') || $request->has('availability')) {
                     $rawAvail = $request->input('availability_status') ?? $request->input('is_available') ?? $request->input('availability');
                     $isAvail = true;
@@ -441,7 +478,7 @@ class ProfileController extends Controller
                     }
                 }
 
-                // Handle Social Links updates (including Add More / Custom Links)
+                // Handle Social Links updates safely
                 $socialsPayload = $request->input('socials') ?? $request->only(['linkedin', 'instagram', 'facebook', 'twitter', 'youtube', 'website', 'github', 'others']);
                 if (is_array($socialsPayload) && !empty(array_filter($socialsPayload))) {
                     $instagram = $socialsPayload['instagram'] ?? $request->input('instagram');
@@ -472,43 +509,78 @@ class ProfileController extends Controller
                     );
                 }
 
-                // Sync to EmployerProfile model if user is an employer or employer profile fields are provided
+                // Sync to EmployerProfile model if user is an employer or employer profile fields are explicitly provided
                 if ($user && ($user->active_profile === 'employer' || $request->hasAny(['business_name', 'company_name', 'industry_segment', 'business_location', 'contact_person_name', 'business_mobile', 'business_email', 'operational_locations', 'company_logo']))) {
-                    $businessName = $request->input('business_name') ?? $request->input('company_name') ?? $user->current_employer;
-                    $industrySegment = $request->input('industry_segment') ?? $request->input('description') ?? 'Hospitality';
-                    $businessLocation = $request->input('business_location') ?? $request->input('city') ?? $user->city ?? 'India';
-                    $contactPersonName = $request->input('contact_person_name') ?? $request->input('full_name') ?? $user->full_name ?? 'Recruiter';
-                    $businessMobile = $request->input('business_mobile') ?? $request->input('mobile_number') ?? $user->mobile_number ?? '9876543210';
-                    $businessEmail = $request->input('business_email') ?? $request->input('email') ?? $user->email ?? 'recruiter@hospitality.com';
-                    $opsLocations = $request->input('operational_locations');
+                    $empProfile = \App\Models\EmployerProfile::firstOrNew(['user_id' => $user->id]);
 
-                    \App\Models\EmployerProfile::updateOrCreate(
-                        ['user_id' => $user->id],
-                        array_filter([
-                            'business_name' => $businessName,
-                            'industry_segment' => $industrySegment,
-                            'business_location' => $businessLocation,
-                            'contact_person_name' => $contactPersonName,
-                            'business_mobile' => $businessMobile,
-                            'business_email' => $businessEmail,
-                            'preferred_language' => $request->input('preferred_language') ?? ($user->selected_language ?? 'en'),
-                            'nominee_name' => $request->input('nominee_name') ?? 'N/A',
-                            'nominee_relationship' => $request->input('nominee_relationship') ?? 'N/A',
-                            'nominee_mobile' => $request->input('nominee_mobile') ?? 'N/A',
-                            'company_logo_path' => $photoUrl,
-                            'operational_locations' => is_array($opsLocations) ? json_encode($opsLocations) : $opsLocations,
-                            'is_completed' => true,
-                        ], fn($val) => !is_null($val))
-                    );
+                    if ($request->has('business_name') || $request->has('company_name')) {
+                        $empProfile->business_name = $request->input('business_name') ?? $request->input('company_name');
+                    }
+                    if ($request->has('industry_segment') || $request->has('description')) {
+                        $empProfile->industry_segment = $request->input('industry_segment') ?? $request->input('description');
+                    }
+                    if ($request->has('business_location') || $request->has('city')) {
+                        $empProfile->business_location = $request->input('business_location') ?? $request->input('city');
+                    }
+                    if ($request->has('contact_person_name') || $request->has('full_name')) {
+                        $empProfile->contact_person_name = $request->input('contact_person_name') ?? $request->input('full_name');
+                    }
+                    if ($request->has('business_mobile') || $request->has('mobile_number')) {
+                        $empProfile->business_mobile = $request->input('business_mobile') ?? $request->input('mobile_number');
+                    }
+                    if ($request->has('business_email') || $request->has('email')) {
+                        $empProfile->business_email = $request->input('business_email') ?? $request->input('email');
+                    }
+                    if ($request->has('preferred_language')) {
+                        $empProfile->preferred_language = $request->input('preferred_language');
+                    }
+                    if ($request->has('nominee_name')) {
+                        $empProfile->nominee_name = $request->input('nominee_name');
+                    }
+                    if ($request->has('nominee_relationship')) {
+                        $empProfile->nominee_relationship = $request->input('nominee_relationship');
+                    }
+                    if ($request->has('nominee_mobile')) {
+                        $empProfile->nominee_mobile = $request->input('nominee_mobile');
+                    }
+                    if ($photoUrl) {
+                        $empProfile->company_logo_path = $photoUrl;
+                    }
+                    if ($request->has('operational_locations')) {
+                        $opsLocations = $request->input('operational_locations');
+                        $empProfile->operational_locations = is_array($opsLocations) ? json_encode($opsLocations) : $opsLocations;
+                    }
+                    $empProfile->is_completed = true;
+                    $empProfile->save();
                 }
             }
+
+            $skillsFormatted = null;
+            if ($user && $user->skills) {
+                $skillsFormatted = is_array($user->skills) ? implode(', ', $user->skills) : $user->skills;
+            }
+
+            $updatedData = [
+                'full_name' => $user ? $user->full_name : null,
+                'email' => $user ? $user->email : null,
+                'country' => $user ? $user->country : null,
+                'city' => $user ? $user->city : null,
+                'gender' => $user ? $user->gender : null,
+                'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
+                'current_employer' => $user ? $user->current_employer : null,
+                'job_type' => $user ? $user->preferred_role : null,
+                'location_preference' => $user ? $user->city : null,
+                'preferred_role' => $user ? $user->preferred_role : null,
+                'skills' => $skillsFormatted,
+                'profile_photo_path' => $this->getUserPhoto($user),
+            ];
 
             return response()->json([
                 'success' => true,
                 'status' => 'success',
                 'message' => 'Profile information updated successfully!',
-                'profile_photo_path' => $profileData['profile_photo_path'],
-                'data' => $profileData
+                'profile_photo_path' => $updatedData['profile_photo_path'],
+                'data' => $updatedData
             ], 200);
 
         } catch (\Throwable $e) {

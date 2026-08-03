@@ -136,7 +136,7 @@ class WebJobController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'category' => 'required|string|in:india,overseas,community',
+            'category' => 'required|string|in:dubai,overseas,community',
             'company' => 'required|string|max:255',
             'salary' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',

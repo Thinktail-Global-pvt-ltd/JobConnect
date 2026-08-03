@@ -647,3 +647,127 @@ Route::match(['get', 'post'], '/admin/employers/create', [\App\Http\Controllers\
 Route::match(['get', 'post'], '/api/admin/employers/create', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
 Route::post('/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
 Route::post('/api/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
+
+// Admin Enquiries Endpoints in web.php
+Route::match(['get', 'post'], '/admin/enquiries', function(\Illuminate\Http\Request $request) {
+    try {
+        if (!function_exists('ensureEnquiriesTableExists')) {
+            function ensureEnquiriesTableExists() {
+                if (!\Illuminate\Support\Facades\Schema::hasTable('enquiries')) {
+                    \Illuminate\Support\Facades\Schema::create('enquiries', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->id();
+                        $table->string('name');
+                        $table->string('email')->nullable();
+                        $table->string('phone');
+                        $table->string('program');
+                        $table->text('query')->nullable();
+                        $table->string('priority')->default('STANDARD');
+                        $table->string('status')->default('New Enquiry');
+                        $table->timestamps();
+                    });
+                }
+            }
+        }
+        ensureEnquiriesTableExists();
+        $query = \Illuminate\Support\Facades\DB::table('enquiries')->latest();
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $items = $query->get()->map(function($e) {
+            return [
+                'id' => (string)$e->id,
+                'name' => $e->name,
+                'email' => $e->email ?? '',
+                'phone' => $e->phone,
+                'program' => $e->program,
+                'query' => $e->query ?? '',
+                'priority' => $e->priority ?? 'STANDARD',
+                'status' => $e->status ?? 'New Enquiry',
+                'date' => $e->created_at ? \Carbon\Carbon::parse($e->created_at)->format('M d, Y, h:i A') : 'Recently',
+            ];
+        });
+
+        $totalCount = \Illuminate\Support\Facades\DB::table('enquiries')->count();
+        $pendingCount = \Illuminate\Support\Facades\DB::table('enquiries')->whereIn('status', ['New Enquiry', 'Urgent Follow-up'])->count();
+        $contactedCount = \Illuminate\Support\Facades\DB::table('enquiries')->where('status', 'Contacted')->count();
+
+        return response()->json([
+            'success' => true,
+            'enquiries' => $items,
+            'stats' => [
+                'total' => $totalCount,
+                'pending' => $pendingCount,
+                'contacted' => $contactedCount,
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::match(['get', 'post'], '/admin/enquiries/create', function(\Illuminate\Http\Request $request) {
+    try {
+        if (!function_exists('ensureEnquiriesTableExists')) {
+            function ensureEnquiriesTableExists() {
+                if (!\Illuminate\Support\Facades\Schema::hasTable('enquiries')) {
+                    \Illuminate\Support\Facades\Schema::create('enquiries', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->id();
+                        $table->string('name');
+                        $table->string('email')->nullable();
+                        $table->string('phone');
+                        $table->string('program');
+                        $table->text('query')->nullable();
+                        $table->string('priority')->default('STANDARD');
+                        $table->string('status')->default('New Enquiry');
+                        $table->timestamps();
+                    });
+                }
+            }
+        }
+        ensureEnquiriesTableExists();
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:100',
+            'email' => 'nullable|string|max:255',
+            'program' => 'required|string|max:255',
+            'query' => 'nullable|string',
+            'priority' => 'nullable|string|max:50',
+            'status' => 'nullable|string|max:50',
+        ]);
+
+        $id = \Illuminate\Support\Facades\DB::table('enquiries')->insertGetId([
+            'name' => $validated['name'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'],
+            'program' => $validated['program'],
+            'query' => $validated['query'] ?? null,
+            'priority' => $validated['priority'] ?? 'STANDARD',
+            'status' => $validated['status'] ?? 'New Enquiry',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Enquiry recorded successfully in database.',
+            'id' => $id
+        ], 201);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
+
+Route::match(['get', 'post'], '/admin/enquiries/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    try {
+        $status = $request->input('status', 'Contacted');
+        \Illuminate\Support\Facades\DB::table('enquiries')
+            ->where('id', $id)
+            ->update(['status' => $status, 'updated_at' => now()]);
+
+        return response()->json(['success' => true, 'message' => 'Enquiry status updated.']);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+});
