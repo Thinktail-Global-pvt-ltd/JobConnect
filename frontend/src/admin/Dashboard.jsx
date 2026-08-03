@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, Briefcase, FileText, Share2, ClipboardList, Clock } from 'lucide-react';
+import { Users, Briefcase, FileText, Share2, ClipboardList, Clock, ArrowUpRight, ArrowDownRight, Award, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { mockApi } from '../services/api';
 
@@ -56,226 +56,197 @@ export default function Dashboard() {
     loadStats();
   }, []);
 
-  const formatDescription = (text) => {
-    if (!text) return '';
-    // Highlight any text inside single quotes in emerald green
-    const parts = text.split(/'([^']+)'/g);
-    return parts.map((part, i) => {
-      if (i % 2 === 1) {
-        return <span key={i} className="font-bold text-[#059669]">{part}</span>;
-      }
-      return part;
-    });
-  };
-
-  const getInitials = (text) => {
-    if (!text) return 'AC';
-    return text
-      .split(' ')
-      .map(w => w[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-  };
-
   if (loading || !data) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-sm font-bold text-slate-400 animate-pulse">Loading Dashboard Analytics...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="w-8 h-8 border-3 border-[#059669] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-extrabold text-slate-400">Loading Dashboard Analytics...</p>
       </div>
     );
   }
 
   const stats = data.stats;
   const pendingJobs = data.pendingJobs || [];
-  const feed = data.feed || [];
+
+  const kpiMetrics = [
+    {
+      title: 'TOTAL USERS',
+      count: Number(stats.users_count || 0).toLocaleString(),
+      change: '+12%',
+      isPositive: true,
+      icon: <Users className="w-5 h-5" />,
+      colorClass: 'text-emerald-500 bg-emerald-50 border-emerald-100',
+      barClass: 'bg-emerald-500 w-[75%]',
+      link: '/admin/users'
+    },
+    {
+      title: 'TOTAL EMPLOYERS',
+      count: Number(stats.employers_count || 0).toLocaleString(),
+      change: '+5%',
+      isPositive: true,
+      icon: <Briefcase className="w-5 h-5" />,
+      colorClass: 'text-teal-600 bg-teal-50 border-teal-100',
+      barClass: 'bg-teal-600 w-[55%]',
+      link: '/admin/employers'
+    },
+    {
+      title: 'ACTIVE JOBS',
+      count: Number(stats.jobs_total || 0).toLocaleString(),
+      change: '-2%',
+      isPositive: false,
+      icon: <FileText className="w-5 h-5" />,
+      colorClass: 'text-blue-600 bg-blue-50 border-blue-100',
+      barClass: 'bg-blue-600 w-[60%]',
+      link: '/admin/jobs'
+    },
+    {
+      title: 'TOTAL REFERRALS',
+      count: Number(stats.referrals_count || 0).toLocaleString(),
+      change: '+18%',
+      isPositive: true,
+      icon: <Share2 className="w-5 h-5" />,
+      colorClass: 'text-purple-600 bg-purple-50 border-purple-100',
+      barClass: 'bg-purple-600 w-[40%]',
+      link: '/admin/referrals'
+    },
+    {
+      title: 'CHEF PROFILES',
+      count: Number(stats.chefs_total || 0).toLocaleString(),
+      change: '+8%',
+      isPositive: true,
+      icon: <Award className="w-5 h-5" />,
+      colorClass: 'text-amber-600 bg-amber-50 border-amber-100',
+      barClass: 'bg-amber-600 w-[65%]',
+      link: '/admin/chefs'
+    },
+    {
+      title: 'APPLICATIONS',
+      count: Number(stats.applications_count || 0).toLocaleString(),
+      change: '+15%',
+      isPositive: true,
+      icon: <ClipboardList className="w-5 h-5" />,
+      colorClass: 'text-rose-600 bg-rose-50 border-rose-100',
+      barClass: 'bg-rose-600 w-[50%]',
+      link: '/admin/applications'
+    },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-left">
       {/* Title Header Card */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#0B1120] p-6 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Dashboard Overview</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Real-time performance metrics for the JobConnect platform.</p>
+          <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Dashboard Overview</h2>
+          <p className="text-xs font-semibold text-slate-400 mt-1">Real-time performance metrics and live operational audit for the JobConnect platform.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link
+            to="/admin/notifications"
+            className="px-4 py-2 rounded-xl bg-[#1E293B] hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Bell className="w-4 h-4 text-[#059669]" />
+            <span>Audit Logs ({notificationsList.length})</span>
+          </Link>
         </div>
       </div>
 
-      {/* Row 1 Stats: Large KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Total Users */}
-        <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[140px]">
-          <div className="flex justify-between items-start">
-            <div className="w-9 h-9 rounded-xl bg-[#e8f5e9] flex items-center justify-center text-[#2e7d32]">
-              <Users className="w-5 h-5" />
+      {/* KPI Stats Grid (6 Columns) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {kpiMetrics.map((kpi) => (
+          <Link
+            key={kpi.title}
+            to={kpi.link}
+            className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between hover:border-[#059669]/60 transition-all group min-h-[145px]"
+          >
+            <div className="flex items-center justify-between">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border font-bold ${kpi.colorClass}`}>
+                {kpi.icon}
+              </div>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 ${
+                kpi.isPositive ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'
+              }`}>
+                {kpi.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                {kpi.change}
+              </span>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#e8f5e9] text-[#2e7d32] flex items-center gap-0.5">
-              ↗ 12%
-            </span>
-          </div>
-          <div className="mt-4">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Users</span>
-            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
-              {Number(stats.users_count).toLocaleString()}
-            </span>
-          </div>
-          <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
-            <div className="bg-[#10b981] h-full rounded-full w-[70%]"></div>
-          </div>
-        </div>
 
-        {/* Total Employers */}
-        <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[140px]">
-          <div className="flex justify-between items-start">
-            <div className="w-9 h-9 rounded-xl bg-[#e0f2f1] flex items-center justify-center text-[#00695c]">
-              <Briefcase className="w-5 h-5" />
+            <div className="mt-4">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block truncate">{kpi.title}</span>
+              <span className="font-outfit font-black text-2xl text-white mt-0.5 block leading-none">{kpi.count}</span>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#e0f2f1] text-[#00695c] flex items-center gap-0.5">
-              ↗ 5%
-            </span>
-          </div>
-          <div className="mt-4">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Employers</span>
-            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
-              {Number(stats.employers_count || 0).toLocaleString()}
-            </span>
-          </div>
-          <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
-            <div className="bg-[#0f766e] h-full rounded-full w-[45%]"></div>
-          </div>
-        </div>
 
-        {/* Total Jobs */}
-        <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[140px]">
-          <div className="flex justify-between items-start">
-            <div className="w-9 h-9 rounded-xl bg-[#ffebee] flex items-center justify-center text-[#c62828]">
-              <FileText className="w-5 h-5" />
+            <div className="mt-3 h-1.5 w-full bg-[#1E293B] rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${kpi.barClass}`}></div>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#ffebee] text-[#c62828] flex items-center gap-0.5">
-              ↘ 2%
-            </span>
-          </div>
-          <div className="mt-4">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Jobs</span>
-            <span className="font-outfit font-extrabold text-3xl text-slate-800 mt-1 block">
-              {Number(stats.jobs_total || 0).toLocaleString()}
-            </span>
-          </div>
-          <div className="mt-4 h-1.5 w-full bg-[#f1f5f9] rounded-full overflow-hidden">
-            <div className="bg-[#b91c1c] h-full rounded-full w-[60%]"></div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Row 2 Stats: Horizontal Indicator Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Total Referrals */}
-        <div className="bg-white p-4.5 rounded-xl border border-[#e2e8f0] shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-[#f8f9fc] flex items-center justify-center text-[#10b981] border border-slate-100">
-            <Share2 className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Referrals</span>
-            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
-              {Number(stats.referrals_count || 0).toLocaleString()}
-            </span>
-          </div>
-        </div>
-
-        {/* Chef Profiles */}
-        <div className="bg-white p-4.5 rounded-xl border border-[#e2e8f0] shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-[#f8f9fc] flex items-center justify-center text-[#0f766e] border border-slate-100 text-lg">
-            🍴
-          </div>
-          <div>
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Chef Profiles</span>
-            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
-              {Number(stats.chefs_total || 0).toLocaleString()}
-            </span>
-          </div>
-        </div>
-
-        {/* Total Applications */}
-        <div className="bg-white p-4.5 rounded-xl border border-[#e2e8f0] shadow-sm flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-[#f8f9fc] flex items-center justify-center text-[#b91c1c] border border-slate-100">
-            <ClipboardList className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Applications</span>
-            <span className="font-outfit font-extrabold text-lg text-slate-800 mt-0.5 block">
-              {Number(stats.applications_count || 0).toLocaleString()}
-            </span>
-          </div>
-        </div>
-
+          </Link>
+        ))}
       </div>
 
       {/* Main Split Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         
         {/* Left: Pending Actions (3/5) */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden h-full flex flex-col justify-between">
+          <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden h-full flex flex-col justify-between">
             <div>
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/10">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">📋</span>
-                  <h3 className="font-outfit font-extrabold text-base text-slate-800">Pending Actions</h3>
+              <div className="p-6 border-b border-[#1E293B] flex justify-between items-center bg-[#0F172A]/40">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">📋</span>
+                  <h3 className="font-outfit font-black text-base text-white">Pending Actions</h3>
                 </div>
-                <Link to="/admin/jobs" className="text-xs font-bold text-[#059669] hover:underline">
-                  View All
+                <Link to="/admin/jobs" className="text-xs font-black text-[#059669] hover:underline">
+                  View All Actions →
                 </Link>
               </div>
 
               <div className="p-6 space-y-4">
                 {/* Item 1 */}
-                <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
+                <div className="p-4 bg-[#0F172A]/60 border border-[#1E293B] rounded-2xl flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#10b981] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
+                    <div className="w-11 h-11 rounded-2xl bg-[#059669] text-white flex items-center justify-center font-black font-outfit text-base shadow-md shrink-0">
                       {pendingJobs.length || stats.jobs_pending || 0}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-800 block">Jobs Awaiting Approval</span>
-                      <span className="text-[11px] font-semibold text-slate-400 mt-0.5 block">Review required for new hospitality listings.</span>
+                      <span className="text-xs font-black text-white block">Jobs Awaiting Approval</span>
+                      <span className="text-[11px] font-semibold text-slate-400 mt-0.5 block">Review required for new hospitality job listings.</span>
                     </div>
                   </div>
-                  <Link to="/admin/jobs" className="bg-white border border-[#e2e8f0] text-slate-500 hover:bg-slate-50 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm">
+                  <Link to="/admin/jobs" className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-xl text-xs font-black transition-all shadow-md shrink-0">
                     Manage
                   </Link>
                 </div>
 
                 {/* Item 2 */}
-                <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
+                <div className="p-4 bg-[#0F172A]/60 border border-[#1E293B] rounded-2xl flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#06b6d4] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
+                    <div className="w-11 h-11 rounded-2xl bg-cyan-600 text-white flex items-center justify-center font-black font-outfit text-base shadow-md shrink-0">
                       {stats.chefs_pending || 0}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-800 block">Chef Profiles Awaiting Approval</span>
-                      <span className="text-[11px] font-semibold text-slate-400 mt-0.5 block">Portfolio validation for high-tier chefs.</span>
+                      <span className="text-xs font-black text-white block">Chef Profiles Awaiting Approval</span>
+                      <span className="text-[11px] font-semibold text-slate-400 mt-0.5 block">Portfolio validation for registered chefs.</span>
                     </div>
                   </div>
-                  <Link to="/admin/chefs" className="bg-white border border-[#e2e8f0] text-slate-500 hover:bg-slate-50 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm">
+                  <Link to="/admin/chefs" className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-xl text-xs font-black transition-all shadow-md shrink-0">
                     Manage
                   </Link>
                 </div>
 
                 {/* Item 3 */}
-                <div className="p-4 bg-[#eff6ff]/60 border border-[#dbeafe] rounded-2xl flex items-center justify-between">
+                <div className="p-4 bg-[#0F172A]/60 border border-[#1E293B] rounded-2xl flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#f97316] flex items-center justify-center text-white font-extrabold font-outfit text-sm">
+                    <div className="w-11 h-11 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-black font-outfit text-base shadow-md shrink-0">
                       {stats.training_opportunities || 0}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-800 block">Training & Overseas Drafts</span>
+                      <span className="text-xs font-black text-white block">Training & Overseas Drafts</span>
                       <span className="text-[11px] font-semibold text-slate-400 mt-0.5 block">Update and publish international programs.</span>
                     </div>
                   </div>
-                  <a href="#" className="bg-white border border-[#e2e8f0] text-slate-500 hover:bg-slate-50 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm">
+                  <Link to="/admin/training" className="bg-[#059669] hover:bg-[#047857] text-white px-4 py-2 rounded-xl text-xs font-black transition-all shadow-md shrink-0">
                     Manage
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -284,14 +255,14 @@ export default function Dashboard() {
 
         {/* Right: Recent Activity Feed (2/5) */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden flex flex-col justify-between h-full">
+          <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden flex flex-col justify-between h-full">
             <div>
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/10">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#059669]" />
-                  <h3 className="font-outfit font-extrabold text-base text-slate-800">Recent Activity Feed</h3>
+              <div className="p-6 border-b border-[#1E293B] flex items-center justify-between bg-[#0F172A]/40">
+                <div className="flex items-center gap-2.5">
+                  <Clock className="w-5 h-5 text-[#059669]" />
+                  <h3 className="font-outfit font-black text-base text-white">Recent Activity Feed</h3>
                 </div>
-                <span className="text-[10px] font-bold bg-emerald-50 text-[#059669] px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="text-[10px] font-black bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-800">
                   {notificationsList.length} Total Logs
                 </span>
               </div>
@@ -299,20 +270,20 @@ export default function Dashboard() {
               <div className="p-6 space-y-4">
                 {notificationsList.length > 0 ? (
                   notificationsList.slice(0, 5).map((notif, index) => (
-                    <div key={notif.id || index} className="flex gap-3 pb-3 border-b border-slate-100 last:border-0 last:pb-0">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#059669] border border-emerald-200 flex items-center justify-center text-xs shrink-0 font-bold">
+                    <div key={notif.id || index} className="flex gap-3 pb-3.5 border-b border-[#1E293B]/60 last:border-0 last:pb-0">
+                      <div className="w-9 h-9 rounded-2xl bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center text-xs shrink-0 font-bold">
                         🔔
                       </div>
                       <div className="space-y-0.5 flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-800 leading-snug truncate" title={notif.title}>
+                        <p className="text-xs font-extrabold text-white leading-snug truncate" title={notif.title}>
                           {notif.title || 'System Notification'}
                         </p>
-                        <p className="text-[11px] font-semibold text-slate-500 line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] font-semibold text-slate-400 line-clamp-2 leading-relaxed">
                           {notif.body || notif.message || 'No details provided.'}
                         </p>
                         <div className="flex items-center gap-2 pt-1 flex-wrap">
                           {(notif.recipient_name || notif.user_id) && (
-                            <span className="text-[9px] font-extrabold text-[#059669] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 truncate max-w-[120px]">
+                            <span className="text-[9px] font-black text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800 truncate max-w-[120px]">
                               To: {notif.recipient_name || notif.user_id}
                             </span>
                           )}
@@ -323,28 +294,14 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))
-                ) : feed.length === 0 ? (
-                  <p className="text-xs font-semibold text-slate-400 text-center py-6">No recent actions logged.</p>
                 ) : (
-                  feed.map((act, index) => (
-                    <div key={index} className="flex gap-3">
-                      <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                        {getInitials(act.description?.split(':')[0] || act.title)}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-                          {formatDescription(act.description)}
-                        </p>
-                        <span className="text-[10px] font-bold text-slate-400 block mt-1">{act.time}</span>
-                      </div>
-                    </div>
-                  ))
+                  <p className="text-xs font-semibold text-slate-400 text-center py-6">No recent actions logged.</p>
                 )}
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 text-center">
-              <Link to="/admin/notifications" className="text-xs font-bold text-[#059669] hover:underline flex items-center justify-center gap-1.5 w-full">
+            <div className="px-6 py-4 border-t border-[#1E293B] bg-[#0F172A]/40 text-center">
+              <Link to="/admin/notifications" className="text-xs font-black text-[#059669] hover:underline flex items-center justify-center gap-1.5 w-full">
                 View Full Audit Logs & Notifications →
               </Link>
             </div>

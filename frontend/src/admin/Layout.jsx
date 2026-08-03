@@ -61,6 +61,7 @@ export default function Layout({ children }) {
         setNotifications(dedupedList);
         const unread = dedupedList.filter(item => !item.is_read).length;
         setUnreadCount(unread);
+        setCounts(prev => ({ ...prev, notifications: unread }));
       }
     } catch (e) {
       console.error("Failed to fetch notifications:", e);
@@ -126,6 +127,7 @@ export default function Layout({ children }) {
     { name: 'Training & Overseas', path: '/admin/training', icon: '🎓', countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: '📄', countKey: 'applications' },
     { name: 'Enquiries', path: '/admin/enquiries', icon: '❓', countKey: 'enquiries' },
+    { name: 'Notifications & Logs', path: '/admin/notifications', icon: '🔔', countKey: 'notifications' },
   ];
 
   const handleLogout = () => {
