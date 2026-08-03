@@ -390,10 +390,6 @@ export default function Chefs() {
               <span className="text-xs text-slate-500 font-bold">
                 Showing all {chefs.length} chef application(s)
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                All Chefs Loaded At Once
-              </span>
             </div>
           </div>
         </div>

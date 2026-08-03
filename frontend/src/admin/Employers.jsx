@@ -187,22 +187,10 @@ export default function Employers() {
       {/* Employer Directory Table Card */}
       <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden">
         
-        {/* Table Header Filter & Add Button Bar */}
+        {/* Table Header Filter Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 border-b border-[#1E293B] bg-[#0F172A]/40">
           <div className="flex items-center gap-3">
             <h3 className="font-outfit font-black text-sm text-white">Employer Directory</h3>
-            <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Global Access</span>
-            <span className="bg-blue-950/80 text-blue-400 border border-blue-800/60 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Premium Tier</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              Add Employer
-            </button>
           </div>
         </div>
 
@@ -304,14 +292,10 @@ export default function Employers() {
           </table>
         </div>
 
-        {/* Footer (Showing ALL entries — NO PAGINATION) */}
+        {/* Footer */}
         <div className="px-6 py-4 flex justify-between items-center border-t border-[#1E293B] bg-[#0F172A]/40">
           <span className="text-xs text-slate-400 font-extrabold">
             Showing all {filteredEmployers.length} Employers
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            All Employers Loaded At Once
           </span>
         </div>
       </div>

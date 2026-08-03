@@ -337,14 +337,10 @@ export default function Referrals() {
           </div>
         )}
 
-        {/* Footer info (ALL LOADED AT ONCE - NO HARDCODED PAGINATION) */}
+        {/* Footer info */}
         <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
           <span className="text-xs text-slate-500 font-bold">
             Showing all {filteredReferrals.length} Referral Entries
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            All Referrals Loaded At Once
           </span>
         </div>
 

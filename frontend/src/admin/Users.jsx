@@ -256,10 +256,6 @@ export default function Users() {
           <span className="text-xs text-slate-400 font-extrabold">
             Showing all {users.length} Talent
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            All Talent Loaded At Once
-          </span>
         </div>
 
       </div>
