@@ -749,6 +749,40 @@ Route::match(['get', 'post'], '/jobs/{job}/apply', function(\Illuminate\Http\Req
         $preferredCallTime = '10:00 AM - 01:00 PM';
     }
 
+    $isTraining = $request->has('is_training')
+        ? (bool) $request->input('is_training')
+        : false;
+
+    if ($isTraining) {
+        $application = \App\Models\TrainingApplication::updateOrCreate(
+            [
+                'applicant_id' => $user ? $user->id : 4,
+                'job_post_id'  => $job->id,
+            ],
+            [
+                'employer_id'         => $job->created_by ?: 17,
+                'status'              => 'new',
+                'preferred_call_time' => (string) $preferredCallTime,
+                'is_training'         => true,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Training application submitted successfully!',
+            'application' => [
+                'id'                  => $application->id,
+                'applicant_id'        => $application->applicant_id,
+                'job_post_id'         => $application->job_post_id,
+                'employer_id'         => $application->employer_id,
+                'status'              => $application->status,
+                'preferred_call_time' => $application->preferred_call_time,
+                'is_training'         => true,
+                'created_at'          => $application->created_at ? $application->created_at->toIso8601String() : null,
+            ]
+        ]);
+    }
+
     $application = \App\Models\JobApplication::updateOrCreate(
         [
             'applicant_id' => $user ? $user->id : 4,
@@ -832,9 +866,50 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
 
         $results = $apps->orderBy('job_applications.id', 'desc')->get();
 
-        $mapped = $results->map(function($row) {
+        $trainingResults = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+            $tApps = \Illuminate\Support\Facades\DB::table('training_applications')
+                ->leftJoin('users', 'training_applications.applicant_id', '=', 'users.id')
+                ->leftJoin('job_posts', 'training_applications.job_post_id', '=', 'job_posts.id')
+                ->select(
+                    'training_applications.id',
+                    'training_applications.applicant_id',
+                    'training_applications.job_post_id',
+                    'training_applications.employer_id',
+                    'training_applications.status',
+                    'training_applications.preferred_call_time',
+                    'training_applications.created_at',
+                    \Illuminate\Support\Facades\DB::raw('1 as is_training'),
+                    'users.full_name as applicant_name',
+                    'users.email as applicant_email',
+                    'users.mobile_number as applicant_mobile',
+                    'users.city as applicant_city',
+                    'users.experience_range as applicant_experience',
+                    'users.preferred_role as applicant_preferred_role',
+                    'users.current_employer as applicant_current_employer',
+                    'users.skills as applicant_skills',
+                    'users.profile_photo_path as applicant_photo',
+                    'job_posts.title as job_title',
+                    'job_posts.company as job_company',
+                    'job_posts.location as job_location',
+                    'job_posts.category as job_category'
+                );
+
+            if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
+                $tApps->where('training_applications.status', $request->status);
+            }
+
+            $trainingResults = $tApps->orderBy('training_applications.id', 'desc')->get();
+        }
+
+        $allResults = $results->map(function($row) {
+            $row->is_training = 0;
+            return $row;
+        })->concat($trainingResults);
+
+        $mapped = $allResults->map(function($row) {
             $fullName = $row->applicant_name ?: ('Candidate #' . $row->applicant_id);
-            $jobTitle = $row->job_title ?: ('Job Listing #' . $row->job_post_id);
+            $jobTitle = $row->job_title ?: (($row->is_training ?? false) ? 'Training Opportunity' : ('Job Listing #' . $row->job_post_id));
 
             $skills = [];
             if ($row->applicant_skills) {
@@ -847,30 +922,32 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
             }
 
             return [
-                'id' => $row->id,
-                'applicant_id' => $row->applicant_id,
-                'job_post_id' => $row->job_post_id,
-                'employer_id' => $row->employer_id,
-                'status' => $row->status ?: 'new',
+                'id'                  => $row->id,
+                'applicant_id'        => $row->applicant_id,
+                'job_post_id'         => $row->job_post_id,
+                'employer_id'         => $row->employer_id,
+                'status'              => $row->status ?: 'new',
                 'preferred_call_time' => $row->preferred_call_time ?: null,
-                'created_at' => $row->created_at ?: now()->toIso8601String(),
-                'applicant' => [
-                    'id' => $row->applicant_id,
-                    'full_name' => $fullName,
-                    'name' => $fullName,
-                    'email' => $row->applicant_email ?: '',
-                    'mobile_number' => $row->applicant_mobile ?: '',
-                    'city' => $row->applicant_city ?: 'N/A',
-                    'experience_range' => $row->applicant_experience ?: 'N/A',
-                    'preferred_role' => $row->applicant_preferred_role ?: '',
-                    'current_employer' => $row->applicant_current_employer ?: '',
-                    'skills' => $skills,
+                'is_training'         => (bool) ($row->is_training ?? false),
+                'application_type'    => ($row->is_training ?? false) ? 'training' : 'job',
+                'created_at'          => $row->created_at ?: now()->toIso8601String(),
+                'applicant'           => [
+                    'id'                 => $row->applicant_id,
+                    'full_name'          => $fullName,
+                    'name'               => $fullName,
+                    'email'              => $row->applicant_email ?: '',
+                    'mobile_number'      => $row->applicant_mobile ?: '',
+                    'city'               => $row->applicant_city ?: 'N/A',
+                    'experience_range'   => $row->applicant_experience ?: 'N/A',
+                    'preferred_role'     => $row->applicant_preferred_role ?: '',
+                    'current_employer'   => $row->applicant_current_employer ?: '',
+                    'skills'             => $skills,
                     'profile_photo_path' => $row->applicant_photo,
                 ],
-                'job_post' => [
-                    'id' => $row->job_post_id,
-                    'title' => $jobTitle,
-                    'company' => $row->job_company ?: 'Employer',
+                'job_post'            => [
+                    'id'       => $row->job_post_id,
+                    'title'    => $jobTitle,
+                    'company'  => $row->job_company ?: 'Employer',
                     'location' => $row->job_location ?: 'India',
                     'category' => $row->job_category ?: 'dubai',
                 ]

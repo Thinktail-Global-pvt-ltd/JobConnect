@@ -9,6 +9,7 @@ export default function Applications() {
   const [selectedJob, setSelectedJob] = useState(null); // When set, shows applications for this job
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [appCategory, setAppCategory] = useState('all'); // 'all', 'job', 'training'
 
   // Selected detail modal for Candidate Profile
   const [selectedApp, setSelectedApp] = useState(null);
@@ -248,8 +249,15 @@ export default function Applications() {
   // Filter applications for specific selected job or flat view
   const getApplicationsForDisplay = () => {
     let source = apps;
+
+    if (appCategory === 'job') {
+      source = source.filter(a => !a.is_training && a.application_type !== 'training');
+    } else if (appCategory === 'training') {
+      source = source.filter(a => a.is_training || a.application_type === 'training');
+    }
+
     if (selectedJob) {
-      source = apps.filter(a => (a.job_post_id === selectedJob.id || a.job_post?.id === selectedJob.id));
+      source = source.filter(a => (a.job_post_id === selectedJob.id || a.job_post?.id === selectedJob.id));
     }
 
     return source.filter(a => {
@@ -376,6 +384,28 @@ export default function Applications() {
               >
                 <Users className="w-4 h-4" />
                 <span>All Applications ({apps.length})</span>
+              </button>
+            </div>
+
+            {/* Category Filter Pills (All / Jobs / Training) */}
+            <div className="flex items-center gap-2 pb-3.5">
+              <button 
+                onClick={() => setAppCategory('all')} 
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'all' ? 'bg-[#059669] text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
+              >
+                All ({apps.length})
+              </button>
+              <button 
+                onClick={() => setAppCategory('job')} 
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'job' ? 'bg-blue-600 text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
+              >
+                💼 Jobs ({apps.filter(a => !a.is_training && a.application_type !== 'training').length})
+              </button>
+              <button 
+                onClick={() => setAppCategory('training')} 
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'training' ? 'bg-purple-600 text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
+              >
+                🎓 Training ({apps.filter(a => a.is_training || a.application_type === 'training').length})
               </button>
             </div>
           </div>
@@ -544,7 +574,14 @@ export default function Applications() {
                               {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
                             </div>
                             <div>
-                              <span className="font-extrabold text-white text-[13px] block leading-tight">{a.applicant?.full_name}</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-extrabold text-white text-[13px] block leading-tight">{a.applicant?.full_name}</span>
+                                {(a.is_training || a.application_type === 'training') && (
+                                  <span className="bg-purple-950 text-purple-300 border border-purple-800 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
+                                    🎓 Training
+                                  </span>
+                                )}
+                              </div>
                               <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
                             </div>
                           </td>
