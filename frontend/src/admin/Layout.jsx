@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { mockApi } from '../services/api';
+import logoImg from '../assets/Jobrito full logo.png';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -138,10 +139,13 @@ export default function Layout({ children }) {
           {!isCollapsed ? (
             <Link to="/admin/dashboard" className="flex items-center gap-2">
               <img 
-                src="/images/jobrito-logo-full.png" 
+                src={logoImg} 
                 alt="Jobrito" 
-                className="h-10 w-auto object-contain max-w-[170px]" 
-                onError={(e) => { e.target.onerror = null; e.target.src = "/images/Jobrito full logo.png"; }}
+                className="h-9 w-auto object-contain max-w-[170px]" 
+                onError={(e) => { 
+                  e.target.onerror = null; 
+                  e.target.src = "https://jobrito.com/images/jobrito-logo-full.png"; 
+                }}
               />
             </Link>
           ) : (
