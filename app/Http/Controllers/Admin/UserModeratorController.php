@@ -96,19 +96,29 @@ class UserModeratorController extends Controller
 
         $employers = $query->latest()->get()->map(function ($user) {
             $empProfile = $user->employerProfile;
+            $busName = optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company'));
+            $contactName = optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A');
+            $phoneNum = optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A');
+            $emailAddr = optional($empProfile)->business_email ?: ($user->email ?: '');
+            $locationHq = optional($empProfile)->business_location ?: ($user->city ?: 'India');
 
             return [
-                'id'            => $user->id,
-                'name'          => optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company')),
-                'contact'       => optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A'),
-                'phone'         => optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A'),
-                'email'         => optional($empProfile)->business_email ?: ($user->email ?: ''),
-                'hq'            => optional($empProfile)->business_location ?: ($user->city ?: 'India'),
-                'posted_count'  => $user->job_posts_count ?? 0,
-                'status'        => $user->is_suspended ? 'Suspended' : 'Active',
-                'is_suspended'  => (bool) $user->is_suspended,
-                'created_at'    => $user->created_at,
-                'role_type'     => optional($user->roles->where('is_active', 1)->first())->role_type ?? 'employer',
+                'id'                   => $user->id,
+                'name'                 => $busName,
+                'business_name'        => $busName,
+                'contact'              => $contactName,
+                'contact_person_name'  => $contactName,
+                'phone'                => $phoneNum,
+                'mobile_number'        => $phoneNum,
+                'email'                => $emailAddr,
+                'hq'                   => $locationHq,
+                'business_location'    => $locationHq,
+                'posted_count'         => $user->job_posts_count ?? 0,
+                'status'               => $user->is_suspended ? 'Suspended' : 'Active',
+                'is_suspended'         => (bool) $user->is_suspended,
+                'created_at'           => $user->created_at ? $user->created_at->toIso8601String() : null,
+                'role_type'            => optional($user->roles->where('is_active', 1)->first())->role_type ?? 'employer',
+                'employer_profile'     => $empProfile,
             ];
         });
 

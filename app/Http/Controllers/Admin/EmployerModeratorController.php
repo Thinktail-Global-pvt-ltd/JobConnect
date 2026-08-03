@@ -48,7 +48,35 @@ class EmployerModeratorController extends Controller
         }
 
         // Fetch ALL employer users dynamically without pagination
-        $employers = $query->latest()->get();
+        $rawEmployers = $query->latest()->get();
+
+        $employers = $rawEmployers->map(function ($user) {
+            $empProfile = $user->employerProfile;
+            $busName = optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company'));
+            $contactName = optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A');
+            $phoneNum = optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A');
+            $emailAddr = optional($empProfile)->business_email ?: ($user->email ?: '');
+            $locationHq = optional($empProfile)->business_location ?: ($user->city ?: 'India');
+
+            return [
+                'id'                   => $user->id,
+                'name'                 => $busName,
+                'business_name'        => $busName,
+                'contact'              => $contactName,
+                'contact_person_name'  => $contactName,
+                'phone'                => $phoneNum,
+                'mobile_number'        => $phoneNum,
+                'email'                => $emailAddr,
+                'hq'                   => $locationHq,
+                'business_location'    => $locationHq,
+                'posted_count'         => $user->job_posts_count ?? 0,
+                'status'               => $user->is_suspended ? 'Suspended' : 'Active',
+                'is_suspended'         => (bool) $user->is_suspended,
+                'created_at'           => $user->created_at ? $user->created_at->toIso8601String() : null,
+                'role_type'            => optional($user->roles->where('is_active', 1)->first())->role_type ?? 'employer',
+                'employer_profile'     => $empProfile,
+            ];
+        });
 
         // Dynamic Growth Overview Statistics
         $totalActiveEmployers = User::where('is_suspended', false)

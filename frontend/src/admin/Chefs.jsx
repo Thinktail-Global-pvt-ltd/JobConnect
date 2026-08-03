@@ -639,31 +639,52 @@ export default function Chefs() {
             </div>
 
             <div className="space-y-3 text-xs text-slate-600 font-medium">
-              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                 <div>
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Email</span>
-                  <span className="font-bold text-slate-700">{selectedChef.email || 'N/A'}</span>
+                  <span className="font-bold text-slate-700 break-all">{selectedChef.email || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Phone</span>
-                  <span className="font-bold text-slate-700">{selectedChef.mobile_number || 'N/A'}</span>
+                  <span className="font-bold text-slate-700">{selectedChef.mobile_number || selectedChef.phone || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">City</span>
-                  <span className="font-bold text-slate-700">{selectedChef.city || 'N/A'}</span>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">City / Location</span>
+                  <span className="font-bold text-slate-700">{[selectedChef.city, selectedChef.country].filter(Boolean).join(', ') || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Experience</span>
                   <span className="font-bold text-slate-700">{selectedChef.experience_range || selectedChef.experience || '0 Years'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Preferred Role</span>
+                  <span className="font-bold text-slate-700">{selectedChef.preferred_role || 'Chef'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Status</span>
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                    selectedChef.approval_status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {selectedChef.approval_status || 'Pending'}
+                  </span>
                 </div>
               </div>
 
               <div>
                 <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Cuisine Specialties</span>
                 <p className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 font-semibold text-slate-700">
-                  {selectedChef.cuisine_specialty || selectedChef.specialties || 'Multi-Cuisine'}
+                  {selectedChef.cuisine_specialty || selectedChef.specialties || 'Not specified'}
                 </p>
               </div>
+
+              {selectedChef.skills && (
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Skills & Expertise</span>
+                  <p className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 font-semibold text-slate-700">
+                    {Array.isArray(selectedChef.skills) ? selectedChef.skills.join(', ') : selectedChef.skills}
+                  </p>
+                </div>
+              )}
 
               {selectedChef.bio && (
                 <div>

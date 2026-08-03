@@ -232,38 +232,44 @@ export default function Employers() {
                     <td className="py-4.5 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-xl bg-blue-950 text-blue-400 border border-blue-800/60 flex items-center justify-center font-black font-outfit text-xs shadow-sm shrink-0">
-                          {emp.name ? emp.name[0].toUpperCase() : 'E'}
+                          {(emp.name || emp.business_name || emp.full_name || 'E')[0].toUpperCase()}
                         </div>
                         <div>
-                          <span className="font-extrabold text-white text-[13px] block leading-tight">{emp.name}</span>
-                          <span className="text-[10px] text-slate-400 font-bold block mt-0.5">📍 {emp.hq}</span>
+                          <span className="font-extrabold text-white text-[13px] block leading-tight">
+                            {emp.name || emp.business_name || emp.company || emp.full_name || 'Employer Company'}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold block mt-0.5">
+                            📍 {emp.hq || emp.business_location || emp.city || 'India'}
+                          </span>
                         </div>
                       </div>
                     </td>
 
                     {/* Contact Person */}
                     <td className="py-4.5 px-6 font-extrabold text-slate-200">
-                      {emp.contact}
+                      {emp.contact || emp.contact_person_name || emp.full_name || 'N/A'}
                     </td>
 
                     {/* Mobile number */}
                     <td className="py-4.5 px-6 font-semibold text-slate-300">
-                      <code className="bg-[#1E293B] px-2 py-0.5 rounded text-slate-300 font-mono text-[11px] border border-slate-700/50">{emp.phone}</code>
+                      <code className="bg-[#1E293B] px-2 py-0.5 rounded text-slate-300 font-mono text-[11px] border border-slate-700/50">
+                        {emp.phone || emp.mobile_number || emp.business_mobile || 'N/A'}
+                      </code>
                     </td>
 
                     {/* Jobs Posted count */}
                     <td className="py-4.5 px-6 text-emerald-400 font-extrabold">
-                      📄 {emp.posted_count || 0}
+                      📄 {emp.posted_count ?? emp.job_posts_count ?? 0}
                     </td>
 
                     {/* Status Badge */}
                     <td className="py-4.5 px-6">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${
-                        emp.status === 'Active'
+                        (emp.status === 'Active' || !emp.is_suspended)
                           ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800/60'
                           : 'bg-rose-950/80 text-rose-400 border-rose-800/60'
                       }`}>
-                        {emp.status}
+                        {emp.status || (emp.is_suspended ? 'Suspended' : 'Active')}
                       </span>
                     </td>
 

@@ -105,10 +105,12 @@ class ChefModeratorController extends Controller
                 }
 
                 $fullName = ($user && $user->full_name) ? $user->full_name : ('Chef #' . $chef->user_id);
-                $email = $user ? ($user->email ?: '') : '';
-                $mobile = $user ? ($user->mobile_number ?: '') : '';
-                $city = $user ? ($user->city ?: '') : '';
-                $exp = $user ? ($user->experience_range ?: '0') : '0';
+                $email = $user ? ($user->email ?: null) : null;
+                $mobile = $user ? ($user->mobile_number ?: null) : null;
+                $city = $user ? ($user->city ?: null) : null;
+                $country = $user ? ($user->country ?: null) : null;
+                $preferredRole = $user ? ($user->preferred_role ?: null) : null;
+                $exp = $user ? ($user->experience_range ?: $user->experience_years ?: null) : null;
                 $photo = $user ? $user->profile_photo_path : null;
                 $skills = ($user && is_array($user->skills)) ? $user->skills : [];
 
@@ -119,19 +121,24 @@ class ChefModeratorController extends Controller
                     'name' => $fullName,
                     'email' => $email,
                     'mobile_number' => $mobile,
+                    'phone' => $mobile,
                     'city' => $city,
+                    'country' => $country,
+                    'preferred_role' => $preferredRole,
                     'profile_photo_path' => $photo,
                     'experience_range' => $exp,
                     'experience' => $exp,
-                    'cuisine_specialty' => $chef->cuisine_specialty ?: 'Multi-Cuisine',
-                    'specialties' => $chef->cuisine_specialty ?: 'Multi-Cuisine',
-                    'bio' => $chef->bio ?: '',
-                    'calendly_link' => $chef->calendly_link ?: '',
+                    'cuisine_specialty' => $chef->cuisine_specialty ?: null,
+                    'specialties' => $chef->cuisine_specialty ?: null,
+                    'bio' => $chef->bio ?: null,
+                    'calendly_link' => $chef->calendly_link ?: null,
                     'calendly' => !empty($chef->calendly_link),
                     'approval_status' => $chef->approval_status ?: 'pending',
                     'status' => $chef->approval_status ?: 'pending',
                     'availability_info' => $availability,
                     'skills' => $skills,
+                    'created_at' => $chef->created_at ? $chef->created_at->toIso8601String() : null,
+                    'updated_at' => $chef->updated_at ? $chef->updated_at->toIso8601String() : null,
                 ];
             });
 
