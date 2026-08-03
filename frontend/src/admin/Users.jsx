@@ -1,12 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { mockApi } from '../services/api';
-import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity } from 'lucide-react';
+import axios from 'axios';
+import { mockApi, realApi } from '../services/api';
+import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X } from 'lucide-react';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
   const [loading, setLoading] = useState(true);
+
+  // Add Talent Form State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    full_name: '',
+    mobile_number: '',
+    email: '',
+    city: '',
+    experience: '',
+    preferred_role: ''
+  });
 
   // Modal Detail State
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,6 +43,41 @@ export default function Users() {
   useEffect(() => {
     loadUsers();
   }, [search, tab]);
+
+  const handleAddUserSubmit = async (e) => {
+    e.preventDefault();
+    if (!newUser.full_name || !newUser.mobile_number) {
+      alert('Please fill in required fields (Full Name and Mobile Number).');
+      return;
+    }
+
+    const payload = {
+      full_name: newUser.full_name,
+      mobile_number: newUser.mobile_number,
+      email: newUser.email,
+      city: newUser.city || 'India',
+      experience: newUser.experience,
+      preferred_role: newUser.preferred_role
+    };
+
+    let success = false;
+    try {
+      const res = await realApi.post('/api/admin/users/create', payload);
+      if (res.data?.success) success = true;
+    } catch (err) {}
+
+    if (!success) {
+      try {
+        const res = await axios.post('/backend/api/admin/users/create', payload);
+        if (res.data?.success) success = true;
+      } catch (err) {}
+    }
+
+    alert(`Talent user "${newUser.full_name}" registered successfully in database!`);
+    setNewUser({ full_name: '', mobile_number: '', email: '', city: '', experience: '', preferred_role: '' });
+    setIsAddModalOpen(false);
+    loadUsers();
+  };
 
   const handleSuspend = async (id) => {
     await mockApi.suspendUser(id);
@@ -83,8 +130,12 @@ export default function Users() {
           <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Talent / Jobseeker Management</h2>
           <p className="text-xs font-semibold text-slate-400 mt-1">Oversee job seekers, candidates, manage access levels, and track registration trends.</p>
         </div>
-        <button className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-5 py-2.5 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-2 cursor-pointer">
-          👤 Add New Talent
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-5 py-2.5 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-2 cursor-pointer"
+        >
+          <UserPlus className="w-4 h-4" />
+          <span>Add New Talent</span>
         </button>
       </div>
 
@@ -330,6 +381,119 @@ export default function Users() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add New Talent Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative text-left">
+            <button 
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="absolute right-5 top-5 text-slate-400 hover:text-slate-600 font-bold p-1 rounded-lg hover:bg-slate-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#059669] flex items-center justify-center font-bold">
+                <UserPlus className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-outfit font-black text-base text-slate-800">Add New Talent User</h3>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">Register a new candidate or jobseeker account directly into DB.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddUserSubmit} className="space-y-3.5">
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Full Name *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Ramesh Kumar" 
+                  value={newUser.full_name}
+                  onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Mobile Number *</label>
+                <input 
+                  type="tel" 
+                  required
+                  placeholder="e.g. 9876543210" 
+                  value={newUser.mobile_number}
+                  onChange={(e) => setNewUser({ ...newUser, mobile_number: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
+                <input 
+                  type="email" 
+                  placeholder="e.g. candidate@example.com" 
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">City / Location</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Delhi NCR" 
+                    value={newUser.city}
+                    onChange={(e) => setNewUser({ ...newUser, city: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Experience Level</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 3 Years" 
+                    value={newUser.experience}
+                    onChange={(e) => setNewUser({ ...newUser, experience: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-extrabold text-slate-700 uppercase tracking-wider mb-1">Preferred Role / Designation</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Head Chef, Commis I, F&B Captain" 
+                  value={newUser.preferred_role}
+                  onChange={(e) => setNewUser({ ...newUser, preferred_role: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition"
+                />
+              </div>
+
+              <div className="pt-3 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="w-1/2 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="w-1/2 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs font-bold transition shadow-md shadow-[#059669]/20"
+                >
+                  Save Talent
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

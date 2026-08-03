@@ -287,6 +287,52 @@ class UserModeratorController extends Controller
     }
 
     /**
+     * Store a new talent/jobseeker user in DB.
+     */
+    public function store(Request $request)
+    {
+        $mobile = $request->input('mobile_number') ?: $request->input('phone');
+        $name = $request->input('full_name') ?: $request->input('name');
+
+        if (!$mobile || !$name) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mobile number and full name are required.'
+            ], 422);
+        }
+
+        // Check duplicate
+        $existing = User::where('mobile_number', $mobile)->first();
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => "User with mobile number {$mobile} already exists."
+            ], 400);
+        }
+
+        $user = User::create([
+            'mobile_number'   => $mobile,
+            'full_name'       => $name,
+            'email'           => $request->input('email'),
+            'city'            => $request->input('city') ?: 'India',
+            'active_profile'  => 'job_seeker',
+            'is_suspended'    => false,
+        ]);
+
+        \App\Models\UserRole::create([
+            'user_id'   => $user->id,
+            'role_type' => 'job_seeker',
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Talent user '{$user->full_name}' created successfully.",
+            'user'    => $user
+        ]);
+    }
+
+    /**
      * Hard delete a user and all their associated data from the database.
      */
     public function destroy(User $user)

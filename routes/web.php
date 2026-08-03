@@ -674,6 +674,12 @@ function getWebTrainingOpportunities() {
     }
 }
 
+// Admin User Store Endpoints in web.php
+Route::match(['get', 'post'], '/admin/users/create', [\App\Http\Controllers\Admin\UserModeratorController::class, 'store']);
+Route::match(['get', 'post'], '/api/admin/users/create', [\App\Http\Controllers\Admin\UserModeratorController::class, 'store']);
+Route::post('/admin/users', [\App\Http\Controllers\Admin\UserModeratorController::class, 'store']);
+Route::post('/api/admin/users', [\App\Http\Controllers\Admin\UserModeratorController::class, 'store']);
+
 // Admin Employer Store Endpoints in web.php
 Route::match(['get', 'post'], '/admin/employers/create', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
 Route::match(['get', 'post'], '/api/admin/employers/create', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
