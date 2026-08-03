@@ -1059,6 +1059,7 @@ Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
                 'community' => $pendingCommunity,
                 'training' => $pendingTraining,
                 'applications' => $pendingApplications,
+                'enquiries' => 0,
             ]
         ]);
     } catch (\Throwable $e) {

@@ -16,6 +16,7 @@ export default function Layout({ children }) {
     community: 0,
     training: 0,
     applications: 0,
+    enquiries: 0,
   });
 
   const [notifOpen, setNotifOpen] = useState(false);
@@ -92,6 +93,7 @@ export default function Layout({ children }) {
     { name: 'Community Feed', path: '/admin/community', icon: '📶', countKey: 'community' },
     { name: 'Training & Overseas', path: '/admin/training', icon: '🎓', countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: '📄', countKey: 'applications' },
+    { name: 'Enquiries', path: '/admin/enquiries', icon: '❓', countKey: 'enquiries' },
   ];
 
   const handleLogout = () => {

@@ -162,25 +162,11 @@ export default function Chefs() {
   return (
     <div className="space-y-6 text-left">
       
-      {/* Header section with Onboard Chef Button */}
+      {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">ChefConnect Moderation</h2>
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Review, publish or unpublish professional chef profiles for candidate & employer discovery.</p>
-        </div>
-
-        {/* Onboard Chef Button */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <button 
-            type="button"
-            onClick={() => {
-              setIsOnboardModalOpen(true);
-            }}
-            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer z-20"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>+ Onboard New Chef</span>
-          </button>
         </div>
       </div>
 
