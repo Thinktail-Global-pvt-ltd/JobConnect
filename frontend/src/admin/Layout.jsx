@@ -143,8 +143,8 @@ export default function Layout({ children }) {
                 J
               </div>
               <div>
-                <span className="font-outfit font-black text-xl text-white tracking-tight leading-none block group-hover:text-emerald-400 transition-colors">
-                  Jobrito<span className="text-[#059669]">.</span>
+                <span className="font-outfit font-black text-xl text-white tracking-tight leading-none block group-hover:text-slate-200 transition-colors">
+                  Jobrito
                 </span>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
                   Connecting Talent

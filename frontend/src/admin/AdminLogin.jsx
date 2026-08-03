@@ -46,7 +46,7 @@ export default function AdminLogin() {
             <ShieldCheck className="w-8 h-8" />
           </div>
           <h2 className="font-outfit font-black text-2xl text-slate-900 tracking-tight">
-            Job<span className="text-[#059669]">Rito</span> Admin Console
+            Jobrito Admin Console
           </h2>
           <p className="text-xs text-slate-400 font-medium">Restricted system. Authorised administrative personnel only.</p>
         </div>
@@ -109,7 +109,7 @@ export default function AdminLogin() {
             ) : (
               <>
                 <KeyRound className="w-4 h-4" />
-                Sign In to JobRito Admin
+                Sign In to Jobrito Admin
               </>
             )}
           </button>
@@ -118,7 +118,7 @@ export default function AdminLogin() {
         {/* Footer Notice */}
         <div className="pt-2 text-center border-t border-slate-100">
           <span className="text-[10px] text-slate-400 font-semibold block">
-            JobRito Admin Portal &bull; Secured System
+            Jobrito Admin Portal &bull; Secured System
           </span>
         </div>
 
