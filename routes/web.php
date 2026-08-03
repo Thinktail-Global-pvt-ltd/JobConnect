@@ -513,6 +513,26 @@ Route::match(['get', 'post'], '/api/admin/sidebar-stats', function() {
     return redirect('/admin/sidebar-stats');
 });
 
+Route::match(['get', 'post', 'patch', 'put'], '/admin/training-opportunities/{id}/toggle-pin', function($id) {
+    return toggleTrainingPinRecord($id);
+});
+Route::match(['get', 'post', 'patch', 'put'], '/api/admin/training-opportunities/{id}/toggle-pin', function($id) {
+    return toggleTrainingPinRecord($id);
+});
+
+Route::match(['get', 'post', 'patch', 'put'], '/admin/community-posts/{id}/toggle-pin', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
+});
+Route::match(['get', 'post', 'patch', 'put'], '/api/admin/community-posts/{id}/toggle-pin', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
+});
+Route::match(['patch', 'post', 'put'], '/admin/community-posts/{id}', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
+});
+Route::match(['patch', 'post', 'put'], '/api/admin/community-posts/{id}', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
+});
+
 // Admin Training Opportunities Endpoints in web.php
 Route::match(['get', 'post'], '/admin/training-opportunities', function() {
     return getWebTrainingOpportunities();

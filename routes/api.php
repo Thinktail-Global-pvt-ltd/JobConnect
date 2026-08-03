@@ -384,7 +384,15 @@ Route::match(['get', 'post'], '/admin/training-opportunities/{id}/status', funct
     }
 });
 
-Route::match(['get', 'post'], '/admin/training-opportunities/{id}/toggle-pin', function($id) {
+Route::match(['get', 'post', 'patch', 'put'], '/admin/training-opportunities/{id}/toggle-pin', function($id) {
+    return toggleTrainingPinRecord($id);
+});
+Route::match(['get', 'post', 'patch', 'put'], '/api/admin/training-opportunities/{id}/toggle-pin', function($id) {
+    return toggleTrainingPinRecord($id);
+});
+
+if (!function_exists('toggleTrainingPinRecord')) {
+function toggleTrainingPinRecord($id) {
     try {
         $item = \Illuminate\Support\Facades\DB::table('training_opportunities')->where('id', $id)->first();
         if ($item) {
@@ -392,11 +400,95 @@ Route::match(['get', 'post'], '/admin/training-opportunities/{id}/toggle-pin', f
             \Illuminate\Support\Facades\DB::table('training_opportunities')
                 ->where('id', $id)
                 ->update(['is_pinned' => $newPin, 'updated_at' => now()]);
+            return response()->json(['success' => true, 'is_pinned' => (bool)$newPin, 'message' => "Pin status toggled."]);
         }
-        return response()->json(['success' => true, 'message' => "Pin status toggled."]);
+        return response()->json(['success' => false, 'message' => "Training item not found."], 404);
     } catch (\Throwable $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
+}
+}
+
+if (!function_exists('toggleCommunityPostPinRecord')) {
+function toggleCommunityPostPinRecord($id, \Illuminate\Http\Request $request) {
+    try {
+        $source = $request->input('source');
+        $desiredPinned = $request->has('is_pinned') ? (bool)$request->input('is_pinned') : null;
+
+        // 1. Job post prefix or source
+        if (str_starts_with((string)$id, 'job_') || $source === 'job_post') {
+            $rawId = str_replace('job_', '', $id);
+            $job = \App\Models\JobPost::find($rawId);
+            if ($job) {
+                $newPin = $desiredPinned !== null ? ($desiredPinned ? 1 : 0) : (!empty($job->is_pinned) ? 0 : 1);
+                $job->update(['is_pinned' => $newPin]);
+                return response()->json(['success' => true, 'is_pinned' => (bool)$newPin, 'message' => 'Job pin updated.']);
+            }
+        }
+
+        // 2. Admin post prefix or source
+        if (str_starts_with((string)$id, 'post_') || $source === 'admin_post') {
+            $rawId = str_replace('post_', '', $id);
+            $post = \App\Models\AdminPost::find($rawId);
+            if ($post) {
+                $newPin = $desiredPinned !== null ? ($desiredPinned ? 1 : 0) : (!empty($post->is_pinned) ? 0 : 1);
+                $post->update(['is_pinned' => $newPin]);
+                return response()->json(['success' => true, 'is_pinned' => (bool)$newPin, 'message' => 'Admin post pin updated.']);
+            }
+        }
+
+        // 3. Training prefix or source
+        if (str_starts_with((string)$id, 'train_') || $source === 'training') {
+            $rawId = str_replace('train_', '', $id);
+            $item = \Illuminate\Support\Facades\DB::table('training_opportunities')->where('id', $rawId)->first();
+            if ($item) {
+                $newPin = $desiredPinned !== null ? ($desiredPinned ? 1 : 0) : (!empty($item->is_pinned) ? 0 : 1);
+                \Illuminate\Support\Facades\DB::table('training_opportunities')->where('id', $rawId)->update(['is_pinned' => $newPin, 'updated_at' => now()]);
+                return response()->json(['success' => true, 'is_pinned' => (bool)$newPin, 'message' => 'Training pin updated.']);
+            }
+        }
+
+        // Fallback: search by numeric ID across all three tables
+        $numericId = (int)preg_replace('/[^0-9]/', '', (string)$id);
+        if ($numericId > 0) {
+            $post = \App\Models\AdminPost::find($numericId);
+            if ($post) {
+                $newPin = $desiredPinned !== null ? ($desiredPinned ? 1 : 0) : (!empty($post->is_pinned) ? 0 : 1);
+                $post->update(['is_pinned' => $newPin]);
+                return response()->json(['success' => true, 'is_pinned' => (bool)$newPin, 'message' => 'Admin post pin updated.']);
+            }
+            $job = \App\Models\JobPost::find($numericId);
+            if ($job) {
+                $newPin = $desiredPinned !== null ? ($desiredPinned ? 1 : 0) : (!empty($job->is_pinned) ? 0 : 1);
+                $job->update(['is_pinned' => $newPin]);
+                return response()->json(['success' => true, 'is_pinned' => (bool)$newPin, 'message' => 'Job pin updated.']);
+            }
+            $train = \Illuminate\Support\Facades\DB::table('training_opportunities')->where('id', $numericId)->first();
+            if ($train) {
+                $newPin = $desiredPinned !== null ? ($desiredPinned ? 1 : 0) : (!empty($train->is_pinned) ? 0 : 1);
+                \Illuminate\Support\Facades\DB::table('training_opportunities')->where('id', $numericId)->update(['is_pinned' => $newPin, 'updated_at' => now()]);
+                return response()->json(['success' => true, 'is_pinned' => (bool)$newPin, 'message' => 'Training pin updated.']);
+            }
+        }
+
+        return response()->json(['success' => false, 'message' => 'Item not found.'], 404);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+}
+
+Route::match(['get', 'post', 'patch', 'put'], '/admin/community-posts/{id}/toggle-pin', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
+});
+Route::match(['get', 'post', 'patch', 'put'], '/api/admin/community-posts/{id}/toggle-pin', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
+});
+Route::match(['patch', 'post', 'put'], '/admin/community-posts/{id}', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
+});
+Route::match(['patch', 'post', 'put'], '/api/admin/community-posts/{id}', function($id, \Illuminate\Http\Request $request) {
+    return toggleCommunityPostPinRecord($id, $request);
 });
 
 // Admin Community Feed Post Management Routes (Unified Feed Stream of Jobs, Community Posts, & Training)

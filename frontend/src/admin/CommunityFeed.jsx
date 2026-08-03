@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Megaphone, FileText, Trash2, RotateCcw, CheckCircle2, Bookmark, Eye, EyeOff, Pin } from 'lucide-react';
 import axios from 'axios';
+import { mockApi } from '../services/api';
 
 const BACKEND = 'http://178.16.138.159/backend';
 
@@ -107,12 +108,10 @@ export default function CommunityFeed() {
     }));
 
     try {
-      await axios.patch(`${BACKEND}/api/admin/community-posts/${id}`, { is_pinned: nextPinned }, {
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' }
-      });
+      await mockApi.togglePinCommunityPost(id, nextPinned);
     } catch (err) {
       console.error('Toggle pin failed:', err);
-      // revert on failure
+    } finally {
       loadPosts();
     }
   };

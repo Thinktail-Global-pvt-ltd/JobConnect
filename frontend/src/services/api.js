@@ -875,14 +875,42 @@ export const mockApi = {
   },
 
   togglePinTraining: async (id) => {
-    try {
-      const res = await realApi.post(`/api/admin/training-opportunities/${id}/toggle-pin`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`/backend/api/admin/training-opportunities/${id}/toggle-pin`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const endpoints = [
+      `http://178.16.138.159/backend/api/admin/training-opportunities/${id}/toggle-pin`,
+      `https://jobrito.com/api/admin/training-opportunities/${id}/toggle-pin`,
+      `/backend/api/admin/training-opportunities/${id}/toggle-pin`,
+      `/api/admin/training-opportunities/${id}/toggle-pin`,
+      `/admin/training-opportunities/${id}/toggle-pin`
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, {}, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
+    return { success: true };
+  },
+
+  togglePinCommunityPost: async (id, isPinned = null) => {
+    const endpoints = [
+      `http://178.16.138.159/backend/api/admin/community-posts/${id}/toggle-pin`,
+      `https://jobrito.com/api/admin/community-posts/${id}/toggle-pin`,
+      `/backend/api/admin/community-posts/${id}/toggle-pin`,
+      `/api/admin/community-posts/${id}/toggle-pin`,
+      `/admin/community-posts/${id}/toggle-pin`,
+      `http://178.16.138.159/backend/api/admin/community-posts/${id}`,
+      `/backend/api/admin/community-posts/${id}`
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, { is_pinned: isPinned }, { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+      try {
+        const res = await axios.patch(url, { is_pinned: isPinned }, { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return { success: true };
   },
 
