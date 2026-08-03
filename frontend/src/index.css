@@ -181,7 +181,7 @@
    GLOBAL ADMIN APPLICATION THEME OVERRIDES
    ========================================== */
 
-/* ☀️ LIGHT MODE OVERRIDES (Default White Cards & Tables) */
+/* ☀️ LIGHT MODE OVERRIDES (Clean White Mode) */
 html[data-theme="light"] .bg-\[\#0B1120\],
 html[data-theme="light"] .bg-\[\#070A13\],
 html[data-theme="light"] .bg-\[\#090D16\],
@@ -191,22 +191,51 @@ html[data-theme="light"] .bg-\[\#0d1527\] {
   border-color: #e2e8f0 !important;
 }
 
-html[data-theme="light"] .bg-\[\#0F172A\] {
+html[data-theme="light"] .bg-\[\#0F172A\],
+html[data-theme="light"] .bg-\[\#0F172A\]\/40,
+html[data-theme="light"] .bg-\[\#0F172A\]\/70,
+html[data-theme="light"] .bg-\[\#0F172A\]\/80 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Enhanced Table Headers in Light Mode */
+html[data-theme="light"] table thead,
+html[data-theme="light"] table thead tr {
   background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
 }
 
-html[data-theme="light"] .bg-\[\#1E293B\] {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+html[data-theme="light"] table thead th {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  font-weight: 900 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 2px solid #cbd5e1 !important;
 }
 
-html[data-theme="light"] .border-\[\#1E293B\] {
-  border-color: #e2e8f0 !important;
+/* Enhanced Table Body & Rows in Light Mode */
+html[data-theme="light"] table tbody tr {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #f1f5f9 !important;
 }
 
+html[data-theme="light"] table tbody tr:hover,
+html[data-theme="light"] .hover\:bg-\[\#1E293B\]\/50:hover,
+html[data-theme="light"] .hover\:bg-\[\#1E293B\]\/40:hover {
+  background-color: #f8fafc !important;
+}
+
+html[data-theme="light"] table tbody td {
+  color: #334155 !important;
+}
+
+/* Text Hierarchy Overrides */
 html[data-theme="light"] .text-white {
   color: #0f172a !important;
 }
@@ -221,13 +250,48 @@ html[data-theme="light"] .text-slate-400 {
   color: #64748b !important;
 }
 
-html[data-theme="light"] table th {
-  color: #475569 !important;
-  background-color: #f8fafc !important;
+/* Code Blocks, Inputs & Badges Overrides */
+html[data-theme="light"] code,
+html[data-theme="light"] .bg-\[\#1E293B\] {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
 }
 
-html[data-theme="light"] table tr:hover {
-  background-color: #f1f5f9 !important;
+html[data-theme="light"] input,
+html[data-theme="light"] select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] .border-\[\#1E293B\] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Badge & Action Buttons Color Mapping */
+html[data-theme="light"] .bg-emerald-950,
+html[data-theme="light"] .bg-emerald-950\/80,
+html[data-theme="light"] .bg-emerald-950\/60 {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border-color: #a7f3d0 !important;
+}
+
+html[data-theme="light"] .bg-blue-950,
+html[data-theme="light"] .bg-blue-950\/80 {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border-color: #bfdbfe !important;
+}
+
+html[data-theme="light"] .bg-rose-950,
+html[data-theme="light"] .bg-rose-950\/80,
+html[data-theme="light"] .bg-rose-950\/60,
+html[data-theme="light"] .bg-rose-950\/40 {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fecdd3 !important;
 }
 
 /* 🟩 EMERALD MODE OVERRIDES */
@@ -239,10 +303,38 @@ html[data-theme="emerald"] .bg-\[\#090D16\] {
   border-color: #047857 !important;
 }
 
-html[data-theme="emerald"] .bg-\[\#0F172A\] {
+html[data-theme="emerald"] .bg-\[\#0F172A\],
+html[data-theme="emerald"] .bg-\[\#0F172A\]\/40 {
   background-color: #02281D !important;
   color: #ecfdf5 !important;
   border-color: #047857 !important;
+}
+
+html[data-theme="emerald"] table thead,
+html[data-theme="emerald"] table thead tr {
+  background-color: #011F17 !important;
+  border-bottom: 2px solid #047857 !important;
+}
+
+html[data-theme="emerald"] table thead th {
+  background-color: #011F17 !important;
+  color: #6ee7b7 !important;
+  font-weight: 900 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 2px solid #047857 !important;
+}
+
+html[data-theme="emerald"] table tbody tr {
+  background-color: #042F24 !important;
+  border-bottom: 1px solid #064e3b !important;
+}
+
+html[data-theme="emerald"] table tbody tr:hover {
+  background-color: #064e3b !important;
 }
 
 html[data-theme="emerald"] .bg-\[\#1E293B\] {
@@ -255,12 +347,4 @@ html[data-theme="emerald"] .border-\[\#1E293B\] {
   border-color: #047857 !important;
 }
 
-html[data-theme="emerald"] table th {
-  color: #6ee7b7 !important;
-  background-color: #02281D !important;
-}
-
-html[data-theme="emerald"] table tr:hover {
-  background-color: #064e3b !important;
-}
 
