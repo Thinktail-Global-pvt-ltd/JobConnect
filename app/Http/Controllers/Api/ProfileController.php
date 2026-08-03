@@ -60,55 +60,53 @@ class ProfileController extends Controller
         $chefData = null;
         $employerData = null;
 
-        if ($activeRole === 'chef') {
-            if ($user && $user->chefProfile) {
-                $availability = [];
-                if ($user->chefProfile->availability_info) {
-                    $availability = is_array($user->chefProfile->availability_info) ? $user->chefProfile->availability_info : (json_decode($user->chefProfile->availability_info, true) ?: []);
-                }
-                $chefData = [
-                    'id' => $user->chefProfile->id,
-                    'user_id' => $user->chefProfile->user_id,
-                    'cuisine_specialty' => $user->chefProfile->cuisine_specialty ?: null,
-                    'specialties' => $user->chefProfile->cuisine_specialty ?: null,
-                    'bio' => $user->chefProfile->bio ?: null,
-                    'calendly_link' => $user->chefProfile->calendly_link ?: null,
-                    'availability_info' => $availability,
-                    'approval_status' => $user->chefProfile->approval_status ?: 'approved',
-                    'status' => $user->chefProfile->approval_status ?: 'approved',
-                ];
+        if ($user && $user->chefProfile) {
+            $availability = [];
+            if ($user->chefProfile->availability_info) {
+                $availability = is_array($user->chefProfile->availability_info) ? $user->chefProfile->availability_info : (json_decode($user->chefProfile->availability_info, true) ?: []);
             }
-        } elseif ($activeRole === 'employer') {
-            if ($user && $user->employerProfile) {
-                $ops = $user->employerProfile->operational_locations;
-                if (is_string($ops)) {
-                    $ops = json_decode($ops, true) ?: [];
-                }
-                $employerData = [
-                    'id' => $user->employerProfile->id,
-                    'user_id' => $user->employerProfile->user_id,
-                    'business_name' => $user->employerProfile->business_name ?: null,
-                    'company_name' => $user->employerProfile->business_name ?: null,
-                    'industry_segment' => $user->employerProfile->industry_segment ?: null,
-                    'description' => $user->employerProfile->industry_segment ?: null,
-                    'business_location' => $user->employerProfile->business_location ?: null,
-                    'city' => $user->employerProfile->business_location ?: null,
-                    'contact_person_name' => $user->employerProfile->contact_person_name ?: null,
-                    'designation' => $user->employerProfile->contact_person_name ?: null,
-                    'business_mobile' => $user->employerProfile->business_mobile ?: null,
-                    'business_email' => $user->employerProfile->business_email ?: null,
-                    'preferred_language' => $user->employerProfile->preferred_language ?: null,
-                    'company_logo_path' => $user->employerProfile->company_logo_path ?: null,
-                    'company_logo_url' => $user->employerProfile->company_logo_path ?: null,
-                    'operational_locations' => is_array($ops) ? $ops : [],
-                    'nominee_name' => $user->employerProfile->nominee_name ?: null,
-                    'nominee_relationship' => $user->employerProfile->nominee_relationship ?: null,
-                    'nominee_mobile' => $user->employerProfile->nominee_mobile ?: null,
-                    'is_completed' => (bool)$user->employerProfile->is_completed,
-                    'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
-                    'updated_at' => $user->employerProfile->updated_at ? $user->employerProfile->updated_at->toIso8601String() : null,
-                ];
+            $chefData = [
+                'id' => $user->chefProfile->id,
+                'user_id' => $user->chefProfile->user_id,
+                'cuisine_specialty' => $user->chefProfile->cuisine_specialty ?: null,
+                'specialties' => $user->chefProfile->cuisine_specialty ?: null,
+                'bio' => $user->chefProfile->bio ?: null,
+                'calendly_link' => $user->chefProfile->calendly_link ?: null,
+                'availability_info' => $availability,
+                'approval_status' => $user->chefProfile->approval_status ?: 'approved',
+                'status' => $user->chefProfile->approval_status ?: 'approved',
+            ];
+        }
+
+        if ($user && $user->employerProfile) {
+            $ops = $user->employerProfile->operational_locations;
+            if (is_string($ops)) {
+                $ops = json_decode($ops, true) ?: [];
             }
+            $employerData = [
+                'id' => $user->employerProfile->id,
+                'user_id' => $user->employerProfile->user_id,
+                'business_name' => $user->employerProfile->business_name ?: null,
+                'company_name' => $user->employerProfile->business_name ?: null,
+                'industry_segment' => $user->employerProfile->industry_segment ?: null,
+                'description' => $user->employerProfile->industry_segment ?: null,
+                'business_location' => $user->employerProfile->business_location ?: null,
+                'city' => $user->employerProfile->business_location ?: null,
+                'contact_person_name' => $user->employerProfile->contact_person_name ?: null,
+                'designation' => $user->employerProfile->contact_person_name ?: null,
+                'business_mobile' => $user->employerProfile->business_mobile ?: null,
+                'business_email' => $user->employerProfile->business_email ?: null,
+                'preferred_language' => $user->employerProfile->preferred_language ?: null,
+                'company_logo_path' => $user->employerProfile->company_logo_path ?: null,
+                'company_logo_url' => $user->employerProfile->company_logo_path ?: null,
+                'operational_locations' => is_array($ops) ? $ops : [],
+                'nominee_name' => $user->employerProfile->nominee_name ?: null,
+                'nominee_relationship' => $user->employerProfile->nominee_relationship ?: null,
+                'nominee_mobile' => $user->employerProfile->nominee_mobile ?: null,
+                'is_completed' => (bool)$user->employerProfile->is_completed,
+                'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
+                'updated_at' => $user->employerProfile->updated_at ? $user->employerProfile->updated_at->toIso8601String() : null,
+            ];
         }
 
         // Talent Side Profile Data Construction
@@ -214,7 +212,7 @@ class ProfileController extends Controller
                 'experience_range' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'current_employer' => $user ? $user->current_employer : null,
-                'skills' => $user ? $user->skills : null,
+                'skills' => !empty($skillsArray) ? $skillsArray : null,
                 'availability_status' => $availabilityStatus,
                 'is_available' => $isAvailable,
                 'selected_language' => ($user && $user->selected_language) ? $user->selected_language : null,

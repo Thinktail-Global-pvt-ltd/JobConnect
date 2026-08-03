@@ -132,12 +132,21 @@ class EmployerController extends Controller
                     $city = $applicant ? ($applicant->city ?: null) : null;
                     $experienceRange = $applicant ? ($applicant->experience_range ?: $applicant->experience_years ?: null) : null;
                     $photoPath = $applicant ? $applicant->profile_photo_path : null;
+                    $photoUrl = null;
+                    if (!empty($photoPath)) {
+                        if (str_starts_with($photoPath, 'http://') || str_starts_with($photoPath, 'https://')) {
+                            $photoUrl = $photoPath;
+                        } else {
+                            $photoUrl = url('/' . ltrim($photoPath, '/'));
+                        }
+                    }
 
                     if ($chefData) {
-                        $chefData['profile_photo_path'] = $photoPath;
-                        $chefData['profile_photo'] = $photoPath;
-                        $chefData['photo_url'] = $photoPath;
-                        $chefData['avatar'] = $photoPath;
+                        $chefData['profile_photo_path'] = $photoUrl;
+                        $chefData['profile_photo'] = $photoUrl;
+                        $chefData['photo_url'] = $photoUrl;
+                        $chefData['avatar'] = $photoUrl;
+                        $chefData['avatar_url'] = $photoUrl;
                     }
 
                     return [
@@ -167,10 +176,11 @@ class EmployerController extends Controller
                         'experience_years' => $experienceRange,
                         'preferred_role' => $applicant ? ($applicant->preferred_role ?: null) : null,
                         'current_employer' => $applicant ? ($applicant->current_employer ?: null) : null,
-                        'profile_photo_path' => $photoPath,
-                        'profile_photo' => $photoPath,
-                        'photo_url' => $photoPath,
-                        'avatar' => $photoPath,
+                        'profile_photo_path' => $photoUrl,
+                        'profile_photo' => $photoUrl,
+                        'photo_url' => $photoUrl,
+                        'avatar' => $photoUrl,
+                        'avatar_url' => $photoUrl,
                         'availability_status' => $applicant ? ($applicant->availability_status ?: null) : null,
                         'is_available' => $applicant ? (bool)$applicant->is_available : true,
                         'selected_language' => $applicant ? ($applicant->selected_language ?: null) : null,
@@ -200,10 +210,11 @@ class EmployerController extends Controller
                             'experience_years' => $experienceRange,
                             'preferred_role' => $applicant->preferred_role,
                             'current_employer' => $applicant->current_employer,
-                            'profile_photo_path' => $photoPath,
-                            'profile_photo' => $photoPath,
-                            'photo_url' => $photoPath,
-                            'avatar' => $photoPath,
+                            'profile_photo_path' => $photoUrl,
+                            'profile_photo' => $photoUrl,
+                            'photo_url' => $photoUrl,
+                            'avatar' => $photoUrl,
+                            'avatar_url' => $photoUrl,
                             'availability_status' => $applicant->availability_status ?: null,
                             'is_available' => (bool)$applicant->is_available,
                             'selected_language' => $applicant->selected_language,

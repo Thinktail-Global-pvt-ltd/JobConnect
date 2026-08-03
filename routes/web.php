@@ -238,7 +238,7 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
                         'title' => $jobTitle,
                         'company' => $company,
                         'location' => $job ? ($job->location ?: 'India') : 'India',
-                        'category' => $job ? ($job->category ?: 'india') : 'india',
+                        'category' => $job ? ($job->category ?: 'dubai') : 'dubai',
                     ]
                 ];
             });
@@ -334,7 +334,7 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
                     'title' => $j->title ?: ('Job #' . $j->id),
                     'company' => $j->company ?: 'Employer',
                     'location' => $j->location ?: 'India',
-                    'category' => $j->category ?: 'india'
+                    'category' => $j->category ?: 'dubai'
                 ];
             }),
             'users' => $users->map(function($u) {
@@ -425,7 +425,7 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     'title' => $jobTitle,
                     'company' => $row->job_company ?: 'Employer',
                     'location' => $row->job_location ?: 'India',
-                    'category' => $row->job_category ?: 'india',
+                    'category' => $row->job_category ?: 'dubai',
                 ]
             ];
         });

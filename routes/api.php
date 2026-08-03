@@ -402,7 +402,7 @@ Route::get('/admin/community-posts', function() {
             'uid'        => 'JOB-' . sprintf('%04d', $job->id),
             'title'      => $job->title,
             'body'       => ($job->company ?? ($job->creator ? $job->creator->full_name : 'Employer')) . ' • ' . ($job->location ?? 'India'),
-            'post_type'  => 'Job Listing (' . ucfirst($job->category ?? 'india') . ')',
+            'post_type'  => 'Job Listing (' . ucfirst($job->category ?? 'dubai') . ')',
             'status'     => $statusStr,
             'is_pinned'  => (bool)$job->is_pinned,
             'created_at' => $job->created_at ? $job->created_at->toIso8601String() : null,
@@ -766,7 +766,7 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     'title' => $jobTitle,
                     'company' => $row->job_company ?: 'Employer',
                     'location' => $row->job_location ?: 'India',
-                    'category' => $row->job_category ?: 'india',
+                    'category' => $row->job_category ?: 'dubai',
                 ]
             ];
         });
@@ -927,7 +927,7 @@ Route::get('/admin/test-apply-options', function() {
                 'title' => $j->title ?: ('Job #' . $j->id),
                 'company' => $j->company ?: 'Employer',
                 'location' => $j->location ?: 'India',
-                'category' => $j->category ?: 'india'
+                'category' => $j->category ?: 'dubai'
             ];
         }),
         'users' => $users->map(function($u) {
