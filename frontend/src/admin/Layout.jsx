@@ -138,16 +138,18 @@ export default function Layout({ children }) {
       <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-[#0B1120] border-r border-[#1E293B] flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
         <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
-            <Link to="/admin/dashboard" className="flex items-center gap-2 py-1">
-              <img 
-                src={logoWhiteImg} 
-                alt="Jobrito - Connecting Hospitality Talent" 
-                className="h-13 w-auto object-contain max-w-[200px]" 
-                onError={(e) => { 
-                  e.target.onerror = null; 
-                  e.target.src = logoImg; 
-                }}
-              />
+            <Link to="/admin/dashboard" className="flex items-center gap-2.5 group py-1">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-outfit font-black text-lg flex items-center justify-center shadow-lg shadow-emerald-950/40 border border-emerald-400/30 shrink-0">
+                J
+              </div>
+              <div>
+                <span className="font-outfit font-black text-xl text-white tracking-tight leading-none block group-hover:text-emerald-400 transition-colors">
+                  Jobrito<span className="text-[#059669]">.</span>
+                </span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
+                  Connecting Talent
+                </span>
+              </div>
             </Link>
           ) : (
             <Link to="/admin/dashboard" className="flex items-center justify-center">
