@@ -163,7 +163,7 @@ export default function Chefs() {
     <div className="space-y-6 text-left">
       
       {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">ChefConnect Moderation</h2>
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Review, publish or unpublish professional chef profiles for candidate & employer discovery.</p>
