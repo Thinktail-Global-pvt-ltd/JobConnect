@@ -222,6 +222,10 @@ export default function JobDetail() {
                   <span className="text-slate-800 font-bold">{job.creator?.full_name || 'Test Contact'}</span>
                 </div>
                 <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-[10px] uppercase tracking-wider">Contact Phone</span>
+                  <span className="text-slate-800 font-bold font-mono text-[11px]">{job.creator?.mobile_number || job.creator?.phone || job.mobile_number || job.phone || job.contact_phone || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center">
                   <span className="text-slate-400 text-[10px] uppercase tracking-wider">Contact Email</span>
                   <span className="text-[#059669] font-bold truncate max-w-[150px]">{job.creator?.email || 'test@test.com'}</span>
                 </div>
