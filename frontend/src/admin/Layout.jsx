@@ -28,15 +28,32 @@ export default function Layout({ children }) {
       const res = await mockApi.getNotifications();
       if (res && res.success) {
         const rawList = res.notifications || [];
-        // Strictly filter out WhatsApp notifications and login_auth_code logs (Show only FCM Notifications)
+        // 1. Strictly filter out WhatsApp notifications & login_auth_code logs (Show only FCM Notifications)
         const fcmList = rawList.filter(item => {
           const type = String(item.type || '').toLowerCase();
           const title = String(item.title || '').toLowerCase();
           const body = String(item.body || item.message || '').toLowerCase();
           return !type.includes('whatsapp') && !title.includes('whatsapp') && !body.includes('whatsapp') && !type.includes('login_auth_code') && !title.includes('login_auth_code');
         });
-        setNotifications(fcmList);
-        const unread = fcmList.filter(item => !item.is_read).length;
+
+        // 2. Deduplicate repeated identical notifications for the same recipient
+        const dedupedList = [];
+        const seenMap = new Map();
+
+        for (const notif of fcmList) {
+          const recipientId = notif.user_id || notif.recipient_phone || notif.recipient_name || 'anon';
+          const cleanTitle = (notif.title || '').trim().toLowerCase();
+          const cleanBody = (notif.body || notif.message || '').trim().toLowerCase();
+          const key = `${recipientId}_${cleanTitle}_${cleanBody}`;
+
+          if (!seenMap.has(key)) {
+            seenMap.set(key, true);
+            dedupedList.push(notif);
+          }
+        }
+
+        setNotifications(dedupedList);
+        const unread = dedupedList.filter(item => !item.is_read).length;
         setUnreadCount(unread);
       }
     } catch (e) {

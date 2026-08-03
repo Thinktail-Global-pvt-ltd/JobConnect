@@ -294,7 +294,34 @@ class FirebaseController extends Controller
                 });
             }
 
-            $history = $query->orderBy('created_at', 'desc')->get();
+            $rawHistory = $query->orderBy('created_at', 'desc')->get();
+
+            // Deduplicate notifications: Hide repeated identical notifications sent to the same recipient within 300 seconds
+            $uniqueHistory = collect();
+            $seenKeys = [];
+
+            foreach ($rawHistory as $item) {
+                $recipientKey = $item->user_id ?: ($item->recipient ?: 'anon');
+                $cleanTitle = strtolower(trim($item->title ?? ''));
+                $cleanBody = strtolower(trim($item->body ?? ''));
+                $dedupKey = $recipientKey . '|' . $cleanTitle . '|' . $cleanBody;
+
+                $itemTimestamp = $item->created_at ? $item->created_at->timestamp : 0;
+
+                if (!isset($seenKeys[$dedupKey])) {
+                    $seenKeys[$dedupKey] = $itemTimestamp;
+                    $uniqueHistory->push($item);
+                } else {
+                    $previousTime = $seenKeys[$dedupKey];
+                    // Allow notification if sent more than 300s (5 minutes) apart
+                    if (abs($previousTime - $itemTimestamp) > 300) {
+                        $seenKeys[$dedupKey] = $itemTimestamp;
+                        $uniqueHistory->push($item);
+                    }
+                }
+            }
+
+            $history = $uniqueHistory;
             $unreadCount = $history->filter(fn($item) => empty($item->is_read))->count();
 
             $notifications = $history->map(function ($item) {
