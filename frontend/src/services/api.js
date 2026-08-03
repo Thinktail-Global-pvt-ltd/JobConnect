@@ -961,14 +961,19 @@ export const mockApi = {
   },
 
   getNotifications: async () => {
-    try {
-      const res = await realApi.get('/api/admin/notifications');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get('/backend/api/admin/notifications');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const endpoints = [
+      '/admin/notifications',
+      '/api/admin/notifications',
+      '/backend/api/admin/notifications',
+      'http://178.16.138.159/backend/api/admin/notifications',
+      'https://jobrito.com/api/admin/notifications'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return {
       success: true,
       unread_count: 0,
@@ -977,26 +982,36 @@ export const mockApi = {
   },
 
   markNotificationRead: async (id) => {
-    try {
-      const res = await realApi.post('/api/notifications/mark-read', { id });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post('/backend/api/notifications/mark-read', { id });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const endpoints = [
+      '/notifications/mark-read',
+      '/api/notifications/mark-read',
+      '/backend/api/notifications/mark-read',
+      'http://178.16.138.159/backend/api/notifications/mark-read',
+      'https://jobrito.com/api/notifications/mark-read'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, { id }, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return { success: true };
   },
 
   markAllNotificationsRead: async () => {
-    try {
-      const res = await realApi.post('/api/notifications/mark-all-read', { all: true });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post('/backend/api/notifications/mark-all-read', { all: true });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const endpoints = [
+      '/notifications/mark-all-read',
+      '/api/notifications/mark-all-read',
+      '/backend/api/notifications/mark-all-read',
+      'http://178.16.138.159/backend/api/notifications/mark-all-read',
+      'https://jobrito.com/api/notifications/mark-all-read'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, { all: true }, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return { success: true };
   },
 

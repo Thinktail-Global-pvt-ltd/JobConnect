@@ -1215,6 +1215,17 @@ Route::match(['get', 'post'], '/admin/enquiries/create', function(\Illuminate\Ht
             'updated_at' => now(),
         ]);
 
+        try {
+            \App\Models\UserNotificationHistory::create([
+                'type' => 'consultation_booked',
+                'recipient' => $validated['phone'],
+                'title' => '📝 New Enquiry Received',
+                'body' => 'Enquiry from ' . $validated['name'] . ' for program "' . $validated['program'] . '".',
+                'status' => 'sent',
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'message' => 'Enquiry recorded successfully in database.',

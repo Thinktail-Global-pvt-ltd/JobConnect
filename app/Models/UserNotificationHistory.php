@@ -61,6 +61,55 @@ class UserNotificationHistory extends Model
                     });
                 }
             }
+
+            if (\Illuminate\Support\Facades\DB::table('user_notification_histories')->count() === 0) {
+                \Illuminate\Support\Facades\DB::table('user_notification_histories')->insert([
+                    [
+                        'user_id' => 1,
+                        'type' => 'job_approved',
+                        'recipient' => '+91 98765 43210',
+                        'title' => '💼 Job Listing Approved',
+                        'body' => 'Job Listing "Executive Chef - Fine Dining" was reviewed & approved live.',
+                        'status' => 'sent',
+                        'is_read' => false,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                    [
+                        'user_id' => 2,
+                        'type' => 'chef_approved',
+                        'recipient' => '+91 98123 45678',
+                        'title' => '🌟 Chef Profile Published',
+                        'body' => 'Chef Profile "Chef Vikram Sharma" published to employer directory.',
+                        'status' => 'sent',
+                        'is_read' => false,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                    [
+                        'user_id' => 3,
+                        'type' => 'application_received',
+                        'recipient' => '+44 7700 900077',
+                        'title' => '👤 New Job Application',
+                        'body' => 'Application received from Adrian Smith for Executive Pastry Chef.',
+                        'status' => 'sent',
+                        'is_read' => false,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                    [
+                        'user_id' => 4,
+                        'type' => 'consultation_booked',
+                        'recipient' => '+34 612 345 678',
+                        'title' => '📅 Overseas Training Enquiry',
+                        'body' => 'Maria Lopez submitted enquiry for Culinary Arts Training - Dubai.',
+                        'status' => 'sent',
+                        'is_read' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ],
+                ]);
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('ensureTableExists Exception: ' . $e->getMessage());
         }
