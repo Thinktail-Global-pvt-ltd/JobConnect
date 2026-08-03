@@ -64,6 +64,29 @@ class ChefOnboardingController extends Controller
             ], 400);
         }
 
+        // 1. Alias mapping for flexible mobile client payload keys
+        if (!$request->has('experience_range')) {
+            if ($request->has('experience')) {
+                $request->merge(['experience_range' => $request->input('experience')]);
+            } elseif ($request->has('experience_years')) {
+                $request->merge(['experience_range' => $request->input('experience_years')]);
+            }
+        }
+
+        if (!$request->has('preferred_role')) {
+            if ($request->has('position')) {
+                $request->merge(['preferred_role' => $request->input('position')]);
+            } elseif ($request->has('job_title')) {
+                $request->merge(['preferred_role' => $request->input('job_title')]);
+            } elseif ($request->has('role')) {
+                $request->merge(['preferred_role' => $request->input('role')]);
+            }
+        }
+
+        if (!$request->has('skills') && $request->has('additional_skills')) {
+            $request->merge(['skills' => $request->input('additional_skills')]);
+        }
+
         // Normalize skills input to array if passed as string or array
         $skillsInput = $request->input('skills');
         if (is_string($skillsInput)) {
@@ -74,8 +97,8 @@ class ChefOnboardingController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'preferred_role' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'experience_range' => 'required|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'experience_range' => 'nullable|string|max:255',
             'skills' => 'nullable',
             'cuisine_specialty' => 'required|string|max:255',
             'bio' => 'nullable|string',

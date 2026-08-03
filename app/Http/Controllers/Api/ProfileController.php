@@ -396,12 +396,20 @@ class ProfileController extends Controller
                     $user->experience_range = $request->input('experience_range');
                 } elseif ($request->has('experience_years')) {
                     $user->experience_range = $request->input('experience_years');
+                } elseif ($request->has('experience')) {
+                    $user->experience_range = $request->input('experience');
                 }
                 if ($request->has('current_employer')) {
                     $user->current_employer = $request->input('current_employer');
                 }
                 if ($request->has('preferred_role')) {
                     $user->preferred_role = $request->input('preferred_role');
+                } elseif ($request->has('position')) {
+                    $user->preferred_role = $request->input('position');
+                } elseif ($request->has('job_title')) {
+                    $user->preferred_role = $request->input('job_title');
+                } elseif ($request->has('role')) {
+                    $user->preferred_role = $request->input('role');
                 }
                 if ($request->has('skills')) {
                     $skillsInput = $request->input('skills');
