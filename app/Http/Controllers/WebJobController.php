@@ -90,26 +90,33 @@ class WebJobController extends Controller
             : false;
 
         if ($isTraining) {
-            $requestedId = $request->input('training_id') ?: ($request->input('job_id') ?: ($jobModel ? $jobModel->id : 1));
+            $requestedId = (int) ($request->input('training_id') 
+                ?: ($request->input('job_id') 
+                ?: ($jobModel ? $jobModel->id : 1)));
 
-            // Find or get first TrainingOpportunity record from database
-            $trainingObj = \App\Models\TrainingOpportunity::find($requestedId) 
-                ?: \App\Models\TrainingOpportunity::first();
-
+            // Find or create TrainingOpportunity record with requested ID
+            $trainingObj = \App\Models\TrainingOpportunity::find($requestedId);
             if (!$trainingObj) {
-                $trainingObj = \App\Models\TrainingOpportunity::create([
-                    'program_name'  => 'General Hospitality Training Program',
-                    'provider_name' => 'Jobrito Academy',
-                    'location'      => 'Delhi, India',
-                    'status'        => 'active',
-                    'duration'      => '3 Months',
-                ]);
+                try {
+                    $trainingObj = \App\Models\TrainingOpportunity::create([
+                        'id'            => $requestedId,
+                        'program_name'  => 'Hospitality Training Program #' . $requestedId,
+                        'provider_name' => 'Jobrito Academy',
+                        'location'      => 'Delhi, India',
+                        'status'        => 'active',
+                        'duration'      => '3 Months',
+                    ]);
+                } catch (\Throwable $e) {
+                    // Fallback if ID insert fails
+                }
             }
+
+            $finalTrainingId = $trainingObj ? $trainingObj->id : $requestedId;
 
             $application = \App\Models\TrainingApplication::updateOrCreate(
                 [
                     'applicant_id' => $user->id,
-                    'training_id'  => $trainingObj->id,
+                    'training_id'  => $finalTrainingId,
                 ],
                 [
                     'job_post_id'         => null,
