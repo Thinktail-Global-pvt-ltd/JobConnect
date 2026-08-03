@@ -286,19 +286,19 @@ export default function Applications() {
     <div className="space-y-6 text-left">
       
       {/* Header & Main Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm">
         <div>
           {selectedJob ? (
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setSelectedJob(null)}
-                className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 transition-all flex items-center gap-1 text-xs font-bold shadow-sm"
+                className="p-2 rounded-xl bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1 text-xs font-bold shadow-xs cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4 text-[#059669]" />
                 <span>All Jobs</span>
               </button>
               <div>
-                <h2 className="font-outfit font-extrabold text-xl text-slate-800 flex items-center gap-2">
+                <h2 className="font-outfit font-extrabold text-2xl text-slate-800 flex items-center gap-2">
                   <span>{selectedJob.title}</span>
                   <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                     {selectedJob.applications.length} Applicants
@@ -311,13 +311,13 @@ export default function Applications() {
             </div>
           ) : (
             <div>
-              <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Job Applications Directory</h2>
-              <p className="text-xs font-semibold text-slate-400 mt-1">Select a job post to view applicants and review candidate profiles.</p>
+              <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Job Applications Directory</h2>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">Select a job post to view applicants and review candidate profiles.</p>
             </div>
           )}
         </div>
 
-        {/* Action Controls: Search & Test Apply Button */}
+        {/* Action Controls: Search Bar */}
         <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
           <div className="relative w-full md:w-64">
             <input 
@@ -325,18 +325,10 @@ export default function Applications() {
               placeholder={selectedJob ? "Search applicants..." : "Search jobs or companies..."} 
               value={search} 
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#1E293B] border border-slate-700/60 rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#059669] transition-all" 
+              className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#059669] transition-all" 
             />
             <Search className="absolute left-3.5 top-2.5 text-slate-400 w-4 h-4" />
           </div>
-
-          <button 
-            onClick={handleOpenTestModal}
-            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Test Apply for Candidate</span>
-          </button>
         </div>
       </div>
 
