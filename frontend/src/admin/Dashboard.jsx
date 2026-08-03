@@ -57,19 +57,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Title & Topbar Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Title Header Card */}
+      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Dashboard Overview</h2>
           <p className="text-xs font-semibold text-slate-400 mt-0.5">Real-time performance metrics for the JobConnect platform.</p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-55 hover:bg-slate-50 transition-all shadow-sm">
-            📅 Last 30 Days
-          </button>
-          <button className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 flex items-center gap-2 transition-all hover:-translate-y-0.5">
-            📥 Export Report
-          </button>
         </div>
       </div>
 
