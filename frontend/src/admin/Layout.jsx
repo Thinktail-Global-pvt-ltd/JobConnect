@@ -138,11 +138,11 @@ export default function Layout({ children }) {
       <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-[#0B1120] border-r border-[#1E293B] flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
         <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
-            <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
+            <Link to="/admin/dashboard" className="flex items-center gap-2 py-1">
               <img 
                 src={logoWhiteImg} 
                 alt="Jobrito - Connecting Hospitality Talent" 
-                className="h-10 w-auto object-contain max-w-[170px]" 
+                className="h-13 w-auto object-contain max-w-[200px]" 
                 onError={(e) => { 
                   e.target.onerror = null; 
                   e.target.src = logoImg; 
