@@ -113,7 +113,15 @@ class ChefModeratorController extends Controller
                 $preferredRole = $user ? ($user->preferred_role ?: null) : null;
                 $currentEmployer = $user ? ($user->current_employer ?: null) : null;
                 $exp = $user ? ($user->experience_range ?: $user->experience_years ?: null) : null;
-                $photo = $user ? $user->profile_photo_path : null;
+                $photoPath = $user ? $user->profile_photo_path : null;
+                $photoUrl = null;
+                if (!empty($photoPath)) {
+                    if (str_starts_with($photoPath, 'http://') || str_starts_with($photoPath, 'https://')) {
+                        $photoUrl = $photoPath;
+                    } else {
+                        $photoUrl = url('/' . ltrim($photoPath, '/'));
+                    }
+                }
 
                 $skills = [];
                 if ($user) {
@@ -151,7 +159,11 @@ class ChefModeratorController extends Controller
                     'country' => $country,
                     'preferred_role' => $preferredRole,
                     'current_employer' => $currentEmployer,
-                    'profile_photo_path' => $photo,
+                    'profile_photo_path' => $photoUrl,
+                    'profile_photo' => $photoUrl,
+                    'photo_url' => $photoUrl,
+                    'avatar' => $photoUrl,
+                    'avatar_url' => $photoUrl,
                     'experience_range' => $exp,
                     'experience' => $exp,
                     'cuisine_specialty' => $chef->cuisine_specialty ?: null,

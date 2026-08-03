@@ -280,8 +280,17 @@ export default function Chefs() {
                         <tr key={chef.id} className="hover:bg-[#1E293B]/50 transition-colors">
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
-                                {initials}
+                              <div className="w-9 h-9 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                                {(chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url) ? (
+                                  <img 
+                                    src={chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url} 
+                                    alt={name} 
+                                    className="w-full h-full object-cover rounded-full"
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                  />
+                                ) : (
+                                  initials
+                                )}
                               </div>
                               <div>
                                 <span className="font-extrabold text-white text-[13px] block leading-tight">{name}</span>
@@ -625,9 +634,14 @@ export default function Chefs() {
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 border border-slate-100 shadow-2xl space-y-4 text-left">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-950 text-emerald-400 border border-emerald-800/80 flex items-center justify-center font-black text-lg shadow-sm shrink-0">
-                  {selectedChef.profile_photo_path ? (
-                    <img src={selectedChef.profile_photo_path} alt={selectedChef.full_name} className="w-full h-full object-cover rounded-2xl" />
+                <div className="w-14 h-14 rounded-2xl bg-emerald-950 text-emerald-400 border border-emerald-800/80 flex items-center justify-center font-black text-xl shadow-sm shrink-0 overflow-hidden">
+                  {(selectedChef.profile_photo_path || selectedChef.profile_photo || selectedChef.photo_url || selectedChef.avatar || selectedChef.avatar_url) ? (
+                    <img 
+                      src={selectedChef.profile_photo_path || selectedChef.profile_photo || selectedChef.photo_url || selectedChef.avatar || selectedChef.avatar_url} 
+                      alt={selectedChef.full_name || selectedChef.name} 
+                      className="w-full h-full object-cover rounded-2xl"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
                   ) : (
                     (selectedChef.full_name || selectedChef.name || 'C')[0].toUpperCase()
                   )}
