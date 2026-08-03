@@ -86,7 +86,7 @@ class JobPostController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title'                  => 'required|string|max:255',
-            'category'               => 'required|string|in:dubai,overseas,community',
+            'category'               => 'required|string|max:50',
             'company'                => 'required|string|max:255',
             'contact_info'           => 'required|string',
             'description'            => 'required|string',
@@ -98,7 +98,7 @@ class JobPostController extends Controller
             'salary_currency'        => 'nullable|string|max:10',
             'location'               => 'nullable|string|max:255',
             'company_logo_url'       => 'nullable|url',
-            'job_type'               => 'nullable|string|in:Full-time,Part-time,Contract,Internship,Freelance',
+            'job_type'               => 'nullable|string|max:100',
             'experience_range'       => 'nullable|string|max:100',
             'requirements'           => 'nullable|array',
             'requirements.*'         => 'string|max:255',
@@ -108,8 +108,8 @@ class JobPostController extends Controller
             'showcase_image_url'     => 'nullable|url',
             'map_image_url'          => 'nullable|url',
 
-            // Overseas-specific fields
-            'country'                => 'nullable|required_if:category,overseas|string|max:100',
+            // Overseas & region-specific fields
+            'country'                => 'nullable|string|max:100',
             'visa_assistance'        => 'nullable|boolean',
             'accommodation_available'=> 'nullable|boolean',
             'contract_duration'      => 'nullable|string|max:100',
