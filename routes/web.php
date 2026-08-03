@@ -782,3 +782,9 @@ Route::match(['get', 'post'], '/admin/enquiries/{id}/status', function($id, \Ill
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
 });
+
+// Admin Notification Endpoints in web.php
+Route::match(['get', 'post'], '/admin/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+Route::match(['get', 'post'], '/api/admin/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
+Route::match(['get', 'post'], '/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post'], '/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);

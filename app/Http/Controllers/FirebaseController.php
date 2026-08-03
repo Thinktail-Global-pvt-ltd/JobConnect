@@ -235,7 +235,13 @@ class FirebaseController extends Controller
                 }
             }
 
-            $isAdmin = $request->input('scope') === 'admin' || $request->is('api/admin/*') || $request->boolean('all');
+            $isAdmin = $request->input('scope') === 'admin' 
+                || $request->is('*admin*') 
+                || $request->is('admin/*') 
+                || $request->is('api/admin/*') 
+                || $request->is('backend/api/admin/*') 
+                || $request->segment(1) === 'admin'
+                || $request->boolean('all');
 
             // Ensure table and columns exist automatically
             \App\Models\UserNotificationHistory::ensureTableExists();
