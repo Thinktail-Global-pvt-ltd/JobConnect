@@ -90,9 +90,10 @@ class WebJobController extends Controller
             : false;
 
         if ($isTraining) {
+            $urlId = is_numeric($job) ? (int)$job : 0;
             $requestedId = (int) ($request->input('training_id') 
                 ?: ($request->input('job_id') 
-                ?: ($jobModel ? $jobModel->id : 1)));
+                ?: ($urlId > 0 ? $urlId : ($jobModel ? $jobModel->id : 1))));
 
             // Find or create TrainingOpportunity record with requested ID
             $trainingObj = \App\Models\TrainingOpportunity::find($requestedId);
