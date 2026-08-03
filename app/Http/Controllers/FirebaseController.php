@@ -248,6 +248,16 @@ class FirebaseController extends Controller
 
             $query = \App\Models\UserNotificationHistory::query();
 
+            // Exclude WhatsApp OTP notifications / login_auth_code logs (Only show FCM push notifications)
+            $query->where(function ($q) {
+                $q->where('type', 'not like', '%whatsapp%')
+                  ->where('type', 'not like', '%login_auth_code%')
+                  ->where('title', 'not like', '%whatsapp%')
+                  ->where('title', 'not like', '%login_auth_code%')
+                  ->where('body', 'not like', '%whatsapp%')
+                  ->where('body', 'not like', '%verification code%');
+            });
+
             // Filter by specific user if user_id parameter passed
             if ($request->filled('user_id')) {
                 $query->where('user_id', $request->input('user_id'));
@@ -269,10 +279,10 @@ class FirebaseController extends Controller
                 });
             }
 
-            // Filter by channel / type if requested (fcm, whatsapp, in_app)
-            if ($request->filled('type')) {
+            // Filter by channel / type if requested (fcm, in_app)
+            if ($request->filled('type') && !str_contains(strtolower($request->input('type')), 'whatsapp')) {
                 $query->where('type', $request->input('type'));
-            } elseif ($request->filled('channel')) {
+            } elseif ($request->filled('channel') && !str_contains(strtolower($request->input('channel')), 'whatsapp')) {
                 $query->where('type', $request->input('channel'));
             }
 

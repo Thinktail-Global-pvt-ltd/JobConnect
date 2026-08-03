@@ -27,8 +27,17 @@ export default function Layout({ children }) {
     try {
       const res = await mockApi.getNotifications();
       if (res && res.success) {
-        setNotifications(res.notifications || []);
-        setUnreadCount(res.unread_count || 0);
+        const rawList = res.notifications || [];
+        // Strictly filter out WhatsApp notifications and login_auth_code logs (Show only FCM Notifications)
+        const fcmList = rawList.filter(item => {
+          const type = String(item.type || '').toLowerCase();
+          const title = String(item.title || '').toLowerCase();
+          const body = String(item.body || item.message || '').toLowerCase();
+          return !type.includes('whatsapp') && !title.includes('whatsapp') && !body.includes('whatsapp') && !type.includes('login_auth_code') && !title.includes('login_auth_code');
+        });
+        setNotifications(fcmList);
+        const unread = fcmList.filter(item => !item.is_read).length;
+        setUnreadCount(unread);
       }
     } catch (e) {
       console.error("Failed to fetch notifications:", e);
@@ -108,17 +117,22 @@ export default function Layout({ children }) {
       
       {/* Responsive Collapsible Sidebar */}
       <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-[#0B1120] border-r border-[#1E293B] flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
-        {/* Brand Header */}
-        <div className={`px-4 py-5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-6'}`}>
-          {!isCollapsed && (
-            <div className="flex flex-col justify-start">
-              <span className="font-outfit font-black text-2xl text-white tracking-tight leading-none">
-                Jobrito
-              </span>
-              <span className="text-[9px] font-bold text-[#F59E0B] tracking-wide mt-1.5">
-                Connecting hospitality talent.
-              </span>
-            </div>
+        <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
+          {!isCollapsed ? (
+            <Link to="/admin/dashboard" className="flex items-center gap-2">
+              <img 
+                src="/images/jobrito-logo-full.png" 
+                alt="Jobrito" 
+                className="h-10 w-auto object-contain max-w-[170px]" 
+                onError={(e) => { e.target.onerror = null; e.target.src = "/images/Jobrito full logo.png"; }}
+              />
+            </Link>
+          ) : (
+            <Link to="/admin/dashboard" className="flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-emerald-950 text-emerald-400 font-black text-sm flex items-center justify-center border border-emerald-800">
+                J
+              </div>
+            </Link>
           )}
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
