@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, Sparkles, Palette } from 'lucide-react';
+import { useTheme, THEMES } from '../context/ThemeContext';
 import { mockApi } from '../services/api';
 import logoImg from '../assets/Jobrito full logo.png';
 import logoWhiteImg from '../assets/jobrito-logo-white-text.png';
@@ -8,6 +9,8 @@ import orbLogo from '../assets/jobrito-orb-logo.png';
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const { theme, setTheme, THEMES } = useTheme();
+  const [themeOpen, setThemeOpen] = useState(false);
   const [usersOpen, setUsersOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [counts, setCounts] = useState({
@@ -132,11 +135,22 @@ export default function Layout({ children }) {
     window.location.href = '/admin/login';
   };
 
+  const isLight = theme === THEMES.LIGHT;
+  const isEmerald = theme === THEMES.EMERALD;
+
+  const bgOuterClass = isLight ? 'bg-slate-100 font-sans text-slate-900 min-h-screen flex w-full text-left overflow-x-hidden' : isEmerald ? 'bg-[#011C14] font-sans text-emerald-100 min-h-screen flex w-full text-left overflow-x-hidden' : 'bg-[#090D16] font-sans text-slate-100 min-h-screen flex w-full text-left overflow-x-hidden';
+  
+  const sidebarClass = isLight ? 'bg-slate-900 border-r border-slate-800' : isEmerald ? 'bg-[#01140E] border-r border-emerald-950/80' : 'bg-[#0B1120] border-r border-[#1E293B]';
+  
+  const headerClass = isLight ? 'bg-white border-b border-slate-200 text-slate-800' : isEmerald ? 'bg-[#02281D] border-b border-emerald-900/60 text-emerald-100' : 'bg-[#090D16] border-b border-[#1E293B] text-slate-100';
+
+  const mainClass = isLight ? 'flex-grow p-4 sm:p-6 md:p-8 bg-slate-100 text-slate-900 w-full max-w-full overflow-x-auto' : isEmerald ? 'flex-grow p-4 sm:p-6 md:p-8 bg-[#011710] text-emerald-100 w-full max-w-full overflow-x-auto' : 'flex-grow p-4 sm:p-6 md:p-8 bg-[#070A13] text-slate-100 w-full max-w-full overflow-x-auto';
+
   return (
-    <div className="bg-[#090D16] font-sans text-slate-100 min-h-screen flex w-full text-left overflow-x-hidden">
+    <div className={bgOuterClass}>
       
       {/* Responsive Collapsible Sidebar */}
-      <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-[#0B1120] border-r border-[#1E293B] flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
+      <aside className={`${isCollapsed ? 'w-16' : 'w-64'} ${sidebarClass} flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
         <div className={`px-4 py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
             <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
@@ -316,7 +330,7 @@ export default function Layout({ children }) {
       {/* Main Workspace with Dynamic Left Margin */}
       <div className={`flex-grow ${isCollapsed ? 'ml-16' : 'ml-64'} transition-all duration-300 ease-in-out flex flex-col min-h-screen w-full min-w-0`}>
         {/* Header */}
-        <header className="bg-[#090D16] border-b border-[#1E293B] h-16 px-4 md:px-6 flex items-center justify-between sticky top-0 z-40">
+        <header className={`${headerClass} h-16 px-4 md:px-6 flex items-center justify-between sticky top-0 z-40 transition-colors duration-300`}>
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsCollapsed(!isCollapsed)}
@@ -327,11 +341,61 @@ export default function Layout({ children }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-6 relative">
+          <div className="flex items-center gap-3 sm:gap-4 relative">
+            {/* Theme Switcher Button */}
+            <div className="relative">
+              <button 
+                onClick={() => { setThemeOpen(!themeOpen); setNotifOpen(false); }}
+                className="w-9 h-9 rounded-xl bg-[#1E293B] hover:bg-slate-700 flex items-center justify-center text-slate-200 transition-all cursor-pointer border border-slate-700/60 shadow-sm"
+                title="Change Theme"
+              >
+                {theme === THEMES.LIGHT ? (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                ) : theme === THEMES.EMERALD ? (
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-indigo-400" />
+                )}
+              </button>
+
+              {themeOpen && (
+                <div className="absolute right-0 mt-3 w-56 bg-[#0B1120] border border-[#1E293B] shadow-2xl rounded-2xl p-2 z-50 text-left">
+                  <div className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-[#1E293B] mb-1 flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5 text-emerald-400" />
+                    Select Theme
+                  </div>
+                  
+                  <button 
+                    onClick={() => { setTheme(THEMES.DARK); setThemeOpen(false); }}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer ${theme === THEMES.DARK ? 'bg-[#059669] text-white shadow-md' : 'text-slate-300 hover:bg-[#1E293B]'}`}
+                  >
+                    <span className="flex items-center gap-2">🌙 Midnight Dark</span>
+                    {theme === THEMES.DARK && <span>✓</span>}
+                  </button>
+
+                  <button 
+                    onClick={() => { setTheme(THEMES.LIGHT); setThemeOpen(false); }}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer ${theme === THEMES.LIGHT ? 'bg-[#059669] text-white shadow-md' : 'text-slate-300 hover:bg-[#1E293B]'}`}
+                  >
+                    <span className="flex items-center gap-2">☀️ Clean Light</span>
+                    {theme === THEMES.LIGHT && <span>✓</span>}
+                  </button>
+
+                  <button 
+                    onClick={() => { setTheme(THEMES.EMERALD); setThemeOpen(false); }}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer ${theme === THEMES.EMERALD ? 'bg-[#059669] text-white shadow-md' : 'text-slate-300 hover:bg-[#1E293B]'}`}
+                  >
+                    <span className="flex items-center gap-2">✨ Emerald Velvet</span>
+                    {theme === THEMES.EMERALD && <span>✓</span>}
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Notification Bell Button */}
             <div className="relative">
               <button 
-                onClick={() => setNotifOpen(!notifOpen)}
+                onClick={() => { setNotifOpen(!notifOpen); setThemeOpen(false); }}
                 className="relative w-9 h-9 rounded-xl bg-[#1E293B] hover:bg-slate-700 flex items-center justify-center text-slate-200 transition-all cursor-pointer border border-slate-700/60"
                 title="View FCM Notifications"
               >
@@ -439,7 +503,7 @@ export default function Layout({ children }) {
           </div>
         </header>
 
-        <main className="flex-grow p-4 sm:p-6 md:p-8 bg-[#070A13] w-full max-w-full overflow-x-auto text-slate-100">
+        <main className={`${mainClass} transition-colors duration-300`}>
           {children}
         </main>
       </div>

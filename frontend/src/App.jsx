@@ -95,9 +95,12 @@ function PublicLayout({ children }) {
   );
 }
 
+import { ThemeProvider } from "./context/ThemeContext";
+
 function App() {
   return (
-    <BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
       <ScrollToTop />
       <Routes>
         {/* original landing page */}
@@ -143,6 +146,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
