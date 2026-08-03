@@ -762,16 +762,29 @@ Route::match(['get', 'post'], '/jobs/{job}/apply', function(\Illuminate\Http\Req
         : false;
 
     if ($isTraining) {
-        $trainingId = $request->input('training_id') ?: $jobId;
+        $requestedId = $request->input('training_id') ?: ($request->input('job_id') ?: $jobId);
+
+        $trainingObj = \App\Models\TrainingOpportunity::find($requestedId)
+            ?: \App\Models\TrainingOpportunity::first();
+
+        if (!$trainingObj) {
+            $trainingObj = \App\Models\TrainingOpportunity::create([
+                'program_name'  => 'General Hospitality Training Program',
+                'provider_name' => 'Jobrito Academy',
+                'location'      => 'Delhi, India',
+                'status'        => 'active',
+                'duration'      => '3 Months',
+            ]);
+        }
 
         $application = \App\Models\TrainingApplication::updateOrCreate(
             [
                 'applicant_id' => $user ? $user->id : 4,
-                'training_id'  => $trainingId,
+                'training_id'  => $trainingObj->id,
             ],
             [
-                'job_post_id'         => $job ? $job->id : null,
-                'employer_id'         => $job ? ($job->created_by ?: 17) : 17,
+                'job_post_id'         => null,
+                'employer_id'         => 17,
                 'status'              => 'new',
                 'preferred_call_time' => (string) $preferredCallTime,
                 'is_training'         => true,
@@ -785,7 +798,7 @@ Route::match(['get', 'post'], '/jobs/{job}/apply', function(\Illuminate\Http\Req
                 'id'                  => $application->id,
                 'applicant_id'        => $application->applicant_id,
                 'training_id'         => $application->training_id,
-                'job_post_id'         => $application->job_post_id,
+                'job_post_id'         => null,
                 'employer_id'         => $application->employer_id,
                 'status'              => $application->status,
                 'preferred_call_time' => $application->preferred_call_time,
@@ -882,11 +895,13 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
         if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
             $tApps = \Illuminate\Support\Facades\DB::table('training_applications')
                 ->leftJoin('users', 'training_applications.applicant_id', '=', 'users.id')
+                ->leftJoin('training_opportunities', 'training_applications.training_id', '=', 'training_opportunities.id')
                 ->leftJoin('job_posts', 'training_applications.job_post_id', '=', 'job_posts.id')
                 ->select(
                     'training_applications.id',
                     'training_applications.applicant_id',
                     'training_applications.job_post_id',
+                    'training_applications.training_id',
                     'training_applications.employer_id',
                     'training_applications.status',
                     'training_applications.preferred_call_time',
@@ -901,9 +916,9 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     'users.current_employer as applicant_current_employer',
                     'users.skills as applicant_skills',
                     'users.profile_photo_path as applicant_photo',
-                    'job_posts.title as job_title',
-                    'job_posts.company as job_company',
-                    'job_posts.location as job_location',
+                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.program_name, job_posts.title, "Training Opportunity") as job_title'),
+                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.provider_name, job_posts.company, "Jobrito Training Academy") as job_company'),
+                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.location, job_posts.location, "India") as job_location'),
                     'job_posts.category as job_category'
                 );
 

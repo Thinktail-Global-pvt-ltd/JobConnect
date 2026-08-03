@@ -389,11 +389,13 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
         if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
             $tApps = \Illuminate\Support\Facades\DB::table('training_applications')
                 ->leftJoin('users', 'training_applications.applicant_id', '=', 'users.id')
+                ->leftJoin('training_opportunities', 'training_applications.training_id', '=', 'training_opportunities.id')
                 ->leftJoin('job_posts', 'training_applications.job_post_id', '=', 'job_posts.id')
                 ->select(
                     'training_applications.id',
                     'training_applications.applicant_id',
                     'training_applications.job_post_id',
+                    'training_applications.training_id',
                     'training_applications.employer_id',
                     'training_applications.status',
                     'training_applications.preferred_call_time',
@@ -408,9 +410,9 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     'users.current_employer as applicant_current_employer',
                     'users.skills as applicant_skills',
                     'users.profile_photo_path as applicant_photo',
-                    'job_posts.title as job_title',
-                    'job_posts.company as job_company',
-                    'job_posts.location as job_location',
+                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.program_name, job_posts.title, "Training Opportunity") as job_title'),
+                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.provider_name, job_posts.company, "Jobrito Training Academy") as job_company'),
+                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.location, job_posts.location, "India") as job_location'),
                     'job_posts.category as job_category'
                 );
 

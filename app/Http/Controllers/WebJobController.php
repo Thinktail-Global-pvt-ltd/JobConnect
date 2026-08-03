@@ -90,16 +90,30 @@ class WebJobController extends Controller
             : false;
 
         if ($isTraining) {
-            $trainingId = $request->input('training_id') ?: ($jobModel ? $jobModel->id : 1);
+            $requestedId = $request->input('training_id') ?: ($request->input('job_id') ?: ($jobModel ? $jobModel->id : 1));
+
+            // Find or get first TrainingOpportunity record from database
+            $trainingObj = \App\Models\TrainingOpportunity::find($requestedId) 
+                ?: \App\Models\TrainingOpportunity::first();
+
+            if (!$trainingObj) {
+                $trainingObj = \App\Models\TrainingOpportunity::create([
+                    'program_name'  => 'General Hospitality Training Program',
+                    'provider_name' => 'Jobrito Academy',
+                    'location'      => 'Delhi, India',
+                    'status'        => 'active',
+                    'duration'      => '3 Months',
+                ]);
+            }
 
             $application = \App\Models\TrainingApplication::updateOrCreate(
                 [
                     'applicant_id' => $user->id,
-                    'training_id'  => $trainingId,
+                    'training_id'  => $trainingObj->id,
                 ],
                 [
-                    'job_post_id'         => $jobModel ? $jobModel->id : null,
-                    'employer_id'         => $jobModel ? ($jobModel->created_by ?: 17) : 17,
+                    'job_post_id'         => null,
+                    'employer_id'         => 17,
                     'status'              => 'new',
                     'preferred_call_time' => (string) $preferredCallTime,
                     'is_training'         => true,
@@ -113,7 +127,7 @@ class WebJobController extends Controller
                     'id'                  => $application->id,
                     'applicant_id'        => $application->applicant_id,
                     'training_id'         => $application->training_id,
-                    'job_post_id'         => $application->job_post_id,
+                    'job_post_id'         => null,
                     'employer_id'         => $application->employer_id,
                     'status'              => $application->status,
                     'preferred_call_time' => $application->preferred_call_time,
