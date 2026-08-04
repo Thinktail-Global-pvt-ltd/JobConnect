@@ -63,6 +63,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['get', 'post'], '/my-applications', [JobPostController::class, 'myJobs']);
     Route::match(['get', 'post'], '/jobs/applied', [JobPostController::class, 'myJobs']);
     Route::match(['get', 'post'], '/user/applied-jobs', [JobPostController::class, 'myJobs']);
+
+    // Application History API (Job + Training Opportunity Applications merged)
+    Route::match(['get', 'post'], '/applications/history', [JobPostController::class, 'getApplicationsHistory']);
+    Route::match(['get', 'post'], '/user/applications/history', [JobPostController::class, 'getApplicationsHistory']);
+
+    // Saved Jobs & Training Opportunities APIs
+    Route::match(['get', 'post'], '/jobs/saved', [JobPostController::class, 'getSavedJobs']);
+    Route::match(['get', 'post'], '/user/saved-jobs', [JobPostController::class, 'getSavedJobs']);
+    Route::match(['get', 'post'], '/saved-jobs', [JobPostController::class, 'getSavedJobs']);
+
+    Route::match(['get', 'post'], '/jobs/{id}/save', [JobPostController::class, 'saveJobOrTraining']);
+    Route::match(['get', 'post'], '/jobs/save', [JobPostController::class, 'saveJobOrTraining']);
+    Route::match(['get', 'post'], '/training/{id}/save', [JobPostController::class, 'saveJobOrTraining']);
     Route::match(['get', 'post'], '/user/daily-applies', [JobPostController::class, 'getDailyApplyStatus']);
     Route::match(['get', 'post'], '/user/apply-status', [JobPostController::class, 'getDailyApplyStatus']);
     Route::match(['get', 'post'], '/user/applies-left', [JobPostController::class, 'getDailyApplyStatus']);
@@ -708,6 +721,16 @@ Route::match(['get', 'post'], '/user/daily-applies', [JobPostController::class, 
 Route::match(['get', 'post'], '/user/apply-status', [JobPostController::class, 'getDailyApplyStatus']);
 Route::match(['get', 'post'], '/user/applies-left', [JobPostController::class, 'getDailyApplyStatus']);
 Route::match(['get', 'post'], '/jobs/apply-status', [JobPostController::class, 'getDailyApplyStatus']);
+
+// Application History & Saved Jobs Fallback Routes
+Route::match(['get', 'post'], '/applications/history', [JobPostController::class, 'getApplicationsHistory']);
+Route::match(['get', 'post'], '/user/applications/history', [JobPostController::class, 'getApplicationsHistory']);
+Route::match(['get', 'post'], '/jobs/saved', [JobPostController::class, 'getSavedJobs']);
+Route::match(['get', 'post'], '/user/saved-jobs', [JobPostController::class, 'getSavedJobs']);
+Route::match(['get', 'post'], '/saved-jobs', [JobPostController::class, 'getSavedJobs']);
+Route::match(['get', 'post'], '/jobs/{id}/save', [JobPostController::class, 'saveJobOrTraining']);
+Route::match(['get', 'post'], '/jobs/save', [JobPostController::class, 'saveJobOrTraining']);
+Route::match(['get', 'post'], '/training/{id}/save', [JobPostController::class, 'saveJobOrTraining']);
 
 // Daily Profile Completion Notification Scheduler Trigger Route
 Route::match(['get', 'post'], '/scheduler/send-profile-reminders', [\App\Http\Controllers\FirebaseController::class, 'triggerProfileCompletionReminders']);

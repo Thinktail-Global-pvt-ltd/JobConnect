@@ -459,4 +459,381 @@ class JobPostController extends Controller
             'can_post_today'             => (bool)$hasPostsLeft,
         ], 200);
     }
+
+    /**
+     * GET /api/applications/history
+     * GET /api/user/applications/history
+     *
+     * Returns merged applications (Job Applications + Training Opportunity Applications) for the user.
+     */
+    public function getApplicationsHistory(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if (!$tokenObj && str_contains($token, '|')) {
+                    $tokenId = explode('|', $token)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                }
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
+        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id') || $request->filled('id'))) {
+            $uId = $request->input('user_id') ?: ($request->input('applicant_id') ?: $request->input('id'));
+            $user = \App\Models\User::find($uId);
+        }
+        if (!$user) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+        }
+        if (!$user) {
+            $user = \App\Models\User::first();
+        }
+
+        $userId = $user ? $user->id : 0;
+
+        // 1. Fetch Job Applications
+        $jobApplications = \App\Models\JobApplication::with(['jobPost.creator'])
+            ->where('applicant_id', $userId)
+            ->latest()
+            ->get();
+
+        $mappedJobApps = $jobApplications->map(function ($app) {
+            $job = $app->jobPost;
+            if (!$job) return null;
+
+            return [
+                'application_id'        => (string)$app->id,
+                'id'                    => $app->id,
+                'job_post_id'           => $job->id,
+                'job_id'                => $job->id,
+                'status'                => $app->status ?? 'new',
+                'application_status'    => $app->status ?? 'new',
+                'preferred_call_time'   => $app->preferred_call_time,
+                'applied_at'            => $app->created_at ? $app->created_at->toIso8601String() : null,
+                'applied_at_formatted'  => $app->created_at ? $app->created_at->format('j M Y, h:i A') : null,
+                'is_training'           => false,
+                'type'                  => 'job',
+                'title'                 => $job->title,
+                'company'               => $job->company,
+                'category'              => $job->category,
+                'location'              => $job->location,
+                'country'               => $job->country,
+                'salary'                => $job->salary,
+                'salary_min'            => $job->salary_min,
+                'salary_max'            => $job->salary_max,
+                'salary_currency'       => $job->salary_currency,
+                'job_type'              => $job->job_type,
+                'experience_range'      => $job->experience_range,
+                'description'           => $job->description,
+                'created_at'            => $app->created_at ? $app->created_at->toIso8601String() : null,
+            ];
+        })->filter()->values();
+
+        // 2. Fetch Training Opportunity Applications
+        $mappedTrainingApps = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+            $tApps = \App\Models\TrainingApplication::with(['trainingOpportunity'])
+                ->where('applicant_id', $userId)
+                ->latest()
+                ->get();
+
+            $mappedTrainingApps = $tApps->map(function ($tApp) {
+                $training = $tApp->trainingOpportunity;
+                if (!$training && $tApp->training_id) {
+                    $training = \App\Models\TrainingOpportunity::find($tApp->training_id);
+                }
+                $tId = $training ? $training->id : ($tApp->training_id ?: $tApp->id);
+
+                return [
+                    'application_id'        => 'training_' . $tApp->id,
+                    'id'                    => 'training_' . $tApp->id,
+                    'raw_application_id'    => $tApp->id,
+                    'training_id'           => $tId,
+                    'job_post_id'           => 'training_' . $tId,
+                    'job_id'                => 'training_' . $tId,
+                    'status'                => $tApp->status ?? 'applied',
+                    'application_status'    => $tApp->status ?? 'applied',
+                    'preferred_call_time'   => $tApp->preferred_call_time,
+                    'applied_at'            => $tApp->created_at ? $tApp->created_at->toIso8601String() : null,
+                    'applied_at_formatted'  => $tApp->created_at ? $tApp->created_at->format('j M Y, h:i A') : null,
+                    'is_training'           => true,
+                    'type'                  => 'training',
+                    'title'                 => $training ? ($training->program_name ?: ('Training Program #' . $tId)) : ('Training Program #' . $tId),
+                    'company'               => $training ? ($training->provider_name ?: 'Jobrito Academy') : 'Jobrito Academy',
+                    'category'              => 'training',
+                    'location'              => $training ? ($training->location ?: 'India') : 'India',
+                    'country'               => 'India',
+                    'salary'                => 'Paid Stipend',
+                    'salary_min'            => null,
+                    'salary_max'            => null,
+                    'salary_currency'       => 'INR',
+                    'job_type'              => 'Training / Program',
+                    'experience_range'      => 'Any',
+                    'description'           => $training ? ($training->description ?: 'Specialized training program.') : 'Specialized training program.',
+                    'created_at'            => $tApp->created_at ? $tApp->created_at->toIso8601String() : null,
+                ];
+            });
+        }
+
+        $allApplications = $mappedJobApps->concat($mappedTrainingApps)->sortByDesc('created_at')->values();
+
+        return response()->json([
+            'success'      => true,
+            'total'        => $allApplications->count(),
+            'applications' => $allApplications,
+            'data'         => $allApplications,
+        ]);
+    }
+
+    /**
+     * POST /api/jobs/{id}/save
+     * POST /api/jobs/save
+     * POST /api/training/{id}/save
+     *
+     * Toggle save/unsave for Job Post OR Training Opportunity.
+     */
+    public function saveJobOrTraining(Request $request, $id = null)
+    {
+        $user = $request->user();
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if (!$tokenObj && str_contains($token, '|')) {
+                    $tokenId = explode('|', $token)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                }
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
+        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id'))) {
+            $uId = $request->input('user_id') ?: $request->input('applicant_id');
+            $user = \App\Models\User::find($uId);
+        }
+        if (!$user) {
+            $user = \App\Models\User::first();
+        }
+
+        $userId = $user ? $user->id : 0;
+        $targetId = $id ?: ($request->input('job_id') ?: ($request->input('job_post_id') ?: ($request->input('training_id') ?: $request->input('id'))));
+
+        $isTraining = false;
+        $trainingId = null;
+        $jobPostId = null;
+
+        $targetIdStr = (string)$targetId;
+        if (str_starts_with($targetIdStr, 'training_')) {
+            $isTraining = true;
+            $trainingId = (int) str_replace('training_', '', $targetIdStr);
+        } elseif ($request->boolean('is_training') || $request->input('type') === 'training' || $request->filled('training_id')) {
+            $isTraining = true;
+            $trainingId = (int) ($request->input('training_id') ?: $targetId);
+        } else {
+            if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+                $tObj = \App\Models\TrainingOpportunity::find($targetId);
+                if ($tObj && !\App\Models\JobPost::find($targetId)) {
+                    $isTraining = true;
+                    $trainingId = $tObj->id;
+                }
+            }
+            if (!$isTraining) {
+                $jobPostId = (int) $targetId;
+            }
+        }
+
+        // Ensure training_id column exists in saved_jobs schema
+        if (\Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('saved_jobs', 'training_id')) {
+                try {
+                    \Illuminate\Support\Facades\Schema::table('saved_jobs', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->unsignedBigInteger('training_id')->nullable()->after('job_post_id');
+                    });
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        if ($isTraining) {
+            $existing = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                ->where('user_id', $userId)
+                ->where('training_id', $trainingId)
+                ->first();
+
+            if ($existing) {
+                \Illuminate\Support\Facades\DB::table('saved_jobs')->where('id', $existing->id)->delete();
+                return response()->json([
+                    'success'     => true,
+                    'saved'       => false,
+                    'is_training' => true,
+                    'message'     => 'Training opportunity removed from saved list.',
+                ]);
+            } else {
+                \Illuminate\Support\Facades\DB::table('saved_jobs')->insert([
+                    'user_id'     => $userId,
+                    'training_id' => $trainingId,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+                return response()->json([
+                    'success'     => true,
+                    'saved'       => true,
+                    'is_training' => true,
+                    'message'     => 'Training opportunity saved to your favorites!',
+                ]);
+            }
+        } else {
+            $existing = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                ->where('user_id', $userId)
+                ->where('job_post_id', $jobPostId)
+                ->first();
+
+            if ($existing) {
+                \Illuminate\Support\Facades\DB::table('saved_jobs')->where('id', $existing->id)->delete();
+                return response()->json([
+                    'success'     => true,
+                    'saved'       => false,
+                    'is_training' => false,
+                    'message'     => 'Job removed from saved list.',
+                ]);
+            } else {
+                \Illuminate\Support\Facades\DB::table('saved_jobs')->insert([
+                    'user_id'     => $userId,
+                    'job_post_id' => $jobPostId,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ]);
+                return response()->json([
+                    'success'     => true,
+                    'saved'       => true,
+                    'is_training' => false,
+                    'message'     => 'Job saved to your favorites!',
+                ]);
+            }
+        }
+    }
+
+    /**
+     * GET /api/jobs/saved
+     * GET /api/user/saved-jobs
+     * GET /api/saved-jobs
+     *
+     * Returns saved Jobs AND saved Training Opportunities in unified structure.
+     */
+    public function getSavedJobs(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if (!$tokenObj && str_contains($token, '|')) {
+                    $tokenId = explode('|', $token)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                }
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+        }
+        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id'))) {
+            $uId = $request->input('user_id') ?: $request->input('applicant_id');
+            $user = \App\Models\User::find($uId);
+        }
+        if (!$user) {
+            $user = \App\Models\User::first();
+        }
+
+        $userId = $user ? $user->id : 0;
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('saved_jobs', 'training_id')) {
+                try {
+                    \Illuminate\Support\Facades\Schema::table('saved_jobs', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->unsignedBigInteger('training_id')->nullable()->after('job_post_id');
+                    });
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
+            ->where('user_id', $userId)
+            ->latest()
+            ->get();
+
+        $jobIds = $savedRecords->pluck('job_post_id')->filter()->values();
+        $trainingIds = $savedRecords->pluck('training_id')->filter()->values();
+
+        $jobPosts = \App\Models\JobPost::whereIn('id', $jobIds)->get()->keyBy('id');
+        $trainingOpps = collect();
+        if ($trainingIds->count() > 0 && \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+            $trainingOpps = \App\Models\TrainingOpportunity::whereIn('id', $trainingIds)->get()->keyBy('id');
+        }
+
+        $unifiedSaved = $savedRecords->map(function ($rec) use ($jobPosts, $trainingOpps) {
+            if ($rec->job_post_id && isset($jobPosts[$rec->job_post_id])) {
+                $job = $jobPosts[$rec->job_post_id];
+                return [
+                    'saved_id'              => $rec->id,
+                    'id'                    => $job->id,
+                    'job_post_id'           => $job->id,
+                    'job_id'                => $job->id,
+                    'title'                 => $job->title,
+                    'company'               => $job->company,
+                    'category'              => $job->category,
+                    'location'              => $job->location,
+                    'country'               => $job->country,
+                    'salary'                => $job->salary,
+                    'salary_min'            => $job->salary_min,
+                    'salary_max'            => $job->salary_max,
+                    'salary_currency'       => $job->salary_currency,
+                    'job_type'              => $job->job_type,
+                    'experience_range'      => $job->experience_range,
+                    'description'           => $job->description,
+                    'is_training'           => false,
+                    'is_saved'              => true,
+                    'saved'                 => true,
+                    'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
+                ];
+            } elseif ($rec->training_id && isset($trainingOpps[$rec->training_id])) {
+                $training = $trainingOpps[$rec->training_id];
+                return [
+                    'saved_id'              => $rec->id,
+                    'id'                    => 'training_' . $training->id,
+                    'training_id'           => $training->id,
+                    'job_post_id'           => 'training_' . $training->id,
+                    'job_id'                => 'training_' . $training->id,
+                    'title'                 => $training->program_name ?: ('Training Program #' . $training->id),
+                    'company'               => $training->provider_name ?: 'Jobrito Academy',
+                    'category'              => 'training',
+                    'location'              => $training->location ?: 'India',
+                    'country'               => 'India',
+                    'salary'                => 'Paid Stipend',
+                    'salary_min'            => null,
+                    'salary_max'            => null,
+                    'salary_currency'       => 'INR',
+                    'job_type'              => 'Training / Program',
+                    'experience_range'      => 'Any',
+                    'description'           => $training->description ?: 'Specialized training program.',
+                    'is_training'           => true,
+                    'is_saved'              => true,
+                    'saved'                 => true,
+                    'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
+                ];
+            }
+            return null;
+        })->filter()->values();
+
+        return response()->json([
+            'success'    => true,
+            'total'      => $unifiedSaved->count(),
+            'saved_jobs' => $unifiedSaved,
+            'jobs'       => $unifiedSaved,
+            'data'       => $unifiedSaved,
+        ]);
+    }
 }
