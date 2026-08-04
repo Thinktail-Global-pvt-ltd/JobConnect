@@ -57,15 +57,14 @@ class FeedController extends Controller
         // 2.  Mark which jobs and training opportunities the current user has applied to
         // ----------------------------------------------------------------
         $user = $request->user();
-        if (!$user && $request->bearerToken()) {
-            $tokenStr = $request->bearerToken();
-            if (str_contains($tokenStr, '|')) {
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
-                if ($tokenObj) {
-                    $user = $tokenObj->tokenable;
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if (!$tokenObj && str_contains($token, '|')) {
+                    $tokenId = explode('|', $token)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
                 }
-            } else {
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
                 if ($tokenObj) {
                     $user = $tokenObj->tokenable;
                 }
