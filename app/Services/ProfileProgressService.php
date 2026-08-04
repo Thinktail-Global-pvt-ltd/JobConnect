@@ -78,73 +78,97 @@ class ProfileProgressService
 
     /**
      * Calculate profile completeness for Chef role.
+     * Evaluates 15 logical components (Social links group & Photo group marked complete if at least 1 item exists).
      */
     public static function calculateChef(User $user): array
     {
         $breakdown = [];
-        $percentage = 0;
-
-        // 1. Full Name (15%)
-        if (self::isFilled($user->full_name)) {
-            $percentage += 15;
-            $breakdown['full_name'] = 15;
-        } else {
-            $breakdown['full_name'] = 0;
-        }
-
-        // 2. Mobile Number (15%)
-        if (self::isFilled($user->mobile_number)) {
-            $percentage += 15;
-            $breakdown['mobile_number'] = 15;
-        } else {
-            $breakdown['mobile_number'] = 0;
-        }
-
-        // 3. City / Location (15%)
-        if (self::isFilled($user->city) || self::isFilled($user->country)) {
-            $percentage += 15;
-            $breakdown['city'] = 15;
-        } else {
-            $breakdown['city'] = 0;
-        }
-
-        // 4. Culinary Experience (15%)
-        if (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) {
-            $percentage += 15;
-            $breakdown['experience'] = 15;
-        } else {
-            $breakdown['experience'] = 0;
-        }
-
-        // 5. Preferred Role (20%)
-        if (self::isFilled($user->preferred_role)) {
-            $percentage += 20;
-            $breakdown['preferred_role'] = 20;
-        } else {
-            $breakdown['preferred_role'] = 0;
-        }
-
-        // 6. Operational Experties & Chef Details (20%)
         $chefProfile = $user->chefProfile ?: ChefProfile::where('user_id', $user->id)->first();
-        $hasOpsExperties = $chefProfile && (self::isFilled($chefProfile->operational_experties) || self::isFilled($chefProfile->cuisine_specialty) || self::isFilled($chefProfile->bio) || self::isFilled($chefProfile->availability_info));
-
-        if ($hasOpsExperties) {
-            $percentage += 20;
-            $breakdown['operational_experties'] = 20;
-        } else {
-            $breakdown['operational_experties'] = 0;
+        
+        $availInfo = [];
+        if ($chefProfile && !empty($chefProfile->availability_info)) {
+            $availInfo = is_array($chefProfile->availability_info) 
+                ? $chefProfile->availability_info 
+                : (json_decode($chefProfile->availability_info, true) ?: []);
         }
+
+        // 1. Full Name
+        $breakdown['full_name'] = self::isFilled($user->full_name) ? 7 : 0;
+
+        // 2. Preferred Role
+        $breakdown['preferred_role'] = self::isFilled($user->preferred_role) ? 7 : 0;
+
+        // 3. City
+        $breakdown['city'] = self::isFilled($user->city) ? 7 : 0;
+
+        // 4. Country
+        $breakdown['country'] = self::isFilled($user->country) ? 7 : 0;
+
+        // 5. Experience Range
+        $breakdown['experience_range'] = (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) ? 7 : 0;
+
+        // 6. Cuisine Specialty
+        $cuisine = $chefProfile ? $chefProfile->cuisine_specialty : null;
+        $breakdown['cuisine_specialty'] = self::isFilled($cuisine) ? 7 : 0;
+
+        // 7. Bio
+        $bio = $chefProfile ? $chefProfile->bio : null;
+        $breakdown['bio'] = self::isFilled($bio) ? 7 : 0;
+
+        // 8. Location Preference
+        $locPref = $availInfo['location_preference'] ?? null;
+        $breakdown['location_preference'] = self::isFilled($locPref) ? 7 : 0;
+
+        // 9. Availability / Availability Status
+        $avail = $user->availability_status ?: ($availInfo['availability_status'] ?? ($availInfo['status'] ?? null));
+        $breakdown['availability'] = self::isFilled($avail) ? 7 : 0;
+
+        // 10. Languages
+        $langs = $user->selected_language ?: ($availInfo['languages'] ?? null);
+        $breakdown['languages'] = self::isFilled($langs) ? 7 : 0;
+
+        // 11. Skills
+        $breakdown['skills'] = self::isFilled($user->skills) ? 6 : 0;
+
+        // 12. Regional Experience
+        $regExp = $availInfo['regional_experience'] ?? null;
+        $breakdown['regional_experience'] = self::isFilled($regExp) ? 6 : 0;
+
+        // 13. Employment Preference
+        $empPref = $availInfo['employment_preference'] ?? null;
+        $breakdown['employment_preference'] = self::isFilled($empPref) ? 6 : 0;
+
+        // 14. Social Links (COMPLETE if AT LEAST ONE link is filled: calendly, linkedin, instagram, facebook, twitter, etc.)
+        $hasAnySocial = false;
+        if ($chefProfile && self::isFilled($chefProfile->calendly_link)) {
+            $hasAnySocial = true;
+        } else {
+            $hasAnySocial = self::hasSocialLinks($user);
+        }
+        $breakdown['social_links'] = $hasAnySocial ? 6 : 0;
+
+        // 15. Profile Photo (COMPLETE if AT LEAST ONE photo source exists)
+        $hasPhoto = self::isFilled($user->profile_photo_path);
+        $breakdown['profile_photo'] = $hasPhoto ? 6 : 0;
+
+        $filledCount = 0;
+        foreach ($breakdown as $key => $val) {
+            if ($val > 0) {
+                $filledCount++;
+            }
+        }
+
+        // Exact percentage out of 100%
+        $percentage = round(($filledCount / 15) * 100);
 
         $missing = array_keys(array_filter($breakdown, function($val) {
             return $val === 0;
         }));
 
-        $score = min($percentage, 100);
-
         return [
             'role' => 'chef',
-            'completeness' => $score,
-            'percentage' => $score,
+            'completeness' => $percentage,
+            'percentage' => $percentage,
             'breakdown' => $breakdown,
             'missing_fields' => array_values($missing)
         ];

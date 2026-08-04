@@ -146,10 +146,13 @@ class ChefOnboardingController extends Controller
 
         try {
             DB::transaction(function () use ($user, $request, $cuisineSpecialty, $opsExperties) {
-                // 1. Process profile photo upload if provided
-                if ($request->hasFile('profile_photo') && $request->file('profile_photo') && $request->file('profile_photo')->isValid()) {
-                    $path = $request->file('profile_photo')->store('profile_photos', 'public');
+                // 1. Process profile photo upload if provided (supports profile_photo & profile_photo_path)
+                $photoFile = $request->file('profile_photo') ?? $request->file('profile_photo_path');
+                if ($photoFile && $photoFile->isValid()) {
+                    $path = $photoFile->store('profile_photos', 'public');
                     $user->profile_photo_path = '/storage/' . $path;
+                } elseif ($request->filled('profile_photo_path') && is_string($request->input('profile_photo_path')) && !str_contains($request->input('profile_photo_path'), '@')) {
+                    $user->profile_photo_path = $request->input('profile_photo_path');
                 }
 
                 // 2. Update User details
@@ -209,14 +212,14 @@ class ChefOnboardingController extends Controller
                     $updateData
                 );
 
-                // 5. Update or create Social Profiles
+                // 5. Update or create Social Profiles (supports linkedin/linkedin_link, etc.)
                 UserSocial::updateOrCreate(
                     ['user_id' => $user->id],
                     [
-                        'linkedin'  => $request->linkedin,
-                        'instagram' => $request->instagram,
-                        'facebook'  => $request->facebook,
-                        'twitter'   => $request->twitter,
+                        'linkedin'  => $request->input('linkedin') ?? $request->input('linkedin_link'),
+                        'instagram' => $request->input('instagram') ?? $request->input('instagram_link'),
+                        'facebook'  => $request->input('facebook') ?? $request->input('facebook_link'),
+                        'twitter'   => $request->input('twitter') ?? $request->input('twitter_link'),
                     ]
                 );
 
@@ -228,9 +231,14 @@ class ChefOnboardingController extends Controller
                 );
             });
 
+            $completenessResult = \App\Services\ProfileProgressService::calculateChef($user);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Chef onboarding completed successfully! Profile is pending administrator review.',
+                'completeness' => $completenessResult['completeness'],
+                'profile_completeness' => $completenessResult['completeness'],
+                'breakdown' => $completenessResult['breakdown'],
                 'redirect_url' => route('profile')
             ]);
 
