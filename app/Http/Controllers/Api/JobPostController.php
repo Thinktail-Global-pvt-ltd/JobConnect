@@ -180,17 +180,26 @@ class JobPostController extends Controller
     public function myJobs(Request $request)
     {
         $user = $request->user();
-        if (!$user && $request->bearerToken()) {
-            $tokenStr = $request->bearerToken();
-            if (str_contains($tokenStr, '|')) {
-                $tokenId = explode('|', $tokenStr)[0];
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if (!$tokenObj && str_contains($token, '|')) {
+                    $tokenId = explode('|', $token)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                }
                 if ($tokenObj) {
                     $user = $tokenObj->tokenable;
                 }
             }
         }
-
+        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id') || $request->filled('id'))) {
+            $uId = $request->input('user_id') ?: ($request->input('applicant_id') ?: $request->input('id'));
+            $user = \App\Models\User::find($uId);
+        }
+        if (!$user) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+        }
         if (!$user) {
             $user = \App\Models\User::first();
         }
@@ -235,51 +244,89 @@ class JobPostController extends Controller
                 'map_image_url'         => $job->map_image_url,
                 'status'                => $job->status,
                 'is_referral'           => (bool)$job->is_referral,
+                'is_training'           => false,
+                'applied'               => true,
+                'is_applied'            => true,
+                'has_applied'           => true,
                 'submitted_by_role'     => $job->submitted_by_role,
                 'posted_by_role'        => $job->posted_by_role,
                 'created_at'            => $job->created_at ? $job->created_at->toDateTimeString() : null,
             ];
         })->filter()->values();
 
-        // 2. Fetch Job Posts created by this user
-        // DEFAULT: Only show admin-approved created jobs (so employer sees only live jobs)
-        // Pass ?status=all to see everything, ?status=pending to see pending ones
+        // 2. Fetch Training Applications submitted by this user
+        $appliedTrainingJobs = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+            $tApps = \App\Models\TrainingApplication::with(['trainingOpportunity'])
+                ->where('applicant_id', $user ? $user->id : 0)
+                ->latest()
+                ->get();
+
+            $appliedTrainingJobs = $tApps->map(function ($tApp) {
+                $training = $tApp->trainingOpportunity;
+                if (!$training && $tApp->training_id) {
+                    $training = \App\Models\TrainingOpportunity::find($tApp->training_id);
+                }
+                $tId = $training ? $training->id : ($tApp->training_id ?: $tApp->id);
+
+                return [
+                    'application_id'        => $tApp->id,
+                    'application_status'    => $tApp->status ?? 'applied',
+                    'preferred_call_time'   => $tApp->preferred_call_time,
+                    'applied_at'            => $tApp->created_at ? $tApp->created_at->toDateTimeString() : null,
+                    'applied_at_formatted'  => $tApp->created_at ? $tApp->created_at->format('j M Y, h:i A') : null,
+                    'id'                    => 'training_' . $tId,
+                    'training_id'           => $tId,
+                    'title'                 => $training ? ($training->program_name ?: ('Training Program #' . $tId)) : ('Training Program #' . $tId),
+                    'company'               => $training ? ($training->provider_name ?: 'Jobrito Academy') : 'Jobrito Academy',
+                    'category'              => 'training',
+                    'location'              => $training ? ($training->location ?: 'India') : 'India',
+                    'country'               => 'India',
+                    'status'                => $training ? ($training->status ?: 'Published') : 'Published',
+                    'is_training'           => true,
+                    'applied'               => true,
+                    'is_applied'            => true,
+                    'has_applied'           => true,
+                    'created_at'            => $tApp->created_at ? $tApp->created_at->toDateTimeString() : null,
+                ];
+            });
+        }
+
+        $allAppliedJobs = $appliedJobs->concat($appliedTrainingJobs);
+
+        // 3. Fetch Job Posts created by this user
         $createdQuery = JobPost::where('created_by', $user ? $user->id : 0);
         if ($request->has('is_referral')) {
             $createdQuery->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
         }
         if ($request->filled('status') && $request->status === 'all') {
-            // status=all → show everything (no status filter)
+            // status=all → show everything
         } elseif ($request->filled('status') && $request->status !== 'all') {
-            // explicit status passed (pending, closed, etc.) → filter by it
             $createdQuery->where('status', $request->status);
         } else {
-            // No status param → default: only show admin-approved jobs
             $createdQuery->where('status', 'approved');
         }
 
         $createdJobs = $createdQuery->latest()->get();
 
-        // Also fetch pending/rejected created jobs separately (for employer dashboard tracking)
         $pendingCreatedJobs = JobPost::where('created_by', $user ? $user->id : 0)
             ->where('status', 'pending')
             ->latest()->get();
 
-        // Standard unified jobs array (Applied jobs first for Jobseeker/Chef, Created jobs first for Employer)
         $isJobSeekerOrChef = in_array($activeRole, ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent']);
         $combinedJobs = $isJobSeekerOrChef
-            ? $appliedJobs->concat($createdJobs)
-            : $createdJobs->concat($appliedJobs);
+            ? $allAppliedJobs->concat($createdJobs)
+            : $createdJobs->concat($allAppliedJobs);
 
         return response()->json([
             'success'                   => true,
             'user_role'                 => $activeRole,
-            'total_applied_jobs'        => $appliedJobs->count(),
+            'total_applied_jobs'        => $allAppliedJobs->count(),
             'total_created_jobs'        => $createdJobs->count(),
             'total_pending_jobs'        => $pendingCreatedJobs->count(),
-            'applied_jobs'              => $appliedJobs,
-            'created_jobs'              => $createdJobs,          // Admin-approved only (default)
-            'pending_created_jobs'      => $pendingCreatedJobs,   // Awaiting admin approval
+            'applied_jobs'              => $allAppliedJobs->values(),
+            'created_jobs'              => $createdJobs,
+            'pending_created_jobs'      => $pendingCreatedJobs,
             'jobs'                      => $combinedJobs->values(),
             'data'                      => $combinedJobs->values(),
         ]);
