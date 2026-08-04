@@ -54,7 +54,7 @@ class FeedController extends Controller
         $jobs          = $jobsPaginated->getCollection();
 
         // ----------------------------------------------------------------
-        // 2.  Mark which jobs the current user has applied to
+        // 2.  Mark which jobs and training opportunities the current user has applied to
         // ----------------------------------------------------------------
         $user = $request->user();
         if (!$user && $request->bearerToken()) {
@@ -74,12 +74,25 @@ class FeedController extends Controller
         if (!$user) {
             $user = \Illuminate\Support\Facades\Auth::user();
         }
+        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id') || $request->filled('id'))) {
+            $uId = $request->input('user_id') ?: ($request->input('applicant_id') ?: $request->input('id'));
+            $user = \App\Models\User::find($uId);
+        }
 
         $appliedJobMap = [];
+        $appliedTrainingMap = [];
+
         if ($user) {
             $applications = JobApplication::where('applicant_id', $user->id)->get();
             foreach ($applications as $appRecord) {
                 $appliedJobMap[$appRecord->job_post_id] = $appRecord->status ?: 'applied';
+            }
+
+            $trainingApps = \App\Models\TrainingApplication::where('applicant_id', $user->id)->get();
+            foreach ($trainingApps as $tApp) {
+                if ($tApp->training_id) {
+                    $appliedTrainingMap[$tApp->training_id] = $tApp->status ?: 'applied';
+                }
             }
         }
 
@@ -128,6 +141,8 @@ class FeedController extends Controller
             ->map(function ($p) {
                 $p->_type  = 'admin_post';
                 $p->applied = false;
+                $p->is_applied = false;
+                $p->has_applied = false;
                 $p->posted_by_role = 'administrator';
                 if ($p->creator) {
                     $p->creator->active_profile = 'administrator';
@@ -139,7 +154,10 @@ class FeedController extends Controller
         $trainingOpportunities = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($t) {
+            ->map(function ($t) use ($appliedTrainingMap) {
+                $hasApplied = isset($appliedTrainingMap[$t->id]);
+                $appStatus  = $hasApplied ? $appliedTrainingMap[$t->id] : null;
+
                 return [
                     'id'                  => $t->id,
                     'program_name'        => $t->program_name,
@@ -158,7 +176,11 @@ class FeedController extends Controller
                     'is_pinned'           => (bool) $t->is_pinned,
                     '_type'               => 'training_opportunity',
                     'category'            => 'training',
-                    'applied'             => false,
+                    'applied'             => $hasApplied,
+                    'is_applied'          => $hasApplied,
+                    'has_applied'         => $hasApplied,
+                    'user_applied'        => $hasApplied,
+                    'application_status'  => $appStatus ?: ($hasApplied ? 'applied' : null),
                     'created_at'          => $t->created_at ? $t->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
             });

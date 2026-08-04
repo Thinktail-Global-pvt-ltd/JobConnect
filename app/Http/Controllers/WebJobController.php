@@ -131,6 +131,9 @@ class WebJobController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Training application submitted successfully!',
+                'applied' => true,
+                'is_applied' => true,
+                'has_applied' => true,
                 'application' => [
                     'id'                  => $application->id,
                     'applicant_id'        => $application->applicant_id,
@@ -140,6 +143,8 @@ class WebJobController extends Controller
                     'status'              => $application->status,
                     'preferred_call_time' => $application->preferred_call_time,
                     'is_training'         => true,
+                    'applied'             => true,
+                    'is_applied'          => true,
                     'created_at'          => $application->created_at ? $application->created_at->toIso8601String() : null,
                 ]
             ]);
