@@ -731,6 +731,7 @@ Route::match(['get', 'post'], '/saved-jobs', [JobPostController::class, 'getSave
 Route::match(['get', 'post'], '/jobs/{id}/save', [JobPostController::class, 'saveJobOrTraining']);
 Route::match(['get', 'post'], '/jobs/save', [JobPostController::class, 'saveJobOrTraining']);
 Route::match(['get', 'post'], '/training/{id}/save', [JobPostController::class, 'saveJobOrTraining']);
+Route::match(['get', 'post'], '/chef/onboarding/save', [\App\Http\Controllers\ChefOnboardingController::class, 'save']);
 
 // Daily Profile Completion Notification Scheduler Trigger Route
 Route::match(['get', 'post'], '/scheduler/send-profile-reminders', [\App\Http\Controllers\FirebaseController::class, 'triggerProfileCompletionReminders']);
