@@ -127,16 +127,26 @@ export default function Employers() {
           <p className="text-xs font-semibold text-slate-400 mt-1">Oversee platform employers, verification states, and job posting analytics.</p>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full md:w-72">
-          <input 
-            type="text" 
-            placeholder="Search employers, regions, or status..." 
-            value={search} 
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#1E293B] border border-slate-700/60 rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#059669] transition-all" 
-          />
-          <span className="absolute left-3.5 top-2.5 text-slate-400 text-xs">🔍</span>
+        {/* Search & Action Controls */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative w-full md:w-64">
+            <input 
+              type="text" 
+              placeholder="Search employers, regions, or status..." 
+              value={search} 
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-[#1E293B] border border-slate-700/60 rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#059669] transition-all" 
+            />
+            <span className="absolute left-3.5 top-2.5 text-slate-400 text-xs">🔍</span>
+          </div>
+
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Onboard New Employer</span>
+          </button>
         </div>
       </div>
 
@@ -192,6 +202,14 @@ export default function Employers() {
           <div className="flex items-center gap-3">
             <h3 className="font-outfit font-black text-sm text-white">Employer Directory</h3>
           </div>
+
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-3.5 py-1.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer self-start md:self-auto"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Onboard New Employer</span>
+          </button>
         </div>
 
         {/* Directory Table list */}
