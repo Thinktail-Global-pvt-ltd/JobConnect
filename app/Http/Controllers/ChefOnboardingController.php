@@ -94,13 +94,21 @@ class ChefOnboardingController extends Controller
             $request->merge(['skills' => $skillsArray]);
         }
 
+        $cuisineSpecialty = $request->input('cuisine_specialty') 
+            ?: ($request->input('specialty') 
+            ?: ($request->input('specialties') 
+            ?: ($request->input('cuisine') ?: 'Multi-Cuisine')));
+
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'preferred_role' => 'required|string|max:255',
             'city' => 'nullable|string|max:255',
             'experience_range' => 'nullable|string|max:255',
             'skills' => 'nullable',
-            'cuisine_specialty' => 'required|string|max:255',
+            'cuisine_specialty' => 'nullable|string|max:255',
+            'specialty' => 'nullable|string|max:255',
+            'specialties' => 'nullable|string|max:255',
+            'cuisine' => 'nullable|string|max:255',
             'bio' => 'nullable|string',
             'calendly_link' => 'nullable|url|max:255',
             'profile_photo' => 'nullable',
@@ -120,7 +128,7 @@ class ChefOnboardingController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($user, $request) {
+            DB::transaction(function () use ($user, $request, $cuisineSpecialty) {
                 // 1. Process profile photo upload if provided
                 if ($request->hasFile('profile_photo') && $request->file('profile_photo') && $request->file('profile_photo')->isValid()) {
                     $path = $request->file('profile_photo')->store('profile_photos', 'public');
@@ -169,7 +177,7 @@ class ChefOnboardingController extends Controller
                 // Existing profiles → keep their current approval_status (don't reset approved chefs)
                 $existingProfile = ChefProfile::where('user_id', $user->id)->first();
                 $updateData = [
-                    'cuisine_specialty' => $request->cuisine_specialty,
+                    'cuisine_specialty' => $cuisineSpecialty,
                     'bio'               => $request->bio,
                     'calendly_link'     => $request->calendly_link,
                     'availability_info' => json_encode($availabilityDetails),
