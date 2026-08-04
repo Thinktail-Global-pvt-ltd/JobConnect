@@ -390,4 +390,52 @@ html[data-theme="emerald"] .border-\[\#1E293B\] {
   border-color: #047857 !important;
 }
 
+/* ==========================================
+   GLOBAL ADMIN SIDEBAR ACTIVE SELECTION SYSTEM
+   ========================================== */
+
+/* Light Theme Active Selected Sidebar Card (Rich Dark Slate Pill) */
+html[data-theme="light"] .admin-sidebar-active {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-left-color: #059669 !important;
+  border-left-width: 4px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.3) !important;
+  border-radius: 0 12px 12px 0 !important;
+}
+
+html[data-theme="light"] .admin-sidebar-active span {
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .admin-sidebar-item {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .admin-sidebar-item:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Dark Theme Active Selected Sidebar Card */
+html[data-theme="dark"] .admin-sidebar-active,
+html:not([data-theme]) .admin-sidebar-active {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-left-color: #059669 !important;
+  border-left-width: 4px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Emerald Theme Active Selected Sidebar Card */
+html[data-theme="emerald"] .admin-sidebar-active {
+  background-color: #064e3b !important;
+  color: #ecfdf5 !important;
+  border-left-color: #34d399 !important;
+  border-left-width: 4px !important;
+  font-weight: 900 !important;
+}
+
 

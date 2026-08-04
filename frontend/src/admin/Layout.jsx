@@ -206,8 +206,8 @@ export default function Layout({ children }) {
                 >
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
                     active
-                      ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
-                      : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                      ? 'admin-sidebar-active bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
+                      : 'admin-sidebar-item text-slate-400 hover:bg-[#1E293B] hover:text-white'
                   }`}>
                     {item.icon}
                   </div>
@@ -223,8 +223,8 @@ export default function Layout({ children }) {
                 to={item.path}
                 className={`flex items-center justify-between py-2.5 px-6 transition-all border-l-4 ${
                   active
-                    ? 'bg-[#1E293B] border-[#059669] text-white font-bold'
-                    : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
+                    ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-md'
+                    : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
@@ -244,8 +244,8 @@ export default function Layout({ children }) {
               >
                 <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
                   isUsersGroupActive
-                    ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
-                    : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                    ? 'admin-sidebar-active bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
+                    : 'admin-sidebar-item text-slate-400 hover:bg-[#1E293B] hover:text-white'
                 }`}>
                   👥
                 </div>
@@ -258,8 +258,8 @@ export default function Layout({ children }) {
                 onClick={() => setUsersOpen(!usersOpen)}
                 className={`w-full flex items-center justify-between py-2.5 px-6 transition-all border-l-4 text-left ${
                   isUsersGroupActive
-                    ? 'bg-[#1E293B] border-[#059669] text-white font-bold'
-                    : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200 font-semibold'
+                    ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-md'
+                    : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200 font-semibold'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
@@ -291,8 +291,8 @@ export default function Layout({ children }) {
                       to={sub.path}
                       className={`flex items-center justify-between px-5 py-2 transition-all rounded-r-xl border-l-2 ${
                         active
-                          ? 'bg-[#1E293B] border-[#059669] text-white font-extrabold shadow-2xs'
-                          : 'border-transparent text-slate-400 hover:bg-[#1E293B]/50 hover:text-slate-200 font-medium'
+                          ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-sm'
+                          : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/50 hover:text-slate-200 font-medium'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -322,8 +322,8 @@ export default function Layout({ children }) {
                 >
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
                     active
-                      ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
-                      : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                      ? 'admin-sidebar-active bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
+                      : 'admin-sidebar-item text-slate-400 hover:bg-[#1E293B] hover:text-white'
                   }`}>
                     {item.icon}
                   </div>
@@ -339,8 +339,8 @@ export default function Layout({ children }) {
                 to={item.path}
                 className={`flex items-center justify-between py-2.5 px-6 transition-all border-l-4 ${
                   active
-                    ? 'bg-[#1E293B] border-[#059669] text-white font-bold'
-                    : 'border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
+                    ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-md'
+                    : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
