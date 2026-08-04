@@ -732,7 +732,6 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
         $location = $request->input('countries') ?? $request->input('location');
         $duration = $request->input('duration') ?? '12 Months';
         $status = $request->input('status') ?? 'Published';
-        $description = $request->input('description') ?? 'Professional hospitality placement and specialized training curriculum.';
         $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
         $employerDetails = $request->input('employer_details') ?? '';
         $skillsCovered = $request->input('skills_covered') ?? '';
@@ -745,6 +744,27 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
         }
         if (empty($location)) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
+        }
+
+        // Format description as comma-separated values of non-empty details
+        $descParts = [];
+        if (!empty(trim($employerDetails))) {
+            $descParts[] = trim($employerDetails);
+        }
+        if (!empty(trim($skillsCovered))) {
+            $descParts[] = trim($skillsCovered);
+        }
+        if (!empty(trim($benefits))) {
+            $descParts[] = trim($benefits);
+        }
+        if (!empty(trim($placementOpportunities))) {
+            $descParts[] = trim($placementOpportunities);
+        }
+
+        if (!empty($descParts)) {
+            $description = implode(', ', $descParts);
+        } else {
+            $description = $request->input('description') ?? 'Professional hospitality placement and specialized training curriculum.';
         }
 
         $insertData = [
