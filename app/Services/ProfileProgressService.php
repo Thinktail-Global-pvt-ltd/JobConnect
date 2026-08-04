@@ -84,60 +84,48 @@ class ProfileProgressService
         $breakdown = [];
         $percentage = 0;
 
-        // 1. Full Name (15%)
+        // 1. Full Name (20%)
         if (self::isFilled($user->full_name)) {
-            $percentage += 15;
-            $breakdown['full_name'] = 15;
+            $percentage += 20;
+            $breakdown['full_name'] = 20;
         } else {
             $breakdown['full_name'] = 0;
         }
 
-        // 2. Profile Photo (15%)
-        if (self::isFilled($user->profile_photo_path)) {
-            $percentage += 15;
-            $breakdown['profile_photo'] = 15;
-        } else {
-            $breakdown['profile_photo'] = 0;
-        }
-
-        // 3. Mobile Number (15%)
+        // 2. Mobile Number (20%)
         if (self::isFilled($user->mobile_number)) {
-            $percentage += 15;
-            $breakdown['mobile_number'] = 15;
+            $percentage += 20;
+            $breakdown['mobile_number'] = 20;
         } else {
             $breakdown['mobile_number'] = 0;
         }
 
-        // 4. City / Location (15%)
-        if (self::isFilled($user->city)) {
-            $percentage += 15;
-            $breakdown['city'] = 15;
+        // 3. City / Location (20%)
+        if (self::isFilled($user->city) || self::isFilled($user->country)) {
+            $percentage += 20;
+            $breakdown['city'] = 20;
         } else {
             $breakdown['city'] = 0;
         }
 
-        // 5. Culinary Experience (15%)
+        // 4. Culinary Experience (20%)
         if (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) {
-            $percentage += 15;
-            $breakdown['experience'] = 15;
+            $percentage += 20;
+            $breakdown['experience'] = 20;
         } else {
             $breakdown['experience'] = 0;
         }
 
-        // 6. Preferred Role (15%)
-        if (self::isFilled($user->preferred_role)) {
-            $percentage += 15;
-            $breakdown['preferred_role'] = 15;
+        // 5. Preferred Role & Chef Profile (20%)
+        $chefProfile = $user->chefProfile ?: ChefProfile::where('user_id', $user->id)->first();
+        $hasRole = self::isFilled($user->preferred_role);
+        $hasChefInfo = $chefProfile && (self::isFilled($chefProfile->cuisine_specialty) || self::isFilled($chefProfile->bio) || self::isFilled($chefProfile->availability_info));
+
+        if ($hasRole || $hasChefInfo) {
+            $percentage += 20;
+            $breakdown['preferred_role'] = 20;
         } else {
             $breakdown['preferred_role'] = 0;
-        }
-
-        // 7. Social Media Links (10%)
-        if (self::hasSocialLinks($user)) {
-            $percentage += 10;
-            $breakdown['social_links'] = 10;
-        } else {
-            $breakdown['social_links'] = 0;
         }
 
         $missing = array_keys(array_filter($breakdown, function($val) {
@@ -314,60 +302,44 @@ class ProfileProgressService
         $breakdown = [];
         $percentage = 0;
 
-        // 1. Name (15%)
+        // 1. Name (20%)
         if (self::isFilled($user->full_name)) {
-            $percentage += 15;
-            $breakdown['full_name'] = 15;
+            $percentage += 20;
+            $breakdown['full_name'] = 20;
         } else {
             $breakdown['full_name'] = 0;
         }
 
-        // 2. Photo (15%)
-        if (self::isFilled($user->profile_photo_path)) {
-            $percentage += 15;
-            $breakdown['profile_photo'] = 15;
-        } else {
-            $breakdown['profile_photo'] = 0;
-        }
-
-        // 3. Mobile (15%)
+        // 2. Mobile (20%)
         if (self::isFilled($user->mobile_number)) {
-            $percentage += 15;
-            $breakdown['mobile_number'] = 15;
+            $percentage += 20;
+            $breakdown['mobile_number'] = 20;
         } else {
             $breakdown['mobile_number'] = 0;
         }
 
-        // 4. City (15%)
-        if (self::isFilled($user->city)) {
-            $percentage += 15;
-            $breakdown['city'] = 15;
+        // 3. City / Location (20%)
+        if (self::isFilled($user->city) || self::isFilled($user->country)) {
+            $percentage += 20;
+            $breakdown['city'] = 20;
         } else {
             $breakdown['city'] = 0;
         }
 
-        // 5. Experience Range (15%)
+        // 4. Experience Range (20%)
         if (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) {
-            $percentage += 15;
-            $breakdown['experience'] = 15;
+            $percentage += 20;
+            $breakdown['experience'] = 20;
         } else {
             $breakdown['experience'] = 0;
         }
 
-        // 6. Preferred Role (15%)
+        // 5. Preferred Role (20%)
         if (self::isFilled($user->preferred_role)) {
-            $percentage += 15;
-            $breakdown['preferred_role'] = 15;
+            $percentage += 20;
+            $breakdown['preferred_role'] = 20;
         } else {
             $breakdown['preferred_role'] = 0;
-        }
-
-        // 7. Social Media Links (10%)
-        if (self::hasSocialLinks($user)) {
-            $percentage += 10;
-            $breakdown['social_links'] = 10;
-        } else {
-            $breakdown['social_links'] = 0;
         }
 
         $missing = array_keys(array_filter($breakdown, function($val) {
