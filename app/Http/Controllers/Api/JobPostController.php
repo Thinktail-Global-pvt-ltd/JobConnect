@@ -598,122 +598,138 @@ class JobPostController extends Controller
      */
     public function saveJobOrTraining(Request $request, $id = null)
     {
-        $user = $request->user();
-        if (!$user) {
-            $token = $request->bearerToken();
-            if ($token) {
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
-                if (!$tokenObj && str_contains($token, '|')) {
-                    $tokenId = explode('|', $token)[0];
-                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
-                }
-                if ($tokenObj) {
-                    $user = $tokenObj->tokenable;
-                }
-            }
-        }
-        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id'))) {
-            $uId = $request->input('user_id') ?: $request->input('applicant_id');
-            $user = \App\Models\User::find($uId);
-        }
-        if (!$user) {
-            $user = \App\Models\User::first();
-        }
-
-        $userId = $user ? $user->id : 0;
-        $targetId = $id ?: ($request->input('job_id') ?: ($request->input('job_post_id') ?: ($request->input('training_id') ?: $request->input('id'))));
-
-        $isTraining = false;
-        $trainingId = null;
-        $jobPostId = null;
-
-        $targetIdStr = (string)$targetId;
-        if (str_starts_with($targetIdStr, 'training_')) {
-            $isTraining = true;
-            $trainingId = (int) str_replace('training_', '', $targetIdStr);
-        } elseif ($request->boolean('is_training') || $request->input('type') === 'training' || $request->filled('training_id')) {
-            $isTraining = true;
-            $trainingId = (int) ($request->input('training_id') ?: $targetId);
-        } else {
-            if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
-                $tObj = \App\Models\TrainingOpportunity::find($targetId);
-                if ($tObj && !\App\Models\JobPost::find($targetId)) {
-                    $isTraining = true;
-                    $trainingId = $tObj->id;
+        try {
+            $user = $request->user();
+            if (!$user) {
+                $token = $request->bearerToken();
+                if ($token) {
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                    if (!$tokenObj && str_contains($token, '|')) {
+                        $tokenId = explode('|', $token)[0];
+                        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                    }
+                    if ($tokenObj) {
+                        $user = $tokenObj->tokenable;
+                    }
                 }
             }
-            if (!$isTraining) {
-                $jobPostId = (int) $targetId;
+            if (!$user && ($request->filled('user_id') || $request->filled('applicant_id'))) {
+                $uId = $request->input('user_id') ?: $request->input('applicant_id');
+                $user = \App\Models\User::find($uId);
             }
-        }
+            if (!$user) {
+                $user = \Illuminate\Support\Facades\Auth::user();
+            }
+            if (!$user) {
+                $user = \App\Models\User::first();
+            }
 
-        // Ensure training_id column exists in saved_jobs schema
-        if (\Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
-            if (!\Illuminate\Support\Facades\Schema::hasColumn('saved_jobs', 'training_id')) {
+            $userId = $user ? $user->id : 0;
+            $targetId = $id ?: ($request->input('job_id') ?: ($request->input('job_post_id') ?: ($request->input('training_id') ?: $request->input('id'))));
+
+            $isTraining = false;
+            $trainingId = null;
+            $jobPostId = null;
+
+            $targetIdStr = (string)$targetId;
+            if (str_starts_with($targetIdStr, 'training_')) {
+                $isTraining = true;
+                $trainingId = (int) str_replace('training_', '', $targetIdStr);
+            } elseif ($request->boolean('is_training') || $request->input('type') === 'training' || $request->filled('training_id')) {
+                $isTraining = true;
+                $trainingId = (int) ($request->input('training_id') ?: $targetId);
+            } else {
+                if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+                    $tObj = \App\Models\TrainingOpportunity::find($targetId);
+                    if ($tObj && !\App\Models\JobPost::find($targetId)) {
+                        $isTraining = true;
+                        $trainingId = $tObj->id;
+                    }
+                }
+                if (!$isTraining) {
+                    $jobPostId = (int) $targetId;
+                }
+            }
+
+            // Ensure schema is updated to allow null job_post_id and training_id column
+            if (\Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
                 try {
-                    \Illuminate\Support\Facades\Schema::table('saved_jobs', function (\Illuminate\Database\Schema\Blueprint $table) {
-                        $table->unsignedBigInteger('training_id')->nullable()->after('job_post_id');
-                    });
+                    \Illuminate\Support\Facades\DB::statement('ALTER TABLE saved_jobs MODIFY job_post_id BIGINT UNSIGNED NULL');
                 } catch (\Throwable $e) {}
+
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('saved_jobs', 'training_id')) {
+                    try {
+                        \Illuminate\Support\Facades\Schema::table('saved_jobs', function (\Illuminate\Database\Schema\Blueprint $table) {
+                            $table->unsignedBigInteger('training_id')->nullable()->after('job_post_id');
+                        });
+                    } catch (\Throwable $e) {}
+                }
             }
-        }
 
-        if ($isTraining) {
-            $existing = \Illuminate\Support\Facades\DB::table('saved_jobs')
-                ->where('user_id', $userId)
-                ->where('training_id', $trainingId)
-                ->first();
+            if ($isTraining) {
+                $existing = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                    ->where('user_id', $userId)
+                    ->where('training_id', $trainingId)
+                    ->first();
 
-            if ($existing) {
-                \Illuminate\Support\Facades\DB::table('saved_jobs')->where('id', $existing->id)->delete();
-                return response()->json([
-                    'success'     => true,
-                    'saved'       => false,
-                    'is_training' => true,
-                    'message'     => 'Training opportunity removed from saved list.',
-                ]);
+                if ($existing) {
+                    \Illuminate\Support\Facades\DB::table('saved_jobs')->where('id', $existing->id)->delete();
+                    return response()->json([
+                        'success'     => true,
+                        'saved'       => false,
+                        'is_training' => true,
+                        'message'     => 'Training opportunity removed from saved list.',
+                    ]);
+                } else {
+                    \Illuminate\Support\Facades\DB::table('saved_jobs')->insert([
+                        'user_id'     => $userId,
+                        'job_post_id' => null,
+                        'training_id' => $trainingId,
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ]);
+                    return response()->json([
+                        'success'     => true,
+                        'saved'       => true,
+                        'is_training' => true,
+                        'message'     => 'Training opportunity saved to your favorites!',
+                    ]);
+                }
             } else {
-                \Illuminate\Support\Facades\DB::table('saved_jobs')->insert([
-                    'user_id'     => $userId,
-                    'training_id' => $trainingId,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
-                ]);
-                return response()->json([
-                    'success'     => true,
-                    'saved'       => true,
-                    'is_training' => true,
-                    'message'     => 'Training opportunity saved to your favorites!',
-                ]);
-            }
-        } else {
-            $existing = \Illuminate\Support\Facades\DB::table('saved_jobs')
-                ->where('user_id', $userId)
-                ->where('job_post_id', $jobPostId)
-                ->first();
+                $existing = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                    ->where('user_id', $userId)
+                    ->where('job_post_id', $jobPostId)
+                    ->first();
 
-            if ($existing) {
-                \Illuminate\Support\Facades\DB::table('saved_jobs')->where('id', $existing->id)->delete();
-                return response()->json([
-                    'success'     => true,
-                    'saved'       => false,
-                    'is_training' => false,
-                    'message'     => 'Job removed from saved list.',
-                ]);
-            } else {
-                \Illuminate\Support\Facades\DB::table('saved_jobs')->insert([
-                    'user_id'     => $userId,
-                    'job_post_id' => $jobPostId,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
-                ]);
-                return response()->json([
-                    'success'     => true,
-                    'saved'       => true,
-                    'is_training' => false,
-                    'message'     => 'Job saved to your favorites!',
-                ]);
+                if ($existing) {
+                    \Illuminate\Support\Facades\DB::table('saved_jobs')->where('id', $existing->id)->delete();
+                    return response()->json([
+                        'success'     => true,
+                        'saved'       => false,
+                        'is_training' => false,
+                        'message'     => 'Job removed from saved list.',
+                    ]);
+                } else {
+                    \Illuminate\Support\Facades\DB::table('saved_jobs')->insert([
+                        'user_id'     => $userId,
+                        'job_post_id' => $jobPostId,
+                        'training_id' => null,
+                        'created_at'  => now(),
+                        'updated_at'  => now(),
+                    ]);
+                    return response()->json([
+                        'success'     => true,
+                        'saved'       => true,
+                        'is_training' => false,
+                        'message'     => 'Job saved to your favorites!',
+                    ]);
+                }
             }
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Save failed: ' . $e->getMessage()
+            ], 500);
         }
     }
 
