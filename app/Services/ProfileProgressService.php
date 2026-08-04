@@ -100,18 +100,18 @@ class ProfileProgressService
             $breakdown['profile_photo'] = 0;
         }
 
-        // 3. Mobile Number (10%)
+        // 3. Mobile Number (15%)
         if (self::isFilled($user->mobile_number)) {
-            $percentage += 10;
-            $breakdown['mobile_number'] = 10;
+            $percentage += 15;
+            $breakdown['mobile_number'] = 15;
         } else {
             $breakdown['mobile_number'] = 0;
         }
 
-        // 4. City / Location (10%)
+        // 4. City / Location (15%)
         if (self::isFilled($user->city)) {
-            $percentage += 10;
-            $breakdown['city'] = 10;
+            $percentage += 15;
+            $breakdown['city'] = 15;
         } else {
             $breakdown['city'] = 0;
         }
@@ -132,19 +132,7 @@ class ProfileProgressService
             $breakdown['preferred_role'] = 0;
         }
 
-        // 7. Skills / Cuisine Specialty (10%)
-        $chefProfile = ChefProfile::where('user_id', $user->id)->first();
-        $hasSkills = self::isFilled($user->skills);
-        $hasSpecialty = $chefProfile && (self::isFilled($chefProfile->cuisine_specialty) || self::isFilled($chefProfile->bio));
-
-        if ($hasSkills || $hasSpecialty) {
-            $percentage += 10;
-            $breakdown['skills_and_specialty'] = 10;
-        } else {
-            $breakdown['skills_and_specialty'] = 0;
-        }
-
-        // 8. Social Media Links (10%)
+        // 7. Social Media Links (10%)
         if (self::hasSocialLinks($user)) {
             $percentage += 10;
             $breakdown['social_links'] = 10;
@@ -342,10 +330,10 @@ class ProfileProgressService
             $breakdown['profile_photo'] = 0;
         }
 
-        // 3. Mobile (10%)
+        // 3. Mobile (15%)
         if (self::isFilled($user->mobile_number)) {
-            $percentage += 10;
-            $breakdown['mobile_number'] = 10;
+            $percentage += 15;
+            $breakdown['mobile_number'] = 15;
         } else {
             $breakdown['mobile_number'] = 0;
         }
@@ -366,23 +354,15 @@ class ProfileProgressService
             $breakdown['experience'] = 0;
         }
 
-        // 6. Preferred Role (10%)
+        // 6. Preferred Role (15%)
         if (self::isFilled($user->preferred_role)) {
-            $percentage += 10;
-            $breakdown['preferred_role'] = 10;
+            $percentage += 15;
+            $breakdown['preferred_role'] = 15;
         } else {
             $breakdown['preferred_role'] = 0;
         }
 
-        // 7. Skills (10%)
-        if (self::isFilled($user->skills)) {
-            $percentage += 10;
-            $breakdown['skills'] = 10;
-        } else {
-            $breakdown['skills'] = 0;
-        }
-
-        // 8. Social Media Links (10%)
+        // 7. Social Media Links (10%)
         if (self::hasSocialLinks($user)) {
             $percentage += 10;
             $breakdown['social_links'] = 10;
