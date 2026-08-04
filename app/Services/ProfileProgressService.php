@@ -84,48 +84,55 @@ class ProfileProgressService
         $breakdown = [];
         $percentage = 0;
 
-        // 1. Full Name (20%)
+        // 1. Full Name (15%)
         if (self::isFilled($user->full_name)) {
-            $percentage += 20;
-            $breakdown['full_name'] = 20;
+            $percentage += 15;
+            $breakdown['full_name'] = 15;
         } else {
             $breakdown['full_name'] = 0;
         }
 
-        // 2. Mobile Number (20%)
+        // 2. Mobile Number (15%)
         if (self::isFilled($user->mobile_number)) {
-            $percentage += 20;
-            $breakdown['mobile_number'] = 20;
+            $percentage += 15;
+            $breakdown['mobile_number'] = 15;
         } else {
             $breakdown['mobile_number'] = 0;
         }
 
-        // 3. City / Location (20%)
+        // 3. City / Location (15%)
         if (self::isFilled($user->city) || self::isFilled($user->country)) {
-            $percentage += 20;
-            $breakdown['city'] = 20;
+            $percentage += 15;
+            $breakdown['city'] = 15;
         } else {
             $breakdown['city'] = 0;
         }
 
-        // 4. Culinary Experience (20%)
+        // 4. Culinary Experience (15%)
         if (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) {
-            $percentage += 20;
-            $breakdown['experience'] = 20;
+            $percentage += 15;
+            $breakdown['experience'] = 15;
         } else {
             $breakdown['experience'] = 0;
         }
 
-        // 5. Preferred Role & Chef Profile (20%)
-        $chefProfile = $user->chefProfile ?: ChefProfile::where('user_id', $user->id)->first();
-        $hasRole = self::isFilled($user->preferred_role);
-        $hasChefInfo = $chefProfile && (self::isFilled($chefProfile->cuisine_specialty) || self::isFilled($chefProfile->bio) || self::isFilled($chefProfile->availability_info));
-
-        if ($hasRole || $hasChefInfo) {
+        // 5. Preferred Role (20%)
+        if (self::isFilled($user->preferred_role)) {
             $percentage += 20;
             $breakdown['preferred_role'] = 20;
         } else {
             $breakdown['preferred_role'] = 0;
+        }
+
+        // 6. Operational Experties & Chef Details (20%)
+        $chefProfile = $user->chefProfile ?: ChefProfile::where('user_id', $user->id)->first();
+        $hasOpsExperties = $chefProfile && (self::isFilled($chefProfile->operational_experties) || self::isFilled($chefProfile->cuisine_specialty) || self::isFilled($chefProfile->bio) || self::isFilled($chefProfile->availability_info));
+
+        if ($hasOpsExperties) {
+            $percentage += 20;
+            $breakdown['operational_experties'] = 20;
+        } else {
+            $breakdown['operational_experties'] = 0;
         }
 
         $missing = array_keys(array_filter($breakdown, function($val) {

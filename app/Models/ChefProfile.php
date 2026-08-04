@@ -9,6 +9,7 @@ class ChefProfile extends Model
     protected $fillable = [
         'user_id',
         'cuisine_specialty',
+        'operational_experties',
         'bio',
         'calendly_link',
         'availability_info',

@@ -99,6 +99,14 @@ class ChefOnboardingController extends Controller
             ?: ($request->input('specialties') 
             ?: ($request->input('cuisine') ?: 'Multi-Cuisine')));
 
+        $opsExperties = $request->input('operational_experties')
+            ?: ($request->input('operational_expertise')
+            ?: ($request->input('operational_experience') ?: null));
+
+        if (is_array($opsExperties)) {
+            $opsExperties = implode(', ', $opsExperties);
+        }
+
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'preferred_role' => 'required|string|max:255',
@@ -109,6 +117,8 @@ class ChefOnboardingController extends Controller
             'specialty' => 'nullable|string|max:255',
             'specialties' => 'nullable|string|max:255',
             'cuisine' => 'nullable|string|max:255',
+            'operational_experties' => 'nullable',
+            'operational_expertise' => 'nullable',
             'bio' => 'nullable|string',
             'calendly_link' => 'nullable|url|max:255',
             'profile_photo' => 'nullable',
@@ -128,7 +138,7 @@ class ChefOnboardingController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($user, $request, $cuisineSpecialty) {
+            DB::transaction(function () use ($user, $request, $cuisineSpecialty, $opsExperties) {
                 // 1. Process profile photo upload if provided
                 if ($request->hasFile('profile_photo') && $request->file('profile_photo') && $request->file('profile_photo')->isValid()) {
                     $path = $request->file('profile_photo')->store('profile_photos', 'public');
@@ -177,10 +187,11 @@ class ChefOnboardingController extends Controller
                 // Existing profiles → keep their current approval_status (don't reset approved chefs)
                 $existingProfile = ChefProfile::where('user_id', $user->id)->first();
                 $updateData = [
-                    'cuisine_specialty' => $cuisineSpecialty,
-                    'bio'               => $request->bio,
-                    'calendly_link'     => $request->calendly_link,
-                    'availability_info' => json_encode($availabilityDetails),
+                    'cuisine_specialty'     => $cuisineSpecialty,
+                    'operational_experties' => $opsExperties,
+                    'bio'                   => $request->bio,
+                    'calendly_link'         => $request->calendly_link,
+                    'availability_info'     => json_encode($availabilityDetails),
                 ];
                 if (!$existingProfile) {
                     // Brand new chef — start as pending, admin must approve
