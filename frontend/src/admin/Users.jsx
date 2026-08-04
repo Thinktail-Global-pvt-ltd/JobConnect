@@ -124,19 +124,12 @@ export default function Users() {
 
   return (
     <div className="space-y-6 text-left">
-      {/* Title & Floating Right Button */}
+      {/* Title & Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Talent / Jobseeker Management</h2>
           <p className="text-xs font-semibold text-slate-400 mt-1">Oversee job seekers, candidates, manage access levels, and track registration trends.</p>
         </div>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-5 py-2.5 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-2 cursor-pointer"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span>Add New Talent</span>
-        </button>
       </div>
 
       {/* Filter tabs and search input row */}
