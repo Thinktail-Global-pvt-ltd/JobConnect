@@ -448,17 +448,18 @@ export default function Training() {
                 />
               </div>
 
-              {/* Field 2 & 3: Curriculum/Provider & Deployment Country */}
+              {/* Field 2 & 3: Initial Status & Deployment Country */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Curriculum / Provider</label>
-                  <textarea 
-                    rows={2}
-                    placeholder="e.g. Michelin Prep Institute Curriculum & Specialized Culinary Certifications"
-                    value={formData.curriculum}
-                    onChange={(e) => setFormData(prev => ({ ...prev, curriculum: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Initial Status</label>
+                  <select 
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="Published">Publish Immediately</option>
+                    <option value="Draft">Save as Draft</option>
+                  </select>
                 </div>
 
                 <div>
@@ -535,17 +536,16 @@ export default function Training() {
                 />
               </div>
 
-              {/* Field 9: Initial Status */}
+              {/* Field 9: Curriculum / Provider (Full Width & Larger Height Box) */}
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Initial Status</label>
-                <select 
-                  value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
-                >
-                  <option value="Published">Publish Immediately</option>
-                  <option value="Draft">Save as Draft</option>
-                </select>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Curriculum / Provider</label>
+                <textarea 
+                  rows={4}
+                  placeholder="e.g. Michelin Prep Institute Curriculum & Specialized Culinary Certifications, Advanced Pastry Modules & Food Safety Standard Certifications"
+                  value={formData.curriculum}
+                  onChange={(e) => setFormData(prev => ({ ...prev, curriculum: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] min-h-[100px]"
+                />
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
