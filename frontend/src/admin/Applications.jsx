@@ -216,16 +216,20 @@ export default function Applications() {
     }
   };
 
-  // Group applications by job_post_id
+  // Group applications by job_post_id or training_id
   const groupedJobsMap = apps.reduce((acc, app) => {
-    const jobId = app.job_post_id || app.job_post?.id || 'unknown';
+    const isTraining = app.is_training || app.type === 'training' || app.application_type === 'training' || app.job_post?.is_training || app.job_post?.category === 'training';
+    const jobId = app.job_post_id || app.job_post?.id || (isTraining ? `training_${app.training_id || app.id}` : 'unknown');
     if (!acc[jobId]) {
       acc[jobId] = {
         id: jobId,
-        title: app.job_post?.title || `Job Listing #${jobId}`,
-        company: app.job_post?.company || 'Employer',
+        real_id: app.training_id || app.job_post?.real_id || app.job_post_id,
+        title: app.job_post?.title || (isTraining ? `Training Program #${app.training_id || app.id}` : `Job Listing #${jobId}`),
+        company: app.job_post?.company || (isTraining ? 'Jobrito Academy' : 'Employer'),
         location: app.job_post?.location || 'India',
-        category: app.job_post?.category || 'india',
+        category: app.job_post?.category || (isTraining ? 'training' : 'india'),
+        is_training: isTraining,
+        type_label: isTraining ? 'Training Opportunity' : 'Job Listing',
         applications: [],
         latestDate: app.created_at,
       };
@@ -236,14 +240,17 @@ export default function Applications() {
 
   const groupedJobsList = Object.values(groupedJobsMap);
 
-  // Filter Jobs Grouped list by search query
+  // Filter Jobs Grouped list by search query & appCategory
   const filteredJobsList = groupedJobsList.filter(j => {
     const q = search.toLowerCase();
-    return (
+    const matchSearch =
       j.title.toLowerCase().includes(q) ||
       j.company.toLowerCase().includes(q) ||
-      j.location.toLowerCase().includes(q)
-    );
+      j.location.toLowerCase().includes(q);
+
+    if (appCategory === 'job') return !j.is_training && matchSearch;
+    if (appCategory === 'training') return j.is_training && matchSearch;
+    return matchSearch;
   });
 
   // Filter applications for specific selected job or flat view
@@ -251,13 +258,19 @@ export default function Applications() {
     let source = apps;
 
     if (appCategory === 'job') {
-      source = source.filter(a => !a.is_training && a.application_type !== 'training');
+      source = source.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training);
     } else if (appCategory === 'training') {
-      source = source.filter(a => a.is_training || a.application_type === 'training');
+      source = source.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training);
     }
 
     if (selectedJob) {
-      source = source.filter(a => (a.job_post_id === selectedJob.id || a.job_post?.id === selectedJob.id));
+      source = source.filter(a => {
+        const jobId = a.job_post_id || a.job_post?.id || (a.is_training ? `training_${a.training_id || a.id}` : 'unknown');
+        return String(jobId) === String(selectedJob.id) || 
+               String(a.job_post_id) === String(selectedJob.id) || 
+               String(a.training_id) === String(selectedJob.real_id || selectedJob.id) ||
+               String(a.job_post?.real_id) === String(selectedJob.real_id || selectedJob.id);
+      });
     }
 
     return source.filter(a => {
@@ -303,15 +316,26 @@ export default function Applications() {
                 className="p-2 rounded-xl bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1 text-xs font-bold shadow-xs cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4 text-[#059669]" />
-                <span>All Jobs</span>
+                <span>All Listings</span>
               </button>
               <div>
-                <h2 className="font-outfit font-extrabold text-2xl text-slate-800 flex items-center gap-2">
-                  <span>{selectedJob.title}</span>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-outfit font-extrabold text-2xl text-slate-800">
+                    {selectedJob.title}
+                  </h2>
+                  {selectedJob.is_training ? (
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-300">
+                      🎓 TRAINING OPPORTUNITY
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 border border-blue-300">
+                      💼 JOB LISTING
+                    </span>
+                  )}
                   <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                     {selectedJob.applications.length} Applicants
                   </span>
-                </h2>
+                </div>
                 <p className="text-xs font-semibold text-slate-400 mt-1">
                   {selectedJob.company} • {selectedJob.location}
                 </p>
@@ -319,8 +343,8 @@ export default function Applications() {
             </div>
           ) : (
             <div>
-              <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Job Applications Directory</h2>
-              <p className="text-xs font-semibold text-slate-400 mt-0.5">Select a job post to view applicants and review candidate profiles.</p>
+              <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Job & Training Applications Directory</h2>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">Select a job post or training opportunity to view applicants and review candidate profiles.</p>
             </div>
           )}
         </div>
@@ -330,7 +354,7 @@ export default function Applications() {
           <div className="relative w-full md:w-64">
             <input 
               type="text" 
-              placeholder={selectedJob ? "Search applicants..." : "Search jobs or companies..."} 
+              placeholder={selectedJob ? "Search applicants..." : "Search jobs, training or companies..."} 
               value={search} 
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#059669] transition-all" 
@@ -349,7 +373,7 @@ export default function Applications() {
         </div>
         {/* Card 2 */}
         <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[95px] text-left">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Jobs with Applicants</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Listings with Applicants</span>
           <span className="font-outfit font-black text-3xl text-emerald-400 block mt-2">
             {groupedJobsList.length}
           </span>
@@ -368,14 +392,14 @@ export default function Applications() {
         
         {/* Top View Toggle Tabs */}
         {!selectedJob && (
-          <div className="flex items-center justify-between border-b border-[#1E293B] px-6 pt-4 bg-[#0F172A]/40">
+          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#1E293B] px-6 pt-4 bg-[#0F172A]/40 gap-4">
             <div className="flex items-center gap-6">
               <button 
                 onClick={() => setViewMode('jobs')} 
                 className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'jobs' ? 'text-emerald-400 border-b-2 border-[#059669]' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 <Briefcase className="w-4 h-4" />
-                <span>Grouped by Jobs ({groupedJobsList.length})</span>
+                <span>Grouped by Listings ({groupedJobsList.length})</span>
               </button>
 
               <button 
@@ -399,13 +423,13 @@ export default function Applications() {
                 onClick={() => setAppCategory('job')} 
                 className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'job' ? 'bg-blue-600 text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
               >
-                💼 Jobs ({apps.filter(a => !a.is_training && a.application_type !== 'training').length})
+                💼 Jobs ({apps.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training).length})
               </button>
               <button 
                 onClick={() => setAppCategory('training')} 
                 className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'training' ? 'bg-purple-600 text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
               >
-                🎓 Training ({apps.filter(a => a.is_training || a.application_type === 'training').length})
+                🎓 Training ({apps.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training).length})
               </button>
             </div>
           </div>
@@ -417,6 +441,15 @@ export default function Applications() {
             <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
               <span className="text-slate-400">Applications for:</span>
               <span className="text-white font-black">{selectedJob.title}</span>
+              {selectedJob.is_training ? (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">
+                  🎓 TRAINING
+                </span>
+              ) : (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+                  💼 JOB
+                </span>
+              )}
             </div>
 
             {/* Status Filter Tabs for Job */}
@@ -440,17 +473,18 @@ export default function Applications() {
         {!selectedJob && viewMode === 'jobs' && (
           <div>
             {loading ? (
-              <p className="text-center text-slate-400 text-xs font-medium py-16">Loading jobs and applications...</p>
+              <p className="text-center text-slate-400 text-xs font-medium py-16">Loading listings and applications...</p>
             ) : filteredJobsList.length === 0 ? (
-              <p className="text-center text-slate-400 text-sm font-medium py-16">No jobs matching your search.</p>
+              <p className="text-center text-slate-400 text-sm font-medium py-16">No listings matching your search or category filter.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 px-6">Job Listing & Business</th>
+                      <th className="py-4 px-6">Program / Job Listing & Provider</th>
+                      <th className="py-4 px-6">Type Badge</th>
                       <th className="py-4 px-6">Location</th>
-                      <th className="py-4 px-6 text-center">Number of Applicants</th>
+                      <th className="py-4 px-6 text-center">Applicants</th>
                       <th className="py-4 px-6">Status Breakdown</th>
                       <th className="py-4 px-6 text-center">Action</th>
                     </tr>
@@ -470,8 +504,10 @@ export default function Applications() {
                           {/* Job Title & Company */}
                           <td className="py-4.5 px-6">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center font-bold text-sm shrink-0">
-                                💼
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
+                                job.is_training ? 'bg-purple-950 text-purple-400 border-purple-800' : 'bg-blue-950 text-blue-400 border-blue-800'
+                              }`}>
+                                {job.is_training ? '🎓' : '💼'}
                               </div>
                               <div>
                                 <span className="font-extrabold text-white text-[14px] group-hover:text-emerald-400 transition-colors block">
@@ -482,6 +518,19 @@ export default function Applications() {
                                 </span>
                               </div>
                             </div>
+                          </td>
+
+                          {/* Type Badge */}
+                          <td className="py-4.5 px-6">
+                            {job.is_training ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-md bg-purple-950 text-purple-400 border border-purple-800/80 shadow-xs">
+                                🎓 TRAINING OPPORTUNITY
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-md bg-blue-950 text-blue-400 border border-blue-800/80 shadow-xs">
+                                💼 JOB LISTING
+                              </span>
+                            )}
                           </td>
 
                           {/* Location */}
@@ -547,7 +596,7 @@ export default function Applications() {
             {loading ? (
               <p className="text-center text-slate-400 text-xs font-medium py-16">Loading applications...</p>
             ) : currentDisplayApps.length === 0 ? (
-              <p className="text-center text-slate-400 text-sm font-medium py-16">No candidate applications found.</p>
+              <p className="text-center text-slate-400 text-sm font-medium py-16">No candidate applications found for this listing.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
@@ -555,7 +604,7 @@ export default function Applications() {
                     <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
                       <th className="py-4 px-6">Applicant Candidate</th>
                       <th className="py-4 px-6 text-center">Match %</th>
-                      {!selectedJob && <th className="py-4 px-6">Applied Job Listing</th>}
+                      {!selectedJob && <th className="py-4 px-6">Applied Post & Type</th>}
                       <th className="py-4 px-6">Contact / Mobile</th>
                       <th className="py-4 px-6">Date Submitted</th>
                       <th className="py-4 px-6">Status</th>
@@ -565,6 +614,8 @@ export default function Applications() {
                   <tbody className="divide-y divide-[#1E293B]/60 text-slate-200 text-xs font-semibold">
                     {currentDisplayApps.map(a => {
                       const match = calculateMatchPercentage(a);
+                      const isTrainingApp = a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training;
+
                       return (
                         <tr key={a.id} className="hover:bg-[#1E293B]/50 transition-colors">
                           
@@ -576,7 +627,7 @@ export default function Applications() {
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <span className="font-extrabold text-white text-[13px] block leading-tight">{a.applicant?.full_name}</span>
-                                {(a.is_training || a.application_type === 'training') && (
+                                {isTrainingApp && (
                                   <span className="bg-purple-950 text-purple-300 border border-purple-800 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
                                     🎓 Training
                                   </span>
@@ -599,13 +650,24 @@ export default function Applications() {
                             </span>
                           </td>
 
-                        {/* Job post detail (If in Flat List mode) */}
-                        {!selectedJob && (
-                          <td className="py-4.5 px-6">
-                            <span className="font-extrabold text-white block text-[13px]">{a.job_post?.title}</span>
-                            <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">{a.job_post?.company}</span>
-                          </td>
-                        )}
+                          {/* Job/Training post detail (If in Flat List mode) */}
+                          {!selectedJob && (
+                            <td className="py-4.5 px-6">
+                              <div className="flex items-center gap-2">
+                                {isTrainingApp ? (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-800 shrink-0">
+                                    🎓 TRAINING
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800 shrink-0">
+                                    💼 JOB
+                                  </span>
+                                )}
+                                <span className="font-extrabold text-white block text-[13px]">{a.job_post?.title}</span>
+                              </div>
+                              <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">{a.job_post?.company}</span>
+                            </td>
+                          )}
 
                         {/* Contact info */}
                         <td className="py-4.5 px-6 text-slate-300 font-bold">

@@ -189,18 +189,17 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
     Route::delete('/community-posts/{id}', [AdminPostController::class, 'destroy']);
     Route::post('/community-posts/{id}/publish', [AdminPostController::class, 'publish']);
 
-    // Admin Job Applications List Route
+    // Admin Job & Training Applications List Route
     Route::get('/applications', function(\Illuminate\Http\Request $request) {
         try {
-            $query = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost']);
-
+            // 1. Fetch Job Applications
+            $jobQuery = \App\Models\JobApplication::with(['applicant.chefProfile', 'jobPost']);
             if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
-                $query->where('status', $request->status);
+                $jobQuery->where('status', $request->status);
             }
+            $jobApps = $jobQuery->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
 
-            $apps = $query->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
-
-            $mapped = $apps->map(function($app) {
+            $jobMapped = $jobApps->map(function($app) {
                 $applicant = $app->applicant;
                 $job = $app->jobPost;
 
@@ -214,11 +213,16 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
                 $company = $job ? ($job->company ?: 'Employer') : 'Employer';
 
                 return [
-                    'id' => $app->id,
+                    'id' => 'job_app_' . $app->id,
+                    'real_id' => $app->id,
                     'applicant_id' => $app->applicant_id,
                     'job_post_id' => $app->job_post_id,
+                    'training_id' => null,
                     'employer_id' => $app->employer_id,
                     'status' => $app->status ?: 'new',
+                    'is_training' => false,
+                    'type' => 'job',
+                    'type_label' => 'Job Listing',
                     'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
                     'applicant' => [
                         'id' => $applicant ? $applicant->id : $app->applicant_id,
@@ -235,18 +239,91 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
                     ],
                     'job_post' => [
                         'id' => $job ? $job->id : $app->job_post_id,
+                        'real_id' => $job ? $job->id : $app->job_post_id,
                         'title' => $jobTitle,
                         'company' => $company,
                         'location' => $job ? ($job->location ?: 'India') : 'India',
                         'category' => $job ? ($job->category ?: 'dubai') : 'dubai',
+                        'is_training' => false,
+                        'type_label' => 'Job Listing',
                     ]
                 ];
             });
 
+            // 2. Fetch Training Applications (if training_applications table exists)
+            $trainingMapped = collect();
+            if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+                $trainingQuery = \App\Models\TrainingApplication::with(['applicant.chefProfile', 'trainingOpportunity']);
+                if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
+                    $trainingQuery->where('status', $request->status);
+                }
+                $trainingApps = $trainingQuery->orderBy('created_at', 'desc')->orderBy('id', 'desc')->get();
+
+                $trainingMapped = $trainingApps->map(function($app) {
+                    $applicant = $app->applicant;
+                    $training = $app->trainingOpportunity;
+                    if (!$training && $app->training_id) {
+                        $training = \App\Models\TrainingOpportunity::find($app->training_id);
+                    }
+
+                    $fullName = $applicant ? ($applicant->full_name ?: ('Candidate #' . $applicant->id)) : ('Candidate #' . $app->applicant_id);
+                    $email = $applicant ? ($applicant->email ?: '') : '';
+                    $mobile = $applicant ? ($applicant->mobile_number ?: '') : '';
+                    $city = $applicant ? ($applicant->city ?: 'N/A') : 'N/A';
+                    $experience = $applicant ? ($applicant->experience_range ?: 'N/A') : 'N/A';
+
+                    $programTitle = $training ? ($training->program_name ?: ('Training Opportunity #' . $app->training_id)) : ('Training Opportunity #' . ($app->training_id ?: $app->id));
+                    $provider = $training ? ($training->provider_name ?: 'Jobrito Academy') : 'Jobrito Academy';
+                    $trainingIdVal = $training ? $training->id : ($app->training_id ?: $app->id);
+
+                    return [
+                        'id' => 'training_app_' . $app->id,
+                        'real_id' => $app->id,
+                        'applicant_id' => $app->applicant_id,
+                        'job_post_id' => 'training_' . $trainingIdVal,
+                        'training_id' => $trainingIdVal,
+                        'employer_id' => $app->employer_id ?: 17,
+                        'status' => $app->status ?: 'new',
+                        'is_training' => true,
+                        'type' => 'training',
+                        'type_label' => 'Training Opportunity',
+                        'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
+                        'applicant' => [
+                            'id' => $applicant ? $applicant->id : $app->applicant_id,
+                            'full_name' => $fullName,
+                            'name' => $fullName,
+                            'email' => $email,
+                            'mobile_number' => $mobile,
+                            'city' => $city,
+                            'experience_range' => $experience,
+                            'preferred_role' => $applicant ? ($applicant->preferred_role ?: '') : '',
+                            'current_employer' => $applicant ? ($applicant->current_employer ?: '') : '',
+                            'skills' => ($applicant && is_array($applicant->skills)) ? $applicant->skills : ($applicant && is_string($applicant->skills) ? (json_decode($applicant->skills, true) ?: []) : []),
+                            'profile_photo_path' => $applicant ? $applicant->profile_photo_path : null,
+                        ],
+                        'job_post' => [
+                            'id' => 'training_' . $trainingIdVal,
+                            'real_id' => $trainingIdVal,
+                            'title' => $programTitle,
+                            'company' => $provider,
+                            'location' => $training ? ($training->location ?: 'India') : 'India',
+                            'category' => 'training',
+                            'is_training' => true,
+                            'type_label' => 'Training Opportunity',
+                        ]
+                    ];
+                });
+            }
+
+            // 3. Merge and Sort chronologically
+            $merged = $jobMapped->concat($trainingMapped)->sort(function($a, $b) {
+                return strcmp((string)($b['created_at'] ?? ''), (string)($a['created_at'] ?? ''));
+            })->values();
+
             return response()->json([
                 'success' => true,
-                'total' => $mapped->count(),
-                'applications' => $mapped
+                'total' => $merged->count(),
+                'applications' => $merged
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Admin applications list error: ' . $e->getMessage());
