@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Info } from 'lucide-react';
+import { ShieldCheck, Info, Key, Lock } from 'lucide-react';
+import { mockApi } from '../services/api';
 
 export default function Settings() {
   const [platformName, setPlatformName] = useState('JobRito');
@@ -13,8 +14,43 @@ export default function Settings() {
   const [training, setTraining] = useState(true);
   const [chefConnect, setChefConnect] = useState(false);
 
+  // Admin Change Password State
+  const [pwdData, setPwdData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [submittingPwd, setSubmittingPwd] = useState(false);
+  const [pwdStatus, setPwdStatus] = useState({ type: '', msg: '' });
+
   const handleSave = () => {
     alert("Platform configuration saved successfully!");
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (!pwdData.currentPassword || !pwdData.newPassword || !pwdData.confirmPassword) {
+      setPwdStatus({ type: 'error', msg: 'Please fill in all password fields.' });
+      return;
+    }
+    if (pwdData.newPassword !== pwdData.confirmPassword) {
+      setPwdStatus({ type: 'error', msg: 'New password and confirm password do not match.' });
+      return;
+    }
+
+    setSubmittingPwd(true);
+    setPwdStatus({ type: '', msg: '' });
+
+    try {
+      const res = await mockApi.changeAdminPassword(pwdData.currentPassword, pwdData.newPassword, pwdData.confirmPassword);
+      if (res && res.success) {
+        setPwdStatus({ type: 'success', msg: res.message || 'Admin password updated successfully!' });
+        setPwdData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPwdStatus({ type: 'error', msg: res?.message || 'Failed to update admin password.' });
+      }
+    } catch (err) {
+      console.error('Password change error:', err);
+      setPwdStatus({ type: 'error', msg: 'An error occurred while updating the password.' });
+    } finally {
+      setSubmittingPwd(false);
+    }
   };
 
   return (
@@ -24,7 +60,7 @@ export default function Settings() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Platform Settings</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Configure the core identity and global feature toggles for the JobRito ecosystem.</p>
+          <p className="text-xs font-semibold text-slate-400 mt-0.5">Configure the core identity, admin security, and global feature toggles for the JobRito ecosystem.</p>
         </div>
 
         <button onClick={handleSave} className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all flex items-center gap-1.5 self-stretch md:self-auto justify-center">
@@ -74,9 +110,75 @@ export default function Settings() {
             {/* Community description */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Community Description</label>
-              <textarea value={description} rows={5} onChange={(e) => setDescription(e.target.value)}
+              <textarea value={description} rows={4} onChange={(e) => setDescription(e.target.value)}
                         className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#059669] focus:bg-white transition-all leading-relaxed" />
             </div>
+          </div>
+
+          {/* Admin Change Password Card */}
+          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-50 pb-3">
+              <span>🔑</span> Change Admin Password
+            </h3>
+
+            {pwdStatus.msg && (
+              <div className={`p-3 rounded-xl text-xs font-bold ${
+                pwdStatus.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}>
+                {pwdStatus.msg}
+              </div>
+            )}
+
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Current Admin Password *</label>
+                <input 
+                  type="password"
+                  required
+                  placeholder="Enter current password (default: 123456)"
+                  value={pwdData.currentPassword}
+                  onChange={(e) => setPwdData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#059669] focus:bg-white transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">New Admin Password *</label>
+                  <input 
+                    type="password"
+                    required
+                    placeholder="Enter new password"
+                    value={pwdData.newPassword}
+                    onChange={(e) => setPwdData(prev => ({ ...prev, newPassword: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#059669] focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Confirm New Password *</label>
+                  <input 
+                    type="password"
+                    required
+                    placeholder="Re-enter new password"
+                    value={pwdData.confirmPassword}
+                    onChange={(e) => setPwdData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-lg px-4 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#059669] focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={submittingPwd}
+                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Key className="w-3.5 h-3.5" />
+                  {submittingPwd ? 'Updating Password...' : 'Update Admin Password'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 

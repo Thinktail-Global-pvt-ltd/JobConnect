@@ -111,6 +111,19 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
 // ==========================================
 // Admin Panel Authentication & Protected Routes Group
 // ==========================================
+if (!function_exists('getAdminPassword')) {
+    function getAdminPassword() {
+        $path = storage_path('app/admin_credentials.json');
+        if (file_exists($path)) {
+            $data = json_decode(file_get_contents($path), true);
+            if (!empty($data['password'])) {
+                return $data['password'];
+            }
+        }
+        return '123456';
+    }
+}
+
 Route::get('/admin/login', function () {
     if (session('admin_authenticated')) {
         return redirect('/admin/dashboard');
@@ -122,11 +135,50 @@ Route::post('/admin/login', function (\Illuminate\Http\Request $request) {
     $id = trim($request->input('admin_id'));
     $password = trim($request->input('password'));
 
-    if ($id === 'jobconnect_admin' && $password === '123456') {
+    $validPassword = getAdminPassword();
+
+    if ($id === 'jobconnect_admin' && $password === $validPassword) {
         session(['admin_authenticated' => true, 'admin_user_id' => 'jobconnect_admin']);
         return redirect('/admin/dashboard');
     }
     return back()->withErrors(['error' => 'Invalid Admin ID or Password.']);
+});
+
+Route::post('/admin/change-password', function (\Illuminate\Http\Request $request) {
+    try {
+        $currentPassword = trim($request->input('current_password'));
+        $newPassword = trim($request->input('new_password'));
+        $confirmPassword = trim($request->input('confirm_password'));
+
+        if (empty($newPassword)) {
+            return response()->json(['success' => false, 'message' => 'New password cannot be empty.'], 400);
+        }
+        if ($newPassword !== $confirmPassword) {
+            return response()->json(['success' => false, 'message' => 'New password and confirm password do not match.'], 400);
+        }
+
+        $storedPassword = getAdminPassword();
+        if ($currentPassword !== $storedPassword) {
+            return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 400);
+        }
+
+        $path = storage_path('app/admin_credentials.json');
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+        file_put_contents($path, json_encode([
+            'admin_id' => 'jobconnect_admin',
+            'password' => $newPassword,
+            'updated_at' => now()->toIso8601String()
+        ], JSON_PRETTY_PRINT));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin password updated successfully! Please use your new password next time you log in.'
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
 });
 
 Route::get('/admin/logout', function () {
