@@ -150,68 +150,87 @@ class JobModeratorController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'title'     => 'required|string|max:255',
-            'location'  => 'required|string|max:255',
-        ]);
+        try {
+            $request->validate([
+                'title'     => 'required|string|max:255',
+                'location'  => 'required|string|max:255',
+            ]);
 
-        $adminUser = auth()->user() 
-            ?: (\App\Models\User::whereIn('user_role', ['admin', 'super_admin'])->first() 
-            ?: \App\Models\User::first());
+            $adminUser = auth()->user() 
+                ?: (\App\Models\User::whereIn('user_role', ['admin', 'super_admin'])->first() 
+                ?: \App\Models\User::first());
 
-        $category = strtolower(trim($request->input('category', 'india')));
-        if (!in_array($category, ['india', 'overseas', 'community'])) {
-            $category = 'india';
-        }
+            $userId = $adminUser ? $adminUser->id : (\App\Models\User::value('id') ?: 1);
 
-        $salaryMin = $request->filled('salary_min') ? floatval($request->salary_min) : null;
-        $salaryMax = $request->filled('salary_max') ? floatval($request->salary_max) : null;
-        $salaryCurrency = $request->input('salary_currency', 'INR');
-
-        $salaryStr = $request->input('salary');
-        if (!$salaryStr) {
-            if ($salaryMin && $salaryMax) {
-                $salaryStr = "{$salaryCurrency} {$salaryMin} - {$salaryMax}";
-            } elseif ($salaryMin) {
-                $salaryStr = "{$salaryCurrency} {$salaryMin}";
-            } else {
-                $salaryStr = "Best in Industry";
+            $category = strtolower(trim($request->input('category', 'india')));
+            if (!in_array($category, ['india', 'overseas', 'community'])) {
+                $category = 'india';
             }
+
+            $salaryMin = $request->filled('salary_min') ? floatval($request->salary_min) : null;
+            $salaryMax = $request->filled('salary_max') ? floatval($request->salary_max) : null;
+            $salaryCurrency = $request->input('salary_currency', 'INR');
+
+            $salaryStr = $request->input('salary');
+            if (!$salaryStr) {
+                if ($salaryMin && $salaryMax) {
+                    $salaryStr = "{$salaryCurrency} {$salaryMin} - {$salaryMax}";
+                } elseif ($salaryMin) {
+                    $salaryStr = "{$salaryCurrency} {$salaryMin}";
+                } else {
+                    $salaryStr = "Best in Industry";
+                }
+            }
+
+            $contactPerson = $request->input('contact_person') ?: ($adminUser ? ($adminUser->full_name ?: $adminUser->name) : 'Hiring Manager');
+            $contactInfo   = $request->input('contact_info') ?: ($adminUser ? ($adminUser->email ?: $adminUser->mobile_number) : 'contact@jobrito.com');
+            $description   = $request->input('description') ?: "Job Opportunity for {$request->input('title')} in {$request->input('location')}. Apply now on Jobrito.";
+
+            $job = JobPost::create([
+                'created_by'                => $userId,
+                'title'                     => $request->input('title'),
+                'company'                   => $request->input('company') ?: 'Jobrito Partner',
+                'location'                  => $request->input('location'),
+                'category'                  => $category,
+                'salary'                    => $salaryStr,
+                'salary_min'                => $salaryMin,
+                'salary_max'                => $salaryMax,
+                'salary_currency'           => $salaryCurrency,
+                'experience_range'          => $request->input('experience_range', '1-3 Years'),
+                'job_type'                  => $request->input('job_type', 'Full-Time'),
+                'open_positions'            => intval($request->input('open_positions', 1)),
+                'description'               => $description,
+                'contact_person'            => $contactPerson,
+                'contact_info'              => $contactInfo,
+                'status'                    => $request->input('status', 'approved'),
+                'is_pinned'                 => filter_var($request->input('is_pinned', false), FILTER_VALIDATE_BOOLEAN),
+                'is_referral'               => filter_var($request->input('is_referral', false), FILTER_VALIDATE_BOOLEAN),
+                'submitted_by_role'         => 'employer',
+                'country'                   => $request->input('country') ?: 'India',
+                'visa_assistance'           => filter_var($request->input('visa_assistance', false), FILTER_VALIDATE_BOOLEAN),
+                'accommodation_available'   => filter_var($request->input('accommodation_available', false), FILTER_VALIDATE_BOOLEAN),
+            ]);
+
+            if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Job posting '{$job->title}' created successfully!",
+                    'job'     => $job
+                ], 201);
+            }
+
+            return redirect()->back()->with('success', "Job posting '{$job->title}' created successfully!");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Admin store job failed: ' . $e->getMessage());
+
+            if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create job posting: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to create job posting: ' . $e->getMessage());
         }
-
-        $job = JobPost::create([
-            'created_by'                => $adminUser ? $adminUser->id : 1,
-            'title'                     => $request->input('title'),
-            'company'                   => $request->input('company', 'Jobrito Partner'),
-            'location'                  => $request->input('location'),
-            'category'                  => $category,
-            'salary'                    => $salaryStr,
-            'salary_min'                => $salaryMin,
-            'salary_max'                => $salaryMax,
-            'salary_currency'           => $salaryCurrency,
-            'experience_range'          => $request->input('experience_range', '1-3 Years'),
-            'job_type'                  => $request->input('job_type', 'Full-Time'),
-            'open_positions'            => $request->input('open_positions', 1),
-            'description'               => $request->input('description', ''),
-            'status'                    => $request->input('status', 'approved'),
-            'is_pinned'                 => (bool)$request->input('is_pinned', false),
-            'is_referral'               => (bool)$request->input('is_referral', false),
-            'submitted_by_role'         => 'employer',
-            'country'                   => $request->input('country', 'India'),
-            'visa_assistance'           => (bool)$request->input('visa_assistance', false),
-            'accommodation_available'   => (bool)$request->input('accommodation_available', false),
-            'contact_person'            => $request->input('contact_person'),
-            'contact_info'              => $request->input('contact_info'),
-        ]);
-
-        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
-            return response()->json([
-                'success' => true,
-                'message' => "Job posting '{$job->title}' created successfully!",
-                'job'     => $job
-            ], 201);
-        }
-
-        return redirect()->back()->with('success', "Job posting '{$job->title}' created successfully!");
     }
 }
