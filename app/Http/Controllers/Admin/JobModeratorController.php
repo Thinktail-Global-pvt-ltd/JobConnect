@@ -8,6 +8,18 @@ use Illuminate\Http\Request;
 
 class JobModeratorController extends Controller
 {
+    private function isJsonRequest(Request $request): bool
+    {
+        return $request->wantsJson() 
+            || $request->ajax() 
+            || $request->isJson() 
+            || $request->is('api/*') 
+            || $request->is('backend/api/*') 
+            || $request->is('admin/jobs*')
+            || str_contains($request->header('Accept', ''), 'application/json')
+            || str_contains($request->header('Content-Type', ''), 'application/json');
+    }
+
     /**
      * List all jobs.
      */
@@ -52,7 +64,7 @@ class JobModeratorController extends Controller
             'pinned'   => JobPost::where('is_pinned', true)->count(),
         ];
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+        if ($this->isJsonRequest($request)) {
             return response()->json([
                 'success' => true,
                 'jobs'    => $jobs,
@@ -253,7 +265,7 @@ class JobModeratorController extends Controller
 
             $job->load('creator');
 
-            if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+            if ($this->isJsonRequest($request)) {
                 return response()->json([
                     'success' => true,
                     'message' => "Job posting '{$job->title}' created successfully!",
@@ -265,7 +277,7 @@ class JobModeratorController extends Controller
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Admin store job failed: ' . $e->getMessage());
 
-            if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+            if ($this->isJsonRequest($request)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to create job posting: ' . $e->getMessage(),
