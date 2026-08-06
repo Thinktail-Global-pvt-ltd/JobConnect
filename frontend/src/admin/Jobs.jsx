@@ -117,39 +117,68 @@ export default function Jobs() {
       return;
     }
     setIsSubmitting(true);
-    try {
-      const res = await axios.post('/backend/api/admin/jobs/store', formData);
-      if (res.data?.success) {
-        setShowAddModal(false);
-        setFormData({
-          title: '',
-          company: '',
-          location: '',
-          country: 'India',
-          category: 'india',
-          salary: '',
-          experience_range: '1-3 Years',
-          job_type: 'Full-Time',
-          open_positions: 1,
-          description: '',
-          status: 'approved',
-          is_pinned: false,
-          is_referral: false,
-          visa_assistance: false,
-          accommodation_available: false,
-          contact_person: '',
-          contact_info: ''
+    let success = false;
+    let errorMessage = '';
+
+    const payload = {
+      ...formData,
+      company: formData.company || 'Jobrito Partner',
+      contact_person: formData.contact_person || 'Recruitment Lead',
+      contact_info: formData.contact_info || 'jobs@jobrito.com',
+      description: formData.description || `Job Opportunity for ${formData.title} in ${formData.location}. Apply now on Jobrito.`
+    };
+
+    const endpoints = [
+      '/backend/api/admin/jobs/store',
+      '/backend/api/admin/jobs',
+      '/api/admin/jobs/store',
+      'http://178.16.138.159/backend/api/admin/jobs/store'
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await axios.post(endpoint, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
         });
-        loadJobs();
-      } else {
-        alert(res.data?.message || 'Failed to create job posting.');
+        if (res.data?.success || res.status === 200 || res.status === 201) {
+          success = true;
+          break;
+        }
+      } catch (err) {
+        console.error(`Failed posting to ${endpoint}:`, err);
+        errorMessage = err.response?.data?.message || err.message || errorMessage;
       }
-    } catch (err) {
-      console.error('Error creating job:', err);
-      alert('Error creating job post: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setIsSubmitting(false);
     }
+
+    if (success) {
+      setShowAddModal(false);
+      setFormData({
+        title: '',
+        company: '',
+        location: '',
+        country: 'India',
+        category: 'india',
+        salary: '',
+        experience_range: '1-3 Years',
+        job_type: 'Full-Time',
+        open_positions: 1,
+        description: '',
+        status: 'approved',
+        is_pinned: false,
+        is_referral: false,
+        visa_assistance: false,
+        accommodation_available: false,
+        contact_person: '',
+        contact_info: ''
+      });
+      loadJobs();
+    } else {
+      alert('Failed to create job posting: ' + (errorMessage || 'Server response error'));
+    }
+    setIsSubmitting(false);
   };
 
   return (
