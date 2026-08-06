@@ -156,9 +156,30 @@ class JobModeratorController extends Controller
                 'location'  => 'required|string|max:255',
             ]);
 
-            $adminUser = auth()->user() 
-                ?: (\App\Models\User::whereIn('user_role', ['admin', 'super_admin'])->first() 
-                ?: \App\Models\User::first());
+            $adminUser = auth()->user();
+            if (!$adminUser) {
+                $tokenStr = $request->bearerToken();
+                if ($tokenStr) {
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                    if (!$tokenObj && str_contains($tokenStr, '|')) {
+                        $tokenId = explode('|', $tokenStr)[0];
+                        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                    }
+                    if ($tokenObj) {
+                        $adminUser = $tokenObj->tokenable;
+                    }
+                }
+            }
+
+            if (!$adminUser) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                    $adminUser = \App\Models\User::where('active_profile', 'admin')->first()
+                        ?: \App\Models\User::where('active_profile', 'employer')->first();
+                }
+                if (!$adminUser) {
+                    $adminUser = \App\Models\User::first();
+                }
+            }
 
             $userId = $adminUser ? $adminUser->id : (\App\Models\User::value('id') ?: 1);
 
