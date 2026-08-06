@@ -51,10 +51,11 @@ export default function Jobs() {
     setLoading(true);
     let data = null;
 
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
       '/backend/api/admin/jobs',
-      '/api/admin/jobs',
-      'http://178.16.138.159/backend/api/admin/jobs'
+      `${origin}/backend/api/admin/jobs`,
+      '/api/admin/jobs'
     ];
 
     for (const endpoint of endpoints) {
@@ -146,11 +147,12 @@ export default function Jobs() {
     let success = false;
     let lastErr = null;
 
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
       '/backend/api/admin/jobs/store',
+      `${origin}/backend/api/admin/jobs/store`,
       '/backend/api/admin/jobs',
-      '/api/admin/jobs/store',
-      'http://178.16.138.159/backend/api/admin/jobs/store'
+      '/api/admin/jobs/store'
     ];
 
     for (const endpoint of endpoints) {
