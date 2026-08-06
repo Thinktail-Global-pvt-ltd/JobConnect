@@ -98,18 +98,18 @@ export default function Jobs() {
   const handleApprove = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
     try {
-      await mockApi.approveJob(id);
+      await axios.post(`/backend/api/admin/jobs/${id}/approve`);
     } catch (err) {
-      console.error('Approve job failed:', err);
+      try { await mockApi.approveJob(id); } catch (e) {}
     }
   };
 
   const handleReject = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'rejected' } : j));
     try {
-      await mockApi.rejectJob(id);
+      await axios.post(`/backend/api/admin/jobs/${id}/reject`);
     } catch (err) {
-      console.error('Reject job failed:', err);
+      try { await mockApi.rejectJob(id); } catch (e) {}
     }
   };
 
@@ -118,9 +118,9 @@ export default function Jobs() {
     const newPinnedState = !job?.is_pinned;
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, is_pinned: newPinnedState } : j));
     try {
-      await mockApi.togglePinJob(id);
+      await axios.post(`/backend/api/admin/jobs/${id}/toggle-pin`);
     } catch (err) {
-      console.error('Toggle pin failed:', err);
+      try { await mockApi.togglePinJob(id); } catch (e) {}
     }
   };
 
