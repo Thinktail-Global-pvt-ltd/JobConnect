@@ -945,6 +945,22 @@ export const mockApi = {
     } catch (e) {}
     return { success: false };
   },
+  getFeed: async ({ filter = 'all' } = {}) => {
+    try {
+      const res = await axios.get('/backend/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await realApi.get('/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    // Direct backend fallback
+    try {
+      const res = await axios.get('http://178.16.138.159/backend/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    return { success: false, feed: { data: [] } };
+  },
 
   updateFeedItemStatus: async (id, source, status) => {
     try {
