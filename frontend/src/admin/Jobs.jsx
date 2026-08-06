@@ -149,6 +149,8 @@ export default function Jobs() {
       'http://178.16.138.159/backend/api/admin/jobs/store'
     ];
 
+    let createdJob = null;
+
     for (const endpoint of endpoints) {
       try {
         const res = await axios.post(endpoint, payload, {
@@ -159,6 +161,7 @@ export default function Jobs() {
         });
         if (res.data?.success || res.status === 200 || res.status === 201) {
           success = true;
+          createdJob = res.data?.job;
           break;
         }
       } catch (err) {
@@ -188,6 +191,13 @@ export default function Jobs() {
         contact_person: '',
         contact_info: ''
       });
+
+      if (createdJob) {
+        setJobs(prev => [createdJob, ...prev.filter(j => j.id !== createdJob.id)]);
+      }
+
+      setStatus('');
+      setCategory('');
       loadJobs();
     } else {
       alert('Failed to create job posting: ' + (errorMessage || 'Server response error'));

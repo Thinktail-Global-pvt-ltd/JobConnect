@@ -251,6 +251,8 @@ class JobModeratorController extends Controller
                 'accommodation_available'   => filter_var($request->input('accommodation_available', false), FILTER_VALIDATE_BOOLEAN),
             ]);
 
+            $job->load('creator');
+
             if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
                 return response()->json([
                     'success' => true,
