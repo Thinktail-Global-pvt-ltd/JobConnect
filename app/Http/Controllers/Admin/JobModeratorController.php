@@ -171,17 +171,27 @@ class JobModeratorController extends Controller
                 }
             }
 
-            if (!$adminUser) {
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
-                    $adminUser = \App\Models\User::where('active_profile', 'admin')->first()
-                        ?: \App\Models\User::where('active_profile', 'employer')->first();
-                }
-                if (!$adminUser) {
-                    $adminUser = \App\Models\User::first();
-                }
+            if (!$adminUser && \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                $adminUser = \App\Models\User::where('active_profile', 'admin')->first()
+                    ?: \App\Models\User::where('active_profile', 'employer')->first();
             }
 
-            $userId = $adminUser ? $adminUser->id : (\App\Models\User::value('id') ?: 1);
+            if (!$adminUser) {
+                $adminUser = \App\Models\User::first();
+            }
+
+            if (!$adminUser) {
+                // Ensure a valid user record exists for the foreign key constraint
+                $adminUser = \App\Models\User::create([
+                    'full_name'      => 'System Administrator',
+                    'name'           => 'System Administrator',
+                    'mobile_number'  => '9999999999',
+                    'active_profile' => 'employer',
+                    'is_available'   => true,
+                ]);
+            }
+
+            $userId = $adminUser->id;
 
             $category = strtolower(trim($request->input('category', 'india')));
             if (!in_array($category, ['india', 'overseas', 'community'])) {
