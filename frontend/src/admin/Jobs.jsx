@@ -19,6 +19,7 @@ export default function Jobs() {
   // Add Job Modal State
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalError, setModalError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -126,13 +127,12 @@ export default function Jobs() {
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+    setModalError('');
     if (!formData.title || !formData.location) {
-      alert('Please fill in required fields (Job Title and Location).');
+      setModalError('Please fill in required fields (Job Title and Location).');
       return;
     }
     setIsSubmitting(true);
-    let success = false;
-    let errorMessage = '';
 
     const payload = {
       ...formData,
@@ -142,14 +142,16 @@ export default function Jobs() {
       description: formData.description || `Job Opportunity for ${formData.title} in ${formData.location}. Apply now on Jobrito.`
     };
 
+    let createdJob = null;
+    let success = false;
+    let lastErr = null;
+
     const endpoints = [
       '/backend/api/admin/jobs/store',
       '/backend/api/admin/jobs',
       '/api/admin/jobs/store',
       'http://178.16.138.159/backend/api/admin/jobs/store'
     ];
-
-    let createdJob = null;
 
     for (const endpoint of endpoints) {
       try {
@@ -163,15 +165,18 @@ export default function Jobs() {
           success = true;
           createdJob = res.data?.job;
           break;
+        } else {
+          lastErr = res.data?.message || 'Server returned non-success response';
         }
       } catch (err) {
         console.error(`Failed posting to ${endpoint}:`, err);
-        errorMessage = err.response?.data?.message || err.message || errorMessage;
+        lastErr = err;
       }
     }
 
     if (success) {
       setShowAddModal(false);
+      setModalError('');
       setFormData({
         title: '',
         company: '',
@@ -200,7 +205,29 @@ export default function Jobs() {
       setCategory('');
       loadJobs();
     } else {
-      alert('Failed to create job posting: ' + (errorMessage || 'Server response error'));
+      let detailMsg = 'Failed to create job posting: ';
+      if (lastErr) {
+        if (typeof lastErr === 'string') {
+          detailMsg += lastErr;
+        } else if (lastErr.response) {
+          const resData = lastErr.response.data;
+          if (typeof resData === 'string') {
+            detailMsg += `[HTTP ${lastErr.response.status}]: ${resData.substring(0, 150)}`;
+          } else if (resData?.message) {
+            detailMsg += resData.message;
+          } else if (resData?.errors) {
+            detailMsg += Object.values(resData.errors).flat().join(', ');
+          } else {
+            detailMsg += `[HTTP ${lastErr.response.status}]: ${JSON.stringify(resData)}`;
+          }
+        } else if (lastErr.message) {
+          detailMsg += lastErr.message;
+        }
+      } else {
+        detailMsg += 'Unknown server response error';
+      }
+      setModalError(detailMsg);
+      console.error('Job Creation Error Details:', lastErr);
     }
     setIsSubmitting(false);
   };
@@ -512,6 +539,21 @@ export default function Jobs() {
 
             {/* Modal Body / Form */}
             <form onSubmit={handleAddSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              {modalError && (
+                <div className="p-4 rounded-xl bg-rose-950/90 border border-rose-600/80 text-rose-200 text-xs font-medium flex items-start justify-between gap-3 shadow-xl">
+                  <div>
+                    <span className="font-extrabold block text-rose-300 mb-1 text-sm">⚠️ Error Creating Job</span>
+                    <span className="break-all font-mono leading-relaxed text-[11px] block">{modalError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setModalError('')}
+                    className="text-rose-400 hover:text-white p-1 rounded-lg bg-rose-900/50 hover:bg-rose-800 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Title */}
                 <div>
