@@ -50,14 +50,28 @@ export default function Jobs() {
     setLoading(true);
     let data = null;
 
-    try {
-      data = await mockApi.getJobs(status, category);
-    } catch (err) {}
+    const endpoints = [
+      '/backend/api/admin/jobs',
+      '/api/admin/jobs',
+      'http://178.16.138.159/backend/api/admin/jobs'
+    ];
 
-    if (!data || !data.jobs || data.jobs.length === 0) {
+    for (const endpoint of endpoints) {
       try {
-        const res = await axios.get('/backend/api/admin/jobs', { params: { status, category } });
-        if (res.data?.success && Array.isArray(res.data.jobs)) data = res.data;
+        const res = await axios.get(endpoint, {
+          params: { status, category },
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.data?.success && Array.isArray(res.data.jobs)) {
+          data = res.data;
+          break;
+        }
+      } catch (err) {}
+    }
+
+    if (!data || !data.jobs) {
+      try {
+        data = await mockApi.getJobs(status, category);
       } catch (err) {}
     }
 

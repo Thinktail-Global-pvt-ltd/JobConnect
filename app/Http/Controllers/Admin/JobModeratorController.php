@@ -29,7 +29,16 @@ class JobModeratorController extends Controller
                       ->orWhere('is_referral', true);
                 });
             } elseif (in_array($cat, ['dubai', 'overseas'])) {
-                $query->where('category', $cat);
+                $query->where(function($q) {
+                    $q->where('category', 'overseas')
+                      ->orWhere('category', 'dubai');
+                });
+            } elseif ($cat === 'india') {
+                $query->where(function($q) {
+                    $q->where('category', 'india')
+                      ->orWhereNull('category')
+                      ->orWhere('category', '');
+                });
             }
         }
 
