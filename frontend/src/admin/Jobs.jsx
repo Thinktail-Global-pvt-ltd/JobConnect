@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
-import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin } from 'lucide-react';
+import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, Sparkles } from 'lucide-react';
 
 export default function Jobs() {
   const location = useLocation();
@@ -15,6 +15,29 @@ export default function Jobs() {
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState(initialCategory);
   const [loading, setLoading] = useState(true);
+
+  // Add Job Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    company: '',
+    location: '',
+    country: 'India',
+    category: 'india',
+    salary: '',
+    experience_range: '1-3 Years',
+    job_type: 'Full-Time',
+    open_positions: 1,
+    description: '',
+    status: 'approved',
+    is_pinned: false,
+    is_referral: false,
+    visa_assistance: false,
+    accommodation_available: false,
+    contact_person: '',
+    contact_info: ''
+  });
 
   // Sync category when URL search query changes
   useEffect(() => {
@@ -87,12 +110,63 @@ export default function Jobs() {
     }
   };
 
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.title || !formData.location) {
+      alert('Please fill in required fields (Job Title and Location).');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await axios.post('/backend/api/admin/jobs/store', formData);
+      if (res.data?.success) {
+        setShowAddModal(false);
+        setFormData({
+          title: '',
+          company: '',
+          location: '',
+          country: 'India',
+          category: 'india',
+          salary: '',
+          experience_range: '1-3 Years',
+          job_type: 'Full-Time',
+          open_positions: 1,
+          description: '',
+          status: 'approved',
+          is_pinned: false,
+          is_referral: false,
+          visa_assistance: false,
+          accommodation_available: false,
+          contact_person: '',
+          contact_info: ''
+        });
+        loadJobs();
+      } else {
+        alert(res.data?.message || 'Failed to create job posting.');
+      }
+    } catch (err) {
+      console.error('Error creating job:', err);
+      alert('Error creating job post: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 text-left">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Jobs & Referrals Moderation</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Jobs & Referrals Moderation</h2>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-900/30 transition-all cursor-pointer hover:scale-105"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Job</span>
+            </button>
+          </div>
           <p className="text-xs font-semibold text-slate-400 mt-1">Manage India Jobs, Overseas Jobs, and Referral listings in a single unified view.</p>
         </div>
 
@@ -359,6 +433,240 @@ export default function Jobs() {
           </span>
         </div>
       </div>
+
+      {/* Add Job Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-2xl bg-[#0F172A] border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden my-8">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-[#1E293B]/80 border-b border-slate-700/80 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <Briefcase className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-outfit font-black text-lg text-white">Post New Job</h3>
+                  <p className="text-[11px] font-semibold text-slate-400">Save new listing directly into job_posts table</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={handleAddSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Title */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Job Title *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Executive Chef, Sous Chef"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Company Name */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Company / Restaurant Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Taj Hotels, Marriott"
+                    value={formData.company}
+                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Location / City */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Location / City *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Mumbai, New Delhi, Dubai"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Country */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Country</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. India, UAE, Saudi Arabia"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Listing Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="india">🇮🇳 India Jobs</option>
+                    <option value="overseas">✈️ Overseas Jobs</option>
+                    <option value="community">🔗 Referrals & Community</option>
+                  </select>
+                </div>
+
+                {/* Job Type */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Job Type</label>
+                  <select
+                    value={formData.job_type}
+                    onChange={(e) => setFormData({ ...formData, job_type: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Part-Time">Part-Time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                  </select>
+                </div>
+
+                {/* Salary */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Salary Range</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. ₹50,000 - ₹80,000 / month"
+                    value={formData.salary}
+                    onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Experience Range */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Experience Required</label>
+                  <select
+                    value={formData.experience_range}
+                    onChange={(e) => setFormData({ ...formData, experience_range: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="Freshers">Freshers</option>
+                    <option value="1-3 Years">1-3 Years</option>
+                    <option value="3-5 Years">3-5 Years</option>
+                    <option value="5-10 Years">5-10 Years</option>
+                    <option value="10+ Years">10+ Years</option>
+                  </select>
+                </div>
+
+                {/* Open Positions */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Open Vacancies</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.open_positions}
+                    onChange={(e) => setFormData({ ...formData, open_positions: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Approval Status */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Approval Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="approved">Approved & Live</option>
+                    <option value="pending">Pending Review</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Checkbox Options */}
+              <div className="flex items-center gap-6 py-2 border-y border-slate-800/80 flex-wrap">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_pinned}
+                    onChange={(e) => setFormData({ ...formData, is_pinned: e.target.checked })}
+                    className="w-4 h-4 rounded bg-[#1E293B] border-slate-700 text-emerald-500 focus:ring-0"
+                  />
+                  <span>📌 Pin to Top Feed</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.visa_assistance}
+                    onChange={(e) => setFormData({ ...formData, visa_assistance: e.target.checked })}
+                    className="w-4 h-4 rounded bg-[#1E293B] border-slate-700 text-emerald-500 focus:ring-0"
+                  />
+                  <span>✈️ Visa Assistance</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.accommodation_available}
+                    onChange={(e) => setFormData({ ...formData, accommodation_available: e.target.checked })}
+                    className="w-4 h-4 rounded bg-[#1E293B] border-slate-700 text-emerald-500 focus:ring-0"
+                  />
+                  <span>🏠 Accommodation</span>
+                </label>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Job Description & Requirements</label>
+                <textarea
+                  rows="4"
+                  placeholder="Enter detailed job description, duties, and candidate requirements..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#1E293B] border border-slate-700 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+                ></textarea>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-900/30 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <span>Saving Job...</span>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Save to Database</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

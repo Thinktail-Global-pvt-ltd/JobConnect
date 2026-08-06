@@ -144,4 +144,74 @@ class JobModeratorController extends Controller
 
         return view('admin.job_detail', compact('job'));
     }
+
+    /**
+     * Store a new job post directly into job_posts table.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title'     => 'required|string|max:255',
+            'location'  => 'required|string|max:255',
+        ]);
+
+        $adminUser = auth()->user() 
+            ?: (\App\Models\User::whereIn('user_role', ['admin', 'super_admin'])->first() 
+            ?: \App\Models\User::first());
+
+        $category = strtolower(trim($request->input('category', 'india')));
+        if (!in_array($category, ['india', 'overseas', 'community'])) {
+            $category = 'india';
+        }
+
+        $salaryMin = $request->filled('salary_min') ? floatval($request->salary_min) : null;
+        $salaryMax = $request->filled('salary_max') ? floatval($request->salary_max) : null;
+        $salaryCurrency = $request->input('salary_currency', 'INR');
+
+        $salaryStr = $request->input('salary');
+        if (!$salaryStr) {
+            if ($salaryMin && $salaryMax) {
+                $salaryStr = "{$salaryCurrency} {$salaryMin} - {$salaryMax}";
+            } elseif ($salaryMin) {
+                $salaryStr = "{$salaryCurrency} {$salaryMin}";
+            } else {
+                $salaryStr = "Best in Industry";
+            }
+        }
+
+        $job = JobPost::create([
+            'created_by'                => $adminUser ? $adminUser->id : 1,
+            'title'                     => $request->input('title'),
+            'company'                   => $request->input('company', 'Jobrito Partner'),
+            'location'                  => $request->input('location'),
+            'category'                  => $category,
+            'salary'                    => $salaryStr,
+            'salary_min'                => $salaryMin,
+            'salary_max'                => $salaryMax,
+            'salary_currency'           => $salaryCurrency,
+            'experience_range'          => $request->input('experience_range', '1-3 Years'),
+            'job_type'                  => $request->input('job_type', 'Full-Time'),
+            'open_positions'            => $request->input('open_positions', 1),
+            'description'               => $request->input('description', ''),
+            'status'                    => $request->input('status', 'approved'),
+            'is_pinned'                 => (bool)$request->input('is_pinned', false),
+            'is_referral'               => (bool)$request->input('is_referral', false),
+            'submitted_by_role'         => 'employer',
+            'country'                   => $request->input('country', 'India'),
+            'visa_assistance'           => (bool)$request->input('visa_assistance', false),
+            'accommodation_available'   => (bool)$request->input('accommodation_available', false),
+            'contact_person'            => $request->input('contact_person'),
+            'contact_info'              => $request->input('contact_info'),
+        ]);
+
+        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+            return response()->json([
+                'success' => true,
+                'message' => "Job posting '{$job->title}' created successfully!",
+                'job'     => $job
+            ], 201);
+        }
+
+        return redirect()->back()->with('success', "Job posting '{$job->title}' created successfully!");
+    }
 }

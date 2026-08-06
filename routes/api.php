@@ -246,6 +246,10 @@ Route::post('/admin/chefs/{chef}/unpublish', [\App\Http\Controllers\Admin\ChefMo
 Route::post('/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
 
 Route::get('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'index']);
+Route::match(['get', 'post'], '/admin/jobs/store', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
+Route::match(['get', 'post'], '/admin/jobs/create', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
+Route::match(['get', 'post'], '/admin/jobs/add', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
+Route::post('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
 Route::post('/admin/jobs/{job}/approve', [\App\Http\Controllers\Admin\JobModeratorController::class, 'approve']);
 Route::post('/admin/jobs/{job}/reject', [\App\Http\Controllers\Admin\JobModeratorController::class, 'reject']);
 Route::post('/admin/jobs/{job}/toggle-pin', [\App\Http\Controllers\Admin\JobModeratorController::class, 'togglePin']);
