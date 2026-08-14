@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from '../../../public/images/jobrito-logo-full.png';
+import logoWhite from "@/assets/jobrito full logo.png";
 import appstoreBadge from "@/assets/appstore.png";
 import playstoreBadge from "@/assets/playstore.png";
 
@@ -64,11 +64,11 @@ export default function Footer() {
       <div className="w-full mx-auto px-8 max-w-[1440px]">
         <div className="flex flex-col md:flex-row justify-between gap-16 mb-24">
           <div className="max-w-md">
-            <Link to="/" className="inline-flex mb-10 w-fit group">
+            <Link to="/" className="inline-flex mb-6 w-fit group">
               <img
-                src={logo}
+                src={logoWhite}
                 alt="Jobrito — Connecting Hospitality Talent"
-                className="h-28 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-200"
+                className="h-20 sm:h-20 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity duration-200"
               />
             </Link>
             <p className="text-white/50 max-w-sm font-sans leading-relaxed mb-2">

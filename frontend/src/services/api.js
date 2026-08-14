@@ -62,18 +62,92 @@ const INITIAL_APPLICATIONS = [
   { id: '2', job_post_id: '3', applicant_id: '4', status: 'new', created_at: '2026-07-02T17:00:00Z' }
 ];
 
-const INITIAL_CHEFS = [];
+const INITIAL_CHEFS = [
+  {
+    id: '1',
+    user_id: '1',
+    full_name: 'Chef Vikram Rathore',
+    email: 'vikram.chef@jobconnect.in',
+    mobile_number: '+91 98765 43210',
+    preferred_role: 'Executive Chef',
+    city: 'Mumbai',
+    country: 'India',
+    experience_range: '8-12 Years',
+    cuisine_specialty: 'Indian, Tandoori, Continental',
+    bio: 'Award-winning Executive Chef with 10+ years leading luxury hotel kitchens and fine dining menus.',
+    calendly_link: 'https://calendly.com/chefvikram',
+    location_preference: 'Both',
+    availability: 'Available Immediately',
+    languages: 'English, Hindi',
+    skills: 'Kitchen Management, Menu Engineering, Food Cost Control',
+    approval_status: 'approved',
+    status: 'approved',
+    photo_url: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80',
+    created_at: '2026-07-01T10:00:00Z'
+  },
+  {
+    id: '2',
+    user_id: '2',
+    full_name: 'Chef Ankit Jha',
+    email: 'ankit.jha@jobrito.com',
+    mobile_number: '+91 98123 45678',
+    preferred_role: 'Head Chef',
+    city: 'New Delhi',
+    country: 'India',
+    experience_range: '5-8 Years',
+    cuisine_specialty: 'Pan-Asian, Chinese, Dim Sum',
+    bio: 'Experienced Head Chef specializing in Asian fusion dining and high-volume banquet operations.',
+    calendly_link: 'https://calendly.com/chefankit',
+    location_preference: 'Overseas',
+    availability: '2 Weeks Notice',
+    languages: 'English, Hindi, Mandarin',
+    skills: 'Wok Master, Team Leadership, Inventory Management',
+    approval_status: 'approved',
+    status: 'approved',
+    photo_url: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=400&q=80',
+    created_at: '2026-07-10T12:00:00Z'
+  },
+  {
+    id: '3',
+    user_id: '3',
+    full_name: 'Chef Maria Santos',
+    email: 'maria.santos@pastry.org',
+    mobile_number: '+971 50 123 4567',
+    preferred_role: 'Pastry Chef',
+    city: 'Dubai',
+    country: 'UAE',
+    experience_range: '6-10 Years',
+    cuisine_specialty: 'French Pastry, Desserts, Chocolatier',
+    bio: 'Passionate Executive Pastry Chef trained in Paris with extensive experience in Middle East resorts.',
+    calendly_link: 'https://calendly.com/chefmariasantos',
+    location_preference: 'Both',
+    availability: 'Available Immediately',
+    languages: 'English, French, Spanish',
+    skills: 'Artisan Baking, Dessert Plating, Sugar Work',
+    approval_status: 'pending',
+    status: 'pending',
+    photo_url: 'https://images.unsplash.com/photo-1607631568010-a87245c0daf8?auto=format&fit=crop&w=400&q=80',
+    created_at: '2026-07-20T14:30:00Z'
+  }
+];
 
 export const mockDb = {
   getUsers: () => getStored('mock_users', INITIAL_USERS),
   setUsers: (users) => setStored('mock_users', users),
-  getJobs: () => getStored('mock_jobs', INITIAL_JOBS),
+  getJobs: () => {
+    const jobs = getStored('mock_jobs', INITIAL_JOBS);
+    if (!Array.isArray(jobs) || jobs.length === 0) {
+      setStored('mock_jobs', INITIAL_JOBS);
+      return INITIAL_JOBS;
+    }
+    return jobs;
+  },
   setJobs: (jobs) => setStored('mock_jobs', jobs),
   getApplications: () => getStored('mock_applications', INITIAL_APPLICATIONS),
   setApplications: (apps) => setStored('mock_applications', apps),
   getChefs: () => {
     const data = getStored('mock_chefs', INITIAL_CHEFS);
-    if (!Array.isArray(data) || data.length < 2) {
+    if (!Array.isArray(data) || data.length === 0) {
       setStored('mock_chefs', INITIAL_CHEFS);
       return INITIAL_CHEFS;
     }
@@ -370,13 +444,17 @@ export const mockApi = {
   getJobs: async (status = '', category = '') => {
     try {
       const res = await realApi.get('/api/admin/jobs', { params: { status, category } });
-      if (res.data && res.data.success) return res.data;
+      if (res.data && res.data.success && Array.isArray(res.data.jobs) && res.data.jobs.length > 0) return res.data;
     } catch (e) {}
     try {
       const res = await axios.get('/backend/api/admin/jobs', { params: { status, category } });
-      if (res.data && res.data.success) return res.data;
+      if (res.data && res.data.success && Array.isArray(res.data.jobs) && res.data.jobs.length > 0) return res.data;
     } catch (e) {}
-    return { success: true, jobs: [], stats: { total: 0, pending: 0, approved: 0, rejected: 0, pinned: 0 } };
+    try {
+      const res = await axios.get('/admin/jobs', { params: { status, category } });
+      if (res.data && res.data.success && Array.isArray(res.data.jobs) && res.data.jobs.length > 0) return res.data;
+    } catch (e) {}
+    return mockEndpoints.getJobs(status, category);
   },
 
   getJobDetail: async (id) => {
@@ -465,6 +543,36 @@ export const mockApi = {
       console.warn("Axios direct togglePinJob failed", e);
     }
     return { success: true };
+  },
+
+  createJob: async (jobData) => {
+    // Try the admin backend endpoint first (Laravel admin panel)
+    try {
+      const res = await axios.post('/admin/jobs', jobData, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {
+      // If server returned a validation/error message, throw it so the UI can show it
+      if (e.response && e.response.data && e.response.data.message) {
+        throw new Error(e.response.data.message);
+      }
+    }
+    // Fallback: backend API prefix
+    try {
+      const res = await axios.post('/backend/api/admin/jobs', jobData, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      });
+      if (res.data && res.data.success) return res.data;
+      if (e && e.response && e.response.data && e.response.data.message) {
+        throw new Error(e.response.data.message);
+      }
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.message) {
+        throw new Error(e.response.data.message);
+      }
+    }
+    throw new Error('Failed to create job listing. Please check your connection and try again.');
   },
 
   getApplications: async (status = '') => {
@@ -688,33 +796,46 @@ export const mockApi = {
   getChefs: async (status = '') => {
     try {
       const res = await realApi.get('/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {}
     try {
       const res = await axios.get('/backend/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {}
-    return { success: true, chefs: [] };
+    try {
+      const res = await axios.get('/admin/chefs', { params: { status } });
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
+        return res.data;
+      }
+    } catch (e) {}
+
+    let chefs = mockDb.getChefs();
+    if (status) {
+      chefs = chefs.filter(c => (c.status === status || c.approval_status === status));
+    }
+    return { success: true, chefs };
   },
 
   getEmployerChefs: async () => {
     try {
       const res = await realApi.get('/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {}
     try {
       const res = await axios.get('/backend/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
         return res.data;
       }
     } catch (e) {}
-    return { success: true, chefs: [] };
+
+    let chefs = mockDb.getChefs();
+    return { success: true, chefs: chefs.filter(c => (c.status === 'approved' || c.approval_status === 'approved')) };
   },
 
   approveChef: async (id) => {
@@ -944,6 +1065,22 @@ export const mockApi = {
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
     return { success: false };
+  },
+  getFeed: async ({ filter = 'all' } = {}) => {
+    try {
+      const res = await axios.get('/backend/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    try {
+      const res = await realApi.get('/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    // Direct backend fallback
+    try {
+      const res = await axios.get('http://178.16.138.159/backend/api/feed', { params: { filter } });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+    return { success: false, feed: { data: [] } };
   },
 
   updateFeedItemStatus: async (id, source, status) => {

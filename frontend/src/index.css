@@ -181,33 +181,37 @@
    GLOBAL ADMIN APPLICATION THEME OVERRIDES
    ========================================== */
 
-/* ☀️ LIGHT MODE OVERRIDES (Clean White Mode) */
-html[data-theme="light"] .bg-\[\#0B1120\],
-html[data-theme="light"] .bg-\[\#070A13\],
-html[data-theme="light"] .bg-\[\#090D16\],
-html[data-theme="light"] .bg-\[\#0d1527\] {
+.force-text-white {
+  color: #ffffff !important;
+}
+
+/* ☀️ LIGHT MODE OVERRIDES (Scoped strictly to Admin Panel) */
+html[data-theme="light"] .admin-scope .bg-\[\#0B1120\],
+html[data-theme="light"] .admin-scope .bg-\[\#070A13\],
+html[data-theme="light"] .admin-scope .bg-\[\#090D16\],
+html[data-theme="light"] .admin-scope .bg-\[\#0d1527\] {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #e2e8f0 !important;
 }
 
-html[data-theme="light"] .bg-\[\#0F172A\],
-html[data-theme="light"] .bg-\[\#0F172A\]\/40,
-html[data-theme="light"] .bg-\[\#0F172A\]\/70,
-html[data-theme="light"] .bg-\[\#0F172A\]\/80 {
+html[data-theme="light"] .admin-scope .bg-\[\#0F172A\],
+html[data-theme="light"] .admin-scope .bg-\[\#0F172A\]\/40,
+html[data-theme="light"] .admin-scope .bg-\[\#0F172A\]\/70,
+html[data-theme="light"] .admin-scope .bg-\[\#0F172A\]\/80 {
   background-color: #f8fafc !important;
   color: #0f172a !important;
   border-color: #e2e8f0 !important;
 }
 
 /* Enhanced Table Headers in Light Mode */
-html[data-theme="light"] table thead,
-html[data-theme="light"] table thead tr {
+html[data-theme="light"] .admin-scope table thead,
+html[data-theme="light"] .admin-scope table thead tr {
   background-color: #f1f5f9 !important;
   border-bottom: 2px solid #cbd5e1 !important;
 }
 
-html[data-theme="light"] table thead th {
+html[data-theme="light"] .admin-scope table thead th {
   background-color: #f1f5f9 !important;
   color: #334155 !important;
   font-weight: 900 !important;
@@ -220,118 +224,118 @@ html[data-theme="light"] table thead th {
 }
 
 /* Enhanced Table Body & Rows in Light Mode */
-html[data-theme="light"] table tbody tr {
+html[data-theme="light"] .admin-scope table tbody tr {
   background-color: #ffffff !important;
   border-bottom: 1px solid #f1f5f9 !important;
 }
 
-html[data-theme="light"] table tbody tr:hover,
-html[data-theme="light"] .hover\:bg-\[\#1E293B\]\/50:hover,
-html[data-theme="light"] .hover\:bg-\[\#1E293B\]\/40:hover {
+html[data-theme="light"] .admin-scope table tbody tr:hover,
+html[data-theme="light"] .admin-scope .hover\:bg-\[\#1E293B\]\/50:hover,
+html[data-theme="light"] .admin-scope .hover\:bg-\[\#1E293B\]\/40:hover {
   background-color: #f8fafc !important;
 }
 
-html[data-theme="light"] table tbody td {
+html[data-theme="light"] .admin-scope table tbody td {
   color: #334155 !important;
 }
 
-/* Text Hierarchy Overrides */
-html[data-theme="light"] .text-white {
+/* Text Hierarchy Overrides inside Admin */
+html[data-theme="light"] .admin-scope .text-white {
   color: #0f172a !important;
 }
 
-html[data-theme="light"] .text-slate-100,
-html[data-theme="light"] .text-slate-200,
-html[data-theme="light"] .text-slate-300 {
+html[data-theme="light"] .admin-scope .text-slate-100,
+html[data-theme="light"] .admin-scope .text-slate-200,
+html[data-theme="light"] .admin-scope .text-slate-300 {
   color: #334155 !important;
 }
 
-html[data-theme="light"] .text-slate-400 {
+html[data-theme="light"] .admin-scope .text-slate-400 {
   color: #64748b !important;
 }
 
 /* Code Blocks, Inputs, Modal Inner Cards & Badges Overrides */
-html[data-theme="light"] code,
-html[data-theme="light"] .bg-\[\#1E293B\],
-html[data-theme="light"] .bg-\[\#1E293B\]\/60,
-html[data-theme="light"] .bg-\[\#1E293B\]\/50,
-html[data-theme="light"] .bg-\[\#1E293B\]\/40,
-html[data-theme="light"] .bg-\[\#1E293B\]\/80,
-html[data-theme="light"] .bg-slate-800,
-html[data-theme="light"] .bg-slate-800\/60,
-html[data-theme="light"] .bg-slate-900,
-html[data-theme="light"] .bg-slate-900\/60 {
+html[data-theme="light"] .admin-scope code,
+html[data-theme="light"] .admin-scope .bg-\[\#1E293B\],
+html[data-theme="light"] .admin-scope .bg-\[\#1E293B\]\/60,
+html[data-theme="light"] .admin-scope .bg-\[\#1E293B\]\/50,
+html[data-theme="light"] .admin-scope .bg-\[\#1E293B\]\/40,
+html[data-theme="light"] .admin-scope .bg-\[\#1E293B\]\/80,
+html[data-theme="light"] .admin-scope .bg-slate-800,
+html[data-theme="light"] .admin-scope .bg-slate-800\/60,
+html[data-theme="light"] .admin-scope .bg-slate-900,
+html[data-theme="light"] .admin-scope .bg-slate-900\/60 {
   background-color: #f8fafc !important;
   color: #0f172a !important;
   border-color: #e2e8f0 !important;
 }
 
-html[data-theme="light"] .border-slate-800,
-html[data-theme="light"] .border-slate-700,
-html[data-theme="light"] .border-slate-700\/60,
-html[data-theme="light"] .border-\[\#1E293B\] {
+html[data-theme="light"] .admin-scope .border-slate-800,
+html[data-theme="light"] .admin-scope .border-slate-700,
+html[data-theme="light"] .admin-scope .border-slate-700\/60,
+html[data-theme="light"] .admin-scope .border-\[\#1E293B\] {
   border-color: #e2e8f0 !important;
 }
 
 /* Light Theme Modal Backdrop & Container Overrides */
-html[data-theme="light"] .bg-slate-950\/70,
-html[data-theme="light"] .bg-slate-950\/75,
-html[data-theme="light"] .bg-slate-900\/60,
-html[data-theme="light"] .bg-slate-900\/70 {
+html[data-theme="light"] .admin-scope .bg-slate-950\/70,
+html[data-theme="light"] .admin-scope .bg-slate-950\/75,
+html[data-theme="light"] .admin-scope .bg-slate-900\/60,
+html[data-theme="light"] .admin-scope .bg-slate-900\/70 {
   background-color: rgba(15, 23, 42, 0.4) !important;
   backdrop-filter: blur(4px) !important;
 }
 
 /* Light Theme Label & Text Hierarchy in Modals */
-html[data-theme="light"] .text-slate-400,
-html[data-theme="light"] .text-slate-500 {
+html[data-theme="light"] .admin-scope .text-slate-400,
+html[data-theme="light"] .admin-scope .text-slate-500 {
   color: #475569 !important;
 }
 
-html[data-theme="light"] .text-white,
-html[data-theme="light"] .text-slate-100,
-html[data-theme="light"] .text-slate-200,
-html[data-theme="light"] .text-slate-300 {
+html[data-theme="light"] .admin-scope .text-white,
+html[data-theme="light"] .admin-scope .text-slate-100,
+html[data-theme="light"] .admin-scope .text-slate-200,
+html[data-theme="light"] .admin-scope .text-slate-300 {
   color: #0f172a !important;
 }
 
-html[data-theme="light"] .text-emerald-300,
-html[data-theme="light"] .text-emerald-400 {
+html[data-theme="light"] .admin-scope .text-emerald-300,
+html[data-theme="light"] .admin-scope .text-emerald-400 {
   color: #047857 !important;
 }
 
-html[data-theme="light"] .text-blue-400 {
+html[data-theme="light"] .admin-scope .text-blue-400 {
   color: #1d4ed8 !important;
 }
 
-html[data-theme="light"] .text-purple-400 {
+html[data-theme="light"] .admin-panel-root .text-purple-400 {
   color: #6d28d9 !important;
 }
 
-html[data-theme="light"] .text-amber-400 {
+html[data-theme="light"] .admin-panel-root .text-amber-400 {
   color: #b45309 !important;
 }
 
 /* Badge & Action Buttons Color Mapping */
-html[data-theme="light"] .bg-emerald-950,
-html[data-theme="light"] .bg-emerald-950\/80,
-html[data-theme="light"] .bg-emerald-950\/60 {
+html[data-theme="light"] .admin-panel-root .bg-emerald-950,
+html[data-theme="light"] .admin-panel-root .bg-emerald-950\/80,
+html[data-theme="light"] .admin-panel-root .bg-emerald-950\/60 {
   background-color: #d1fae5 !important;
   color: #065f46 !important;
   border-color: #a7f3d0 !important;
 }
 
-html[data-theme="light"] .bg-blue-950,
-html[data-theme="light"] .bg-blue-950\/80 {
+html[data-theme="light"] .admin-panel-root .bg-blue-950,
+html[data-theme="light"] .admin-panel-root .bg-blue-950\/80 {
   background-color: #dbeafe !important;
   color: #1e40af !important;
   border-color: #bfdbfe !important;
 }
 
-html[data-theme="light"] .bg-rose-950,
-html[data-theme="light"] .bg-rose-950\/80,
-html[data-theme="light"] .bg-rose-950\/60,
-html[data-theme="light"] .bg-rose-950\/40 {
+html[data-theme="light"] .admin-panel-root .bg-rose-950,
+html[data-theme="light"] .admin-panel-root .bg-rose-950\/80,
+html[data-theme="light"] .admin-panel-root .bg-rose-950\/60,
+html[data-theme="light"] .admin-panel-root .bg-rose-950\/40 {
   background-color: #ffe4e6 !important;
   color: #9f1239 !important;
   border-color: #fecdd3 !important;

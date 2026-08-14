@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
-import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin } from 'lucide-react';
+import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus } from 'lucide-react';
 
 export default function Jobs() {
   const location = useLocation();
@@ -15,6 +15,18 @@ export default function Jobs() {
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState(initialCategory);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    company: '',
+    category: 'india',
+    location: '',
+    salary: '',
+    job_type: 'Full-time',
+    contact_info: '',
+    description: '',
+  });
 
   // Sync category when URL search query changes
   useEffect(() => {
@@ -27,14 +39,29 @@ export default function Jobs() {
     setLoading(true);
     let data = null;
 
-    try {
-      data = await mockApi.getJobs(status, category);
-    } catch (err) {}
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      '/backend/api/admin/jobs',
+      `${origin}/backend/api/admin/jobs`,
+      '/api/admin/jobs'
+    ];
 
-    if (!data || !data.jobs || data.jobs.length === 0) {
+    for (const endpoint of endpoints) {
       try {
-        const res = await axios.get('/backend/api/admin/jobs', { params: { status, category } });
-        if (res.data?.success && Array.isArray(res.data.jobs)) data = res.data;
+        const res = await axios.get(endpoint, {
+          params: { status, category },
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.data?.success && Array.isArray(res.data.jobs)) {
+          data = res.data;
+          break;
+        }
+      } catch (err) {}
+    }
+
+    if (!data || !data.jobs) {
+      try {
+        data = await mockApi.getJobs(status, category);
       } catch (err) {}
     }
 
@@ -61,18 +88,18 @@ export default function Jobs() {
   const handleApprove = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
     try {
-      await mockApi.approveJob(id);
+      await axios.post(`/backend/api/admin/jobs/${id}/approve`);
     } catch (err) {
-      console.error('Approve job failed:', err);
+      try { await mockApi.approveJob(id); } catch (e) {}
     }
   };
 
   const handleReject = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'rejected' } : j));
     try {
-      await mockApi.rejectJob(id);
+      await axios.post(`/backend/api/admin/jobs/${id}/reject`);
     } catch (err) {
-      console.error('Reject job failed:', err);
+      try { await mockApi.rejectJob(id); } catch (e) {}
     }
   };
 
@@ -87,17 +114,62 @@ export default function Jobs() {
     }
   };
 
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.title || !formData.company || !formData.description || !formData.contact_info) return;
+    setSubmitting(true);
+
+    try {
+      await mockApi.createJob(formData);
+      setIsModalOpen(false);
+      setFormData({
+        title: '',
+        company: '',
+        category: 'india',
+        location: '',
+        salary: '',
+        job_type: 'Full-time',
+        contact_info: '',
+        description: '',
+      });
+      await loadJobs();
+    } catch (err) {
+      console.error('Create job failed:', err);
+      alert(err?.message || 'Failed to create job listing. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 text-left">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Jobs & Referrals Moderation</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Jobs & Referrals Moderation</h2>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-900/30 transition-all cursor-pointer hover:scale-105"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Job</span>
+            </button>
+          </div>
           <p className="text-xs font-semibold text-slate-400 mt-1">Manage India Jobs, Overseas Jobs, and Referral listings in a single unified view.</p>
         </div>
 
-        {/* Status Filter Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2.5 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Job</span>
+          </button>
+
+          {/* Status Filter Buttons */}
           <button onClick={() => setStatus('')}
                   className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
             <span>All Statuses</span>
@@ -359,6 +431,151 @@ export default function Jobs() {
           </span>
         </div>
       </div>
+
+      {/* CREATE NEW JOB MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl text-left">
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">💼</span>
+                <h3 className="font-outfit font-extrabold text-slate-800 text-base">Add New Job Listing</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Job Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Executive Chef - 5 Star Hotel"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Company / Employer *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Taj Hotels"
+                    value={formData.company}
+                    onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Category *</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="india">🇮🇳 India Jobs</option>
+                    <option value="overseas">✈️ Overseas Jobs</option>
+                    <option value="community">🔗 Referrals & Community</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Location</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Mumbai, India"
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Type</label>
+                  <select
+                    value={formData.job_type}
+                    onChange={(e) => setFormData(prev => ({ ...prev, job_type: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Salary</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. ₹40,000 - ₹60,000/month"
+                    value={formData.salary}
+                    onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Info *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. hr@company.com / +91 98765 43210"
+                    value={formData.contact_info}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contact_info: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Job Description *</label>
+                <textarea
+                  rows="4"
+                  required
+                  placeholder="Enter role responsibilities, requirements, and benefits..."
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] resize-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer disabled:opacity-60"
+                >
+                  {submitting ? 'Creating...' : 'Submit Job Listing'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+

@@ -211,6 +211,7 @@ Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::cl
 
     // Job Moderator Routes
     Route::get('/jobs', [JobModeratorController::class, 'index']);
+    Route::post('/jobs', [JobModeratorController::class, 'store']);
     Route::get('/jobs/{job}', [JobModeratorController::class, 'show']);
     Route::post('/jobs/{job}/approve', [JobModeratorController::class, 'approve']);
     Route::post('/jobs/{job}/reject', [JobModeratorController::class, 'reject']);

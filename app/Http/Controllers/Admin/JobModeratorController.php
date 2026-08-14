@@ -4,10 +4,24 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobPost;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class JobModeratorController extends Controller
 {
+    private function isJsonRequest(Request $request): bool
+    {
+        return $request->wantsJson() 
+            || $request->ajax() 
+            || $request->isJson() 
+            || $request->is('api/*') 
+            || $request->is('backend/api/*') 
+            || $request->is('admin/jobs*')
+            || str_contains($request->header('Accept', ''), 'application/json')
+            || str_contains($request->header('Content-Type', ''), 'application/json');
+    }
+
     /**
      * List all jobs.
      */
@@ -29,7 +43,16 @@ class JobModeratorController extends Controller
                       ->orWhere('is_referral', true);
                 });
             } elseif (in_array($cat, ['dubai', 'overseas'])) {
-                $query->where('category', $cat);
+                $query->where(function($q) {
+                    $q->where('category', 'overseas')
+                      ->orWhere('category', 'dubai');
+                });
+            } elseif ($cat === 'india') {
+                $query->where(function($q) {
+                    $q->where('category', 'india')
+                      ->orWhereNull('category')
+                      ->orWhere('category', '');
+                });
             }
         }
 
@@ -43,7 +66,7 @@ class JobModeratorController extends Controller
             'pinned'   => JobPost::where('is_pinned', true)->count(),
         ];
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+        if ($this->isJsonRequest($request)) {
             return response()->json([
                 'success' => true,
                 'jobs'    => $jobs,
@@ -53,6 +76,56 @@ class JobModeratorController extends Controller
         }
 
         return view('admin.jobs', compact('jobs'));
+    }
+
+    /**
+     * Admin creates a new job listing directly.
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'title'       => 'required|string|max:255',
+            'company'     => 'required|string|max:255',
+            'category'    => 'required|in:india,overseas,community',
+            'description' => 'required|string',
+            'contact_info'=> 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        // Find an employer or any user to attribute the job to
+        $adminUser = User::whereHas('roles', function($q) {
+            $q->whereIn('role_type', ['employer', 'admin', 'agency']);
+        })->first() ?? User::first();
+
+        $job = JobPost::create([
+            'created_by'   => $adminUser?->id ?? 1,
+            'title'        => $request->input('title'),
+            'company'      => $request->input('company'),
+            'category'     => $request->input('category'),
+            'location'     => $request->input('location', ''),
+            'salary'       => $request->input('salary', ''),
+            'job_type'     => $request->input('job_type', 'Full-time'),
+            'contact_info' => $request->input('contact_info'),
+            'description'  => $request->input('description'),
+            'status'       => 'approved', // Admin-created jobs are auto-approved
+            'is_pinned'    => false,
+            'submitted_by_role' => 'admin',
+        ]);
+
+        $job->load('creator');
+
+        return response()->json([
+            'success' => true,
+            'message' => "Job listing '{$job->title}' created successfully.",
+            'job'     => $job,
+        ], 201);
     }
 
     /**
@@ -143,5 +216,127 @@ class JobModeratorController extends Controller
         }
 
         return view('admin.job_detail', compact('job'));
+    }
+
+    /**
+     * Store a new job post directly into job_posts table.
+     */
+    public function store(Request $request)
+    {
+        try {
+            $request->validate([
+                'title'     => 'required|string|max:255',
+                'location'  => 'required|string|max:255',
+            ]);
+
+            $adminUser = auth()->user();
+            if (!$adminUser) {
+                $tokenStr = $request->bearerToken();
+                if ($tokenStr) {
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                    if (!$tokenObj && str_contains($tokenStr, '|')) {
+                        $tokenId = explode('|', $tokenStr)[0];
+                        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                    }
+                    if ($tokenObj) {
+                        $adminUser = $tokenObj->tokenable;
+                    }
+                }
+            }
+
+            if (!$adminUser && \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                $adminUser = \App\Models\User::where('active_profile', 'admin')->first()
+                    ?: \App\Models\User::where('active_profile', 'employer')->first();
+            }
+
+            if (!$adminUser) {
+                $adminUser = \App\Models\User::first();
+            }
+
+            if (!$adminUser) {
+                // Ensure a valid user record exists for the foreign key constraint
+                $adminUser = \App\Models\User::create([
+                    'full_name'      => 'System Administrator',
+                    'name'           => 'System Administrator',
+                    'mobile_number'  => '9999999999',
+                    'active_profile' => 'employer',
+                    'is_available'   => true,
+                ]);
+            }
+
+            $userId = $adminUser->id;
+
+            $category = strtolower(trim($request->input('category', 'india')));
+            if (!in_array($category, ['india', 'overseas', 'community'])) {
+                $category = 'india';
+            }
+
+            $salaryMin = $request->filled('salary_min') ? floatval($request->salary_min) : null;
+            $salaryMax = $request->filled('salary_max') ? floatval($request->salary_max) : null;
+            $salaryCurrency = $request->input('salary_currency', 'INR');
+
+            $salaryStr = $request->input('salary');
+            if (!$salaryStr) {
+                if ($salaryMin && $salaryMax) {
+                    $salaryStr = "{$salaryCurrency} {$salaryMin} - {$salaryMax}";
+                } elseif ($salaryMin) {
+                    $salaryStr = "{$salaryCurrency} {$salaryMin}";
+                } else {
+                    $salaryStr = "Best in Industry";
+                }
+            }
+
+            $contactPerson = $request->input('contact_person') ?: ($adminUser ? ($adminUser->full_name ?: $adminUser->name) : 'Hiring Manager');
+            $contactInfo   = $request->input('contact_info') ?: ($adminUser ? ($adminUser->email ?: $adminUser->mobile_number) : 'contact@jobrito.com');
+            $description   = $request->input('description') ?: "Job Opportunity for {$request->input('title')} in {$request->input('location')}. Apply now on Jobrito.";
+
+            $job = JobPost::create([
+                'created_by'                => $userId,
+                'title'                     => $request->input('title'),
+                'company'                   => $request->input('company') ?: 'Jobrito Partner',
+                'location'                  => $request->input('location'),
+                'category'                  => $category,
+                'salary'                    => $salaryStr,
+                'salary_min'                => $salaryMin,
+                'salary_max'                => $salaryMax,
+                'salary_currency'           => $salaryCurrency,
+                'experience_range'          => $request->input('experience_range', '1-3 Years'),
+                'job_type'                  => $request->input('job_type', 'Full-Time'),
+                'open_positions'            => intval($request->input('open_positions', 1)),
+                'description'               => $description,
+                'contact_person'            => $contactPerson,
+                'contact_info'              => $contactInfo,
+                'status'                    => $request->input('status', 'approved'),
+                'is_pinned'                 => filter_var($request->input('is_pinned', false), FILTER_VALIDATE_BOOLEAN),
+                'is_referral'               => filter_var($request->input('is_referral', false), FILTER_VALIDATE_BOOLEAN),
+                'submitted_by_role'         => 'employer',
+                'country'                   => $request->input('country') ?: 'India',
+                'visa_assistance'           => filter_var($request->input('visa_assistance', false), FILTER_VALIDATE_BOOLEAN),
+                'accommodation_available'   => filter_var($request->input('accommodation_available', false), FILTER_VALIDATE_BOOLEAN),
+            ]);
+
+            $job->load('creator');
+
+            if ($this->isJsonRequest($request)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Job posting '{$job->title}' created successfully!",
+                    'job'     => $job
+                ], 201);
+            }
+
+            return redirect()->back()->with('success', "Job posting '{$job->title}' created successfully!");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Admin store job failed: ' . $e->getMessage());
+
+            if ($this->isJsonRequest($request)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create job posting: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to create job posting: ' . $e->getMessage());
+        }
     }
 }

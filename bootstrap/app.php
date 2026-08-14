@@ -19,9 +19,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'webhook/deploy',
             'api/*',
+            'backend/api/*',
             'admin/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request, \Throwable $e) {
+            if ($request->is('backend/api/*') || $request->is('api/*') || $request->is('admin/*')) {
+                return true;
+            }
+            return $request->expectsJson();
+        });
     })->create();

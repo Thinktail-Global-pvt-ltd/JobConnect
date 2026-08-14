@@ -140,7 +140,7 @@ export default function Layout({ children }) {
   const isLight = theme === THEMES.LIGHT;
   const isEmerald = theme === THEMES.EMERALD;
 
-  const bgOuterClass = isLight ? 'bg-slate-100 font-sans text-slate-900 min-h-screen flex w-full text-left overflow-x-hidden' : isEmerald ? 'bg-[#011C14] font-sans text-emerald-100 min-h-screen flex w-full text-left overflow-x-hidden' : 'bg-[#090D16] font-sans text-slate-100 min-h-screen flex w-full text-left overflow-x-hidden';
+  const bgOuterClass = isLight ? 'admin-panel-root bg-slate-100 font-sans text-slate-900 min-h-screen flex w-full text-left overflow-x-hidden' : isEmerald ? 'admin-panel-root bg-[#011C14] font-sans text-emerald-100 min-h-screen flex w-full text-left overflow-x-hidden' : 'admin-panel-root bg-[#090D16] font-sans text-slate-100 min-h-screen flex w-full text-left overflow-x-hidden';
   
   const sidebarClass = isLight ? 'bg-slate-900 border-r border-slate-800' : isEmerald ? 'bg-[#01140E] border-r border-emerald-950/80' : 'bg-[#0B1120] border-r border-[#1E293B]';
   
@@ -156,18 +156,12 @@ export default function Layout({ children }) {
         <div className={`py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'px-2 justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
             <>
-              <Link to="/admin/dashboard" className="flex items-center gap-2 py-0.5">
-                <div className="bg-white px-3 py-1.5 rounded-2xl shadow-md border border-white/20 flex items-center justify-center overflow-hidden">
-                  <img 
-                    src={orbLogo} 
-                    alt="Jobrito - Connecting Hospitality Talent" 
-                    className="h-14 w-auto object-contain max-w-[190px] scale-110" 
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = logoWhiteImg;
-                    }}
-                  />
-                </div>
+              <Link to="/admin/dashboard" className="flex items-center gap-2 py-1">
+                <img 
+                  src={logoWhiteImg} 
+                  alt="Jobrito — Connecting Hospitality Talent" 
+                  className="h-9 w-auto object-contain" 
+                />
               </Link>
               <button 
                 onClick={() => setIsCollapsed(true)}

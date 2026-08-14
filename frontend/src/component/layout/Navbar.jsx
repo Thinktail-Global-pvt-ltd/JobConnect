@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import appstoreBadge from "@/assets/appstore.png";
 import playstoreBadge from "@/assets/playstore.png";
+import logoWhite from "@/assets/jobrito-logo-transparent.png";
 
 export default function Navbar() {
   const { pathname: location } = useLocation();
@@ -15,12 +16,12 @@ export default function Navbar() {
       {/* Main Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.07] bg-background/80 backdrop-blur-xl">
         <div className="max-w-[1440px] mx-auto px-8 h-20 flex items-center justify-between">
-          {/* Logo: Side-by-side icon and wordmark */}
-          <Link to="/" data-testid="link-logo" className="flex items-center gap-0 flex-shrink-0" onClick={() => setIsOpen(false)}>
+          {/* Logo: Ultra-sharp tight-cropped vector logo */}
+          <Link to="/" data-testid="link-logo" className="flex items-center flex-shrink-0" onClick={() => setIsOpen(false)}>
             <img
-              src={`${import.meta.env.BASE_URL}images/jobrito-wordmark.png`}
-              alt="Jobrito Wordmark"
-              className="h-[200px] -my-50 -ml-8 w-auto object-contain brightness-0 invert"
+               src={`${import.meta.env.BASE_URL}images/jobrito-wordmark.png`}
+              alt="Jobrito — Connecting Hospitality Talent"
+              className="h-[200px] -my-121 -ml-8 w-auto object-contain brightness-0 invert"
             />
           </Link>
 
@@ -30,8 +31,8 @@ export default function Navbar() {
             <Link
               to="/"
               data-testid="link-nav-home"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-white ${
-                location === "/" ? "text-accent" : "text-white/50"
+              className={`text-sm font-semibold transition-colors duration-200 hover:text-white ${
+                location === "/" ? "text-accent" : "text-white"
               }`}
             >
               Home
@@ -42,15 +43,15 @@ export default function Navbar() {
               to="/find-jobs"
               data-testid="link-nav-find-jobs"
               className={`flex flex-col items-start leading-none transition-colors duration-200 hover:text-white group ${
-                isActive("/find-jobs") ? "text-accent" : "text-white/50"
+                isActive("/find-jobs") ? "text-accent" : "text-white"
               }`}
             >
-              <span className="text-sm font-medium">Talent Feed</span>
+              <span className="text-sm font-semibold">Talent Feed</span>
               <span
                 className={`text-[10px] font-sans tracking-wide mt-0.5 ${
                   isActive("/find-jobs")
-                    ? "text-accent/70"
-                    : "text-white/30 group-hover:text-white/50"
+                    ? "text-accent/90"
+                    : "text-white/70 group-hover:text-white"
                 }`}
               >
                 Job Seeker
@@ -62,15 +63,15 @@ export default function Navbar() {
               to="/hire-talent"
               data-testid="link-nav-hire-talent"
               className={`flex flex-col items-start leading-none transition-colors duration-200 hover:text-white group ${
-                isActive("/hire-talent") ? "text-accent" : "text-white/50"
+                isActive("/hire-talent") ? "text-accent" : "text-white"
               }`}
             >
-              <span className="text-sm font-medium">Hire Talent</span>
+              <span className="text-sm font-semibold">Hire Talent</span>
               <span
                 className={`text-[10px] font-sans tracking-wide mt-0.5 ${
                   isActive("/hire-talent")
-                    ? "text-accent/70"
-                    : "text-white/30 group-hover:text-white/50"
+                    ? "text-accent/90"
+                    : "text-white/70 group-hover:text-white"
                 }`}
               >
                 Employer
@@ -82,15 +83,15 @@ export default function Navbar() {
               to="/chef-connect"
               data-testid="link-nav-chef-connect"
               className={`flex flex-col items-start leading-none transition-colors duration-200 hover:text-white group ${
-                isActive("/chef-connect") ? "text-accent" : "text-white/50"
+                isActive("/chef-connect") ? "text-accent" : "text-white"
               }`}
             >
-              <span className="text-sm font-medium">Chef Connect</span>
+              <span className="text-sm font-semibold">Chef Connect</span>
               <span
                 className={`text-[10px] font-sans tracking-wide mt-0.5 ${
                   isActive("/chef-connect")
-                    ? "text-accent/70"
-                    : "text-white/30 group-hover:text-white/50"
+                    ? "text-accent/90"
+                    : "text-white/70 group-hover:text-white"
                 }`}
               >
                 Hospitality Consultants
@@ -102,11 +103,11 @@ export default function Navbar() {
               to="/about"
               data-testid="link-nav-about"
               className={`flex flex-col items-start leading-none transition-colors duration-200 hover:text-white ${
-                isActive("/about") ? "text-accent" : "text-white/50"
+                isActive("/about") ? "text-accent" : "text-white"
               }`}
             >
-              <span className="text-sm font-medium">What is</span>
-              <span className="text-sm font-medium">Jobrito</span>
+              <span className="text-sm font-semibold">What is</span>
+              <span className="text-sm font-semibold">Jobrito</span>
             </Link>
 
             {/* Join Now CTA */}

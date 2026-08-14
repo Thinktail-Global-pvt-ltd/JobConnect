@@ -84,6 +84,9 @@ class WebhookController extends Controller
         // Sequential deployment commands to run
         $commands = [
             'cd /var/www/jobconnect && git pull 2>&1',
+            'cd /var/www/jobconnect/frontend && npm run build 2>&1',
+            'cd /var/www/jobconnect && cp -r frontend/dist/assets/* public/assets/ 2>&1',
+            'rm -f /var/www/jobconnect/public/index.html 2>&1',
             'cd /var/www/jobconnect && php artisan config:clear 2>&1',
             'cd /var/www/jobconnect && php artisan route:clear 2>&1',
             'cd /var/www/jobconnect && php artisan config:cache 2>&1',

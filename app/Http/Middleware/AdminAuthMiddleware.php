@@ -20,7 +20,13 @@ class AdminAuthMiddleware
             return $next($request);
         }
 
-        if (!session('admin_authenticated') && !$request->wantsJson()) {
+        if (!session('admin_authenticated')) {
+            if ($request->wantsJson() || $request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Admin authentication required. Please log in to the admin panel.',
+                ], 401);
+            }
             return redirect('/admin/login');
         }
 
