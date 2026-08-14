@@ -43,7 +43,8 @@ export default function Jobs() {
     const endpoints = [
       '/backend/api/admin/jobs',
       `${origin}/backend/api/admin/jobs`,
-      '/api/admin/jobs'
+      '/api/admin/jobs',
+      'http://178.16.138.159/backend/api/admin/jobs'
     ];
 
     for (const endpoint of endpoints) {
@@ -56,12 +57,6 @@ export default function Jobs() {
           data = res.data;
           break;
         }
-      } catch (err) {}
-    }
-
-    if (!data || !data.jobs) {
-      try {
-        data = await mockApi.getJobs(status, category);
       } catch (err) {}
     }
 
