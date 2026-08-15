@@ -799,6 +799,7 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
 }
 }
 
+if (!function_exists('getWebTrainingOpportunities')) {
 function getWebTrainingOpportunities() {
     try {
         $hasIsPinned = \Illuminate\Support\Facades\Schema::hasColumn('training_opportunities', 'is_pinned');
@@ -867,6 +868,7 @@ function getWebTrainingOpportunities() {
             'message' => $e->getMessage()
         ], 500);
     }
+}
 }
 
 // Admin User Store Endpoints in web.php
