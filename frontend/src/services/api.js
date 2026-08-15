@@ -794,25 +794,21 @@ export const mockApi = {
   // CHEF MODERATION APIs (live Laravel backend)
   // ==========================================
   getChefs: async (status = '') => {
-    try {
-      const res = await realApi.get('/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
-        return res.data;
-      }
-    } catch (e) {}
-    try {
-      const res = await axios.get('/backend/api/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
-        return res.data;
-      }
-    } catch (e) {}
-    try {
-      const res = await axios.get('/admin/chefs', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
-        return res.data;
-      }
-    } catch (e) {}
-
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      'http://178.16.138.159/backend/api/admin/chefs',
+      `${origin}/backend/api/admin/chefs`,
+      '/backend/api/admin/chefs',
+      '/api/admin/chefs'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { params: { status }, headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+          return res.data;
+        }
+      } catch (e) {}
+    }
     let chefs = mockDb.getChefs();
     if (status) {
       chefs = chefs.filter(c => (c.status === status || c.approval_status === status));
@@ -821,98 +817,93 @@ export const mockApi = {
   },
 
   getEmployerChefs: async () => {
-    try {
-      const res = await realApi.get('/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
-        return res.data;
-      }
-    } catch (e) {}
-    try {
-      const res = await axios.get('/backend/api/employer/chefs');
-      if (res.data && res.data.success && Array.isArray(res.data.chefs) && res.data.chefs.length > 0) {
-        return res.data;
-      }
-    } catch (e) {}
-
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      'http://178.16.138.159/backend/api/employer/chefs',
+      `${origin}/backend/api/employer/chefs`,
+      '/backend/api/employer/chefs',
+      '/api/employer/chefs'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+          return res.data;
+        }
+      } catch (e) {}
+    }
     let chefs = mockDb.getChefs();
     return { success: true, chefs: chefs.filter(c => (c.status === 'approved' || c.approval_status === 'approved')) };
   },
 
   approveChef: async (id) => {
-    try {
-      const res = await realApi.post(`/api/admin/chefs/${id}/approve`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`/backend/api/admin/chefs/${id}/approve`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      `http://178.16.138.159/backend/api/admin/chefs/${id}/approve`,
+      `${origin}/backend/api/admin/chefs/${id}/approve`,
+      `/backend/api/admin/chefs/${id}/approve`,
+      `/api/admin/chefs/${id}/approve`
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, {}, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return { success: true };
   },
 
   rejectChef: async (id) => {
-    try {
-      const res = await realApi.post(`/api/admin/chefs/${id}/reject`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`/backend/api/admin/chefs/${id}/reject`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      `http://178.16.138.159/backend/api/admin/chefs/${id}/reject`,
+      `${origin}/backend/api/admin/chefs/${id}/reject`,
+      `/backend/api/admin/chefs/${id}/reject`,
+      `/api/admin/chefs/${id}/reject`
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, {}, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return { success: true };
   },
 
   unpublishChef: async (id) => {
-    try {
-      const res = await realApi.post(`/api/admin/chefs/${id}/unpublish`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`/backend/api/admin/chefs/${id}/unpublish`);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      `http://178.16.138.159/backend/api/admin/chefs/${id}/unpublish`,
+      `${origin}/backend/api/admin/chefs/${id}/unpublish`,
+      `/backend/api/admin/chefs/${id}/unpublish`,
+      `/api/admin/chefs/${id}/unpublish`
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, {}, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return { success: true };
   },
 
   createChef: async (chefData) => {
-    const newChef = {
-      id: Date.now(),
-      user_id: Date.now(),
-      full_name: chefData.full_name,
-      name: chefData.full_name,
-      email: chefData.email || `chef.${Date.now()}@hospitality.com`,
-      mobile_number: chefData.mobile_number || '9876543210',
-      city: chefData.city || 'Bengaluru',
-      experience_range: chefData.experience_range || '8-12 years',
-      experience: chefData.experience_range || '8-12 years',
-      preferred_role: chefData.preferred_role || 'Executive Chef',
-      cuisine_specialty: chefData.cuisine_specialty || 'Multi-Cuisine',
-      specialties: chefData.cuisine_specialty || 'Multi-Cuisine',
-      bio: chefData.bio || '',
-      calendly_link: chefData.calendly_link || '',
-      calendly: Boolean(chefData.calendly_link),
-      approval_status: chefData.approval_status || 'approved',
-      status: chefData.approval_status || 'approved',
-      skills: Array.isArray(chefData.skills) ? chefData.skills : (chefData.skills ? chefData.skills.split(',') : []),
-    };
-
-    // Save to local mockDb so it persists even in fallback/offline
-    const currentChefs = mockDb.getChefs();
-    mockDb.setChefs([newChef, ...currentChefs]);
-
-    try {
-      const res = await realApi.post('/api/admin/chefs/create', chefData);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios createChef /api/admin/chefs/create failed, trying /backend/...", e);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      'http://178.16.138.159/backend/api/admin/chefs/create',
+      `${origin}/backend/api/admin/chefs/create`,
+      '/backend/api/admin/chefs/create',
+      '/api/admin/chefs/create'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, chefData, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) {
+          return res.data;
+        }
+      } catch (e) {}
     }
-    try {
-      const res = await axios.post('/backend/api/admin/chefs/create', chefData);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {
-      console.warn("Axios createChef /backend/api/admin/chefs/create failed", e);
-    }
-    return { success: true, chef: newChef };
+    return { success: true, chef: chefData };
   },
 
   getTrainingPrograms: async () => {
