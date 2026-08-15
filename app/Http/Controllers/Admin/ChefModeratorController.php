@@ -63,27 +63,7 @@ class ChefModeratorController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->wantsJson() || $request->ajax() || $request->isJson() || $request->is('api/*') || $request->header('Accept') === 'application/json') {
-            return $this->apiIndex($request);
-        }
-
-        $profiles = $this->syncAndGetChefProfiles();
-        $chefs = $profiles;
-
-        // Fetch dynamic stats for dashboard cards from synced profiles
-        $allProfiles = $profiles;
-        $pendingCount = $allProfiles->where('approval_status', 'pending')->count();
-        $approvedCount = $allProfiles->where('approval_status', 'approved')->count();
-        $totalChefs = $allProfiles->count();
-        $calendlyLinkedCount = $allProfiles->filter(fn($p) => !empty($p->calendly_link))->count();
-        $calendlySyncPercentage = $totalChefs > 0 ? round(($calendlyLinkedCount / $totalChefs) * 100) : 0;
-
-        // Fetch all employers for coordination appointments
-        $employers = User::whereHas('roles', function($q) {
-            $q->where('role_type', 'employer');
-        })->orderBy('full_name', 'asc')->get();
-
-        return view('admin.chefs', compact('chefs', 'employers', 'pendingCount', 'approvedCount', 'totalChefs', 'calendlySyncPercentage'));
+        return $this->apiIndex($request);
     }
 
     /**

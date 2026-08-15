@@ -75,15 +75,11 @@ class UserModeratorController extends Controller
 
         $users = $query->latest()->get();
 
-        if ($this->isJsonRequest($request)) {
-            return response()->json([
-                'success' => true,
-                'users'   => $users,
-                'total'   => $users->count()
-            ]);
-        }
-
-        return view('admin.users', compact('users'));
+        return response()->json([
+            'success' => true,
+            'users'   => $users,
+            'total'   => $users->count()
+        ]);
     }
 
     /**

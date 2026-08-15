@@ -92,20 +92,11 @@ class EmployerModeratorController extends Controller
                 $epq->where('is_completed', false);
             })->count();
 
-        if ($request->wantsJson() || $request->ajax() || $request->isJson() || $request->is('api/*')) {
-            return response()->json([
-                'success' => true,
-                'total' => $employers->count(),
-                'employers' => $employers
-            ]);
-        }
-
-        return view('admin.employers', compact(
-            'employers',
-            'totalActiveEmployers',
-            'totalNewPostings',
-            'pendingVerificationCount'
-        ));
+        return response()->json([
+            'success' => true,
+            'total' => $employers->count(),
+            'employers' => $employers
+        ]);
     }
 
     /**

@@ -29,12 +29,30 @@ use Illuminate\Support\Facades\Route;
 // Root Feed Page Route (View)
 Route::get('/', [WebHomeController::class, 'index'])->name('home');
 
-// Direct 100% Public JSON API Endpoints for Chef Moderation (matching sidebar-stats pattern)
+// Direct 100% Public JSON API Endpoints for Admin Panels (matching sidebar-stats pattern)
 Route::match(['get', 'post'], '/api/admin/chefs', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\ChefModeratorController)->apiIndex($request);
 });
 Route::match(['get', 'post'], '/backend/api/admin/chefs', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\ChefModeratorController)->apiIndex($request);
+});
+Route::match(['get', 'post'], '/api/admin/users', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\UserModeratorController)->index($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/users', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\UserModeratorController)->index($request);
+});
+Route::match(['get', 'post'], '/api/admin/employers', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\EmployerModeratorController)->index($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/employers', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\EmployerModeratorController)->index($request);
+});
+Route::match(['get', 'post'], '/api/admin/jobs', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->index($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/jobs', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->index($request);
 });
 Route::match(['get', 'post'], '/api/admin/chefs/create', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\ChefModeratorController)->store($request);

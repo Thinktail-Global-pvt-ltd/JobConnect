@@ -32,12 +32,9 @@ export default function Users() {
     setLoading(true);
     let data = null;
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      'http://178.16.138.159/backend/api/admin/users',
-      '/backend/api/admin/users',
-      `${origin}/backend/api/admin/users`,
-      '/api/admin/users'
+      '/api/admin/users',
+      '/backend/api/admin/users'
     ];
 
     for (const endpoint of endpoints) {

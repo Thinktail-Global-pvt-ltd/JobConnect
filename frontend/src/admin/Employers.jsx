@@ -27,19 +27,18 @@ export default function Employers() {
   const fetchEmployers = async (searchVal = search, tabVal = tab) => {
     setLoading(true);
     const params = { search: searchVal, tab: tabVal };
-    let data = null;
+    const endpoints = [
+      '/api/admin/employers',
+      '/backend/api/admin/employers'
+    ];
 
-    // 1. Try realApi (Vite proxy → localhost:8000 in dev)
-    try {
-      const res = await realApi.get('/api/admin/employers', { params });
-      if (res.data?.success && Array.isArray(res.data.employers)) data = res.data.employers;
-    } catch (e) {}
-
-    // 2. /backend/ path (production: jobrito.com)
-    if (!data) {
+    for (const ep of endpoints) {
       try {
-        const res = await axios.get('/backend/api/admin/employers', { params });
-        if (res.data?.success && Array.isArray(res.data.employers)) data = res.data.employers;
+        const res = await axios.get(ep, { params, headers: { Accept: 'application/json' } });
+        if (res.data?.success && Array.isArray(res.data.employers)) {
+          data = res.data.employers;
+          break;
+        }
       } catch (e) {}
     }
 

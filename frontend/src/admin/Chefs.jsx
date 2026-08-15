@@ -62,12 +62,9 @@ export default function Chefs() {
     setLoading(true);
     let data = null;
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
       '/api/admin/chefs',
-      '/backend/api/admin/chefs',
-      `${origin}/api/admin/chefs`,
-      'http://178.16.138.159/backend/api/admin/chefs'
+      '/backend/api/admin/chefs'
     ];
 
     for (const endpoint of endpoints) {

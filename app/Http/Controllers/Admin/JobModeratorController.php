@@ -66,16 +66,12 @@ class JobModeratorController extends Controller
             'pinned'   => JobPost::where('is_pinned', true)->count(),
         ];
 
-        if ($this->isJsonRequest($request)) {
-            return response()->json([
-                'success' => true,
-                'jobs'    => $jobs,
-                'stats'   => $stats,
-                'total'   => $jobs->count()
-            ]);
-        }
-
-        return view('admin.jobs', compact('jobs'));
+        return response()->json([
+            'success' => true,
+            'jobs'    => $jobs,
+            'stats'   => $stats,
+            'total'   => $jobs->count()
+        ]);
     }
 
 

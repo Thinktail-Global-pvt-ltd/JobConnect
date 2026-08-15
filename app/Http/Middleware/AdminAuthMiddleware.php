@@ -16,7 +16,7 @@ class AdminAuthMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if ($request->is('admin/login')) {
+        if ($request->is('admin/login') || $request->is('api/*') || $request->is('backend/api/*')) {
             return $next($request);
         }
 
