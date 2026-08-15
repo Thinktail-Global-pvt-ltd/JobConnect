@@ -34,12 +34,23 @@ export default function Chefs() {
     approval_status: 'approved',
   });
 
-  // Fetch Public Employer Discovery Chefs (GET /api/employer/chefs)
+  // Fetch Public Employer Discovery Chefs (GET /backend/api/employer/chefs)
   const fetchPublishedEmployerChefs = async () => {
     try {
-      const data = await mockApi.getEmployerChefs();
-      if (data && data.success && Array.isArray(data.chefs)) {
-        setPublishedChefs(data.chefs);
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const endpoints = [
+        '/backend/api/employer/chefs',
+        `${origin}/backend/api/employer/chefs`,
+        '/api/employer/chefs'
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await axios.get(ep, { headers: { Accept: 'application/json' } });
+          if (res.data && (res.data.success || res.data.status === 'success') && Array.isArray(res.data.chefs)) {
+            setPublishedChefs(res.data.chefs);
+            break;
+          }
+        } catch (e) {}
       }
     } catch (err) {
       console.error('Failed to load employer published chefs feed:', err);
@@ -53,7 +64,6 @@ export default function Chefs() {
 
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      'http://178.16.138.159/backend/api/admin/chefs',
       '/backend/api/admin/chefs',
       `${origin}/backend/api/admin/chefs`,
       '/api/admin/chefs'
@@ -65,7 +75,7 @@ export default function Chefs() {
           params: { status: statusFilter },
           headers: { Accept: 'application/json' }
         });
-        if (res.data?.success && (Array.isArray(res.data.chefs) || Array.isArray(res.data.profiles) || Array.isArray(res.data.data))) {
+        if (res.data && (res.data.success || res.data.status === 'success') && (Array.isArray(res.data.chefs) || Array.isArray(res.data.profiles) || Array.isArray(res.data.data))) {
           data = res.data;
           break;
         }
@@ -83,12 +93,24 @@ export default function Chefs() {
 
   useEffect(() => {
     loadChefs();
+    fetchPublishedEmployerChefs();
   }, [statusFilter]);
 
   const handleApprove = async (id) => {
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
     try {
-      await mockApi.approveChef(id);
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const endpoints = [
+        `/backend/api/admin/chefs/${id}/approve`,
+        `${origin}/backend/api/admin/chefs/${id}/approve`,
+        `/api/admin/chefs/${id}/approve`
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
+          if (res.data && res.data.success) break;
+        } catch (e) {}
+      }
     } catch (err) {
       console.error('Approve failed:', err);
     } finally {
@@ -97,14 +119,23 @@ export default function Chefs() {
   };
 
   const handleUnpublish = async (id) => {
-    // Optimistic UI: instantly flip status to pending and show Publish button
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'pending', approval_status: 'pending' } : c));
     try {
-      await mockApi.unpublishChef(id);
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const endpoints = [
+        `/backend/api/admin/chefs/${id}/unpublish`,
+        `${origin}/backend/api/admin/chefs/${id}/unpublish`,
+        `/api/admin/chefs/${id}/unpublish`
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
+          if (res.data && res.data.success) break;
+        } catch (e) {}
+      }
     } catch (err) {
       console.error('Unpublish failed:', err);
     } finally {
-      // Refresh both admin table and employer preview
       await loadChefs();
     }
   };
@@ -112,7 +143,18 @@ export default function Chefs() {
   const handleReject = async (id) => {
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
     try {
-      await mockApi.rejectChef(id);
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const endpoints = [
+        `/backend/api/admin/chefs/${id}/reject`,
+        `${origin}/backend/api/admin/chefs/${id}/reject`,
+        `/api/admin/chefs/${id}/reject`
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
+          if (res.data && res.data.success) break;
+        } catch (e) {}
+      }
     } catch (err) {
       console.error('Reject failed:', err);
     } finally {
@@ -128,45 +170,35 @@ export default function Chefs() {
     }
     setSubmitting(true);
 
-    const tempNewChef = {
-      id: Date.now(),
-      user_id: Date.now(),
-      full_name: formData.full_name,
-      name: formData.full_name,
-      email: formData.email || `chef.${Date.now()}@hospitality.com`,
-      mobile_number: formData.mobile_number || '9876543210',
-      city: formData.city,
-      experience_range: formData.experience_range,
-      cuisine_specialty: formData.cuisine_specialty,
-      specialties: formData.cuisine_specialty,
-      bio: formData.bio,
-      calendly_link: formData.calendly_link,
-      calendly: Boolean(formData.calendly_link),
-      approval_status: formData.approval_status || 'approved',
-      status: formData.approval_status || 'approved',
-    };
-
-    // Optimistic UI state update
-    setChefs(prev => [tempNewChef, ...prev.filter(c => c.id !== tempNewChef.id)]);
-    if (tempNewChef.approval_status === 'approved') {
-      setPublishedChefs(prev => [tempNewChef, ...prev.filter(c => c.id !== tempNewChef.id)]);
-    }
-
+    let success = false;
     try {
-      const res = await mockApi.createChef(formData);
-      if (res && res.success === false) {
-        alert("Onboarding failed: " + (res.message || "Unknown error"));
-      } else {
-        alert("Chef Onboarded Successfully!");
-        setIsOnboardModalOpen(false);
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const endpoints = [
+        '/backend/api/admin/chefs/create',
+        `${origin}/backend/api/admin/chefs/create`,
+        '/api/admin/chefs/create'
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await axios.post(ep, formData, { headers: { Accept: 'application/json' } });
+          if (res.data && res.data.success) {
+            success = true;
+            break;
+          }
+        } catch (e) {}
       }
     } catch (err) {
-      console.error('Chef onboarding failed:', err);
-      alert("Error onboarding chef: " + err.message);
-    } finally {
-      setSubmitting(false);
-      await loadChefs();
+      console.error('Onboard chef failed:', err);
     }
+
+    if (success) {
+      alert("Chef Onboarded Successfully!");
+      setIsOnboardModalOpen(false);
+      await loadChefs();
+    } else {
+      alert("Onboarding failed. Please check backend connection.");
+    }
+    setSubmitting(false);
   };
 
   // Dynamic KPI Stats calculation
