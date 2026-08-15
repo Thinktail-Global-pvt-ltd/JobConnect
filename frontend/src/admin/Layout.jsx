@@ -156,31 +156,37 @@ export default function Layout({ children }) {
         <div className={`py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'px-2 justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
             <>
-              <Link to="/admin/dashboard" className="flex items-center gap-2 py-1">
-                <img 
-                  src={logoWhiteImg} 
-                  alt="Jobrito — Connecting Hospitality Talent" 
-                  className="h-9 w-auto object-contain" 
-                />
+              <Link to="/admin/dashboard" className="flex items-center gap-3 py-1 group">
+                <div className="w-9 h-9 rounded-full bg-white/10 p-0.5 shadow-sm border border-white/20 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-200">
+                  <img 
+                    src={orbLogo} 
+                    alt="Jobrito Orb" 
+                    className="w-full h-full object-contain scale-110" 
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-lg tracking-tight text-white leading-none">
+                    Jobrito
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium tracking-wide leading-tight mt-0.5">
+                    Connecting Hospitality
+                  </span>
+                </div>
               </Link>
               <button 
                 onClick={() => setIsCollapsed(true)}
-                className="p-1.5 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-400 hover:text-white transition-all"
+                className="p-1.5 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-400 hover:text-white transition-all ml-auto"
                 title="Collapse Sidebar"
               >
                 <PanelLeftClose className="w-4 h-4 text-slate-400" />
               </button>
             </>
           ) : (
-            <Link to="/admin/dashboard" title="Jobrito Dashboard" className="w-10 h-10 rounded-2xl bg-white p-1 shadow-md border border-slate-200 flex items-center justify-center overflow-hidden hover:scale-105 transition-all">
+            <Link to="/admin/dashboard" title="Jobrito Dashboard" className="w-10 h-10 rounded-full bg-white/10 p-0.5 shadow-md border border-white/20 flex items-center justify-center overflow-hidden hover:scale-110 transition-all duration-200">
               <img 
                 src={orbLogo} 
                 alt="Jobrito" 
-                className="w-full h-full object-contain scale-125" 
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = logoWhiteImg;
-                }}
+                className="w-full h-full object-contain scale-110" 
               />
             </Link>
           )}
