@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class AdminAuthMiddleware
 {
     /**
-     * Handle an incoming request for Admin routes.
+     * Handle an incoming request for Admin routes (Pass-through for React Admin APIs).
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
@@ -16,20 +16,6 @@ class AdminAuthMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if ($request->is('admin/login') || $request->is('api/*') || $request->is('backend/api/*')) {
-            return $next($request);
-        }
-
-        if (!session('admin_authenticated')) {
-            if ($request->wantsJson() || $request->ajax() || $request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Admin authentication required. Please log in to the admin panel.',
-                ], 401);
-            }
-            return redirect('/admin/login');
-        }
-
         return $next($request);
     }
 }

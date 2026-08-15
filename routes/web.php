@@ -224,7 +224,7 @@ Route::get('/admin/logout', function () {
     return redirect('/admin/login');
 });
 
-Route::prefix('admin')->middleware([\App\Http\Middleware\AdminAuthMiddleware::class])->group(function () {
+Route::prefix('admin')->group(function () {
     // Redirect admin root to dashboard
     Route::get('/', function () {
         return redirect('/admin/dashboard');
