@@ -29,6 +29,12 @@ use Illuminate\Support\Facades\Route;
 // Root Feed Page Route (View)
 Route::get('/', [WebHomeController::class, 'index'])->name('home');
 
+// Direct Backend API Routes for Chef Moderation
+Route::match(['get', 'post'], '/backend/api/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
+Route::match(['get', 'post'], '/api/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
+Route::match(['get', 'post'], '/backend/api/employer/chefs', [\App\Http\Controllers\ChefProfileController::class, 'employerFeed']);
+Route::match(['get', 'post'], '/api/employer/chefs', [\App\Http\Controllers\ChefProfileController::class, 'employerFeed']);
+
 // Backend API Prefix Route Group (enables /backend/api/... endpoints directly)
 Route::prefix('backend/api')->middleware('api')->group(function () {
     require __DIR__ . '/api.php';
