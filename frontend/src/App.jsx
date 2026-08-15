@@ -121,26 +121,26 @@ function App() {
         <Route path="/help-support" element={<HelpSupport />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
 
-        {/* Admin Panel Authentication & Protected Control Mappings */}
+        {/* Admin Panel Mappings */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin/dashboard" element={<ProtectedAdminRoute><Layout><Dashboard /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/users" element={<ProtectedAdminRoute><Layout><Users /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/jobs" element={<ProtectedAdminRoute><Layout><Jobs /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/jobs/:id" element={<ProtectedAdminRoute><Layout><JobDetail /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/referrals" element={<ProtectedAdminRoute><Layout><Referrals /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/community" element={<ProtectedAdminRoute><Layout><CommunityFeed /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/live-feed" element={<ProtectedAdminRoute><Layout><LiveFeed /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/training" element={<ProtectedAdminRoute><Layout><Training /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/training/edit" element={<ProtectedAdminRoute><Layout><EditTraining /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/chefs" element={<ProtectedAdminRoute><Layout><Chefs /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/employers" element={<ProtectedAdminRoute><Layout><Employers /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/employers/:id" element={<ProtectedAdminRoute><Layout><EmployerDetail /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/enquiries" element={<ProtectedAdminRoute><Layout><Enquiries /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/settings" element={<ProtectedAdminRoute><Layout><Settings /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/applications" element={<ProtectedAdminRoute><Layout><Applications /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/notifications" element={<ProtectedAdminRoute><Layout><NotificationsLog /></Layout></ProtectedAdminRoute>} />
-        <Route path="/admin/activity-logs" element={<ProtectedAdminRoute><Layout><NotificationsLog /></Layout></ProtectedAdminRoute>} />
+        <Route path="/admin/dashboard" element={<Layout><Dashboard /></Layout>} />
+        <Route path="/admin/users" element={<Layout><Users /></Layout>} />
+        <Route path="/admin/jobs" element={<Layout><Jobs /></Layout>} />
+        <Route path="/admin/jobs/:id" element={<Layout><JobDetail /></Layout>} />
+        <Route path="/admin/referrals" element={<Layout><Referrals /></Layout>} />
+        <Route path="/admin/community" element={<Layout><CommunityFeed /></Layout>} />
+        <Route path="/admin/live-feed" element={<Layout><LiveFeed /></Layout>} />
+        <Route path="/admin/training" element={<Layout><Training /></Layout>} />
+        <Route path="/admin/training/edit" element={<Layout><EditTraining /></Layout>} />
+        <Route path="/admin/chefs" element={<Layout><Chefs /></Layout>} />
+        <Route path="/admin/employers" element={<Layout><Employers /></Layout>} />
+        <Route path="/admin/employers/:id" element={<Layout><EmployerDetail /></Layout>} />
+        <Route path="/admin/enquiries" element={<Layout><Enquiries /></Layout>} />
+        <Route path="/admin/settings" element={<Layout><Settings /></Layout>} />
+        <Route path="/admin/applications" element={<Layout><Applications /></Layout>} />
+        <Route path="/admin/notifications" element={<Layout><NotificationsLog /></Layout>} />
+        <Route path="/admin/activity-logs" element={<Layout><NotificationsLog /></Layout>} />
 
         {/* Fallback not found */}
         <Route path="*" element={<NotFound />} />
