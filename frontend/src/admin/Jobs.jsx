@@ -41,10 +41,10 @@ export default function Jobs() {
 
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
+      'http://178.16.138.159/backend/api/admin/jobs',
       '/backend/api/admin/jobs',
       `${origin}/backend/api/admin/jobs`,
-      '/api/admin/jobs',
-      'http://178.16.138.159/backend/api/admin/jobs'
+      '/api/admin/jobs'
     ];
 
     for (const endpoint of endpoints) {
