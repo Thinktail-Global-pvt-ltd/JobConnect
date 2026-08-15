@@ -53,12 +53,7 @@ export default function Users() {
     if (data && Array.isArray(data.users)) {
       setUsers(data.users);
     } else {
-      try {
-        const mockData = await mockApi.getUsers(search, tab);
-        setUsers(mockData.users || []);
-      } catch (err) {
-        setUsers([]);
-      }
+      setUsers([]);
     }
     setLoading(false);
   };

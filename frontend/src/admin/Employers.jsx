@@ -26,6 +26,7 @@ export default function Employers() {
   // Query: users JOIN user_roles WHERE role_type='employer' AND user_roles.is_active=1 AND users.id=user_roles.user_id
   const fetchEmployers = async (searchVal = search, tabVal = tab) => {
     setLoading(true);
+    let data = null;
     const params = { search: searchVal, tab: tabVal };
     const endpoints = [
       '/api/admin/employers',
