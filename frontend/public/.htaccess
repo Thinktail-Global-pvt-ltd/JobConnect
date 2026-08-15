@@ -2,6 +2,10 @@
     RewriteEngine On
     RewriteBase /
 
+    # Exclude backend API and PHP routes from React SPA fallback
+    RewriteCond %{REQUEST_URI} ^/(backend|api|index\.php) [NC]
+    RewriteRule ^ - [L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule . /index.html [L]
