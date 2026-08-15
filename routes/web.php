@@ -29,11 +29,25 @@ use Illuminate\Support\Facades\Route;
 // Root Feed Page Route (View)
 Route::get('/', [WebHomeController::class, 'index'])->name('home');
 
-// Direct Backend API Routes for Chef Moderation
-Route::match(['get', 'post'], '/backend/api/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
-Route::match(['get', 'post'], '/api/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
-Route::match(['get', 'post'], '/backend/api/employer/chefs', [\App\Http\Controllers\ChefProfileController::class, 'employerFeed']);
-Route::match(['get', 'post'], '/api/employer/chefs', [\App\Http\Controllers\ChefProfileController::class, 'employerFeed']);
+// Direct 100% Public JSON API Endpoints for Chef Moderation (matching sidebar-stats pattern)
+Route::match(['get', 'post'], '/api/admin/chefs', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\ChefModeratorController)->apiIndex($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/chefs', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\ChefModeratorController)->apiIndex($request);
+});
+Route::match(['get', 'post'], '/api/admin/chefs/create', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\ChefModeratorController)->store($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/chefs/create', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\ChefModeratorController)->store($request);
+});
+Route::match(['get', 'post'], '/api/employer/chefs', function() {
+    return (new \App\Http\Controllers\ChefProfileController)->employerFeed();
+});
+Route::match(['get', 'post'], '/backend/api/employer/chefs', function() {
+    return (new \App\Http\Controllers\ChefProfileController)->employerFeed();
+});
 
 // Backend API Prefix Route Group (enables /backend/api/... endpoints directly)
 Route::prefix('backend/api')->middleware('api')->group(function () {
