@@ -78,55 +78,7 @@ class JobModeratorController extends Controller
         return view('admin.jobs', compact('jobs'));
     }
 
-    /**
-     * Admin creates a new job listing directly.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'title'       => 'required|string|max:255',
-            'company'     => 'required|string|max:255',
-            'category'    => 'required|in:india,overseas,community',
-            'description' => 'required|string',
-            'contact_info'=> 'required|string|max:255',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first(),
-                'errors'  => $validator->errors()
-            ], 422);
-        }
-
-        // Find an employer or any user to attribute the job to
-        $adminUser = User::whereHas('roles', function($q) {
-            $q->whereIn('role_type', ['employer', 'admin', 'agency']);
-        })->first() ?? User::first();
-
-        $job = JobPost::create([
-            'created_by'   => $adminUser?->id ?? 1,
-            'title'        => $request->input('title'),
-            'company'      => $request->input('company'),
-            'category'     => $request->input('category'),
-            'location'     => $request->input('location', ''),
-            'salary'       => $request->input('salary', ''),
-            'job_type'     => $request->input('job_type', 'Full-time'),
-            'contact_info' => $request->input('contact_info'),
-            'description'  => $request->input('description'),
-            'status'       => 'approved', // Admin-created jobs are auto-approved
-            'is_pinned'    => false,
-            'submitted_by_role' => 'admin',
-        ]);
-
-        $job->load('creator');
-
-        return response()->json([
-            'success' => true,
-            'message' => "Job listing '{$job->title}' created successfully.",
-            'job'     => $job,
-        ], 201);
-    }
 
     /**
      * Approve a job post.
