@@ -1029,3 +1029,12 @@ Route::match(['get', 'post'], '/admin/notifications', [\App\Http\Controllers\Fir
 Route::match(['get', 'post'], '/api/admin/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
 Route::match(['get', 'post'], '/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);
+
+// Public Admin Chef Endpoints matching /api/admin/notifications pattern
+Route::match(['get', 'post'], '/api/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
+Route::match(['get', 'post'], '/api/admin/chefs/create', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'store']);
+Route::match(['get', 'post'], '/api/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);
+Route::match(['get', 'post'], '/api/admin/chefs/{chef}/unpublish', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'unpublish']);
+Route::match(['get', 'post'], '/api/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
+Route::match(['get', 'post'], '/api/employer/chefs', [\App\Http\Controllers\ChefProfileController::class, 'employerFeed']);
+

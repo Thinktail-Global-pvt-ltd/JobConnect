@@ -34,14 +34,14 @@ export default function Chefs() {
     approval_status: 'approved',
   });
 
-  // Fetch Public Employer Discovery Chefs (GET /backend/api/employer/chefs)
+  // Fetch Public Employer Discovery Chefs (GET /api/employer/chefs)
   const fetchPublishedEmployerChefs = async () => {
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
+        '/api/employer/chefs',
         '/backend/api/employer/chefs',
-        `${origin}/backend/api/employer/chefs`,
-        '/api/employer/chefs'
+        `${origin}/api/employer/chefs`
       ];
       for (const ep of endpoints) {
         try {
@@ -57,19 +57,17 @@ export default function Chefs() {
     }
   };
 
-  // Load real chefs directly from backend database API
+  // Load real chefs directly from backend database API (/api/admin/chefs)
   const loadChefs = async () => {
     setLoading(true);
     let data = null;
 
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      'http://178.16.138.159/backend/api/admin/chefs',
-      '/backend/api/admin/chefs',
-      `${origin}/backend/api/admin/chefs`,
       '/api/admin/chefs',
-      '/backend/index.php/api/admin/chefs',
-      'http://178.16.138.159/api/admin/chefs'
+      '/backend/api/admin/chefs',
+      `${origin}/api/admin/chefs`,
+      'http://178.16.138.159/backend/api/admin/chefs'
     ];
 
     for (const endpoint of endpoints) {
@@ -104,9 +102,9 @@ export default function Chefs() {
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
+        `/api/admin/chefs/${id}/approve`,
         `/backend/api/admin/chefs/${id}/approve`,
-        `${origin}/backend/api/admin/chefs/${id}/approve`,
-        `/api/admin/chefs/${id}/approve`
+        `${origin}/api/admin/chefs/${id}/approve`
       ];
       for (const ep of endpoints) {
         try {
@@ -126,9 +124,9 @@ export default function Chefs() {
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
+        `/api/admin/chefs/${id}/unpublish`,
         `/backend/api/admin/chefs/${id}/unpublish`,
-        `${origin}/backend/api/admin/chefs/${id}/unpublish`,
-        `/api/admin/chefs/${id}/unpublish`
+        `${origin}/api/admin/chefs/${id}/unpublish`
       ];
       for (const ep of endpoints) {
         try {
@@ -148,9 +146,9 @@ export default function Chefs() {
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
+        `/api/admin/chefs/${id}/reject`,
         `/backend/api/admin/chefs/${id}/reject`,
-        `${origin}/backend/api/admin/chefs/${id}/reject`,
-        `/api/admin/chefs/${id}/reject`
+        `${origin}/api/admin/chefs/${id}/reject`
       ];
       for (const ep of endpoints) {
         try {
