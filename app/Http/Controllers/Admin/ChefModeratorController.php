@@ -51,7 +51,7 @@ class ChefModeratorController extends Controller
                 }
             }
 
-            return ChefProfile::with(['user.socials'])->whereIn('user_id', $allChefIds)->latest()->get();
+            return ChefProfile::with(['user.socials'])->latest()->get();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('syncAndGetChefProfiles Error: ' . $e->getMessage());
             return ChefProfile::with(['user.socials'])->latest()->get();
