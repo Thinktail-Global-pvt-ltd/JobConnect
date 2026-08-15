@@ -11,14 +11,46 @@ class UserModeratorController extends Controller
     /**
      * Display a list of all users.
      */
+    private function isJsonRequest(Request $request): bool
+    {
+        return $request->wantsJson() 
+            || $request->ajax() 
+            || $request->isJson() 
+            || $request->is('api/*') 
+            || $request->is('backend/api/*') 
+            || $request->is('admin/users*')
+            || str_contains($request->header('Accept', ''), 'application/json')
+            || str_contains($request->header('Content-Type', ''), 'application/json');
+    }
+
+    /**
+     * Display a list of all users.
+     */
     public function index(Request $request)
     {
         $query = User::with(['roles', 'activeRole'])->withCount(['jobPosts', 'applications']);
 
-        // Strictly filter: users with an ACTIVE job_seeker role (user_roles.is_active = 1)
-        $query->whereHas('roles', function ($rq) {
-            $rq->whereIn('role_type', ['job_seeker', 'jobseeker', 'talent'])
-               ->where('is_active', 1);
+        // Check columns safely to avoid 1054 Unknown Column SQL errors across local & live schemas
+        $hasActiveProfile = \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile');
+        $hasActiveRole = \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_role');
+        $hasUserRole = \Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role');
+
+        $query->where(function ($q) use ($hasActiveProfile, $hasActiveRole, $hasUserRole) {
+            $q->whereHas('roles', function ($rq) {
+                $rq->whereIn('role_type', ['job_seeker', 'jobseeker', 'talent']);
+            });
+
+            if ($hasActiveProfile) {
+                $q->orWhereIn('active_profile', ['job_seeker', 'jobseeker', 'talent']);
+            }
+            if ($hasActiveRole) {
+                $q->orWhereIn('active_role', ['job_seeker', 'jobseeker', 'talent']);
+            }
+            if ($hasUserRole) {
+                $q->orWhereIn('user_role', ['job_seeker', 'jobseeker', 'talent']);
+            }
+
+            $q->orWhereDoesntHave('roles');
         });
 
         // Optional Search filter
@@ -27,7 +59,8 @@ class UserModeratorController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('mobile_number', 'like', "%{$search}%")
                   ->orWhere('full_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
             });
         }
 
@@ -42,11 +75,11 @@ class UserModeratorController extends Controller
 
         $users = $query->latest()->get();
 
-        if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
+        if ($this->isJsonRequest($request)) {
             return response()->json([
                 'success' => true,
-                'users' => $users,
-                'total' => $users->count()
+                'users'   => $users,
+                'total'   => $users->count()
             ]);
         }
 

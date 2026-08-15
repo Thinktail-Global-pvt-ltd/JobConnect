@@ -30,14 +30,40 @@ export default function Users() {
 
   const loadUsers = async () => {
     setLoading(true);
-    try {
-      const data = await mockApi.getUsers(search, tab);
-      setUsers(data.users);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+    let data = null;
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      '/backend/api/admin/users',
+      `${origin}/backend/api/admin/users`,
+      '/api/admin/users',
+      'http://178.16.138.159/backend/api/admin/users'
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await axios.get(endpoint, {
+          params: { search, tab },
+          headers: { Accept: 'application/json' }
+        });
+        if (res.data?.success && Array.isArray(res.data.users)) {
+          data = res.data;
+          break;
+        }
+      } catch (err) {}
     }
+
+    if (data && Array.isArray(data.users)) {
+      setUsers(data.users);
+    } else {
+      try {
+        const mockData = await mockApi.getUsers(search, tab);
+        setUsers(mockData.users || []);
+      } catch (err) {
+        setUsers([]);
+      }
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
