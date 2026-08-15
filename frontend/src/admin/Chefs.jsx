@@ -46,22 +46,39 @@ export default function Chefs() {
     }
   };
 
+  // Load real chefs directly from backend database API
   const loadChefs = async () => {
     setLoading(true);
-    try {
-      await fetchPublishedEmployerChefs();
-      const data = await mockApi.getChefs(statusFilter);
-      if (data && Array.isArray(data.chefs)) {
-        setChefs(data.chefs);
-      } else {
-        setChefs([]);
-      }
-    } catch (err) {
-      console.error('Failed to load chefs:', err);
-      setChefs([]);
-    } finally {
-      setLoading(false);
+    let data = null;
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      '/backend/api/admin/chefs',
+      `${origin}/backend/api/admin/chefs`,
+      '/api/admin/chefs',
+      'http://178.16.138.159/backend/api/admin/chefs'
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await axios.get(endpoint, {
+          params: { status: statusFilter },
+          headers: { Accept: 'application/json' }
+        });
+        if (res.data?.success && (Array.isArray(res.data.chefs) || Array.isArray(res.data.profiles) || Array.isArray(res.data.data))) {
+          data = res.data;
+          break;
+        }
+      } catch (err) {}
     }
+
+    if (data) {
+      const rawList = data.chefs || data.profiles || data.items || data.data || data.results || [];
+      setChefs(rawList);
+    } else {
+      setChefs([]);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
