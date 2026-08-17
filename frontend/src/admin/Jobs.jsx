@@ -172,25 +172,25 @@ export default function Jobs() {
 
           {/* Status Filter Buttons */}
           <button onClick={() => setStatus('')}
-                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#153e69] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>All Statuses</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === '' ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-600'}`}>{stats.total}</span>
           </button>
           
           <button onClick={() => setStatus('pending')}
-                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'pending' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'pending' ? 'bg-[#153e69] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>Pending</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'pending' ? 'bg-white/15 text-white' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{stats.pending}</span>
           </button>
 
           <button onClick={() => setStatus('approved')}
-                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'approved' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'approved' ? 'bg-[#153e69] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>Approved</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'approved' ? 'bg-white/15 text-white' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>{stats.approved}</span>
           </button>
 
           <button onClick={() => setStatus('rejected')}
-                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'rejected' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'rejected' ? 'bg-[#153e69] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>Rejected</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'rejected' ? 'bg-white/15 text-white' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>{stats.rejected}</span>
           </button>
@@ -202,7 +202,7 @@ export default function Jobs() {
         <button 
           onClick={() => setCategory('')} 
           className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-            category === '' ? 'bg-[#173f70] text-white' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
+            category === '' ? 'bg-[#153e69] text-white' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
           <span><Briefcase className="w-3.5 h-3.5" /> All Job Listings</span>
@@ -275,7 +275,7 @@ export default function Jobs() {
         </div>
 
         {/* Card 4 - Auto-Moderated */}
-        <div className="bg-[#173f70] p-3 rounded-lg shadow-sm flex flex-col justify-between h-[82px] min-w-0 text-white">
+        <div className="bg-[#153e69] p-3 rounded-lg shadow-sm flex flex-col justify-between h-[82px] min-w-0 text-white">
           <div className="flex items-center justify-between">
             <span className="text-[9px] font-black text-blue-100 uppercase tracking-wide block">Auto-Moderated</span>
             <Pin className="w-4 h-4 text-emerald-200" />
@@ -334,7 +334,7 @@ export default function Jobs() {
                     {/* Employer / Business Name */}
                     <td className="py-4.5 px-6 font-extrabold text-slate-200">
                       <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded bg-slate-100 text-[#173f70] flex items-center justify-center shrink-0 border border-[#d7dce2]"><Building2 className="w-3 h-3" /></span>
+                        <span className="w-5 h-5 rounded bg-slate-100 text-[#153e69] flex items-center justify-center shrink-0 border border-[#d7dce2]"><Building2 className="w-3 h-3" /></span>
                         <div className="flex flex-col">
                           <span className="text-slate-800 font-bold block">
                             {job.business_name || job.company_name || job.company || (job.creator ? (job.creator.business_name || job.creator.company_name || job.creator.full_name) : 'Hospitality Employer')}
@@ -429,10 +429,10 @@ export default function Jobs() {
           <div className="flex items-center gap-1">
             <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
             {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
-              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
             ))}
             {totalPages > 4 && <span className="px-1 text-[10px] text-slate-500">…</span>}
-            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
+            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
             <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
           </div>
         </div>

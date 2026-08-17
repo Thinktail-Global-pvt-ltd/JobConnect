@@ -357,7 +357,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
               placeholder={selectedJob ? "Search applicants..." : "Search jobs, training or companies..."} 
               value={search} 
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-3 text-[11px] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#173f70] transition-all" 
+              className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-3 text-[11px] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#153e69] transition-all" 
             />
             <Search className="absolute left-3.5 top-2.5 text-slate-400 w-4 h-4" />
           </div>
@@ -396,7 +396,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
             <div className="flex items-center gap-6">
               <button 
                 onClick={() => setViewMode('jobs')} 
-                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'jobs' ? 'text-[#173f70] border-b-2 border-[#173f70]' : 'text-slate-400 hover:text-slate-700'}`}
+                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'jobs' ? 'text-[#153e69] border-b-2 border-[#153e69]' : 'text-slate-400 hover:text-slate-700'}`}
               >
                 <Briefcase className="w-4 h-4" />
                 <span>Grouped by Listings ({groupedJobsList.length})</span>
@@ -404,7 +404,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
 
               <button 
                 onClick={() => setViewMode('all_apps')} 
-                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'all_apps' ? 'text-[#173f70] border-b-2 border-[#173f70]' : 'text-slate-400 hover:text-slate-700'}`}
+                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'all_apps' ? 'text-[#153e69] border-b-2 border-[#153e69]' : 'text-slate-400 hover:text-slate-700'}`}
               >
                 <Users className="w-4 h-4" />
                 <span>All Applications ({apps.length})</span>
@@ -415,19 +415,19 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
             <div className="flex items-center gap-2 pb-3.5">
               <button 
                 onClick={() => setAppCategory('all')} 
-                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'all' ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#173f70] border border-[#d7dce2]'}`}
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'all' ? 'bg-[#153e69] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#153e69] border border-[#d7dce2]'}`}
               >
                 All ({apps.length})
               </button>
               <button 
                 onClick={() => setAppCategory('job')} 
-                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'job' ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#173f70] border border-[#d7dce2]'}`}
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'job' ? 'bg-[#153e69] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#153e69] border border-[#d7dce2]'}`}
               >
                 <Briefcase className="inline w-3 h-3 mr-1" /> Jobs ({apps.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training).length})
               </button>
               <button 
                 onClick={() => setAppCategory('training')} 
-                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'training' ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#173f70] border border-[#d7dce2]'}`}
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'training' ? 'bg-[#153e69] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#153e69] border border-[#d7dce2]'}`}
               >
                 <GraduationCap className="inline w-3 h-3 mr-1" /> Training ({apps.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training).length})
               </button>
@@ -458,7 +458,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${statusFilter === st ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 border border-[#d7dce2] hover:bg-slate-50 hover:text-[#173f70]'}`}
+                  className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${statusFilter === st ? 'bg-[#153e69] text-white shadow-sm' : 'bg-white text-slate-600 border border-[#d7dce2] hover:bg-slate-50 hover:text-[#153e69]'}`}
                 >
                   {st}
                 </button>
@@ -510,7 +510,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                                 {job.is_training ? <GraduationCap className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
                               </div>
                               <div>
-                                <span className="font-extrabold text-slate-900 text-[13px] group-hover:text-[#173f70] transition-colors block">
+                                <span className="font-extrabold text-slate-900 text-[13px] group-hover:text-[#153e69] transition-colors block">
                                   {job.title}
                                 </span>
                                 <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
@@ -572,7 +572,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                           <td className="py-4.5 px-6 text-center">
                             <button 
                               onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
-                              className="px-3 py-1.5 rounded-md bg-[#173f70] hover:bg-[#12345d] text-white font-bold text-[11px] transition-all flex items-center gap-1 mx-auto cursor-pointer"
+                              className="px-3 py-1.5 rounded-md bg-[#153e69] hover:bg-[#12345d] text-white font-bold text-[11px] transition-all flex items-center gap-1 mx-auto cursor-pointer"
                             >
                               <span>View Applications ({job.applications.length})</span>
                               <ArrowRight className="w-3.5 h-3.5" />
@@ -708,7 +708,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                         <td className="py-4.5 px-6 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button onClick={() => { setSelectedApp(a); setModalOpen(true); }}
-                                    className="w-8 h-8 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-[#173f70] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Review Profile">
+                                    className="w-8 h-8 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-[#153e69] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Review Profile">
                               <Eye className="w-4 h-4" />
                             </button>
                             
@@ -961,7 +961,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                     Reject
                   </button>
                   <button onClick={() => handleUpdateStatus(selectedApp.id, 'shortlisted')}
-                          className="bg-[#173f70] hover:bg-[#12345d] text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm flex items-center gap-1 cursor-pointer">
+                          className="bg-[#153e69] hover:bg-[#12345d] text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm flex items-center gap-1 cursor-pointer">
                     <Check className="w-3.5 h-3.5" />
                     Shortlist
                   </button>

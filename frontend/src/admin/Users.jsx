@@ -155,15 +155,15 @@ export default function Users() {
         {/* Tabs with Underlines */}
         <div className="flex items-center gap-5 border-b border-[#d7dce2] md:border-none pb-1 md:pb-0">
           <button onClick={() => setTab('all')} 
-                  className={`text-xs font-extrabold pb-2 transition-all relative ${tab === 'all' ? 'bg-[#173f70] text-white rounded-md px-3 py-1.5' : 'text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-md px-3 py-1.5'}`}>
+                  className={`text-xs font-extrabold pb-2 transition-all relative ${tab === 'all' ? 'bg-[#153e69] text-white rounded-md px-3 py-1.5' : 'text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-md px-3 py-1.5'}`}>
             All Talent
           </button>
           <button onClick={() => setTab('active')} 
-                  className={`text-xs font-extrabold pb-2 transition-all relative ${tab === 'active' ? 'bg-[#173f70] text-white rounded-md px-3 py-1.5' : 'text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-md px-3 py-1.5'}`}>
+                  className={`text-xs font-extrabold pb-2 transition-all relative ${tab === 'active' ? 'bg-[#153e69] text-white rounded-md px-3 py-1.5' : 'text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-md px-3 py-1.5'}`}>
             Active
           </button>
           <button onClick={() => setTab('suspended')} 
-                  className={`text-xs font-extrabold pb-2 transition-all relative ${tab === 'suspended' ? 'bg-[#173f70] text-white rounded-md px-3 py-1.5' : 'text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-md px-3 py-1.5'}`}>
+                  className={`text-xs font-extrabold pb-2 transition-all relative ${tab === 'suspended' ? 'bg-[#153e69] text-white rounded-md px-3 py-1.5' : 'text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-md px-3 py-1.5'}`}>
             Suspended
           </button>
         </div>
@@ -171,7 +171,7 @@ export default function Users() {
         {/* Search */}
         <div className="relative w-full md:w-1/2 max-w-[520px]">
           <input type="text" placeholder="Search Name, Phone, or City..." value={search} onChange={(e) => setSearch(e.target.value)}
-                 className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-9 text-[11px] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#173f70] transition-all" />
+                 className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-9 text-[11px] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#153e69] transition-all" />
           <Search className="absolute left-3.5 top-2.5 text-slate-500 w-4 h-4" />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-3.5 top-2 text-slate-500 hover:text-slate-200 text-xs font-bold p-1"><X className="w-4 h-4" /></button>
@@ -242,7 +242,7 @@ export default function Users() {
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2 flex-wrap">
                       <button onClick={() => handleViewUserDetail(user)} 
-                              className="px-3 py-1.5 rounded-md bg-[#173f70] hover:bg-[#12345d] text-white border border-[#173f70] text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm">
+                              className="px-3 py-1.5 rounded-md bg-[#153e69] hover:bg-[#12345d] text-white border border-[#153e69] text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm">
                         <Eye className="w-3.5 h-3.5" />
                         View Details
                       </button>

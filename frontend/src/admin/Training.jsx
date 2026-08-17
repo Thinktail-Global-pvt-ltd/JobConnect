@@ -195,7 +195,7 @@ export default function Training() {
               placeholder="Search programs by name, provider or country..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f1f5f9]/70 border border-[#d7dce2] rounded-lg pl-8 pr-8 py-1.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#173f70] focus:bg-white transition-all"
+              className="w-full bg-[#f1f5f9]/70 border border-[#d7dce2] rounded-lg pl-8 pr-8 py-1.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#153e69] focus:bg-white transition-all"
             />
             {searchQuery && (
               <button 
@@ -276,16 +276,16 @@ export default function Training() {
         {/* Tabs Bar */}
         <div className="px-3 py-2 border-b border-[#d7dce2] flex items-center justify-between bg-white">
           <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => setTab('all')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'all' ? 'bg-[#173f70] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <button onClick={() => setTab('all')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'all' ? 'bg-[#153e69] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               All Programs ({programs.length})
             </button>
-            <button onClick={() => setTab('published')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'published' ? 'bg-[#173f70] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <button onClick={() => setTab('published')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'published' ? 'bg-[#153e69] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Active / Published ({stats.active})
             </button>
             <button onClick={() => setTab('pinned')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'pinned' ? 'bg-purple-600 text-white' : 'text-purple-700 bg-purple-50 hover:bg-purple-100'}`}>
               <span><Pin className="inline w-3 h-3 mr-1" />Pinned ({stats.pinned})</span>
             </button>
-            <button onClick={() => setTab('drafts')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#173f70] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <button onClick={() => setTab('drafts')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#153e69] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Drafts / In Review ({stats.pending})
             </button>
           </div>
@@ -428,10 +428,10 @@ export default function Training() {
           <div className="flex items-center gap-1">
             <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
             {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
-              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
             ))}
             {totalPages > 3 && <span className="px-1 text-[10px] text-slate-500">…</span>}
-            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
+            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
             <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
           </div>
         </div>

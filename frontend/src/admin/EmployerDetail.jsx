@@ -111,7 +111,7 @@ export default function EmployerDetail() {
       <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         <div className="flex items-center gap-4.5">
           {/* Logo square */}
-          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-2xl shadow-xs font-outfit font-black text-[#173f70] shrink-0">
+          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-2xl shadow-xs font-outfit font-black text-[#153e69] shrink-0">
             {name.charAt(0).toUpperCase()}
           </div>
 
@@ -167,7 +167,7 @@ export default function EmployerDetail() {
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5">
             <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-50 pb-3">
-              <UserSquare2 className="w-4 h-4 text-[#173f70]" /> Contact Information
+              <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Contact Information
             </h3>
 
             {/* Info Items */}
@@ -183,7 +183,7 @@ export default function EmployerDetail() {
               </div>
               <div className="border-t border-slate-50 pt-3">
                 <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
-                <span className="text-[#173f70] font-extrabold mt-1 block truncate">{email}</span>
+                <span className="text-[#153e69] font-extrabold mt-1 block truncate">{email}</span>
               </div>
             </div>
 
@@ -245,7 +245,7 @@ export default function EmployerDetail() {
           <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
             <div className="p-5 border-b border-[#e2e8f0] flex justify-between items-center bg-slate-50/10">
               <h3 className="font-outfit font-extrabold text-sm text-slate-800">Recent Job Postings</h3>
-              <Link to="/admin/jobs" className="text-xs font-bold text-[#173f70] hover:underline">View All Postings</Link>
+              <Link to="/admin/jobs" className="text-xs font-bold text-[#153e69] hover:underline">View All Postings</Link>
             </div>
 
             <div className="overflow-x-auto">

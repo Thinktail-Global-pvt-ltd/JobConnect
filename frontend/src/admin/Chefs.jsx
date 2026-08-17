@@ -229,7 +229,7 @@ export default function Chefs() {
                 <select 
                   value={statusFilter} 
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-white border border-[#cfd5dc] text-slate-700 text-[11px] font-bold py-2 pl-3 pr-8 rounded-md focus:outline-none focus:border-[#173f70] cursor-pointer appearance-none"
+                  className="bg-white border border-[#cfd5dc] text-slate-700 text-[11px] font-bold py-2 pl-3 pr-8 rounded-md focus:outline-none focus:border-[#153e69] cursor-pointer appearance-none"
                 >
                   <option value="">All Statuses</option>
                   <option value="pending">Pending / Unpublished Only</option>
@@ -241,7 +241,7 @@ export default function Chefs() {
 
               <button 
                 onClick={loadChefs}
-                className="p-2 bg-white hover:bg-slate-50 border border-[#d7dce2] rounded-md text-[#173f70] transition-colors cursor-pointer"
+                className="p-2 bg-white hover:bg-slate-50 border border-[#d7dce2] rounded-md text-[#153e69] transition-colors cursor-pointer"
                 title="Refresh Data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -378,7 +378,7 @@ export default function Chefs() {
                               <Link 
                                 to={`/admin/chefs/${chef.id || chef.user_id}`}
                                 state={{ chef: chef }}
-                                className="w-7 h-7 rounded-md bg-white hover:bg-slate-50 text-slate-700 hover:text-[#173f70] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" 
+                                className="w-7 h-7 rounded-md bg-white hover:bg-slate-50 text-slate-700 hover:text-[#153e69] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" 
                                 title="View Full Profile Details"
                               >
                                 <Eye className="w-4 h-4" />

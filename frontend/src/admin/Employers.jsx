@@ -138,7 +138,7 @@ export default function Employers() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-bold text-[18px] text-[#173f70] tracking-tight">Employers Management</h2>
+          <h2 className="font-outfit font-bold text-[18px] text-[#153e69] tracking-tight">Employers Management</h2>
           <p className="text-[11px] font-medium text-slate-600 mt-1">Oversee platform employers, verification states, and job posting analytics.</p>
         </div>
 
@@ -149,7 +149,7 @@ export default function Employers() {
             placeholder="Search employers, regions, or status..." 
             value={search} 
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-9 bg-[#f8fafc] border border-[#c7d4e2] rounded-[20px] py-1.5 pl-10 pr-4 text-[13px] leading-5 font-normal text-[#263b53] placeholder-[#718096] shadow-sm focus:outline-none focus:border-[#173f70] focus:ring-2 focus:ring-[#173f70]/10 transition-all" 
+            className="w-full h-9 bg-[#f8fafc] border border-[#c7d4e2] rounded-[20px] py-1.5 pl-10 pr-4 text-[13px] leading-5 font-normal text-[#263b53] placeholder-[#718096] shadow-sm focus:outline-none focus:border-[#153e69] focus:ring-2 focus:ring-[#153e69]/10 transition-all" 
           />
           <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-[#344054]" strokeWidth={2} />
         </div>
@@ -161,7 +161,7 @@ export default function Employers() {
         {/* Left Growth Overview */}
         <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-[#b9cfbe] shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[150px] text-left">
           <div>
-            <h3 className="font-outfit font-bold text-[22px] text-[#173f70] leading-none">Growth Overview</h3>
+            <h3 className="font-outfit font-bold text-[22px] text-[#153e69] leading-none">Growth Overview</h3>
             <span className="text-[13px] font-medium text-slate-600 mt-2 block">Total active employers registered on JobRito platform.</span>
           </div>
 
@@ -182,7 +182,7 @@ export default function Employers() {
         </div>
 
         {/* Right Priority Actions */}
-        <div className="bg-[#173f70] p-6 rounded-xl shadow-sm text-white flex flex-col justify-between min-h-[150px] text-left">
+        <div className="bg-[#153e69] p-6 rounded-xl shadow-sm text-white flex flex-col justify-between min-h-[150px] text-left">
           <div>
             <h3 className="font-outfit font-bold text-[17px] leading-none text-white">Priority Actions</h3>
             <span className="text-[12px] font-medium text-blue-100 mt-2 block">Platform employer verification active</span>
@@ -203,7 +203,7 @@ export default function Employers() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-b border-[#d9e3db] bg-white">
           <div className="w-full flex items-center gap-3 flex-wrap">
             <h3 className="font-outfit font-bold text-[17px] text-slate-900">Employer Directory</h3>
-            <button onClick={() => setFilterOpen(prev => !prev)} className="ml-auto px-3.5 py-2 rounded-lg border border-[#173f70] text-[#173f70] hover:bg-[#edf3f9] text-[11px] font-medium inline-flex items-center gap-2 transition-colors">
+            <button onClick={() => setFilterOpen(prev => !prev)} className="ml-auto px-3.5 py-2 rounded-lg border border-[#153e69] text-[#153e69] hover:bg-[#edf3f9] text-[11px] font-medium inline-flex items-center gap-2 transition-colors">
               <Filter className="w-4 h-4" /> Filter
             </button>
             {/* <button onClick={() => setIsModalOpen(true)} className="px-3.5 py-2 rounded-lg bg-[#f58220] hover:bg-[#df6d0f] text-white text-[11px] font-medium inline-flex items-center gap-2 transition-colors">
@@ -212,7 +212,7 @@ export default function Employers() {
             {filterOpen && (
               <div className="basis-full flex items-center gap-2 pt-1">
                 <label className="text-[11px] font-semibold text-[#5b7694]">Status</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-8 rounded-lg border border-[#bdcfe2] bg-white px-2 text-[11px] text-[#183b61] focus:outline-none focus:border-[#173f70]">
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-8 rounded-lg border border-[#bdcfe2] bg-white px-2 text-[11px] text-[#183b61] focus:outline-none focus:border-[#153e69]">
                   <option value="all">All employers</option>
                   <option value="active">Active</option>
                   <option value="suspended">Suspended</option>
@@ -250,7 +250,7 @@ export default function Employers() {
                     {/* Business Name with avatar */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-white text-[#173f70] border border-[#b9cfbe] flex items-center justify-center font-black font-outfit text-xs shadow-sm shrink-0">
+                        <div className="w-8 h-8 rounded-xl bg-white text-[#153e69] border border-[#b9cfbe] flex items-center justify-center font-black font-outfit text-xs shadow-sm shrink-0">
                           {(emp.name || emp.business_name || emp.full_name || 'E')[0].toUpperCase()}
                         </div>
                         <div>
@@ -298,7 +298,7 @@ export default function Employers() {
                       <Link 
                         to={`/admin/employers/${emp.id}`}
                         state={{ employer: emp }}
-                        className="px-3 py-1.5 rounded-md bg-[#173f70] hover:bg-[#12345d] text-white border border-[#173f70] text-[11px] font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                        className="px-3 py-1.5 rounded-md bg-[#153e69] hover:bg-[#12345d] text-white border border-[#153e69] text-[11px] font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View</span>
@@ -333,7 +333,7 @@ export default function Employers() {
               <ChevronLeft className="w-4 h-4" />
             </button>
             {Array.from({ length: Math.min(totalPages, 5) }, (_, index) => index + 1).map(page => (
-              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-7 h-7 rounded-md text-[11px] font-bold ${currentPage === page ? 'bg-[#173f70] text-white' : 'bg-white text-[#183b61] border border-[#bdcfe2] hover:bg-[#edf3f9]'}`}>
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-7 h-7 rounded-md text-[11px] font-bold ${currentPage === page ? 'bg-[#153e69] text-white' : 'bg-white text-[#183b61] border border-[#bdcfe2] hover:bg-[#edf3f9]'}`}>
                 {page}
               </button>
             ))}

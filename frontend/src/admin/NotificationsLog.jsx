@@ -121,7 +121,7 @@ export default function NotificationsLog() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by title, message body, or recipient..."
-            className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-3 text-[11px] font-semibold text-slate-800 focus:outline-none focus:border-[#173f70] transition-all"
+            className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-3 text-[11px] font-semibold text-slate-800 focus:outline-none focus:border-[#153e69] transition-all"
           />
         </div>
 
@@ -131,7 +131,7 @@ export default function NotificationsLog() {
             onClick={() => setStatusFilter('all')}
             className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
               statusFilter === 'all' 
-                ? 'bg-[#173f70] text-white shadow-sm' 
+                ? 'bg-[#153e69] text-white shadow-sm' 
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#d7dce2]'
             }`}
           >
@@ -141,7 +141,7 @@ export default function NotificationsLog() {
             onClick={() => setStatusFilter('unread')}
             className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
               statusFilter === 'unread' 
-                ? 'bg-[#173f70] text-white shadow-sm' 
+                ? 'bg-[#153e69] text-white shadow-sm' 
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#d7dce2]'
             }`}
           >
@@ -151,7 +151,7 @@ export default function NotificationsLog() {
             onClick={() => setStatusFilter('read')}
             className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
               statusFilter === 'read' 
-                ? 'bg-[#173f70] text-white shadow-sm' 
+                ? 'bg-[#153e69] text-white shadow-sm' 
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#d7dce2]'
             }`}
           >
@@ -263,7 +263,7 @@ export default function NotificationsLog() {
                     <td className="py-4 px-6 whitespace-nowrap text-right">
                       <button
                         onClick={() => setSelectedNotif(item)}
-                        className="bg-white hover:bg-slate-50 text-[#173f70] border border-[#d7dce2] px-2 py-1.5 rounded-md text-[10px] font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
+                        className="bg-white hover:bg-slate-50 text-[#153e69] border border-[#d7dce2] px-2 py-1.5 rounded-md text-[10px] font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5 text-[#059669]" />
                         View
@@ -282,10 +282,10 @@ export default function NotificationsLog() {
           <div className="flex items-center gap-1">
             <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
             {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
-              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
             ))}
             {totalPages > 3 && <span className="px-1 text-[10px] text-slate-500">…</span>}
-            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
+            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
             <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
           </div>
         </div>

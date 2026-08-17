@@ -142,17 +142,17 @@ export default function ChefDetail() {
         <div className="flex items-center gap-3 flex-wrap">
           <button 
             onClick={handleReject} 
-            className="bg-white border border-[#173f70] hover:bg-slate-50 text-[#173f70] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+            className="bg-white border border-[#153e69] hover:bg-slate-50 text-[#153e69] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
           >
-            <Ban className="w-4 h-4 text-[#173f70]" />
+            <Ban className="w-4 h-4 text-[#153e69]" />
             Reject Profile
           </button>
           
           <button 
             onClick={handleUnpublish} 
-            className="bg-[#eff6ff] hover:bg-blue-100 text-[#173f70] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+            className="bg-[#eff6ff] hover:bg-blue-100 text-[#153e69] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
           >
-            <PauseCircle className="w-4 h-4 text-[#173f70]" />
+            <PauseCircle className="w-4 h-4 text-[#153e69]" />
             Suspend Profile
           </button>
 
@@ -251,7 +251,7 @@ export default function ChefDetail() {
           {/* Card 2: Booking & Availability */}
           <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
             <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#173f70]" /> Booking & Availability
+              <Calendar className="w-4 h-4 text-[#153e69]" /> Booking & Availability
             </h3>
             
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
@@ -295,7 +295,7 @@ export default function ChefDetail() {
             
             <div className="flex items-start gap-4">
               {/* Check Circle Icon wrapper */}
-              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-[#173f70] mt-0.5">
+              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-[#153e69] mt-0.5">
                 <CheckCircle className="w-4 h-4" />
               </div>
 

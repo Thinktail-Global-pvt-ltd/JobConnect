@@ -25,7 +25,7 @@ export default function EditTraining() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link to="/admin/training" className="bg-transparent border border-[#173f70] hover:bg-[#edf3f9] text-[#173f70] rounded-lg px-5 py-3 text-base font-medium transition-all shadow-sm">
+          <Link to="/admin/training" className="bg-transparent border border-[#153e69] hover:bg-[#edf3f9] text-[#153e69] rounded-lg px-5 py-3 text-base font-medium transition-all shadow-sm">
             Discard
           </Link>
           <button onClick={handleSave} className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-lg px-5 py-3 text-base font-medium shadow-sm shadow-[#059669]/10 transition-all">
@@ -43,7 +43,7 @@ export default function EditTraining() {
           {/* Card 1: Program Details */}
           <div className="bg-white p-6 rounded-xl border border-[#bdcfe2] shadow-sm space-y-5">
             <h3 className="font-outfit font-bold text-[22px] text-slate-900 flex items-center gap-2 border-b border-[#e5ebf2] pb-4">
-              <Info className="w-6 h-6 text-[#173f70]" /> Program Details
+              <Info className="w-6 h-6 text-[#153e69]" /> Program Details
             </h3>
 
             {/* Input name */}
@@ -58,7 +58,7 @@ export default function EditTraining() {
               <label className="text-[16px] font-medium text-slate-900 block">Banner Image</label>
               <div className="border-2 border-dashed border-[#bdcfe2] rounded-xl p-8 bg-white hover:bg-slate-50/50 transition-all flex flex-col items-center justify-center text-center cursor-pointer">
                 <Upload className="w-6 h-6 text-slate-400 mb-2" />
-                <p className="text-[16px] font-normal text-slate-800">Drag and drop or <span className="text-[#173f70] hover:underline">upload</span></p>
+                <p className="text-[16px] font-normal text-slate-800">Drag and drop or <span className="text-[#153e69] hover:underline">upload</span></p>
                 <span className="text-[14px] font-medium text-[#8da1b8] mt-2">Recommended size: 1200×600px (JPG, PNG)</span>
               </div>
             </div>
@@ -74,7 +74,7 @@ export default function EditTraining() {
           {/* Card 2: Deployment & Logistics */}
           <div className="bg-white p-6 rounded-xl border border-[#bdcfe2] shadow-sm space-y-5">
             <h3 className="font-outfit font-bold text-[22px] text-slate-900 flex items-center gap-2 border-b border-[#e5ebf2] pb-4">
-              <Map className="w-6 h-6 text-[#173f70]" /> Deployment & Logistics
+              <Map className="w-6 h-6 text-[#153e69]" /> Deployment & Logistics
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -105,7 +105,7 @@ export default function EditTraining() {
         <div className="lg:col-span-1 flex flex-col items-center gap-4">
           
           {/* Phone Shell container */}
-          <div className="w-[280px] h-[540px] bg-[#173f70] rounded-[36px] p-3 shadow-2xl border-4 border-[#173f70] relative overflow-hidden flex flex-col justify-between">
+          <div className="w-[280px] h-[540px] bg-[#153e69] rounded-[36px] p-3 shadow-2xl border-4 border-[#153e69] relative overflow-hidden flex flex-col justify-between">
             <div className="bg-white h-full rounded-[26px] overflow-hidden flex flex-col justify-between relative text-left">
               
               {/* Top banner image representation */}
@@ -117,7 +117,7 @@ export default function EditTraining() {
                   <span>📶🔋</span>
                 </div>
 
-                <span className="bg-[#173f70] text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider self-start mb-1.5 leading-none">
+                <span className="bg-[#153e69] text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider self-start mb-1.5 leading-none">
                   ENROLLING NOW
                 </span>
                 <h4 className="font-outfit font-extrabold text-[12px] text-slate-800 leading-tight block drop-shadow-sm truncate">
@@ -164,7 +164,7 @@ export default function EditTraining() {
 
               {/* Submit button on bottom */}
               <div className="p-3 border-t border-slate-50 bg-white">
-                <button className="w-full bg-[#173f70] text-white rounded-lg py-2 text-[10px] font-bold shadow-sm block text-center">
+                <button className="w-full bg-[#153e69] text-white rounded-lg py-2 text-[10px] font-bold shadow-sm block text-center">
                   Apply for Program
                 </button>
               </div>
@@ -173,7 +173,7 @@ export default function EditTraining() {
           </div>
 
           {/* Badge below phone mockup */}
-          <span className="bg-white border border-[#bdcfe2] text-[#173f70] rounded-full px-3 py-1 text-[10px] font-extrabold flex items-center gap-1.5 shadow-sm">
+          <span className="bg-white border border-[#bdcfe2] text-[#153e69] rounded-full px-3 py-1 text-[10px] font-extrabold flex items-center gap-1.5 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             Live Preview Active
           </span>
