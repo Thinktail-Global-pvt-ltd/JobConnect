@@ -1,5 +1,5 @@
-﻿import React, { useEffect, useState } from 'react';
-import { Megaphone, FileText, FileEdit, Trash2, RotateCcw, CheckCircle2, Bookmark, Eye, EyeOff, Pin, Plus, CalendarClock, Clock3, Briefcase, GraduationCap, Award, Radio, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Megaphone, FileText, FileEdit, Trash2, RotateCcw, CheckCircle2, Bookmark, Eye, EyeOff, Pin, Plus, CalendarClock, Clock3, Briefcase, GraduationCap, Award, Radio, X, Search } from 'lucide-react';
 import axios from 'axios';
 import { mockApi } from '../services/api';
 
@@ -11,6 +11,7 @@ export default function CommunityFeed() {
   const [tab, setTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -208,6 +209,15 @@ export default function CommunityFeed() {
     if (tab === 'pinned') return Boolean(p.is_pinned);
     if (tab === 'archived') return p.status === 'Archived';
     return true;
+  }).filter(p => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (p.title && p.title.toLowerCase().includes(q)) ||
+      (p.body && p.body.toLowerCase().includes(q)) ||
+      (p.post_type && p.post_type.toLowerCase().includes(q)) ||
+      (p.uid && p.uid.toLowerCase().includes(q))
+    );
   });
 
   const getPostBadgeColor = (type = '') => {
@@ -231,16 +241,29 @@ export default function CommunityFeed() {
 
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="font-outfit font-bold text-[28px] tracking-tight text-slate-900">Community Feed Manager</h2>
-          <p className="text-[15px] font-medium text-slate-500 mt-1">Manage and schedule content across all community platforms.</p>
+        <div className="shrink-0">
+          <h2 className="font-outfit font-bold text-[20px] tracking-tight text-slate-900">Community Feed Manager</h2>
+          <p className="text-[12px] font-medium text-slate-500 mt-0.5">Manage and schedule content across all community platforms.</p>
         </div>
+
+        {/* Centered Search Bar */}
+        <div className="relative flex-grow max-w-sm mx-auto md:mx-6 w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="Search feed content..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white border border-[#cfd5dc] text-slate-700 text-xs py-2 pl-3.5 pr-9 rounded-xl focus:outline-none focus:border-[#f58220] shadow-sm transition-all"
+          />
+          <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+        </div>
+
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#f58220] hover:bg-[#df6d0f] text-white text-sm font-bold shadow-sm transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#f58220] hover:bg-[#df6d0f] text-white text-xs font-bold shadow-sm transition-colors shrink-0"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           Create New Post
         </button>
       </div>
@@ -317,7 +340,7 @@ export default function CommunityFeed() {
                 Archived ({stats.archived})
               </button>
             </div>
-            <button onClick={loadPosts} className="text-[10px] font-bold text-[#8aa0b9] hover:text-[#1d4b78] flex items-center gap-1">
+            <button onClick={loadPosts} className="text-[10px] font-bold text-[#8aa0b9] hover:text-[#1d4b78] flex items-center gap-1 transition-colors cursor-pointer">
               <RotateCcw className="w-3 h-3" /> Refresh
             </button>
           </div>
@@ -335,7 +358,7 @@ export default function CommunityFeed() {
                     <th className="py-3 px-4">Entry Title & Details</th>
                     <th className="py-3 px-4">Post Type & Source</th>
                     <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Created Date</th>
+                    <th className="py-3 px-4">Publish Date</th>
                     <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
                 </thead>

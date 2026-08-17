@@ -334,7 +334,7 @@ export default function Chefs() {
                             </div>
                           </td>
 
-                          <td className="py-4 px-6 text-slate-300 font-extrabold">
+                          <td className="py-4 px-6 text-slate-800 font-black">
                             {experience}
                           </td>
 
