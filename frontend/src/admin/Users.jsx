@@ -276,20 +276,20 @@ export default function Users() {
 
       {/* AJAX Detail Modals */}
       {modalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#d7dce2] rounded-lg w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col shadow-2xl text-left">
-            <div className="px-6 py-5 border-b border-[#d7dce2] flex justify-between items-center bg-white">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#f8fafc] border border-[#d7dce2] rounded-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col shadow-2xl text-left">
+            <div className="px-4 py-3 border-b border-[#d7dce2] flex justify-between items-center bg-white">
               <h3 className="font-outfit font-black text-slate-900 text-base">{modalTitle}</h3>
               <button type="button" onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-700 text-slate-500 hover:text-slate-900 flex items-center justify-center text-sm font-bold transition-all"><X className="w-4 h-4" /></button>
             </div>
             
-            <div className="p-6 overflow-y-auto space-y-4 text-xs font-semibold text-slate-700">
+            <div className="p-4 overflow-y-auto space-y-4 text-xs font-semibold text-slate-700">
               {modalLoading ? (
                 <p className="text-xs font-semibold text-slate-500 text-center py-6">Loading user details...</p>
               ) : (
                 <div className="space-y-4">
                   {/* User Profile Banner & Image */}
-                  <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-800">
+                  <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-[#d7dce2] shadow-sm">
                     {selectedUser.profile_photo_path || selectedUser.profile_photo || selectedUser.image || selectedUser.avatar ? (
                       <img 
                         src={selectedUser.profile_photo_path || selectedUser.profile_photo || selectedUser.image || selectedUser.avatar} 
@@ -305,10 +305,10 @@ export default function Users() {
                     <div>
                       <h4 className="font-outfit font-black text-lg text-slate-900">{selectedUser.full_name || 'Not Provided'}</h4>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                           Role: {selectedUser.active_profile || selectedUser.role || 'Jobseeker'}
                         </span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${selectedUser.is_suspended ? 'bg-rose-950 text-rose-400 border-rose-800' : 'bg-emerald-950 text-emerald-400 border-emerald-800'}`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${selectedUser.is_suspended ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
                           {selectedUser.is_suspended ? 'Suspended' : 'Active Account'}
                         </span>
                       </div>
@@ -317,40 +317,40 @@ export default function Users() {
 
                   {/* Full User Attributes Table Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Full Name</span>
                       <span className="font-extrabold text-slate-900 block">{selectedUser.full_name || 'N/A'}</span>
                     </div>
 
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Mobile Phone</span>
                       <span className="font-extrabold text-emerald-700 block font-mono"><Smartphone className="w-3 h-3 inline-block mr-1" /> {selectedUser.mobile_number || selectedUser.phone || 'N/A'}</span>
                     </div>
 
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Email Address</span>
-                      <span className="font-extrabold text-blue-400 block truncate">{selectedUser.email || 'N/A'}</span>
+                      <span className="font-extrabold text-blue-700 block truncate">{selectedUser.email || 'N/A'}</span>
                     </div>
 
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">City / Location</span>
                       <span className="font-extrabold text-slate-900 block"><MapPin className="w-3 h-3 inline-block mr-1" /> {selectedUser.city || selectedUser.location || 'N/A'}</span>
                     </div>
 
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Experience Level</span>
                       <span className="font-extrabold text-amber-700 block"><Star className="w-3 h-3 inline-block mr-1" /> {selectedUser.experience || selectedUser.experience_range || 'N/A'}</span>
                     </div>
 
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Preferred Role</span>
-                      <span className="font-extrabold text-purple-400 block">{selectedUser.preferred_role || 'N/A'}</span>
+                      <span className="font-extrabold text-purple-700 block">{selectedUser.preferred_role || 'N/A'}</span>
                     </div>
                   </div>
 
                   {/* Skills & Bio */}
                   {(selectedUser.cuisine_specialty || selectedUser.skills || selectedUser.additional_skills) && (
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-1">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-1">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Cuisine & Skills Specialty</span>
                       <p className="text-xs font-bold text-emerald-300">
                         {selectedUser.cuisine_specialty || selectedUser.skills || selectedUser.additional_skills}
@@ -359,7 +359,7 @@ export default function Users() {
                   )}
 
                   {selectedUser.bio && (
-                    <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-1">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-1">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Bio / Summary</span>
                       <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap">
                         {selectedUser.bio}
@@ -369,22 +369,22 @@ export default function Users() {
 
                   {/* Activity Stats Summary */}
                   <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div className="bg-slate-100 p-3 rounded-xl border border-slate-800 text-center">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] text-center">
                       <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Jobs Posted</span>
-                      <span className="font-outfit font-black text-lg text-emerald-400 mt-0.5 block">
+                      <span className="font-outfit font-black text-lg text-emerald-700 mt-0.5 block">
                         {modalData.jobs ? modalData.jobs.length : 0}
                       </span>
                     </div>
-                    <div className="bg-slate-100 p-3 rounded-xl border border-slate-800 text-center">
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] text-center">
                       <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Applications Submitted</span>
-                      <span className="font-outfit font-black text-lg text-blue-400 mt-0.5 block">
+                      <span className="font-outfit font-black text-lg text-blue-700 mt-0.5 block">
                         {modalData.applications ? modalData.applications.length : 0}
                       </span>
                     </div>
                   </div>
 
                   {/* System Metadata */}
-                  <div className="bg-slate-50/40 p-3 rounded-xl border border-slate-800/80 flex justify-between items-center text-[10px] font-bold text-slate-500">
+                  <div className="bg-white p-3 rounded-xl border border-[#d7dce2] flex justify-between items-center text-[10px] font-bold text-slate-500">
                     <span>User ID: #{selectedUser.id}</span>
                     <span>Joined: {selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString() : 'N/A'}</span>
                   </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight, MapPin, FileText } from 'lucide-react';
+import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight, MapPin, FileText, Smartphone } from 'lucide-react';
 import axios from 'axios';
 import { realApi } from '../services/api';
 
@@ -346,11 +346,11 @@ export default function Employers() {
 
       {/* View Employer Detail Modal */}
       {viewEmpModalOpen && selectedEmp && (
-        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0B1120] border border-[#1E293B] rounded-3xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col shadow-2xl text-left">
-            <div className="px-6 py-5 border-b border-[#1E293B] flex justify-between items-center bg-[#0F172A]/60">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#f8fafc] border border-[#d7dce2] rounded-2xl w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col shadow-2xl text-left">
+            <div className="px-4 py-3 border-b border-[#d7dce2] flex justify-between items-center bg-white">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center font-bold text-lg">
+                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-700 border border-emerald-800 flex items-center justify-center font-bold text-lg">
                   🏢
                 </div>
                 <div>
@@ -361,49 +361,49 @@ export default function Employers() {
               <button type="button" onClick={() => setViewEmpModalOpen(false)} className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold transition-all">✕</button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 text-xs font-medium text-slate-600">
+            <div className="p-4 overflow-y-auto space-y-4 text-xs font-medium text-slate-700">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                <div className="bg-white p-3 rounded-xl border border-[#d7dce2]">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Company / Business Name</span>
-                  <span className="font-extrabold text-white text-sm block mt-0.5">{selectedEmp.business_name || selectedEmp.name || 'N/A'}</span>
+                  <span className="font-extrabold text-slate-800 text-sm block mt-0.5">{selectedEmp.business_name || selectedEmp.name || 'N/A'}</span>
                 </div>
 
-                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                <div className="bg-white p-3 rounded-xl border border-[#d7dce2]">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Primary Contact Person</span>
-                  <span className="font-extrabold text-white text-sm block mt-0.5">{selectedEmp.contact_person_name || selectedEmp.contact || 'N/A'}</span>
+                  <span className="font-extrabold text-slate-800 text-sm block mt-0.5">{selectedEmp.contact_person_name || selectedEmp.contact || 'N/A'}</span>
                 </div>
 
-                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                <div className="bg-white p-3 rounded-xl border border-[#d7dce2]">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Mobile Phone</span>
-                  <span className="font-extrabold text-emerald-400 block font-mono mt-0.5">📱 {selectedEmp.business_mobile || selectedEmp.mobile_number || selectedEmp.phone || 'N/A'}</span>
+                  <span className="font-extrabold text-emerald-700 block font-mono mt-0.5"><Smartphone className="w-3 h-3 inline-block mr-1" /> {selectedEmp.business_mobile || selectedEmp.mobile_number || selectedEmp.phone || 'N/A'}</span>
                 </div>
 
-                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                <div className="bg-white p-3 rounded-xl border border-[#d7dce2]">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Official Email</span>
-                  <span className="font-extrabold text-blue-400 block truncate mt-0.5">{selectedEmp.business_email || selectedEmp.email || 'N/A'}</span>
+                  <span className="font-extrabold text-blue-700 block truncate mt-0.5">{selectedEmp.business_email || selectedEmp.email || 'N/A'}</span>
                 </div>
 
-                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                <div className="bg-white p-3 rounded-xl border border-[#d7dce2]">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Business Location / HQ</span>
-                  <span className="font-extrabold text-white block mt-0.5">📍 {selectedEmp.business_location || selectedEmp.hq || 'India'}</span>
+                  <span className="font-extrabold text-slate-800 block mt-0.5"><MapPin className="w-3 h-3 inline-block mr-1" /> {selectedEmp.business_location || selectedEmp.hq || 'India'}</span>
                 </div>
 
-                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800">
+                <div className="bg-white p-3 rounded-xl border border-[#d7dce2]">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Industry Segment</span>
-                  <span className="font-extrabold text-purple-400 block mt-0.5">🏢 {selectedEmp.industry_segment || 'Hospitality'}</span>
+                  <span className="font-extrabold text-purple-700 block mt-0.5"><Building2 className="w-3 h-3 inline-block mr-1" /> {selectedEmp.industry_segment || 'Hospitality'}</span>
                 </div>
               </div>
 
               {selectedEmp.nominee_name && (
-                <div className="bg-[#1E293B]/60 p-3.5 rounded-xl border border-slate-800 space-y-1">
+                <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-1">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Nominee Information</span>
-                  <span className="font-extrabold text-white block">{selectedEmp.nominee_name} ({selectedEmp.nominee_relationship || 'Nominee'})</span>
-                  <span className="text-[10px] font-mono text-emerald-400 block">📱 {selectedEmp.nominee_mobile || 'N/A'}</span>
+                  <span className="font-extrabold text-slate-800 block">{selectedEmp.nominee_name} ({selectedEmp.nominee_relationship || 'Nominee'})</span>
+                  <span className="text-[10px] font-mono text-emerald-700 block"><Smartphone className="w-3 h-3 inline-block mr-1" /> {selectedEmp.nominee_mobile || 'N/A'}</span>
                 </div>
               )}
 
               <div className="pt-2 flex justify-end">
-                <button type="button" onClick={() => setViewEmpModalOpen(false)} className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer">
+                <button type="button" onClick={() => setViewEmpModalOpen(false)} className="bg-[#173f70] hover:bg-[#12345d] text-white px-4 py-2 rounded-md text-xs font-extrabold transition-all cursor-pointer">
                   Close
                 </button>
               </div>
