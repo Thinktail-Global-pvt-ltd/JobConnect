@@ -297,34 +297,6 @@ export default function EmployerDetail() {
 
       </div>
 
-      {/* Bottom Alert Banner Moderator Guidance */}
-      <div className="bg-[#eff6ff] border border-blue-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden text-left">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div className="space-y-1">
-            <h4 className="font-outfit font-extrabold text-sm text-slate-800">Moderator Guidance</h4>
-            <p className="text-xs font-semibold text-slate-500 leading-relaxed max-w-2xl">
-              This employer has completed 100% of their mandatory verification steps. There are currently no outstanding complaints or reports against this entity. Verification for "{name}" is recommended for premium job listing access.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button 
-            onClick={() => alert("Profile approved successfully!")}
-            className="px-5 py-2.5 bg-[#173f70] hover:bg-[#12345d] text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
-          >
-            Approve Profile
-          </button>
-          <button 
-            onClick={(e) => { e.currentTarget.closest('.bg-\\[\\#eff6ff\\]').style.display = 'none'; }}
-            className="text-slate-500 hover:text-slate-700 font-bold text-xs cursor-pointer px-2 py-1"
-          >
-            Dismiss
-          </button>
-        </div>
-      </div>
 
     </div>
   );
