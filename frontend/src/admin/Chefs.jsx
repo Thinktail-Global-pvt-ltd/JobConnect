@@ -664,9 +664,6 @@ export default function Chefs() {
           <div className="bg-[#f8fafc] rounded-2xl max-w-4xl w-full max-h-[88vh] overflow-hidden border border-[#d7dce2] shadow-2xl flex flex-col text-left">
             <div className="px-4 py-3 bg-white border-b border-[#d7dce2] flex items-center justify-between shrink-0">
               <div>
-                <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-                  <span>ChefConnect</span><span>&gt;</span><span>Review Queue</span><span>&gt;</span><span className="text-[#173f70] font-bold">Chef Profile Review</span>
-                </div>
                 <h3 className="font-outfit font-bold text-2xl text-slate-900">Review Chef Application</h3>
               </div>
               <button type="button" onClick={() => setSelectedChef(null)} className="w-8 h-8 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold transition-colors">
