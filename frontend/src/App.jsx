@@ -20,6 +20,7 @@ import LiveFeed from "./admin/LiveFeed";
 import Training from "./admin/Training";
 import EditTraining from "./admin/EditTraining";
 import Chefs from "./admin/Chefs";
+import ChefDetail from "./admin/ChefDetail";
 import Employers from "./admin/Employers";
 import EmployerDetail from "./admin/EmployerDetail";
 import Enquiries from "./admin/Enquiries";
@@ -134,6 +135,7 @@ function App() {
         <Route path="/admin/training" element={<Layout><Training /></Layout>} />
         <Route path="/admin/training/edit" element={<Layout><EditTraining /></Layout>} />
         <Route path="/admin/chefs" element={<Layout><Chefs /></Layout>} />
+        <Route path="/admin/chefs/:id" element={<Layout><ChefDetail /></Layout>} />
         <Route path="/admin/employers" element={<Layout><Employers /></Layout>} />
         <Route path="/admin/employers/:id" element={<Layout><EmployerDetail /></Layout>} />
         <Route path="/admin/enquiries" element={<Layout><Enquiries /></Layout>} />
