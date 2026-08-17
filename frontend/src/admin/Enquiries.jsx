@@ -484,61 +484,94 @@ export default function Enquiries() {
         </div>
       )}
 
-      {/* Slide-out Drawer Overlay */}
+      {/* Centered details modal matching the requested card UI */}
       {drawerOpen && activeEnquiry && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/60 backdrop-blur-xs">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0" onClick={() => setDrawerOpen(false)}></div>
           
-          <div className="flex-grow h-full" onClick={() => setDrawerOpen(false)}></div>
-          
-          <div className="w-full max-w-[400px] h-full bg-[#f8f9fc] border-l border-[#e2e8f0] p-6 shadow-2xl flex flex-col justify-between text-left">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-                <h3 className="font-outfit font-extrabold text-slate-800 text-base">Enquiry Detail</h3>
-                <button onClick={() => setDrawerOpen(false)} className="w-7 h-7 bg-white hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs shadow-sm border border-[#e2e8f0] cursor-pointer"><X className="w-4 h-4" /></button>
-              </div>
+          <div className="bg-[#f8f9fb] border border-[#d7dce2] rounded-[32px] w-full max-w-sm overflow-hidden shadow-2xl relative z-10 p-5 space-y-4 animate-in fade-in zoom-in duration-150 text-left">
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setDrawerOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-1.5 transition-all cursor-pointer font-bold text-xs"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
 
-              <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-xs relative text-left">
-                <span className="absolute top-4 right-4 bg-orange-50 text-orange-600 border border-orange-100 text-[8px] font-extrabold px-2 py-0.5 rounded-md leading-none">
-                  {activeEnquiry.priority}
-                </span>
-
-                <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold font-outfit text-sm border ${getAvatarColor(activeEnquiry.name)}`}>
+            {/* Profile Header Row */}
+            <div className="flex items-center gap-3.5 pt-2">
+              <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border border-slate-200 bg-slate-100 flex items-center justify-center">
+                {activeEnquiry.name.includes("Adrian") ? (
+                  <img 
+                    src="https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?auto=format&fit=crop&w=150&q=80" 
+                    alt={activeEnquiry.name} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center font-bold text-base ${getAvatarColor(activeEnquiry.name)}`}>
                     {(activeEnquiry.name || 'E').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}
                   </div>
-                  <div className="space-y-0.5">
-                    <h4 className="font-outfit font-extrabold text-slate-800 text-sm leading-none">{activeEnquiry.name}</h4>
-                    <span className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5 mt-1">
-                      <FileText className="w-3 h-3" /> {activeEnquiry.program}
-                    </span>
-                  </div>
-                </div>
-
-                {activeEnquiry.query && (
-                  <div className="mt-5 p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                    <p className="text-xs text-slate-500 leading-relaxed font-semibold">
-                      "{activeEnquiry.query}"
-                    </p>
-                  </div>
                 )}
-
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <a href={`tel:${activeEnquiry.phone}`} className="bg-white border border-[#e2e8f0] hover:bg-slate-50 text-slate-700 rounded-lg py-2 text-xs font-bold transition-all text-center flex items-center justify-center gap-1 shadow-xs">
-                    <Phone className="w-3 h-3" /> Call {activeEnquiry.phone}
-                  </a>
-                  <button onClick={() => handleMarkContacted(activeEnquiry.id)}
-                          className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg py-2 text-xs font-bold transition-all text-center flex items-center justify-center gap-1 shadow-xs cursor-pointer">
-                <X className="w-4 h-4" />
-                  </button>
-                </div>
-
               </div>
 
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-outfit font-extrabold text-slate-850 text-base leading-none">{activeEnquiry.name}</h4>
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                    activeEnquiry.priority === 'HIGH PRIORITY' || activeEnquiry.priority === 'CRITICAL'
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {activeEnquiry.priority}
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-[#1d4b78] flex items-center gap-1">
+                  <span>🎓</span> {activeEnquiry.program}
+                </p>
+              </div>
             </div>
 
-            <span className="text-[9px] font-bold text-slate-400 text-center block pt-4">© JobConnect Hospitality Admin Panel</span>
-          </div>
+            {/* Query details text box */}
+            {activeEnquiry.query && (
+              <div className="bg-[#f1f5f9]/60 border border-slate-200 rounded-2xl p-4 mt-2">
+                <p className={`text-xs text-slate-650 leading-relaxed font-semibold ${
+                  activeEnquiry.status === 'Contacted' ? 'italic' : ''
+                }`}>
+                  "{activeEnquiry.query}"
+                </p>
+              </div>
+            )}
 
+            {/* Divider */}
+            <div className="border-t border-slate-200 my-4" />
+
+            {/* Actions Button panel */}
+            {activeEnquiry.status !== 'Contacted' ? (
+              <div className="grid grid-cols-2 gap-3.5 pt-1">
+                <a 
+                  href={`tel:${activeEnquiry.phone}`} 
+                  className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-xl py-2.5 text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Phone className="w-3.5 h-3.5 fill-white" />
+                  Call
+                </a>
+                <button 
+                  onClick={() => { handleMarkContacted(activeEnquiry.id); setDrawerOpen(false); }}
+                  className="bg-white border border-[#cfd5dc] hover:bg-slate-50 text-[#173f70] rounded-xl py-2.5 text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Check className="w-4 h-4 text-[#173f70]" />
+                  Contacted
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-2 text-slate-400 text-xs font-bold gap-1">
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span>Enquiry Already Contacted</span>
+              </div>
+            )}
+
+          </div>
         </div>
       )}
 

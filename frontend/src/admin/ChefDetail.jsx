@@ -129,9 +129,7 @@ export default function ChefDetail() {
         {/* Left Side: Breadcrumbs and Page Title */}
         <div className="space-y-1">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 flex-wrap">
-            <span className="hover:text-slate-600 cursor-pointer">ChefConnect</span>
-            <span className="text-slate-300">&gt;</span>
-            <span className="hover:text-slate-600 cursor-pointer">Review Queue</span>
+            <Link to="/admin/chefs" className="hover:text-slate-600">Chefs</Link>
             <span className="text-slate-300">&gt;</span>
             <span className="text-slate-600">Chef Profile Review</span>
           </div>

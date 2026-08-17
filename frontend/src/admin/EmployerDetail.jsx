@@ -16,11 +16,7 @@ export default function EmployerDetail() {
   );
 
   const fetchEmployerDetail = async () => {
-    if (location.state?.employer) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+    setLoading(!employer);
     let data = null;
 
     // 1. Try realApi (/api/admin/employers/:id)
@@ -86,25 +82,20 @@ export default function EmployerDetail() {
     );
   }
 
-  // Exact mappings fallback to match the screenshot design
-  const name = employer.business_name || employer.name || 'The Grand Horizon Hotel';
-  const contact = employer.contact_person_name || employer.contact || 'Benjamin Tan Wei-Ming';
-  const role = employer.contact_role || 'General Manager - HR Operations';
-  const phone = employer.business_mobile || employer.phone || '+65 8892 4412';
-  const email = employer.business_email || employer.email || 'b.tan@grandhorizon.com.sg';
-  const locationText = employer.business_location || employer.hq || 'Central District, Singapore';
-  const created = employer.created_at || 'Jan 2023';
+  // Pure data from backend endpoints only
+  const name = employer.business_name || employer.name || '';
+  const contact = employer.contact_person_name || employer.contact || '';
+  const role = employer.contact_role || '';
+  const phone = employer.business_mobile || employer.phone || '';
+  const email = employer.business_email || employer.email || '';
+  const locationText = employer.business_location || employer.hq || '';
+  const created = employer.created_at || '';
 
-  const totalJobs = employer.total_jobs ?? 142;
-  const activeJobs = employer.active_jobs ?? 24;
-  const pendingJobs = employer.pending_jobs ?? 8;
+  const totalJobs = employer.total_jobs ?? 0;
+  const activeJobs = employer.active_jobs ?? 0;
+  const pendingJobs = employer.pending_jobs ?? 0;
 
-  const jobsList = employer.jobs && employer.jobs.length > 0 ? employer.jobs : [
-    { id: "JB-9021", title: "Executive Sous Chef", date: "Oct 24, 2023", status: "Active", status_color: "bg-[#eff6ff] text-[#1d4b78]" },
-    { id: "JB-8842", title: "Front Office Supervisor", date: "Oct 22, 2023", status: "Pending Approval", status_color: "bg-[#fff7ed] text-[#c2410c]" },
-    { id: "JB-8112", title: "Night Auditor (Part-time)", date: "Oct 19, 2023", status: "Closed", status_color: "bg-slate-100 text-slate-650" },
-    { id: "JB-7554", title: "Senior Mixologist", date: "Oct 15, 2023", status: "Active", status_color: "bg-[#eff6ff] text-[#1d4b78]" }
-  ];
+  const jobsList = employer.jobs || [];
 
   return (
     <div className="space-y-6 text-left">
@@ -218,8 +209,8 @@ export default function EmployerDetail() {
               <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
                 {totalJobs}
               </span>
-              <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-full w-[70%]" />
+              <div className="w-full bg-slate-100 h-1.5 rounded-[9999px] mt-2 overflow-hidden">
+                <div className="bg-blue-600 h-full rounded-[9999px] w-[70%]" />
               </div>
             </div>
 
@@ -232,8 +223,8 @@ export default function EmployerDetail() {
               <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
                 {activeJobs}
               </span>
-              <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-teal-600 h-full rounded-full w-[45%]" />
+              <div className="w-full bg-slate-100 h-1.5 rounded-[9999px] mt-2 overflow-hidden">
+                <div className="bg-teal-600 h-full rounded-[9999px] w-[45%]" />
               </div>
             </div>
 
@@ -246,8 +237,8 @@ export default function EmployerDetail() {
               <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
                 {pendingJobs < 10 ? `0${pendingJobs}` : pendingJobs}
               </span>
-              <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-red-600 h-full rounded-full w-[15%]" />
+              <div className="w-full bg-slate-100 h-1.5 rounded-[9999px] mt-2 overflow-hidden">
+                <div className="bg-red-600 h-full rounded-[9999px] w-[15%]" />
               </div>
             </div>
 
@@ -271,27 +262,35 @@ export default function EmployerDetail() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
-                  {jobsList.map(job => (
-                    <tr key={job.id} className="hover:bg-slate-50/20 transition-colors">
-                      <td className="py-3.5 px-6">
-                        <span className="font-extrabold text-slate-850 block text-[13px]">{job.title}</span>
-                        <span className="text-[9px] text-slate-400 font-bold block mt-0.5">ID: #{job.id}</span>
-                      </td>
-                      <td className="py-3.5 px-6 text-slate-500 font-bold">
-                        {job.date}
-                      </td>
-                      <td className="py-3.5 px-6">
-                        <span className={`px-2.5 py-1 rounded text-[9px] font-bold tracking-wider ${job.status_color}`}>
-                          {job.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-6 text-right">
-                        <Link to="/admin/jobs" className="text-slate-400 hover:text-slate-600 inline-block mr-2" title="View Job Details">
-                          <Eye className="w-4 h-4" />
-                        </Link>
+                  {jobsList.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="py-8 text-center text-slate-400 font-bold">
+                        No job postings found for this employer.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    jobsList.map(job => (
+                      <tr key={job.id} className="hover:bg-slate-50/20 transition-colors">
+                        <td className="py-3.5 px-6">
+                          <span className="font-extrabold text-slate-850 block text-[13px]">{job.title}</span>
+                          <span className="text-[9px] text-slate-400 font-bold block mt-0.5">ID: #{job.id}</span>
+                        </td>
+                        <td className="py-3.5 px-6 text-slate-500 font-bold">
+                          {job.date}
+                        </td>
+                        <td className="py-3.5 px-6">
+                          <span className={`px-2.5 py-1 rounded text-[9px] font-bold tracking-wider ${job.status_color}`}>
+                            {job.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-6 text-right">
+                          <Link to="/admin/jobs" className="text-slate-400 hover:text-slate-600 inline-block mr-2" title="View Job Details">
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
