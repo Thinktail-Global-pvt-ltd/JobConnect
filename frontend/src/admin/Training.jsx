@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin, X, Building2, Lightbulb, Target } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
@@ -9,6 +9,7 @@ export default function Training() {
   const [tab, setTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const pageSize = 4;
 
   // Modals state
@@ -142,10 +143,21 @@ export default function Training() {
   };
 
   const filteredPrograms = programs.filter(p => {
+    // 1. Tab filter
     const s = (p.status || 'Published').toLowerCase();
-    if (tab === 'published') return s === 'published' || s === 'active';
-    if (tab === 'drafts') return s === 'draft' || s === 'reviewing' || s === 'pending';
-    if (tab === 'pinned') return Boolean(p.is_pinned);
+    if (tab === 'published' && !(s === 'published' || s === 'active')) return false;
+    if (tab === 'drafts' && !(s === 'draft' || s === 'reviewing' || s === 'pending')) return false;
+    if (tab === 'pinned' && !p.is_pinned) return false;
+
+    // 2. Search query filter
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      const matchesName = (p.name || '').toLowerCase().includes(query);
+      const matchesCurriculum = (p.curriculum || '').toLowerCase().includes(query);
+      const matchesCountries = (p.countries || []).some(c => c.toLowerCase().includes(query));
+      return matchesName || matchesCurriculum || matchesCountries;
+    }
+
     return true;
   });
 
@@ -154,7 +166,7 @@ export default function Training() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [tab, programs.length]);
+  }, [tab, programs.length, searchQuery]);
 
   const getStatusBadgeClass = (status = '') => {
     const lower = status.toLowerCase();
@@ -167,24 +179,39 @@ export default function Training() {
   return (
     <div className="space-y-3 text-left">
       
-      {/* Title Header with Action Button */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+      {/* Title Header with Action Button & Center Searchbar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900">Training & Overseas Programs</h2>
-            <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold px-3 py-1 rounded-xl flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              LIVE PROGRAM STREAM
-            </span>
+          <h2 className="font-outfit font-bold text-[20px] leading-tight text-slate-900">Training & Overseas Programs</h2>
+          <p className="text-[11px] font-medium text-slate-500 mt-0.5">Manage international placement cycles and professional training curricula.</p>
+        </div>
+
+        {/* Center Searchbar */}
+        <div className="flex-grow max-w-md mx-0 md:mx-6">
+          <div className="relative">
+            <input 
+              type="text"
+              placeholder="Search programs by name, provider or country..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#f1f5f9]/70 border border-[#d7dce2] rounded-lg pl-3 pr-8 py-1.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#173f70] focus:bg-white transition-all"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-          <p className="text-[12px] font-medium text-slate-600 mt-1">Manage international placement cycles and professional training curricula.</p>
         </div>
 
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+          className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-lg px-3 py-1.5 text-[11px] font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
           <span>Create New Program</span>
         </button>
       </div>

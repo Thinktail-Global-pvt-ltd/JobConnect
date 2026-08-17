@@ -204,7 +204,6 @@ export default function EmployerDetail() {
             <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Jobs Posted</span>
-                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">+12%</span>
               </div>
               <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
                 {totalJobs}
@@ -218,7 +217,6 @@ export default function EmployerDetail() {
             <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Jobs</span>
-                <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">Stable</span>
               </div>
               <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
                 {activeJobs}
@@ -232,7 +230,6 @@ export default function EmployerDetail() {
             <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Jobs</span>
-                <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">Urgent</span>
               </div>
               <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
                 {pendingJobs < 10 ? `0${pendingJobs}` : pendingJobs}

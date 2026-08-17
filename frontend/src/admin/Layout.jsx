@@ -313,7 +313,11 @@ export default function Layout({ children }) {
                         <span className="text-sm leading-none">{navIcon(sub.name, 'w-[17px] h-[17px]')}</span>
                         <span className="text-xs">{sub.name}</span>
                       </div>
-                      <span className="px-2.5 py-0.5 rounded-xl text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
+                      <span className={`px-2.5 py-0.5 rounded-xl text-[10px] font-black border shadow-sm ${
+                        isLight 
+                          ? 'bg-white/15 text-white border-white/20' 
+                          : 'bg-[#1E293B] text-slate-300 border-[#334155]'
+                      }`}>
                         {countVal}
                       </span>
                     </Link>
@@ -362,7 +366,11 @@ export default function Layout({ children }) {
                   <span className="text-xs font-semibold">{item.name}</span>
                 </div>
                 {countVal !== null && (
-                  <span className="px-2.5 py-0.5 rounded-xl text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
+                  <span className={`px-2.5 py-0.5 rounded-xl text-[10px] font-black border shadow-sm ${
+                    isLight 
+                      ? 'bg-white/15 text-white border-white/20' 
+                      : 'bg-[#1E293B] text-slate-300 border-[#334155]'
+                  }`}>
                     {countVal}
                   </span>
                 )}
