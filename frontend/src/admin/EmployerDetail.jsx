@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { Eye, ShieldCheck, Mail, MapPin, Smartphone, UserSquare2, Ban, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 
 export default function EmployerDetail() {
   const { id } = useParams();
-  const [employer, setEmployer] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [suspended, setSuspended] = useState(false);
+  const location = useLocation();
+  const [employer, setEmployer] = useState(location.state?.employer || null);
+  const [loading, setLoading] = useState(!location.state?.employer);
+  const [suspended, setSuspended] = useState(
+    location.state?.employer 
+      ? (location.state.employer.is_suspended || location.state.employer.status === 'Suspended') 
+      : false
+  );
 
   const fetchEmployerDetail = async () => {
+    if (location.state?.employer) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     let data = null;
 
@@ -83,7 +92,7 @@ export default function EmployerDetail() {
   const role = employer.contact_role || 'General Manager - HR Operations';
   const phone = employer.business_mobile || employer.phone || '+65 8892 4412';
   const email = employer.business_email || employer.email || 'b.tan@grandhorizon.com.sg';
-  const location = employer.business_location || employer.hq || 'Central District, Singapore';
+  const locationText = employer.business_location || employer.hq || 'Central District, Singapore';
   const created = employer.created_at || 'Jan 2023';
 
   const totalJobs = employer.total_jobs ?? 142;
@@ -126,7 +135,7 @@ export default function EmployerDetail() {
             </div>
             
             <p className="text-xs font-bold text-slate-400">
-              📍 {location} &nbsp;•&nbsp; Member since {created}
+              📍 {locationText} &nbsp;•&nbsp; Member since {created}
             </p>
           </div>
         </div>

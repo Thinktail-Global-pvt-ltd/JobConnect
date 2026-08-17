@@ -377,6 +377,7 @@ export default function Chefs() {
                             <div className="flex items-center justify-center gap-2">
                               <Link 
                                 to={`/admin/chefs/${chef.id || chef.user_id}`}
+                                state={{ chef: chef }}
                                 className="w-7 h-7 rounded-md bg-white hover:bg-slate-50 text-slate-700 hover:text-[#173f70] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" 
                                 title="View Full Profile Details"
                               >

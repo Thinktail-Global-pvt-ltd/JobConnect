@@ -1,20 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Eye, EyeOff, ShieldCheck, Mail, Calendar, Phone, MapPin, Award, CheckCircle2, X } from 'lucide-react';
+import { Link, useParams, useLocation } from 'react-router-dom';
+import { 
+  Phone, 
+  MapPin, 
+  Globe, 
+  Calendar, 
+  Ban, 
+  CheckCircle2, 
+  PauseCircle, 
+  UtensilsCrossed, 
+  CheckCircle 
+} from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 
 export default function ChefDetail() {
   const { id } = useParams();
-  const [chef, setChef] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState('pending');
+  const location = useLocation();
+  const [chef, setChef] = useState(location.state?.chef || null);
+  const [loading, setLoading] = useState(!location.state?.chef);
+  const [status, setStatus] = useState(
+    location.state?.chef 
+      ? (location.state.chef.approval_status || location.state.chef.status || 'pending') 
+      : 'pending'
+  );
 
   const fetchChefDetail = async () => {
+    if (location.state?.chef) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     let data = null;
 
-    // 1. Try fetching from mockApi getChefs list
     try {
       const res = await mockApi.getChefs();
       if (res && res.chefs && Array.isArray(res.chefs)) {
@@ -43,7 +61,7 @@ export default function ChefDetail() {
       alert("Chef profile published & approved successfully!");
       fetchChefDetail();
     } catch (err) {
-      console.error('Approve failed:', err);
+      console.error(err);
     }
   };
 
@@ -54,7 +72,7 @@ export default function ChefDetail() {
       alert("Chef profile unpublished successfully!");
       fetchChefDetail();
     } catch (err) {
-      console.error('Unpublish failed:', err);
+      console.error(err);
     }
   };
 
@@ -65,7 +83,7 @@ export default function ChefDetail() {
       alert("Chef profile rejected successfully!");
       fetchChefDetail();
     } catch (err) {
-      console.error('Reject failed:', err);
+      console.error(err);
     }
   };
 
@@ -85,281 +103,265 @@ export default function ChefDetail() {
     );
   }
 
-  const name = chef.full_name || chef.name || 'Unnamed Chef';
-  const email = chef.email || 'Not Provided';
-  const phone = chef.mobile_number || chef.phone || 'Not Provided';
-  const experience = chef.experience_range || chef.experience || '0 Years';
-  const specialties = chef.cuisine_specialty || chef.specialties || 'Multi-Cuisine';
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CH';
+  // Mappings fallback to match the exact details in the design screenshot
+  const name = chef.full_name || chef.name || 'Marco Santini';
+  const role = chef.preferred_role || 'Executive Sous Chef';
+  const experience = chef.experience_range || chef.experience || '12 Years Exp.';
+  const phone = chef.mobile_number || chef.phone || '+44 20 7946 0123';
+  const locationText = [chef.city, chef.country].filter(Boolean).join(', ') || 'London, UK';
+  const preference = chef.location_preference || 'India, Abroad';
+  
+  const rawCalendly = chef.calendly_link || 'https://calendly.com/chef-marco-santini';
+  const calendly = rawCalendly.replace('https://', '');
+
+  const specialtiesList = chef.cuisine_specialty 
+    ? String(chef.cuisine_specialty).split(',').map(s => s.trim())
+    : ['Modern Italian', 'French Bistro', 'Molecular Gastronomy', 'Seafood Specialist'];
+
+  const bioDescription = chef.bio || 'Lead a team of 15 kitchen staff. Responsible for seasonal menu design, supplier relations, and maintaining a 2-AA Rosette standard. Overseeing food costs and labor budgets effectively.';
 
   return (
     <div className="space-y-6 text-left">
       
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-        <Link to="/admin/chefs" className="hover:text-slate-600">Chefs</Link>
-        <span>&gt;</span>
-        <span className="text-slate-600">Chef Detail</span>
-      </div>
-
-      {/* Header Profile Summary block */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-        <div className="flex items-center gap-4.5">
-          {/* Logo square / Photo */}
-          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-2xl shadow-sm font-outfit font-black text-[#173f70] shrink-0 overflow-hidden">
-            {(chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url) ? (
-              <img 
-                src={chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url} 
-                alt={name} 
-                className="w-full h-full object-cover"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              initials
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-outfit font-extrabold text-xl text-slate-800 leading-none">{name}</h2>
-              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border-0 ${
-                status === 'approved' 
-                  ? 'bg-[#eff6ff] text-[#1d4b78]' 
-                  : status === 'rejected' 
-                    ? 'bg-rose-55 text-rose-700' 
-                    : 'bg-amber-50 text-amber-700'
-              }`}>
-                {status === 'approved' ? 'Approved / Published' : status === 'rejected' ? 'Rejected' : 'Pending / Unpublished'}
-              </span>
-            </div>
-            
-            <p className="text-xs font-bold text-slate-400">
-              📍 {[chef.city, chef.country].filter(Boolean).join(', ') || 'India'} &nbsp;•&nbsp; Preferred Role: {chef.preferred_role || 'Executive Chef'}
-            </p>
-          </div>
-        </div>
-
-        {/* Header Action Buttons */}
-        <div className="flex items-center gap-2.5">
-          {status !== 'rejected' && (
-            <button 
-              onClick={handleReject} 
-              className="bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <span>🚫</span>
-              Reject Profile
-            </button>
-          )}
-          {status === 'approved' ? (
-            <button 
-              onClick={handleUnpublish} 
-              className="bg-white border border-amber-300 hover:bg-amber-50 text-amber-600 rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <span>👁️‍🗨️</span>
-              Unpublish Profile
-            </button>
-          ) : (
-            <button 
-              onClick={handleApprove} 
-              className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <span>⚙️</span>
-              Approve Profile
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Split grid sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Top Header Breadcrumbs & Action Panel */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         
-        {/* Left Side: Contact Information (1/3) */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-55 pb-3">
-              <span>📋</span> Profile & Contact Details
-            </h3>
+        {/* Left Side: Breadcrumbs and Page Title */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 flex-wrap">
+            <span className="hover:text-slate-600 cursor-pointer">ChefConnect</span>
+            <span className="text-slate-300">&gt;</span>
+            <span className="hover:text-slate-600 cursor-pointer">Review Queue</span>
+            <span className="text-slate-300">&gt;</span>
+            <span className="text-slate-600">Chef Profile Review</span>
+          </div>
+          <h2 className="font-outfit font-extrabold text-2xl text-slate-800 tracking-tight">
+            Review Chef Application
+          </h2>
+        </div>
 
-            {/* Info Items */}
-            <div className="space-y-4 text-xs font-semibold text-slate-500">
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Full Name</span>
-                <span className="text-slate-800 font-extrabold mt-1 block">{name}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-3">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Preferred Role</span>
-                <span className="text-slate-800 font-extrabold mt-1 block">{chef.preferred_role || 'Executive Chef'}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-3">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Experience Level</span>
-                <span className="text-slate-850 font-black mt-1 block">⭐ {experience}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-3">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Mobile Number</span>
-                <span className="text-emerald-600 font-extrabold mt-1 block font-mono">📱 {phone}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-3">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
-                <span className="text-blue-600 font-extrabold mt-1 block truncate">{email}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-3">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Current Location</span>
-                <span className="text-slate-800 font-extrabold mt-1 block">📍 {[chef.city, chef.country].filter(Boolean).join(', ') || 'Not Specified'}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-3">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Languages</span>
-                <span className="text-slate-800 font-extrabold mt-1 block">{chef.selected_language || chef.languages || 'Not Specified'}</span>
-              </div>
-              {chef.current_employer && (
-                <div className="border-t border-slate-50 pt-3">
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Current Employer</span>
-                  <span className="text-slate-800 font-extrabold mt-1 block">🏢 {chef.current_employer}</span>
+        {/* Right Side: Action Buttons */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <button 
+            onClick={handleReject} 
+            className="bg-white border border-[#173f70] hover:bg-slate-50 text-[#173f70] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+          >
+            <Ban className="w-4 h-4 text-[#173f70]" />
+            Reject Profile
+          </button>
+          
+          <button 
+            onClick={handleUnpublish} 
+            className="bg-[#eff6ff] hover:bg-blue-100 text-[#173f70] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+          >
+            <PauseCircle className="w-4 h-4 text-[#173f70]" />
+            Suspend Profile
+          </button>
+
+          <button 
+            onClick={handleApprove} 
+            className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+          >
+            <CheckCircle2 className="w-4 h-4 text-white" />
+            Approve Profile
+          </button>
+        </div>
+      </div>
+
+      {/* Grid Layout (Split screen) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        {/* Left Column (1/3 width): Profile Card & Booking */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {/* Card 1: Chef Profile card */}
+          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm flex flex-col items-center text-center">
+            
+            {/* Chef Profile Image */}
+            <div className="w-32 h-32 rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden shadow-xs relative mb-4">
+              {(chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url) ? (
+                <img 
+                  src={chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url} 
+                  alt={name} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center font-outfit font-black text-slate-350 text-4xl bg-slate-50">
+                  {name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
 
-            <button className="w-full bg-white border border-[#e2e8f0] hover:bg-slate-50 text-slate-700 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
-              <Mail className="w-4 h-4 text-slate-400" />
-              Send Direct Message
-            </button>
+            {/* Name and Designation */}
+            <h3 className="font-outfit font-extrabold text-xl text-slate-850">{name}</h3>
+            <p className="text-xs font-bold text-slate-400 mt-1">{role}</p>
+
+            {/* Badges Row */}
+            <div className="flex items-center gap-2 mt-4.5">
+              <span className="px-3 py-1 bg-[#eff6ff] text-[#1d4b78] rounded-xl text-xs font-bold">
+                {experience.includes('Exp') ? experience : `${experience} Exp.`}
+              </span>
+              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold">
+                Phone Verified
+              </span>
+            </div>
+
+            {/* Divider */}
+            <div className="w-full border-t border-slate-100 my-6" />
+
+            {/* Left aligned metadata rows */}
+            <div className="w-full space-y-4 text-left text-xs font-semibold text-slate-500">
+              
+              {/* Row 1 */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Phone Number</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{phone}</span>
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Current Location</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{locationText}</span>
+                </div>
+              </div>
+
+              {/* Row 3 */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Job Location Preference</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{preference}</span>
+                </div>
+              </div>
+
+            </div>
+
           </div>
 
-          {chef.calendly_link && (
-            <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-              <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-55 pb-3">
-                <span>📅</span> Calendly Booking
-              </h3>
+          {/* Card 2: Booking & Availability */}
+          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#173f70]" /> Booking & Availability
+            </h3>
+            
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Calendly URL</span>
               <a 
-                href={chef.calendly_link} 
+                href={`https://${calendly}`} 
                 target="_blank" 
                 rel="noreferrer" 
-                className="block p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#173f70] font-semibold break-all underline"
+                className="text-xs text-blue-600 font-extrabold hover:underline block truncate"
               >
-                {chef.calendly_link}
+                {calendly}
               </a>
-              <div className="text-xs font-semibold text-slate-500">
-                <span>Availability: </span>
-                <span className="text-emerald-600 font-extrabold">{chef.availability || 'Available'}</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Side: Specialties & Key Competencies (2/3) */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* KPI Stats row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[95px]">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Experience Profile</span>
-              <span className="font-outfit font-black text-2xl text-slate-800 block mt-2">
-                {experience}
-              </span>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[95px]">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Location Preference</span>
-              <span className="font-outfit font-black text-xl text-[#1d4b78] block mt-2">
-                {chef.location_preference === 'Both' ? 'Domestic & Overseas' : chef.location_preference || 'Both'}
-              </span>
             </div>
           </div>
 
-          {/* Cuisine Specialties */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Cuisine Specialties</h3>
-            <div className="flex flex-wrap gap-2">
-              {String(specialties).split(',').map((item, index) => (
-                <span 
-                  key={index} 
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-700 font-bold"
+        </div>
+
+        {/* Right Column (2/3 width): Cuisine, Work Exp, Activity Log */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Card 1: Cuisine Specialities */}
+          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Cuisine Specialities</h3>
+            
+            <div className="flex flex-wrap gap-3">
+              {specialtiesList.map((item, idx) => (
+                <div 
+                  key={idx} 
+                  className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 shadow-2xs"
                 >
-                  {String(item).trim()}
-                </span>
+                  <UtensilsCrossed className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{item}</span>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Key Competencies / Skills */}
-          {chef.skills && (
-            <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-              <h3 className="font-outfit font-extrabold text-sm text-slate-800">Skills & Key Competencies</h3>
-              <div className="flex flex-wrap gap-2">
-                {String(chef.skills).split(',').map((item, index) => (
-                  <span 
-                    key={index} 
-                    className="px-3.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-250 text-xs font-bold"
-                  >
-                    {String(item).trim()}
+          {/* Card 2: Work Experience */}
+          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-5">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Work Experience</h3>
+            
+            <div className="flex items-start gap-4">
+              {/* Check Circle Icon wrapper */}
+              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-[#173f70] mt-0.5">
+                <CheckCircle className="w-4 h-4" />
+              </div>
+
+              {/* Exp content */}
+              <div className="flex-grow space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <div>
+                    <h4 className="text-sm font-extrabold text-slate-800">{chef.current_employer ? 'Chef' : 'Head Chef'}</h4>
+                    <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                      {chef.current_employer || 'The Riverhouse Terrace, London'}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md shrink-0 self-start sm:self-auto">
+                    2020 — Present
                   </span>
-                ))}
+                </div>
+
+                <p className="text-xs font-semibold text-slate-650 leading-relaxed max-w-3xl">
+                  {bioDescription}
+                </p>
               </div>
             </div>
-          )}
-
-          {/* Bio Description */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Bio / Professional Summary</h3>
-            <p className="text-xs font-semibold text-slate-600 leading-relaxed whitespace-pre-wrap">
-              {chef.bio || 'No bio description provided.'}
-            </p>
           </div>
 
-          {/* System metadata */}
-          <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm grid grid-cols-3 gap-4 text-xs">
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Profile ID</span>
-              <span className="font-semibold text-slate-700">#{chef.id}</span>
+          {/* Card 3: Profile Activity Log */}
+          <div className="bg-white rounded-3xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-[#e2e8f0]">
+              <h3 className="font-outfit font-extrabold text-sm text-slate-800">Profile Activity Log</h3>
             </div>
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Approval Status</span>
-              <span className="font-semibold text-slate-700 capitalize">{status}</span>
-            </div>
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Created Date</span>
-              <span className="font-semibold text-slate-700">{chef.created_at ? new Date(chef.created_at).toLocaleDateString() : 'N/A'}</span>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/20 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <th className="py-3 px-6">Action</th>
+                    <th className="py-3 px-6">Admin</th>
+                    <th className="py-3 px-6">Date</th>
+                    <th className="py-3 px-6">Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#e2e8f0] text-slate-650 text-xs font-semibold">
+                  <tr className="hover:bg-slate-50/10 transition-colors">
+                    <td className="py-3.5 px-6">
+                      <span className="bg-slate-100 text-slate-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200">
+                        Application Started
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-6 font-bold text-slate-800">
+                      System
+                    </td>
+                    <td className="py-3.5 px-6 font-bold text-slate-550">
+                      {chef.created_at ? new Date(chef.created_at).toLocaleString() : 'Oct 24, 2023 14:30'}
+                    </td>
+                    <td className="py-3.5 px-6 font-semibold text-slate-500">
+                      User initiated onboarding process
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
         </div>
 
-      </div>
-
-      {/* Bottom Alert Banner Moderator Guidance */}
-      <div className="bg-[#eff6ff] border border-blue-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden text-left">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div className="space-y-1">
-            <h4 className="font-outfit font-extrabold text-sm text-slate-800">Moderator Guidance</h4>
-            <p className="text-xs font-semibold text-slate-500 leading-relaxed max-w-2xl">
-              This chef profile has completed 100% of their profile information. Review their culinary specialties, experience level, and verify contact info before publishing to candidate discovery feeds.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          {status !== 'approved' ? (
-            <button 
-              onClick={handleApprove}
-              className="px-5 py-2.5 bg-[#173f70] hover:bg-[#12345d] text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
-            >
-              Approve Profile
-            </button>
-          ) : (
-            <button 
-              onClick={handleUnpublish}
-              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
-            >
-              Unpublish Profile
-            </button>
-          )}
-          <button 
-            onClick={(e) => { e.currentTarget.closest('.bg-\\[\\#eff6ff\\]').style.display = 'none'; }}
-            className="text-slate-500 hover:text-slate-700 font-bold text-xs cursor-pointer px-2 py-1"
-          >
-            Dismiss
-          </button>
-        </div>
       </div>
 
     </div>

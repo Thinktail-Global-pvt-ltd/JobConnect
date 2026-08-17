@@ -297,6 +297,7 @@ export default function Employers() {
                       <div className="flex items-center justify-end gap-2 flex-wrap">
                       <Link 
                         to={`/admin/employers/${emp.id}`}
+                        state={{ employer: emp }}
                         className="px-3 py-1.5 rounded-md bg-[#173f70] hover:bg-[#12345d] text-white border border-[#173f70] text-[11px] font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
                       >
                         <Eye className="w-3.5 h-3.5" />
