@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin, X, Building2, Lightbulb, Target } from 'lucide-react';
+import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin, X, Building2, Lightbulb, Target, Search } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 
@@ -189,12 +189,13 @@ export default function Training() {
         {/* Center Searchbar */}
         <div className="flex-grow max-w-md mx-0 md:mx-6">
           <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input 
               type="text"
               placeholder="Search programs by name, provider or country..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f1f5f9]/70 border border-[#d7dce2] rounded-lg pl-3 pr-8 py-1.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#173f70] focus:bg-white transition-all"
+              className="w-full bg-[#f1f5f9]/70 border border-[#d7dce2] rounded-lg pl-8 pr-8 py-1.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#173f70] focus:bg-white transition-all"
             />
             {searchQuery && (
               <button 
