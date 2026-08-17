@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Plus, Eye, Phone, MoreVertical, Check, X, ShieldAlert, Sparkles, ChevronLeft, ChevronRight, UserPlus, Filter, FileText } from 'lucide-react';
 import { mockApi } from '../services/api';
 
@@ -494,7 +494,7 @@ export default function Enquiries() {
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h3 className="font-outfit font-extrabold text-slate-800 text-base">Enquiry Detail</h3>
-                <button onClick={() => setDrawerOpen(false)} className="w-7 h-7 bg-white hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs shadow-sm border border-[#e2e8f0] cursor-pointer">âœ•</button>
+                <button onClick={() => setDrawerOpen(false)} className="w-7 h-7 bg-white hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs shadow-sm border border-[#e2e8f0] cursor-pointer"><X className="w-4 h-4" /></button>
               </div>
 
               <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-xs relative text-left">

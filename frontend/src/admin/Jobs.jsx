@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
@@ -197,7 +197,7 @@ export default function Jobs() {
         </div>
       </div>
 
-      {/* Merged Section Category Tabs (India Jobs, Overseas Jobs, Referrals) */}
+          <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>
       <div className="hidden items-center gap-2 border-b border-[#d9dee4] pb-3 overflow-x-auto">
         <button 
           onClick={() => setCategory('')} 
@@ -205,7 +205,7 @@ export default function Jobs() {
             category === '' ? 'bg-[#173f70] text-white' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>ðŸ’¼ All Job Listings</span>
+          <span><Briefcase className="w-3.5 h-3.5" /> All Job Listings</span>
         </button>
 
         <button 
@@ -214,7 +214,7 @@ export default function Jobs() {
             category === 'india' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>ðŸ‡®ðŸ‡³ India Jobs</span>
+          <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>
         </button>
 
         <button 
@@ -223,7 +223,7 @@ export default function Jobs() {
             category === 'overseas' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>âœˆï¸ Overseas Jobs</span>
+          <span><Plane className="w-3.5 h-3.5" /> Overseas Jobs</span>
         </button>
 
         <button 
@@ -232,7 +232,7 @@ export default function Jobs() {
             category === 'community' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>ðŸ”— Referrals & Community</span>
+          <span><Link2 className="w-3.5 h-3.5" /> Referrals & Community</span>
         </button>
       </div>
 
@@ -489,9 +489,9 @@ export default function Jobs() {
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
-                    <option value="india">India Jobs</option>
-                    <option value="overseas">Overseas Jobs</option>
-                    <option value="community">Referrals & Community</option>
+          <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>
+          <span><Plane className="w-3.5 h-3.5" /> Overseas Jobs</span>
+          <span><Link2 className="w-3.5 h-3.5" /> Referrals & Community</span>
                   </select>
                 </div>
               </div>

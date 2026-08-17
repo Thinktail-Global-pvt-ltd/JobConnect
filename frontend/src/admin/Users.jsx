@@ -1,7 +1,7 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { mockApi, realApi } from '../services/api';
-import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X, Eye, Smartphone, MapPin, Star } from 'lucide-react';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -239,21 +239,24 @@ export default function Users() {
                     </td>
 
                     {/* Actions Links */}
-                    <td className="py-4 px-6 text-right space-x-2">
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
                       <button onClick={() => handleViewUserDetail(user)} 
-                              className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-[#173f70] border border-[#d7dce2] text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1">
-                        ðŸ‘ï¸ View Details
+                              className="px-3 py-1.5 rounded-md bg-[#173f70] hover:bg-[#12345d] text-white border border-[#173f70] text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm">
+                        <Eye className="w-3.5 h-3.5" />
+                        View Details
                       </button>
 
                       {user.is_suspended ? (
-                        <button onClick={() => handleActivate(user.id)} className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-extrabold transition-all cursor-pointer">
+                        <button onClick={() => handleActivate(user.id)} className="px-3 py-1.5 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white border border-emerald-500 text-[11px] font-bold shadow-sm transition-all cursor-pointer">
                           Activate
                         </button>
                       ) : (
-                        <button onClick={() => handleSuspend(user.id)} className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold transition-all cursor-pointer">
+                        <button onClick={() => handleSuspend(user.id)} className="px-3 py-1.5 rounded-md bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-bold shadow-sm transition-all cursor-pointer">
                           Suspend
                         </button>
                       )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -321,7 +324,7 @@ export default function Users() {
 
                     <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Mobile Phone</span>
-                      <span className="font-extrabold text-emerald-400 block font-mono">ðŸ“± {selectedUser.mobile_number || selectedUser.phone || 'N/A'}</span>
+                      <span className="font-extrabold text-emerald-700 block font-mono"><Smartphone className="w-3 h-3 inline-block mr-1" /> {selectedUser.mobile_number || selectedUser.phone || 'N/A'}</span>
                     </div>
 
                     <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
@@ -331,12 +334,12 @@ export default function Users() {
 
                     <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">City / Location</span>
-                      <span className="font-extrabold text-slate-900 block">ðŸ“ {selectedUser.city || selectedUser.location || 'N/A'}</span>
+                      <span className="font-extrabold text-slate-900 block"><MapPin className="w-3 h-3 inline-block mr-1" /> {selectedUser.city || selectedUser.location || 'N/A'}</span>
                     </div>
 
                     <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Experience Level</span>
-                      <span className="font-extrabold text-amber-400 block">â­ {selectedUser.experience || selectedUser.experience_range || 'N/A'}</span>
+                      <span className="font-extrabold text-amber-700 block"><Star className="w-3 h-3 inline-block mr-1" /> {selectedUser.experience || selectedUser.experience_range || 'N/A'}</span>
                     </div>
 
                     <div className="bg-slate-50/60 p-3 rounded-xl border border-slate-800 space-y-0.5">

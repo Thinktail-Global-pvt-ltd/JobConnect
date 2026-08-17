@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight, MapPin, FileText } from 'lucide-react';
 import axios from 'axios';
 import { realApi } from '../services/api';
 
@@ -228,12 +228,12 @@ export default function Employers() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#e5e5e5] border-b border-[#b9cfbe] text-[11px] font-bold text-[#344054] uppercase tracking-wider">
-                <th className="py-4 px-5">Business Name</th>
-                <th className="py-4 px-5">Contact Person</th>
-                <th className="py-4 px-5">Mobile Number</th>
-                <th className="py-4 px-5">Jobs Posted</th>
-                <th className="py-4 px-5">Status</th>
-                <th className="py-4 px-5 text-center">Actions</th>
+                <th className="py-2.5 px-3">Business Name</th>
+                <th className="py-2.5 px-3">Contact Person</th>
+                <th className="py-2.5 px-3">Mobile Number</th>
+                <th className="py-2.5 px-3">Jobs Posted</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#b9cfbe] text-[#183b61] text-xs font-semibold">
@@ -248,41 +248,41 @@ export default function Employers() {
                   <tr key={emp.id} className="hover:bg-[#f3f6f8] transition-colors">
                     
                     {/* Business Name with avatar */}
-                    <td className="py-4.5 px-6">
+                    <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-xl bg-white text-[#173f70] border border-[#b9cfbe] flex items-center justify-center font-black font-outfit text-xs shadow-sm shrink-0">
                           {(emp.name || emp.business_name || emp.full_name || 'E')[0].toUpperCase()}
                         </div>
                         <div>
-                          <span className="font-bold text-slate-900 text-[16px] block leading-tight">
+                          <span className="font-bold text-slate-900 text-xs text-[13px] block leading-tight">
                             {emp.name || emp.business_name || emp.company || emp.full_name || 'Employer Company'}
                           </span>
-                          <span className="text-[13px] text-slate-500 font-medium block mt-0.5">
-                            📍 {emp.hq || emp.business_location || emp.city || 'India'}
+                          <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
+                            <MapPin className="w-3 h-3 inline-block mr-1 text-slate-500" />{emp.hq || emp.business_location || emp.city || 'India'}
                           </span>
                         </div>
                       </div>
                     </td>
 
                     {/* Contact Person */}
-                    <td className="py-4.5 px-6 font-medium text-slate-800">
+                    <td className="py-4 px-6 font-semibold text-slate-700 text-xs">
                       {emp.contact || emp.contact_person_name || emp.full_name || 'N/A'}
                     </td>
 
                     {/* Mobile number */}
-                    <td className="py-4.5 px-6 font-medium text-slate-600">
+                    <td className="py-4 px-6 font-semibold text-slate-600 text-xs">
                       <code className="bg-transparent px-0 py-0 rounded text-slate-500 font-mono text-[13px] border-0">
                         {emp.phone || emp.mobile_number || emp.business_mobile || 'N/A'}
                       </code>
                     </td>
 
                     {/* Jobs Posted count */}
-                    <td className="py-4.5 px-6 text-slate-900 font-bold">
+                    <td className="py-4 px-6 text-slate-900 font-bold">
                       📄 {emp.posted_count ?? emp.job_posts_count ?? 0}
                     </td>
 
                     {/* Status Badge */}
-                    <td className="py-4.5 px-6">
+                    <td className="py-4 px-6">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${
                         (emp.status === 'Active' || !emp.is_suspended)
                           ? 'bg-[#d9f3e7] text-[#137333] border-0'
@@ -293,11 +293,12 @@ export default function Employers() {
                     </td>
 
                     {/* Actions Links */}
-                    <td className="py-4.5 px-6 text-center space-x-2">
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex items-center justify-end gap-2 flex-wrap">
                       <button 
                         type="button"
                         onClick={() => { setSelectedEmp(emp); setViewEmpModalOpen(true); }}
-                        className="px-3 py-1.5 rounded-xl bg-transparent hover:bg-[#edf3f9] text-[#173f70] hover:text-[#0f3158] border border-[#bdcfe2] text-xs font-extrabold transition-all inline-flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1.5 rounded-md bg-[#173f70] hover:bg-[#12345d] text-white border border-[#173f70] text-[11px] font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>View</span>
@@ -305,14 +306,15 @@ export default function Employers() {
 
                       <button 
                         onClick={() => toggleSuspend(emp.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-md text-[11px] font-bold border transition-all cursor-pointer shadow-sm ${
                           emp.status === 'Active'
-                            ? 'bg-transparent hover:bg-[#fee2e2] text-[#c5221f] border border-[#f3b7b7]'
-                            : 'bg-transparent hover:bg-[#d9f3e7] text-[#137333] border border-[#b7dec8]'
+                            ? 'bg-white hover:bg-rose-50 text-rose-700 border border-rose-200'
+                            : 'bg-emerald-500 hover:bg-emerald-600 text-white border border-emerald-500'
                         }`}
                       >
                         {emp.status === 'Active' ? 'Suspend' : 'Activate'}
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -111,22 +111,22 @@ export default function Layout({ children }) {
                              location.pathname.startsWith('/admin/chefs');
 
   const mainNavItems = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: '📊', count: null },
+    { name: 'Dashboard', path: '/admin/dashboard', icon: null, count: null },
   ];
 
   const userSubItems = [
-    { name: 'Talent / Jobseeker', path: '/admin/users', icon: '👤', countKey: 'talent' },
-    { name: 'Employer', path: '/admin/employers', icon: '🏢', countKey: 'employers' },
-    { name: 'Chef', path: '/admin/chefs', icon: '👨‍🍳', countKey: 'chefs' },
+    { name: 'Talent / Jobseeker', path: '/admin/users', icon: null, countKey: 'talent' },
+    { name: 'Employer', path: '/admin/employers', icon: null, countKey: 'employers' },
+    { name: 'Chef', path: '/admin/chefs', icon: null, countKey: 'chefs' },
   ];
 
   const secondaryNavItems = [
-    { name: 'Jobs', path: '/admin/jobs', icon: '💼', countKey: 'jobs' },
-    { name: 'Community Feed', path: '/admin/community', icon: '📶', countKey: 'community' },
-    { name: 'Training & Overseas', path: '/admin/training', icon: '🎓', countKey: 'training' },
-    { name: 'Applications', path: '/admin/applications', icon: '📄', countKey: 'applications' },
-    { name: 'Enquiries', path: '/admin/enquiries', icon: '❓', countKey: 'enquiries' },
-    { name: 'Notifications & Logs', path: '/admin/notifications', icon: '🔔', countKey: 'notifications' },
+    { name: 'Jobs', path: '/admin/jobs', icon: null, countKey: 'jobs' },
+    { name: 'Community Feed', path: '/admin/community', icon: null, countKey: 'community' },
+    { name: 'Training & Overseas', path: '/admin/training', icon: null, countKey: 'training' },
+    { name: 'Applications', path: '/admin/applications', icon: null, countKey: 'applications' },
+    { name: 'Enquiries', path: '/admin/enquiries', icon: null, countKey: 'enquiries' },
+    { name: 'Notifications & Logs', path: '/admin/notifications', icon: null, countKey: 'notifications' },
   ];
 
   const handleLogout = () => {
@@ -261,7 +261,7 @@ export default function Layout({ children }) {
                     ? `admin-sidebar-active ${isLight ? 'bg-[#0E2643] text-white border-white' : 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30'} font-bold scale-105`
                     : `admin-sidebar-item ${isLight ? 'text-slate-250 hover:bg-[#154675]/25 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'}`
                 }`}>
-                  👥
+                  <UsersRound className="w-5 h-5" />
                 </div>
                 <div className={`absolute left-16 ${isLight ? 'bg-[#123356] border-[#154675]/35' : 'bg-[#0B1120] border-[#1E293B]'} text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap`}>
                   Users Management
@@ -277,7 +277,7 @@ export default function Layout({ children }) {
                 }`}
               >
                 <div className="flex items-center gap-3.5">
-                  <span className="text-base leading-none">👥</span>
+                  <span className="text-base leading-none"><UsersRound className="w-5 h-5" /></span>
                   <span className="text-xs font-bold uppercase tracking-wider">Users</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -454,7 +454,7 @@ export default function Layout({ children }) {
                   <div className="max-h-80 overflow-y-auto divide-y divide-[#1E293B]/60">
                     {notifications.length === 0 ? (
                       <div className="p-6 text-center text-slate-400 text-xs font-semibold">
-                        🔔 No system notifications recorded yet.
+                        <Bell className="w-4 h-4" />
                       </div>
                     ) : (
                       notifications.map(item => (
@@ -465,7 +465,7 @@ export default function Layout({ children }) {
                         >
                           {/* Type Icon Badge */}
                           <div className="w-8 h-8 rounded-xl bg-[#1E293B] border border-slate-700/60 flex items-center justify-center text-sm shrink-0 mt-0.5">
-                            {item.type === 'job_approved' ? '💼' : item.type === 'chef_approved' ? '🌟' : item.type === 'consultation_booked' ? '📅' : item.type === 'application_received' ? '👤' : '🔔'}
+                            {item.type === 'job_approved' ? <BriefcaseBusiness className="w-4 h-4" /> : item.type === 'chef_approved' ? <Utensils className="w-4 h-4" /> : item.type === 'application_received' ? <UsersRound className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
                           </div>
 
                           <div className="flex-grow min-w-0">
