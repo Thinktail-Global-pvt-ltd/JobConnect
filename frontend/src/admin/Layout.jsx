@@ -281,7 +281,7 @@ export default function Layout({ children }) {
                   <span className="text-xs font-bold uppercase tracking-wider">Users</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#059669] text-white shadow-sm border border-emerald-500">
+                  <span className="px-2.5 py-0.5 rounded-xl text-[11px] font-black bg-[#059669] text-white shadow-sm border border-emerald-500">
                     {counts.users ?? (counts.talent + counts.employers + counts.chefs)}
                   </span>
                   {usersOpen ? (
@@ -313,7 +313,7 @@ export default function Layout({ children }) {
                         <span className="text-sm leading-none">{navIcon(sub.name, 'w-[17px] h-[17px]')}</span>
                         <span className="text-xs">{sub.name}</span>
                       </div>
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
+                      <span className="px-2.5 py-0.5 rounded-xl text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
                         {countVal}
                       </span>
                     </Link>
@@ -362,7 +362,7 @@ export default function Layout({ children }) {
                   <span className="text-xs font-semibold">{item.name}</span>
                 </div>
                 {countVal !== null && (
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
+                  <span className="px-2.5 py-0.5 rounded-xl text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
                     {countVal}
                   </span>
                 )}
@@ -372,31 +372,6 @@ export default function Layout({ children }) {
 
         </nav>
 
-        {/* Admin User Footer Profile */}
-        <div className={`p-4 border-t ${sidebarDividerClass} flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3'}`}>
-          <div className={`w-8 h-8 rounded-full ${isLight ? 'bg-white text-[#123356]' : 'bg-[#059669] text-white'} flex items-center justify-center font-black text-xs shrink-0 shadow-sm`}>
-            JR
-          </div>
-          {!isCollapsed && (
-            <>
-              <div className="overflow-hidden flex-grow">
-                <span className="text-xs font-extrabold text-white block truncate">jobrito_admin</span>
-                <span className={`text-[10px] font-semibold block truncate ${isLight ? 'text-slate-350' : 'text-slate-400'}`}>Super Admin</span>
-              </div>
-              <button 
-                onClick={handleLogout}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  isLight 
-                    ? 'bg-[#154675]/30 hover:bg-rose-900/40 text-slate-200 hover:text-rose-400' 
-                    : 'bg-[#1E293B] hover:bg-rose-950/50 text-slate-400 hover:text-rose-400'
-                }`}
-                title="Sign Out Admin"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </>
-          )}
-        </div>
       </aside>
 
       {/* Main Workspace with Dynamic Left Margin */}
@@ -406,7 +381,11 @@ export default function Layout({ children }) {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-2 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-300 transition-colors"
+              className={`p-2 rounded-lg transition-colors ${
+                isLight 
+                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' 
+                  : 'bg-[#1E293B] hover:bg-slate-700 text-slate-300'
+              }`}
               title="Toggle Sidebar"
             >
               <Menu className="w-4 h-4" />
@@ -418,7 +397,11 @@ export default function Layout({ children }) {
             <div className="relative">
               <button 
                 onClick={() => { setNotifOpen(!notifOpen); }}
-                className="relative w-9 h-9 rounded-xl bg-[#1E293B] hover:bg-slate-700 flex items-center justify-center text-slate-200 transition-all cursor-pointer border border-slate-700/60"
+                className={`relative w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
+                  isLight 
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200' 
+                    : 'bg-[#1E293B] hover:bg-slate-700 text-slate-200 border-slate-700/60'
+                }`}
                 title="View FCM Notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -503,19 +486,23 @@ export default function Layout({ children }) {
               )}
             </div>
 
-            <div className="h-6 w-px bg-slate-800 hidden sm:block"></div>
+            <div className={`h-6 w-px ${isLight ? 'bg-slate-300' : 'bg-slate-800'} hidden sm:block`}></div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <div className={`w-8 h-8 rounded-full ${isLight ? 'bg-[#1d4b78] text-white' : isEmerald ? 'bg-[#059669] text-white' : 'bg-slate-700 text-white'} flex items-center justify-center font-black text-xs shrink-0 shadow-sm`}>
+                JR
+              </div>
               <div className="text-right hidden sm:block">
-                <span className="text-xs font-extrabold text-white block">jobrito_admin</span>
+                <span className={`text-xs font-extrabold block ${isLight ? 'text-slate-800' : 'text-white'}`}>jobrito_admin</span>
                 <span className="text-[10px] font-semibold text-[#F59E0B] block uppercase tracking-wider">Super Admin</span>
               </div>
-              {/* <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-700/60 flex items-center justify-center text-emerald-400 font-black text-xs shrink-0">
-                JR
-              </div> */}
               <button 
                 onClick={handleLogout} 
-                className="px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+                className={`px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 border ${
+                  isLight 
+                    ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200' 
+                    : 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-800/40'
+                }`}
                 title="Logout Admin"
               >
                 <LogOut className="w-3.5 h-3.5" />
