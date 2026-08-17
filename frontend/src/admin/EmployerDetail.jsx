@@ -148,10 +148,10 @@ export default function EmployerDetail() {
           <button 
             onClick={handleActivate} 
             disabled={!suspended}
-            className={`rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs text-white ${
+            className={`rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs ${
               !suspended 
-                ? 'bg-slate-200 text-slate-450 cursor-not-allowed opacity-50' 
-                : 'bg-[#f58220] hover:bg-[#df6d0f] cursor-pointer'
+                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-50' 
+                : 'bg-[#f58220] hover:bg-[#df6d0f] text-white cursor-pointer'
             }`}
           >
             <CheckCircle2 className="w-4 h-4" />

@@ -193,15 +193,15 @@ export default function Layout({ children }) {
   const bgOuterClass = isLight ? 'admin-panel-root bg-[#F4F6F8] font-sans text-slate-900 min-h-screen flex w-full text-left overflow-x-hidden' : isEmerald ? 'admin-panel-root bg-[#011C14] font-sans text-emerald-100 min-h-screen flex w-full text-left overflow-x-hidden' : 'admin-panel-root bg-[#090D16] font-sans text-slate-100 min-h-screen flex w-full text-left overflow-x-hidden';
   
   // Custom deep blue/navy sidebar bg matching the screenshot for light theme
-  const sidebarClass = isLight ? 'bg-[#1d4b78] border-r border-[#163d64]' : isEmerald ? 'bg-[#01140E] border-r border-emerald-950/80' : 'bg-[#0B1120] border-r border-[#1E293B]';
+  const sidebarClass = isLight ? 'bg-[#1C5290] border-r border-[#154172]' : isEmerald ? 'bg-[#01140E] border-r border-emerald-950/80' : 'bg-[#0B1120] border-r border-[#1E293B]';
   
   const headerClass = isLight ? 'bg-[#f8f9fb] border-b border-[#d9dde3] text-slate-800' : isEmerald ? 'bg-[#02281D] border-b border-emerald-900/60 text-emerald-100' : 'bg-[#090D16] border-b border-[#1E293B] text-slate-100';
 
   const mainClass = isLight ? 'flex-grow p-3 sm:p-4 md:p-5 bg-white text-slate-900 w-full max-w-full overflow-x-auto' : isEmerald ? 'flex-grow p-3 sm:p-4 md:p-5 bg-[#011710] text-emerald-100 w-full max-w-full overflow-x-auto' : 'flex-grow p-3 sm:p-4 md:p-5 bg-[#070A13] text-slate-100 w-full max-w-full overflow-x-auto';
 
   // Helper variables for theme-aware sidebar elements
-  const sidebarDividerClass = isLight ? 'border-[#154675]/25' : 'border-[#1E293B]';
-  const subItemsContainerBg = isLight ? 'bg-[#0E2643]/50 py-1' : 'bg-[#090D16]/60 py-1';
+  const sidebarDividerClass = isLight ? 'border-[#2462a7]/25' : 'border-[#1E293B]';
+  const subItemsContainerBg = isLight ? 'bg-[#0F355E]/50 py-1' : 'bg-[#090D16]/60 py-1';
 
   return (
     <div className={bgOuterClass}>
@@ -530,7 +530,7 @@ export default function Layout({ children }) {
             <div className={`h-6 w-px ${isLight ? 'bg-slate-300' : 'bg-slate-800'} hidden sm:block`}></div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className={`w-8 h-8 rounded-full ${isLight ? 'bg-[#1d4b78] text-white' : isEmerald ? 'bg-[#059669] text-white' : 'bg-slate-700 text-white'} flex items-center justify-center font-black text-xs shrink-0 shadow-sm`}>
+              <div className={`w-8 h-8 rounded-full ${isLight ? 'bg-[#1C5290] text-white' : isEmerald ? 'bg-[#059669] text-white' : 'bg-slate-700 text-white'} flex items-center justify-center font-black text-xs shrink-0 shadow-sm`}>
                 JR
               </div>
               <div className="text-right hidden sm:block">

@@ -206,9 +206,9 @@ export default function Employers() {
             <button onClick={() => setFilterOpen(prev => !prev)} className="ml-auto px-3.5 py-2 rounded-lg border border-[#173f70] text-[#173f70] hover:bg-[#edf3f9] text-[11px] font-medium inline-flex items-center gap-2 transition-colors">
               <Filter className="w-4 h-4" /> Filter
             </button>
-            <button onClick={() => setIsModalOpen(true)} className="px-3.5 py-2 rounded-lg bg-[#f58220] hover:bg-[#df6d0f] text-white text-[11px] font-medium inline-flex items-center gap-2 transition-colors">
+            {/* <button onClick={() => setIsModalOpen(true)} className="px-3.5 py-2 rounded-lg bg-[#f58220] hover:bg-[#df6d0f] text-white text-[11px] font-medium inline-flex items-center gap-2 transition-colors">
               <Plus className="w-4 h-4" /> Add Employer
-            </button>
+            </button> */}
             {filterOpen && (
               <div className="basis-full flex items-center gap-2 pt-1">
                 <label className="text-[11px] font-semibold text-[#5b7694]">Status</label>
