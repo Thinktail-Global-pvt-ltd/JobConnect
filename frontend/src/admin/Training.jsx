@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin } from 'lucide-react';
+﻿import React, { useEffect, useState } from 'react';
+import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin, X, Building2, Lightbulb, Target } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 
@@ -8,6 +8,8 @@ export default function Training() {
   const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, countries_count: 0, pinned: 0 });
   const [tab, setTab] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 4;
 
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -147,6 +149,13 @@ export default function Training() {
     return true;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredPrograms.length / pageSize));
+  const paginatedPrograms = filteredPrograms.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tab, programs.length]);
+
   const getStatusBadgeClass = (status = '') => {
     const lower = status.toLowerCase();
     if (lower === 'published' || lower === 'active') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
@@ -156,35 +165,35 @@ export default function Training() {
   };
 
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-3 text-left">
       
       {/* Title Header with Action Button */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Training & Overseas Programs</h2>
-            <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5">
+            <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900">Training & Overseas Programs</h2>
+            <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold px-3 py-1 rounded-xl flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               LIVE PROGRAM STREAM
             </span>
           </div>
-          <p className="text-xs font-semibold text-slate-400 mt-1">Manage international placement cycles and professional training curricula.</p>
+          <p className="text-[12px] font-medium text-slate-600 mt-1">Manage international placement cycles and professional training curricula.</p>
         </div>
 
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer shrink-0"
+          className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Create New Program</span>
+          <span>Create New Program</span>
         </button>
       </div>
 
       {/* Dynamic KPI Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         
         {/* Card 1: Active Programs */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left hover:border-emerald-200 transition-all">
+        <div className="bg-white p-3.5 rounded-lg border border-[#d7dce2] shadow-sm flex items-center gap-3 text-left min-h-[82px]">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#059669] flex items-center justify-center shrink-0 font-bold text-xl">
             <CheckCircle2 className="w-6 h-6" />
           </div>
@@ -196,7 +205,7 @@ export default function Training() {
         </div>
 
         {/* Card 2: Overseas Deployment Destinations */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left hover:border-blue-200 transition-all">
+        <div className="bg-white p-3.5 rounded-lg border border-[#d7dce2] shadow-sm flex items-center gap-3 text-left min-h-[82px]">
           <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xl">
             <Globe className="w-6 h-6" />
           </div>
@@ -208,7 +217,7 @@ export default function Training() {
         </div>
 
         {/* Card 3: Pinned / Priority Programs */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left hover:border-purple-200 transition-all">
+        <div className="hidden">
           <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 font-bold text-xl">
             <Pin className="w-6 h-6" />
           </div>
@@ -220,12 +229,12 @@ export default function Training() {
         </div>
 
         {/* Card 4: Total Programs */}
-        <div className="bg-gradient-to-br from-[#065f46] to-[#047857] p-5 rounded-2xl shadow-sm flex items-center gap-4 text-left text-white">
+        <div className="bg-white p-3.5 rounded-lg border border-[#d7dce2] shadow-sm flex items-center gap-3 text-left min-h-[82px]">
           <div className="w-12 h-12 rounded-2xl bg-emerald-800/60 text-emerald-200 flex items-center justify-center shrink-0 font-bold text-xl">
             <Sparkles className="w-6 h-6" />
           </div>
           <div className="min-w-0 flex-grow">
-            <span className="text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest block truncate">Total Programs</span>
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block truncate">Total Programs</span>
             <span className="font-outfit font-extrabold text-2xl block mt-0.5">{stats.total}</span>
             <span className="text-[10px] font-bold text-emerald-100 block mt-0.5">Loaded at once</span>
           </div>
@@ -234,21 +243,21 @@ export default function Training() {
       </div>
 
       {/* Main Table Board */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden">
         
         {/* Tabs Bar */}
-        <div className="px-6 py-4 border-b border-[#e2e8f0] flex items-center justify-between bg-slate-50/30">
+        <div className="px-3 py-2 border-b border-[#d7dce2] flex items-center justify-between bg-white">
           <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => setTab('all')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'all' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <button onClick={() => setTab('all')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'all' ? 'bg-[#173f70] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               All Programs ({programs.length})
             </button>
-            <button onClick={() => setTab('published')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'published' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <button onClick={() => setTab('published')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'published' ? 'bg-[#173f70] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Active / Published ({stats.active})
             </button>
-            <button onClick={() => setTab('pinned')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'pinned' ? 'bg-purple-600 text-white' : 'text-purple-700 bg-purple-50 hover:bg-purple-100'}`}>
-              📌 Pinned ({stats.pinned})
+            <button onClick={() => setTab('pinned')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'pinned' ? 'bg-purple-600 text-white' : 'text-purple-700 bg-purple-50 hover:bg-purple-100'}`}>
+              <span><Pin className="inline w-3 h-3 mr-1" />Pinned ({stats.pinned})</span>
             </button>
-            <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <button onClick={() => setTab('drafts')} className={`px-3 py-1.5 text-[11px] font-bold rounded-md transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#173f70] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               Drafts / In Review ({stats.pending})
             </button>
           </div>
@@ -264,25 +273,24 @@ export default function Training() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 px-6">Program & Employer</th>
-                  <th className="py-4 px-6">Deployment & Skills</th>
-                  <th className="py-4 px-6">Benefits & Opportunities</th>
-                  <th className="py-4 px-6">Duration</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6 text-center">Actions</th>
-                </tr>
-              </thead>
+                  <th className="py-2.5 px-3">Program Name</th>
+                  <th className="py-2.5 px-3">Deployment Countries</th>
+                  <th className="py-2.5 px-3">Duration</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3">Created Date</th>
+                  <th className="py-2.5 px-3 text-center">Actions</th>
+                </tr>              </thead>
               <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
-                {filteredPrograms.map(prog => {
+                {paginatedPrograms.map(prog => {
                   const isActive = prog.status === 'Published' || prog.status === 'Active';
 
                   return (
                     <tr key={prog.id} className={`hover:bg-slate-50/50 transition-colors ${prog.is_pinned ? 'bg-purple-50/30' : ''}`}>
                       {/* Name, Provider & Employer */}
-                      <td className="py-4.5 px-6 max-w-xs">
+                      <td className="py-2.5 px-3 max-w-xs">
                         <div className="flex items-start gap-2">
                           {prog.is_pinned && (
-                            <span className="text-purple-600 text-sm shrink-0 mt-0.5" title="Pinned to top feed priority">📌</span>
+                            <Pin className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" title="Pinned to top feed priority" />
                           )}
                           <div>
                             <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{prog.name}</span>
@@ -290,8 +298,7 @@ export default function Training() {
                               <strong>Provider:</strong> {prog.curriculum || 'Hospitality Curricula'}
                             </span>
                             {prog.employer_details && (
-                              <span className="text-[10px] text-blue-600 font-semibold block mt-0.5">
-                                🏢 <strong>Employer:</strong> {prog.employer_details}
+                              <span className="text-[10px] text-blue-600 font-semibold block mt-0.5"><Building2 className="inline w-3 h-3 mr-1" /> <strong>Employer:</strong> {prog.employer_details}
                               </span>
                             )}
                           </div>
@@ -299,7 +306,7 @@ export default function Training() {
                       </td>
 
                       {/* Deployment Countries & Skills Covered */}
-                      <td className="py-4.5 px-6 max-w-xs">
+                      <td className="py-2.5 px-3 max-w-xs">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-1 flex-wrap">
                             {(prog.countries || []).map((c, idx) => (
@@ -310,46 +317,30 @@ export default function Training() {
                             ))}
                           </div>
                           {prog.skills_covered && (
-                            <span className="text-[10px] text-slate-500 font-medium block truncate" title={prog.skills_covered}>
-                              💡 <strong>Skills:</strong> {prog.skills_covered}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Benefits & Placement Opportunities */}
-                      <td className="py-4.5 px-6 max-w-xs">
-                        <div className="space-y-1">
-                          {prog.benefits ? (
-                            <span className="text-[10px] text-emerald-700 font-semibold block truncate" title={prog.benefits}>
-                              ✨ {prog.benefits}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 font-medium block italic">No specific benefits listed</span>
-                          )}
-
-                          {prog.placement_opportunities && (
-                            <span className="text-[10px] text-purple-700 font-semibold block truncate" title={prog.placement_opportunities}>
-                              🎯 {prog.placement_opportunities}
+                            <span className="text-[10px] text-slate-500 font-medium block truncate" title={prog.skills_covered}><Lightbulb className="inline w-3 h-3 mr-1" /> <strong>Skills:</strong> {prog.skills_covered}
                             </span>
                           )}
                         </div>
                       </td>
 
                       {/* Duration */}
-                      <td className="py-4.5 px-6 text-slate-600 font-bold whitespace-nowrap">
+                      <td className="py-2.5 px-3 text-slate-600 font-bold whitespace-nowrap">
                         {prog.duration || '12 Months'}
                       </td>
 
                       {/* Status badge */}
-                      <td className="py-4.5 px-6 whitespace-nowrap">
+                      <td className="py-2.5 px-3 whitespace-nowrap">
                         <span className={`px-2.5 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider border ${getStatusBadgeClass(prog.status)}`}>
                           {prog.status}
                         </span>
                       </td>
 
+                      {/* Created Date */}
+                      <td className="py-2.5 px-3 text-slate-500 font-semibold whitespace-nowrap">
+                        {prog.created_at || prog.created_date || prog.createdAt ? new Date(prog.created_at || prog.created_date || prog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
+                      </td>
                       {/* Actions buttons */}
-                      <td className="py-4.5 px-6 text-center">
+                      <td className="py-2.5 px-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button 
                             onClick={() => setSelectedProgram(prog)}
@@ -401,22 +392,30 @@ export default function Training() {
           </div>
         )}
 
-        {/* Footer info */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
-          <span className="text-xs text-slate-500 font-bold">
-            Showing all {filteredPrograms.length} Training Programs
+        {/* Pagination footer */}
+        <div className="px-3 py-2.5 flex flex-wrap justify-between items-center gap-2 border-t border-[#d7dce2] bg-white">
+          <span className="text-[10px] text-slate-600 font-semibold">
+            Showing {filteredPrograms.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, filteredPrograms.length)} of {filteredPrograms.length} programs
           </span>
+          <div className="flex items-center gap-1">
+            <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
+            {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
+            ))}
+            {totalPages > 3 && <span className="px-1 text-[10px] text-slate-500">…</span>}
+            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
+            <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
+          </div>
         </div>
 
       </div>
-
       {/* CREATE NEW PROGRAM MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-150 text-left">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">🎓</span>
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><BookOpen className="w-4 h-4" /></span>
                 <h3 className="font-outfit font-extrabold text-slate-800 text-base">Create Training Program</h3>
               </div>
               <button 
@@ -424,14 +423,14 @@ export default function Training() {
                 onClick={() => setIsModalOpen(false)} 
                 className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
               >
-                ✕
+              <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               {errorMsg && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
-                  <span>⚠️ {errorMsg}</span>
+                  <span>{errorMsg}</span>
                 </div>
               )}
               
@@ -584,7 +583,7 @@ export default function Training() {
                 onClick={() => setSelectedProgram(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs"
               >
-                ✕
+              <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -632,7 +631,7 @@ export default function Training() {
                 <div>
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Training Benefits</span>
                   <div className="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 text-emerald-900 font-semibold">
-                    ✨ {selectedProgram.benefits}
+              <X className="w-4 h-4" />
                   </div>
                 </div>
               )}
@@ -641,7 +640,7 @@ export default function Training() {
                 <div>
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Placement Opportunities</span>
                   <div className="bg-purple-50/60 p-3 rounded-xl border border-purple-100 text-purple-900 font-semibold">
-                    🎯 {selectedProgram.placement_opportunities}
+                    <span>{selectedProgram.placement_opportunities}</span>
                   </div>
                 </div>
               )}
@@ -669,3 +668,10 @@ export default function Training() {
     </div>
   );
 }
+
+
+
+
+
+
+

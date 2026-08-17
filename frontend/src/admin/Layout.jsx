@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, Sparkles, Palette } from 'lucide-react';
+import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, Sparkles, Palette, LayoutDashboard, UsersRound, BriefcaseBusiness, Share2, Radio, GraduationCap, Utensils, FileText, Building2, CircleHelp, Image, Settings2 } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import { mockApi } from '../services/api';
 import logoImg from '../assets/Jobrito full logo.png';
-import logoWhiteImg from '../assets/jobrito-logo-white-text.png';
-import orbLogo from '../assets/jobrito-orb-logo.png';
+import orbLogo from '../assets/jobrito full logo.png';
+// import orbLogo from '../assets/jobrito-orb-logo.png';
 
 export default function Layout({ children }) {
   const location = useLocation();
   const { theme, setTheme, THEMES } = useTheme();
-  const [themeOpen, setThemeOpen] = useState(false);
   const [usersOpen, setUsersOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [counts, setCounts] = useState({
@@ -139,21 +138,36 @@ export default function Layout({ children }) {
 
   const isLight = theme === THEMES.LIGHT;
   const isEmerald = theme === THEMES.EMERALD;
+  const navIcon = (name, className = 'w-[21px] h-[21px]') => {
+    const icons = {
+      Dashboard: LayoutDashboard, Users: UsersRound, 'Talent / Jobseeker': UsersRound,
+      Employer: Building2, Chef: Utensils, Jobs: BriefcaseBusiness, Referrals: Share2,
+      'Community Feed': Radio, 'Training & Overseas': GraduationCap, Applications: FileText,
+      Enquiries: CircleHelp, Banners: Image, Settings: Settings2, 'Notifications & Logs': Bell,
+    };
+    const Icon = icons[name] || LayoutDashboard;
+    return <Icon className={className} strokeWidth={2.1} />;
+  };
 
-  const bgOuterClass = isLight ? 'admin-panel-root bg-slate-100 font-sans text-slate-900 min-h-screen flex w-full text-left overflow-x-hidden' : isEmerald ? 'admin-panel-root bg-[#011C14] font-sans text-emerald-100 min-h-screen flex w-full text-left overflow-x-hidden' : 'admin-panel-root bg-[#090D16] font-sans text-slate-100 min-h-screen flex w-full text-left overflow-x-hidden';
+  const bgOuterClass = isLight ? 'admin-panel-root bg-[#F4F6F8] font-sans text-slate-900 min-h-screen flex w-full text-left overflow-x-hidden' : isEmerald ? 'admin-panel-root bg-[#011C14] font-sans text-emerald-100 min-h-screen flex w-full text-left overflow-x-hidden' : 'admin-panel-root bg-[#090D16] font-sans text-slate-100 min-h-screen flex w-full text-left overflow-x-hidden';
   
-  const sidebarClass = isLight ? 'bg-slate-900 border-r border-slate-800' : isEmerald ? 'bg-[#01140E] border-r border-emerald-950/80' : 'bg-[#0B1120] border-r border-[#1E293B]';
+  // Custom deep blue/navy sidebar bg matching the screenshot for light theme
+  const sidebarClass = isLight ? 'bg-[#1d4b78] border-r border-[#163d64]' : isEmerald ? 'bg-[#01140E] border-r border-emerald-950/80' : 'bg-[#0B1120] border-r border-[#1E293B]';
   
-  const headerClass = isLight ? 'bg-white border-b border-slate-200 text-slate-800' : isEmerald ? 'bg-[#02281D] border-b border-emerald-900/60 text-emerald-100' : 'bg-[#090D16] border-b border-[#1E293B] text-slate-100';
+  const headerClass = isLight ? 'bg-[#f8f9fb] border-b border-[#d9dde3] text-slate-800' : isEmerald ? 'bg-[#02281D] border-b border-emerald-900/60 text-emerald-100' : 'bg-[#090D16] border-b border-[#1E293B] text-slate-100';
 
-  const mainClass = isLight ? 'flex-grow p-4 sm:p-6 md:p-8 bg-slate-100 text-slate-900 w-full max-w-full overflow-x-auto' : isEmerald ? 'flex-grow p-4 sm:p-6 md:p-8 bg-[#011710] text-emerald-100 w-full max-w-full overflow-x-auto' : 'flex-grow p-4 sm:p-6 md:p-8 bg-[#070A13] text-slate-100 w-full max-w-full overflow-x-auto';
+  const mainClass = isLight ? 'flex-grow p-3 sm:p-4 md:p-5 bg-white text-slate-900 w-full max-w-full overflow-x-auto' : isEmerald ? 'flex-grow p-3 sm:p-4 md:p-5 bg-[#011710] text-emerald-100 w-full max-w-full overflow-x-auto' : 'flex-grow p-3 sm:p-4 md:p-5 bg-[#070A13] text-slate-100 w-full max-w-full overflow-x-auto';
+
+  // Helper variables for theme-aware sidebar elements
+  const sidebarDividerClass = isLight ? 'border-[#154675]/25' : 'border-[#1E293B]';
+  const subItemsContainerBg = isLight ? 'bg-[#0E2643]/50 py-1' : 'bg-[#090D16]/60 py-1';
 
   return (
     <div className={bgOuterClass}>
       
       {/* Responsive Collapsible Sidebar */}
-      <aside className={`${isCollapsed ? 'w-16' : 'w-64'} ${sidebarClass} flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
-        <div className={`py-3.5 flex items-center justify-between border-b border-[#1E293B] ${isCollapsed ? 'px-2 justify-center' : 'px-5'}`}>
+      <aside className={`${isCollapsed ? 'w-16' : 'w-[250px]'} ${sidebarClass} flex flex-col fixed h-screen z-50 transition-all duration-300 ease-in-out`}>
+        <div className={`py-3.5 flex items-center justify-between border-b ${sidebarDividerClass} ${isCollapsed ? 'px-2 justify-center' : 'px-5'}`}>
           {!isCollapsed ? (
             <>
               <Link to="/admin/dashboard" className="flex items-center gap-3 py-1 group">
@@ -206,12 +220,12 @@ export default function Layout({ children }) {
                 >
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
                     active
-                      ? 'admin-sidebar-active bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
-                      : 'admin-sidebar-item text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                      ? `admin-sidebar-active ${isLight ? 'bg-[#0E2643] text-white border-white' : 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30'} font-bold scale-105`
+                      : `admin-sidebar-item ${isLight ? 'text-slate-250 hover:bg-[#154675]/25 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'}`
                   }`}>
-                    {item.icon}
+                    {navIcon(item.name)}
                   </div>
-                  <div className="absolute left-16 bg-[#0B1120] text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border border-[#1E293B] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                  <div className={`absolute left-16 ${isLight ? 'bg-[#123356] border-[#154675]/35' : 'bg-[#0B1120] border-[#1E293B]'} text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap`}>
                     {item.name}
                   </div>
                 </Link>
@@ -223,12 +237,12 @@ export default function Layout({ children }) {
                 to={item.path}
                 className={`flex items-center justify-between py-2.5 px-6 transition-all border-l-4 ${
                   active
-                    ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-md'
-                    : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
+                    ? `admin-sidebar-active ${isLight ? 'bg-[#0E2643] border-white' : 'bg-[#0F172A] border-[#059669]'} text-white font-extrabold shadow-md`
+                    : `admin-sidebar-item border-transparent ${isLight ? 'text-slate-200 hover:bg-[#154675]/25 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'}`
                 }`}
               >
                 <div className="flex items-center gap-3.5">
-                  <span className="text-base leading-none">{item.icon}</span>
+                  <span className="text-base leading-none">{navIcon(item.name)}</span>
                   <span className="text-xs font-semibold">{item.name}</span>
                 </div>
               </Link>
@@ -244,12 +258,12 @@ export default function Layout({ children }) {
               >
                 <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
                   isUsersGroupActive
-                    ? 'admin-sidebar-active bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
-                    : 'admin-sidebar-item text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                    ? `admin-sidebar-active ${isLight ? 'bg-[#0E2643] text-white border-white' : 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30'} font-bold scale-105`
+                    : `admin-sidebar-item ${isLight ? 'text-slate-250 hover:bg-[#154675]/25 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'}`
                 }`}>
                   👥
                 </div>
-                <div className="absolute left-16 bg-[#0B1120] text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border border-[#1E293B] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                <div className={`absolute left-16 ${isLight ? 'bg-[#123356] border-[#154675]/35' : 'bg-[#0B1120] border-[#1E293B]'} text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap`}>
                   Users Management
                 </div>
               </button>
@@ -258,8 +272,8 @@ export default function Layout({ children }) {
                 onClick={() => setUsersOpen(!usersOpen)}
                 className={`w-full flex items-center justify-between py-2.5 px-6 transition-all border-l-4 text-left ${
                   isUsersGroupActive
-                    ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-md'
-                    : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200 font-semibold'
+                    ? `admin-sidebar-active ${isLight ? 'bg-[#0E2643] border-white' : 'bg-[#0F172A] border-[#059669]'} text-white font-extrabold shadow-md`
+                    : `admin-sidebar-item border-transparent ${isLight ? 'text-slate-200 hover:bg-[#154675]/25 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'} font-semibold`
                 }`}
               >
                 <div className="flex items-center gap-3.5">
@@ -281,7 +295,7 @@ export default function Layout({ children }) {
 
             {/* Nested Sub-items (Talent/Jobseeker, Employer, Chef) */}
             {(!isCollapsed && usersOpen) && (
-              <div className="pl-6 space-y-0.5 bg-[#090D16]/60 py-1">
+              <div className={`pl-6 space-y-0.5 ${subItemsContainerBg}`}>
                 {userSubItems.map((sub) => {
                   const active = isActive(sub.path);
                   const countVal = counts[sub.countKey] ?? 0;
@@ -291,12 +305,12 @@ export default function Layout({ children }) {
                       to={sub.path}
                       className={`flex items-center justify-between px-5 py-2 transition-all rounded-r-xl border-l-2 ${
                         active
-                          ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-sm'
-                          : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/50 hover:text-slate-200 font-medium'
+                          ? `admin-sidebar-active ${isLight ? 'bg-[#0E2643] border-white' : 'bg-[#0F172A] border-[#059669]'} text-white font-extrabold shadow-sm`
+                          : `admin-sidebar-item border-transparent ${isLight ? 'text-slate-200 hover:bg-[#154675]/20 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B]/50 hover:text-slate-200'} font-medium`
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-sm leading-none">{sub.icon}</span>
+                        <span className="text-sm leading-none">{navIcon(sub.name, 'w-[17px] h-[17px]')}</span>
                         <span className="text-xs">{sub.name}</span>
                       </div>
                       <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-700 text-white border border-slate-500 shadow-sm">
@@ -322,12 +336,12 @@ export default function Layout({ children }) {
                 >
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-base transition-all ${
                     active
-                      ? 'admin-sidebar-active bg-[#059669] text-white shadow-lg shadow-[#059669]/30 font-bold scale-105'
-                      : 'admin-sidebar-item text-slate-400 hover:bg-[#1E293B] hover:text-white'
+                      ? `admin-sidebar-active ${isLight ? 'bg-[#0B2545] text-white border-white' : 'bg-[#059669] text-white shadow-lg shadow-[#059669]/30'} font-bold scale-105`
+                      : `admin-sidebar-item ${isLight ? 'text-slate-250 hover:bg-[#154675]/40 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'}`
                   }`}>
-                    {item.icon}
+                    {navIcon(item.name)}
                   </div>
-                  <div className="absolute left-16 bg-[#0B1120] text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border border-[#1E293B] opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
+                  <div className={`absolute left-16 ${isLight ? 'bg-[#113A63] border-[#154675]/50' : 'bg-[#0B1120] border-[#1E293B]'} text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-2xl border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap`}>
                     {item.name}
                   </div>
                 </Link>
@@ -339,12 +353,12 @@ export default function Layout({ children }) {
                 to={item.path}
                 className={`flex items-center justify-between py-2.5 px-6 transition-all border-l-4 ${
                   active
-                    ? 'admin-sidebar-active bg-[#0F172A] border-[#059669] text-white font-extrabold shadow-md'
-                    : 'admin-sidebar-item border-transparent text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'
+                    ? `admin-sidebar-active ${isLight ? 'bg-[#0B2545] border-white' : 'bg-[#0F172A] border-[#059669]'} text-white font-extrabold shadow-md`
+                    : `admin-sidebar-item border-transparent ${isLight ? 'text-slate-200 hover:bg-[#154675]/40 hover:text-white' : 'text-slate-400 hover:bg-[#1E293B]/60 hover:text-slate-200'}`
                 }`}
               >
                 <div className="flex items-center gap-3.5">
-                  <span className="text-base leading-none">{item.icon}</span>
+                  <span className="text-base leading-none">{navIcon(item.name)}</span>
                   <span className="text-xs font-semibold">{item.name}</span>
                 </div>
                 {countVal !== null && (
@@ -359,19 +373,23 @@ export default function Layout({ children }) {
         </nav>
 
         {/* Admin User Footer Profile */}
-        <div className={`p-4 border-t border-[#1E293B] flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3'}`}>
-          <div className="w-8 h-8 rounded-full bg-[#059669] flex items-center justify-center text-white font-black text-xs shrink-0 shadow-sm">
+        <div className={`p-4 border-t ${sidebarDividerClass} flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3'}`}>
+          <div className={`w-8 h-8 rounded-full ${isLight ? 'bg-white text-[#123356]' : 'bg-[#059669] text-white'} flex items-center justify-center font-black text-xs shrink-0 shadow-sm`}>
             JR
           </div>
           {!isCollapsed && (
             <>
               <div className="overflow-hidden flex-grow">
                 <span className="text-xs font-extrabold text-white block truncate">jobrito_admin</span>
-                <span className="text-[10px] font-semibold text-slate-400 block truncate">Super Admin</span>
+                <span className={`text-[10px] font-semibold block truncate ${isLight ? 'text-slate-350' : 'text-slate-400'}`}>Super Admin</span>
               </div>
               <button 
                 onClick={handleLogout}
-                className="p-1.5 rounded-lg bg-[#1E293B] hover:bg-rose-950/50 text-slate-400 hover:text-rose-400 transition-colors"
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isLight 
+                    ? 'bg-[#154675]/30 hover:bg-rose-900/40 text-slate-200 hover:text-rose-400' 
+                    : 'bg-[#1E293B] hover:bg-rose-950/50 text-slate-400 hover:text-rose-400'
+                }`}
                 title="Sign Out Admin"
               >
                 <LogOut className="w-4 h-4" />
@@ -382,7 +400,7 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Main Workspace with Dynamic Left Margin */}
-      <div className={`flex-grow ${isCollapsed ? 'ml-16' : 'ml-64'} transition-all duration-300 ease-in-out flex flex-col min-h-screen w-full min-w-0`}>
+      <div className={`flex-grow ${isCollapsed ? 'ml-16' : 'ml-[250px]'} transition-all duration-300 ease-in-out flex flex-col min-h-screen w-full min-w-0`}>
         {/* Header */}
         <header className={`${headerClass} h-16 px-4 md:px-6 flex items-center justify-between sticky top-0 z-40 transition-colors duration-300`}>
           <div className="flex items-center gap-3">
@@ -396,60 +414,10 @@ export default function Layout({ children }) {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4 relative">
-            {/* Theme Switcher Button */}
-            <div className="relative">
-              <button 
-                onClick={() => { setThemeOpen(!themeOpen); setNotifOpen(false); }}
-                className="w-9 h-9 rounded-xl bg-[#1E293B] hover:bg-slate-700 flex items-center justify-center text-slate-200 transition-all cursor-pointer border border-slate-700/60 shadow-sm"
-                title="Change Theme"
-              >
-                {theme === THEMES.LIGHT ? (
-                  <Sun className="w-4 h-4 text-amber-400" />
-                ) : theme === THEMES.EMERALD ? (
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                ) : (
-                  <Moon className="w-4 h-4 text-indigo-400" />
-                )}
-              </button>
-
-              {themeOpen && (
-                <div className="absolute right-0 mt-3 w-56 bg-[#0B1120] border border-[#1E293B] shadow-2xl rounded-2xl p-2 z-50 text-left">
-                  <div className="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-[#1E293B] mb-1 flex items-center gap-1.5">
-                    <Palette className="w-3.5 h-3.5 text-emerald-400" />
-                    Select Theme
-                  </div>
-                  
-                  <button 
-                    onClick={() => { setTheme(THEMES.DARK); setThemeOpen(false); }}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer ${theme === THEMES.DARK ? 'bg-[#059669] text-white shadow-md' : 'text-slate-300 hover:bg-[#1E293B]'}`}
-                  >
-                    <span className="flex items-center gap-2">🌙 Midnight Dark</span>
-                    {theme === THEMES.DARK && <span>✓</span>}
-                  </button>
-
-                  <button 
-                    onClick={() => { setTheme(THEMES.LIGHT); setThemeOpen(false); }}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer ${theme === THEMES.LIGHT ? 'bg-[#059669] text-white shadow-md' : 'text-slate-300 hover:bg-[#1E293B]'}`}
-                  >
-                    <span className="flex items-center gap-2">☀️ Clean Light</span>
-                    {theme === THEMES.LIGHT && <span>✓</span>}
-                  </button>
-
-                  <button 
-                    onClick={() => { setTheme(THEMES.EMERALD); setThemeOpen(false); }}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between transition-all cursor-pointer ${theme === THEMES.EMERALD ? 'bg-[#059669] text-white shadow-md' : 'text-slate-300 hover:bg-[#1E293B]'}`}
-                  >
-                    <span className="flex items-center gap-2">✨ Emerald Velvet</span>
-                    {theme === THEMES.EMERALD && <span>✓</span>}
-                  </button>
-                </div>
-              )}
-            </div>
-
             {/* Notification Bell Button */}
             <div className="relative">
               <button 
-                onClick={() => { setNotifOpen(!notifOpen); setThemeOpen(false); }}
+                onClick={() => { setNotifOpen(!notifOpen); }}
                 className="relative w-9 h-9 rounded-xl bg-[#1E293B] hover:bg-slate-700 flex items-center justify-center text-slate-200 transition-all cursor-pointer border border-slate-700/60"
                 title="View FCM Notifications"
               >
@@ -542,9 +510,9 @@ export default function Layout({ children }) {
                 <span className="text-xs font-extrabold text-white block">jobrito_admin</span>
                 <span className="text-[10px] font-semibold text-[#F59E0B] block uppercase tracking-wider">Super Admin</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-700/60 flex items-center justify-center text-emerald-400 font-black text-xs shrink-0">
+              {/* <div className="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-700/60 flex items-center justify-center text-emerald-400 font-black text-xs shrink-0">
                 JR
-              </div>
+              </div> */}
               <button 
                 onClick={handleLogout} 
                 className="px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"

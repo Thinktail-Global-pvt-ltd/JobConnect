@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { mockApi } from '../services/api';
-import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight } from 'lucide-react';
+import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X } from 'lucide-react';
 
 export default function Applications() {
   const [apps, setApps] = useState([]);
@@ -304,10 +304,10 @@ export default function Applications() {
   };
 
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-3 text-left">
       
       {/* Header & Main Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div>
           {selectedJob ? (
             <div className="flex items-center gap-3">
@@ -320,44 +320,44 @@ export default function Applications() {
               </button>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-outfit font-extrabold text-2xl text-slate-800">
+                  <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900">
                     {selectedJob.title}
                   </h2>
                   {selectedJob.is_training ? (
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-300">
-                      🎓 TRAINING OPPORTUNITY
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-xl bg-purple-100 text-purple-800 border border-purple-300">
+                      <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING OPPORTUNITY
                     </span>
                   ) : (
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800 border border-blue-300">
-                      💼 JOB LISTING
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-xl bg-blue-100 text-blue-800 border border-blue-300">
+                      <Briefcase className="inline w-3 h-3 mr-1" /> JOB LISTING
                     </span>
                   )}
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-xl bg-emerald-100 text-emerald-800">
                     {selectedJob.applications.length} Applicants
                   </span>
                 </div>
                 <p className="text-xs font-semibold text-slate-400 mt-1">
-                  {selectedJob.company} • {selectedJob.location}
+$1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.location}
                 </p>
               </div>
             </div>
           ) : (
             <div>
-              <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Job & Training Applications Directory</h2>
-              <p className="text-xs font-semibold text-slate-400 mt-0.5">Select a job post or training opportunity to view applicants and review candidate profiles.</p>
+              <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900">Job & Training Applications Directory</h2>
+              <p className="text-[12px] font-medium text-slate-600 mt-0.5">Select a job post or training opportunity to view applicants and review candidate profiles.</p>
             </div>
           )}
         </div>
 
         {/* Action Controls: Search Bar */}
         <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
-          <div className="relative w-full md:w-64">
+          <div className="relative w-full md:w-72">
             <input 
               type="text" 
               placeholder={selectedJob ? "Search applicants..." : "Search jobs, training or companies..."} 
               value={search} 
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl py-2 pl-10 pr-4 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#059669] transition-all" 
+              className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-3 text-[11px] font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#173f70] transition-all" 
             />
             <Search className="absolute left-3.5 top-2.5 text-slate-400 w-4 h-4" />
           </div>
@@ -365,38 +365,38 @@ export default function Applications() {
       </div>
 
       {/* Stats Cards Row (3 Columns) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-2.5">
         {/* Card 1 */}
-        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[95px] text-left">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] text-left">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Applications</span>
-          <span className="font-outfit font-black text-3xl text-white block mt-2">{apps.length}</span>
+          <span className="font-outfit font-bold text-xl text-slate-900 block mt-1">{apps.length}</span>
         </div>
         {/* Card 2 */}
-        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[95px] text-left">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] text-left">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Listings with Applicants</span>
-          <span className="font-outfit font-black text-3xl text-emerald-400 block mt-2">
+          <span className="font-outfit font-bold text-xl text-emerald-700 block mt-1">
             {groupedJobsList.length}
           </span>
         </div>
         {/* Card 3 */}
-        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[95px] text-left">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] text-left">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Awaiting Review</span>
-          <span className="font-outfit font-black text-3xl text-amber-400 block mt-2">
+          <span className="font-outfit font-bold text-xl text-amber-700 block mt-1">
             {apps.filter(a => a.status === 'new').length}
           </span>
         </div>
       </div>
 
       {/* Main Container Card */}
-      <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden text-left">
+      <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden text-left">
         
         {/* Top View Toggle Tabs */}
         {!selectedJob && (
-          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#1E293B] px-6 pt-4 bg-[#0F172A]/40 gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#d7dce2] px-6 pt-4 bg-white gap-4">
             <div className="flex items-center gap-6">
               <button 
                 onClick={() => setViewMode('jobs')} 
-                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'jobs' ? 'text-emerald-400 border-b-2 border-[#059669]' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'jobs' ? 'text-[#173f70] border-b-2 border-[#173f70]' : 'text-slate-400 hover:text-slate-700'}`}
               >
                 <Briefcase className="w-4 h-4" />
                 <span>Grouped by Listings ({groupedJobsList.length})</span>
@@ -404,7 +404,7 @@ export default function Applications() {
 
               <button 
                 onClick={() => setViewMode('all_apps')} 
-                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'all_apps' ? 'text-emerald-400 border-b-2 border-[#059669]' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'all_apps' ? 'text-[#173f70] border-b-2 border-[#173f70]' : 'text-slate-400 hover:text-slate-700'}`}
               >
                 <Users className="w-4 h-4" />
                 <span>All Applications ({apps.length})</span>
@@ -415,21 +415,21 @@ export default function Applications() {
             <div className="flex items-center gap-2 pb-3.5">
               <button 
                 onClick={() => setAppCategory('all')} 
-                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'all' ? 'bg-[#059669] text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'all' ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#173f70] border border-[#d7dce2]'}`}
               >
                 All ({apps.length})
               </button>
               <button 
                 onClick={() => setAppCategory('job')} 
-                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'job' ? 'bg-blue-600 text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'job' ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#173f70] border border-[#d7dce2]'}`}
               >
-                💼 Jobs ({apps.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training).length})
+                <Briefcase className="inline w-3 h-3 mr-1" /> Jobs ({apps.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training).length})
               </button>
               <button 
                 onClick={() => setAppCategory('training')} 
-                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'training' ? 'bg-purple-600 text-white shadow-md' : 'bg-[#1E293B] text-slate-400 hover:text-white border border-slate-700'}`}
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'training' ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#173f70] border border-[#d7dce2]'}`}
               >
-                🎓 Training ({apps.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training).length})
+                <GraduationCap className="inline w-3 h-3 mr-1" /> Training ({apps.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training).length})
               </button>
             </div>
           </div>
@@ -437,17 +437,17 @@ export default function Applications() {
 
         {/* Selected Job Back Bar (If in Job Detail View) */}
         {selectedJob && (
-          <div className="bg-[#0F172A] border-b border-[#1E293B] px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+          <div className="bg-[#f1f3f5] border-b border-[#d7dce2] px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
               <span className="text-slate-400">Applications for:</span>
-              <span className="text-white font-black">{selectedJob.title}</span>
+              <span className="text-slate-900 font-black">{selectedJob.title}</span>
               {selectedJob.is_training ? (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">
-                  🎓 TRAINING
+                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                  <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING
                 </span>
               ) : (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
-                  💼 JOB
+                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                  <Briefcase className="inline w-3 h-3 mr-1" /> JOB
                 </span>
               )}
             </div>
@@ -458,7 +458,7 @@ export default function Applications() {
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${statusFilter === st ? 'bg-[#059669] text-white shadow-md' : 'bg-[#1E293B] text-slate-300 border border-slate-700 hover:text-white'}`}
+                  className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${statusFilter === st ? 'bg-[#173f70] text-white shadow-sm' : 'bg-white text-slate-600 border border-[#d7dce2] hover:bg-slate-50 hover:text-[#173f70]'}`}
                 >
                   {st}
                 </button>
@@ -480,16 +480,16 @@ export default function Applications() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 px-6">Program / Job Listing & Provider</th>
-                      <th className="py-4 px-6">Type Badge</th>
-                      <th className="py-4 px-6">Location</th>
+                    <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                      <th className="py-2.5 px-3">Program / Job Listing & Provider</th>
+                      <th className="py-2.5 px-3">Type Badge</th>
+                      <th className="py-2.5 px-3">Location</th>
                       <th className="py-4 px-6 text-center">Applicants</th>
-                      <th className="py-4 px-6">Status Breakdown</th>
+                      <th className="py-2.5 px-3">Status Breakdown</th>
                       <th className="py-4 px-6 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#1E293B]/60 text-slate-200 text-xs font-semibold">
+                  <tbody className="divide-y divide-[#1E293B]/60 text-slate-700 text-xs font-semibold">
                     {filteredJobsList.map(job => {
                       const newCount = job.applications.filter(a => a.status === 'new').length;
                       const contactedCount = job.applications.filter(a => a.status === 'contacted').length;
@@ -499,18 +499,18 @@ export default function Applications() {
                         <tr 
                           key={job.id} 
                           onClick={() => setSelectedJob(job)}
-                          className="hover:bg-[#1E293B]/50 transition-colors cursor-pointer group"
+                          className="hover:bg-[#f8fafc] transition-colors cursor-pointer group"
                         >
                           {/* Job Title & Company */}
-                          <td className="py-4.5 px-6">
+                          <td className="py-2.5 px-3">
                             <div className="flex items-center gap-3">
                               <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
                                 job.is_training ? 'bg-purple-950 text-purple-400 border-purple-800' : 'bg-blue-950 text-blue-400 border-blue-800'
                               }`}>
-                                {job.is_training ? '🎓' : '💼'}
+                                {job.is_training ? <GraduationCap className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
                               </div>
                               <div>
-                                <span className="font-extrabold text-white text-[14px] group-hover:text-emerald-400 transition-colors block">
+                                <span className="font-extrabold text-slate-900 text-[13px] group-hover:text-[#173f70] transition-colors block">
                                   {job.title}
                                 </span>
                                 <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
@@ -521,37 +521,37 @@ export default function Applications() {
                           </td>
 
                           {/* Type Badge */}
-                          <td className="py-4.5 px-6">
+                          <td className="py-2.5 px-3">
                             {job.is_training ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-md bg-purple-950 text-purple-400 border border-purple-800/80 shadow-xs">
-                                🎓 TRAINING OPPORTUNITY
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 shadow-xs">
+                                <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING OPPORTUNITY
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-md bg-blue-950 text-blue-400 border border-blue-800/80 shadow-xs">
-                                💼 JOB LISTING
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 shadow-xs">
+                                <Briefcase className="inline w-3 h-3 mr-1" /> JOB LISTING
                               </span>
                             )}
                           </td>
 
                           {/* Location */}
-                          <td className="py-4.5 px-6">
-                            <span className="text-slate-200 font-extrabold block">{job.location}</span>
+                          <td className="py-2.5 px-3">
+                            <span className="text-slate-700 font-extrabold block">{job.location}</span>
                             <span className="text-[10px] text-slate-400 font-semibold block capitalize">{job.category}</span>
                           </td>
 
                           {/* Number of Applicants Badge */}
                           <td className="py-4.5 px-6 text-center">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-950 text-emerald-400 border border-emerald-800/60 shadow-sm">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
                               <Users className="w-3.5 h-3.5" />
                               <span>{job.applications.length} Candidate{job.applications.length > 1 ? 's' : ''}</span>
                             </span>
                           </td>
 
                           {/* Status Breakdown Pills */}
-                          <td className="py-4.5 px-6">
+                          <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2 flex-wrap">
                               {newCount > 0 && (
-                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-amber-950 text-amber-400 border border-amber-800/60">
+                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200">
                                   {newCount} New
                                 </span>
                               )}
@@ -561,7 +561,7 @@ export default function Applications() {
                                 </span>
                               )}
                               {hiredCount > 0 && (
-                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-emerald-950 text-emerald-400 border border-emerald-800/60">
+                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
                                   {hiredCount} Hired
                                 </span>
                               )}
@@ -572,7 +572,7 @@ export default function Applications() {
                           <td className="py-4.5 px-6 text-center">
                             <button 
                               onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
-                              className="px-3.5 py-1.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-emerald-400 hover:text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-1 mx-auto cursor-pointer"
+                              className="px-3 py-1.5 rounded-md bg-[#173f70] hover:bg-[#12345d] text-white font-bold text-[11px] transition-all flex items-center gap-1 mx-auto cursor-pointer"
                             >
                               <span>View Applications ({job.applications.length})</span>
                               <ArrowRight className="w-3.5 h-3.5" />
@@ -601,23 +601,23 @@ export default function Applications() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 px-6">Applicant Candidate</th>
+                    <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                      <th className="py-2.5 px-3">Applicant Candidate</th>
                       <th className="py-4 px-6 text-center">Match %</th>
-                      {!selectedJob && <th className="py-4 px-6">Applied Post & Type</th>}
-                      <th className="py-4 px-6">Contact / Mobile</th>
-                      <th className="py-4 px-6">Date Submitted</th>
-                      <th className="py-4 px-6">Status</th>
+                      {!selectedJob && <th className="py-2.5 px-3">Applied Post & Type</th>}
+                      <th className="py-2.5 px-3">Contact / Mobile</th>
+                      <th className="py-2.5 px-3">Date Submitted</th>
+                      <th className="py-2.5 px-3">Status</th>
                       <th className="py-4 px-6 text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#1E293B]/60 text-slate-200 text-xs font-semibold">
+                  <tbody className="divide-y divide-[#1E293B]/60 text-slate-700 text-xs font-semibold">
                     {currentDisplayApps.map(a => {
                       const match = calculateMatchPercentage(a);
                       const isTrainingApp = a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training;
 
                       return (
-                        <tr key={a.id} className="hover:bg-[#1E293B]/50 transition-colors">
+                        <tr key={a.id} className="hover:bg-[#f8fafc] transition-colors">
                           
                           {/* Applicant details */}
                           <td className="py-4.5 px-6 flex items-center gap-3">
@@ -628,8 +628,8 @@ export default function Applications() {
                               <div className="flex items-center gap-1.5">
                                 <span className="font-extrabold text-white text-[13px] block leading-tight">{a.applicant?.full_name}</span>
                                 {isTrainingApp && (
-                                  <span className="bg-purple-950 text-purple-300 border border-purple-800 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
-                                    🎓 Training
+                                  <span className="bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
+                                    <GraduationCap className="inline w-3 h-3 mr-1" /> Training
                                   </span>
                                 )}
                               </div>
@@ -641,26 +641,26 @@ export default function Applications() {
                           <td className="py-4.5 px-6 text-center">
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black shadow-2xs border ${
                               match.score >= 80 
-                                ? 'bg-emerald-950 text-emerald-400 border-emerald-800' 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-800' 
                                 : match.score >= 60 
                                   ? 'bg-amber-950 text-amber-400 border-amber-800' 
                                   : 'bg-slate-900 text-slate-400 border-slate-800'
                             }`}>
-                              <span>🎯 {match.score}%</span>
+                              <span><Target className="inline w-3 h-3 mr-1" /> {match.score}%</span>
                             </span>
                           </td>
 
                           {/* Job/Training post detail (If in Flat List mode) */}
                           {!selectedJob && (
-                            <td className="py-4.5 px-6">
+                            <td className="py-2.5 px-3">
                               <div className="flex items-center gap-2">
                                 {isTrainingApp ? (
                                   <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-800 shrink-0">
-                                    🎓 TRAINING
+                                    <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING
                                   </span>
                                 ) : (
                                   <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800 shrink-0">
-                                    💼 JOB
+                                    <Briefcase className="inline w-3 h-3 mr-1" /> JOB
                                   </span>
                                 )}
                                 <span className="font-extrabold text-white block text-[13px]">{a.job_post?.title}</span>
@@ -670,7 +670,7 @@ export default function Applications() {
                           )}
 
                         {/* Contact info */}
-                        <td className="py-4.5 px-6 text-slate-300 font-bold">
+                        <td className="py-4.5 px-6 text-slate-700 font-bold">
                           {a.applicant?.mobile_number || 'N/A'}
                         </td>
 
@@ -680,25 +680,25 @@ export default function Applications() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4.5 px-6">
+                        <td className="py-2.5 px-3">
                           {a.status === 'shortlisted' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                               Shortlisted
                             </span>
                           ) : a.status === 'contacted' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-950/80 text-blue-400 border border-blue-800/60">
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
                               Contacted
                             </span>
                           ) : a.status === 'hired' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-teal-950/80 text-teal-400 border border-teal-800/60">
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
                               Hired
                             </span>
                           ) : a.status === 'rejected' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-950/80 text-rose-400 border border-rose-800/60">
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
                               Rejected
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-950/80 text-amber-400 border border-amber-800/60">
+                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
                               New
                             </span>
                           )}
@@ -708,14 +708,14 @@ export default function Applications() {
                         <td className="py-4.5 px-6 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button onClick={() => { setSelectedApp(a); setModalOpen(true); }}
-                                    className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center border border-slate-700 transition-colors cursor-pointer" title="Review Profile">
+                                    className="w-8 h-8 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-[#173f70] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Review Profile">
                               <Eye className="w-4 h-4" />
                             </button>
                             
                             <a href={a.applicant?.mobile_number ? `tel:${a.applicant.mobile_number}` : '#'} 
                                onClick={() => handleUpdateStatus(a.id, 'contacted')}
-                               className="w-8 h-8 rounded-lg bg-blue-950/60 hover:bg-blue-900 text-blue-400 flex items-center justify-center border border-blue-800/60 transition-colors cursor-pointer" title="Call Candidate">
-                              <span>📞</span>
+                               className="w-8 h-8 rounded-lg bg-white hover:bg-blue-50 text-blue-700 flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Call Candidate">
+                              <Phone className="w-3.5 h-3.5" />
                             </a>
                           </div>
                         </td>
@@ -731,7 +731,7 @@ export default function Applications() {
         )}
 
         {/* Footer pagination */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
+        <div className="px-3 py-2.5 flex justify-between items-center border-t border-[#d7dce2] bg-white">
           <span className="text-xs text-slate-400 font-bold">
             Showing {selectedJob ? currentDisplayApps.length : (viewMode === 'jobs' ? filteredJobsList.length : currentDisplayApps.length)} item(s)
           </span>
@@ -751,7 +751,7 @@ export default function Applications() {
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">📝</span>
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><FileText className="w-4 h-4" /></span>
                 <h3 className="font-outfit font-extrabold text-slate-800 text-base">Submit Test Job Application</h3>
               </div>
               <button 
@@ -759,7 +759,7 @@ export default function Applications() {
                 onClick={() => setIsTestModalOpen(false)} 
                 className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
               >
-                ✕
+              <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -789,7 +789,7 @@ export default function Applications() {
                   >
                     {testJobsList.map(job => (
                       <option key={job.id} value={job.id}>
-                        {job.title} — {job.company} ({job.location})
+                        {job.title} <span aria-hidden="true">—</span> {job.company} ({job.location})
                       </option>
                     ))}
                   </select>
@@ -809,7 +809,7 @@ export default function Applications() {
                   >
                     {testUsersList.map(user => (
                       <option key={user.id} value={user.id}>
-                        {user.name} ({user.email || user.mobile_number}) — {user.role}
+                        {user.name} ({user.email || user.mobile_number}) <span aria-hidden="true">—</span> {user.role}
                       </option>
                     ))}
                   </select>
@@ -817,7 +817,7 @@ export default function Applications() {
 
                 {/* Info Note */}
                 <div className="p-3.5 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-[11px] font-semibold text-emerald-800">
-                  💡 This will create an active test application entry linking the selected candidate to the job post, visible live on both the Admin Applications table and the Employer Dashboard!
+                  <Briefcase className="inline w-3 h-3 mr-1" /> job post, visible live on both the Admin Applications table and the Employer Dashboard!
                 </div>
 
                 {/* Footer Buttons */}
@@ -832,7 +832,7 @@ export default function Applications() {
                   <button
                     type="submit"
                     disabled={submittingTest}
-                    className="px-5 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-5 py-2 bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{submittingTest ? 'Submitting...' : 'Submit Test Application'}</span>
@@ -852,7 +852,7 @@ export default function Applications() {
           <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-150">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
               <h3 className="font-outfit font-extrabold text-slate-800 text-base">Applicant Candidate Profile</h3>
-              <button onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all">✕</button>
+              <button onClick={() => setModalOpen(false)} className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"><X className="w-4 h-4" /></button>
             </div>
 
             <div className="p-6 space-y-5 text-xs font-semibold text-slate-500 text-left">
@@ -864,7 +864,7 @@ export default function Applications() {
                 </div>
                 <div>
                   <h4 className="font-outfit font-extrabold text-slate-800 text-base leading-snug">{selectedApp.applicant?.full_name}</h4>
-                  <span className="text-[11px] text-slate-500 font-bold block mt-0.5">📞 {selectedApp.applicant?.mobile_number} &nbsp;•&nbsp; ✉️ {selectedApp.applicant?.email || 'N/A'}</span>
+                  <span className="text-[11px] text-slate-500 font-bold block mt-0.5"><Phone className="inline w-3 h-3 mr-1" /> {selectedApp.applicant?.mobile_number} <span aria-hidden="true">•</span> <Mail className="inline w-3 h-3 mx-1" /> {selectedApp.applicant?.email || 'N/A'}</span>
                 </div>
               </div>
 
@@ -908,28 +908,28 @@ export default function Applications() {
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${
                         modalMatch.score >= 80 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
                         modalMatch.score >= 60 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
-                        'bg-slate-800 text-slate-300 border-slate-700'
+                        'bg-slate-800 text-slate-700 border-slate-700'
                       }`}>
-                        🎯 {modalMatch.score}% Match
+                        <Target className="inline w-3 h-3 mr-1" /> % Match
                       </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-[10px]">
                       <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]">📍 Location Match ({modalMatch.locationScore}/25)</span>
-                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{selectedApp.applicant?.city || 'N/A'} vs {selectedApp.job_post?.location || 'Remote'}</span>
+                        <span className="text-slate-400 block text-[9px]"><MapPin className="inline w-3 h-3 mr-1" /> Location Match ({modalMatch.locationScore}/25)</span>
+                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{selectedApp.applicant?.city || 'N/A'} vs {selectedApp.job_post?.location || 'Remote'}</span>
                       </div>
                       <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]">💼 Role Match ({modalMatch.roleScore}/35)</span>
-                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{selectedApp.applicant?.preferred_role || 'N/A'}</span>
+                        <span className="text-slate-400 block text-[9px]"><Briefcase className="inline w-3 h-3 mr-1" /> Role Match ({modalMatch.roleScore}/35)</span>
+                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{selectedApp.applicant?.preferred_role || 'N/A'}</span>
                       </div>
                       <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]">⏳ Experience Match ({modalMatch.expScore}/25)</span>
-                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{selectedApp.applicant?.experience_range || 'N/A'}</span>
+                        <span className="text-slate-400 block text-[9px]"><Clock className="inline w-3 h-3 mr-1" /> Experience Match ({modalMatch.expScore}/25)</span>
+                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{selectedApp.applicant?.experience_range || 'N/A'}</span>
                       </div>
                       <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]">🛠️ Skills Match ({modalMatch.skillScore}/15)</span>
-                        <span className="font-extrabold text-slate-200 mt-0.5 block truncate">{Array.isArray(selectedApp.applicant?.skills) ? selectedApp.applicant.skills.slice(0,2).join(', ') : 'General'}</span>
+                        <span className="text-slate-400 block text-[9px]"><Wrench className="inline w-3 h-3 mr-1" /> Skills Match ({modalMatch.skillScore}/15)</span>
+                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{Array.isArray(selectedApp.applicant?.skills) ? selectedApp.applicant.skills.slice(0,2).join(', ') : 'General'}</span>
                       </div>
                     </div>
                   </div>
@@ -961,12 +961,12 @@ export default function Applications() {
                     Reject
                   </button>
                   <button onClick={() => handleUpdateStatus(selectedApp.id, 'shortlisted')}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm flex items-center gap-1 cursor-pointer">
+                          className="bg-[#173f70] hover:bg-[#12345d] text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm flex items-center gap-1 cursor-pointer">
                     <Check className="w-3.5 h-3.5" />
                     Shortlist
                   </button>
                   <button onClick={() => handleUpdateStatus(selectedApp.id, 'hired')}
-                          className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm cursor-pointer">
+                          className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-lg px-3.5 py-2 font-bold transition-all text-xs shadow-sm cursor-pointer">
                     Hire Candidate
                   </button>
                 </div>
@@ -980,3 +980,8 @@ export default function Applications() {
     </div>
   );
 }
+
+
+
+
+

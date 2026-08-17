@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, Search, Filter, RefreshCw, CheckCircle, Clock, Eye, ShieldAlert, ArrowLeft } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { Bell, Search, Filter, RefreshCw, CheckCircle, Clock, Eye, ShieldAlert, ArrowLeft, X, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { mockApi } from '../services/api';
 
@@ -9,6 +9,8 @@ export default function NotificationsLog() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // all, unread, read
   const [selectedNotif, setSelectedNotif] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -71,23 +73,29 @@ export default function NotificationsLog() {
     return matchesSearch;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filteredNotifications.length / pageSize));
+  const paginatedNotifications = filteredNotifications.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-3 text-left">
       
       {/* Top Header Card */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div className="flex items-center gap-4">
           <Link to="/admin/dashboard" className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-all">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-outfit font-extrabold text-2xl text-slate-800">FCM Notifications & Audit Logs</h2>
-              <span className="bg-emerald-50 text-[#059669] border border-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
+              <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900">FCM Notifications & Audit Logs</h2>
+              <span className="bg-emerald-50 text-[#059669] border border-emerald-200 px-2.5 py-0.5 rounded-xl text-xs font-bold">
                 {notifications.length} Total Logs
               </span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-0.5">
+            <p className="text-[12px] font-medium text-slate-600 mt-0.5">
               Comprehensive real-time log of all FCM push notifications and system audit events dispatched across Jobrito platform.
             </p>
           </div>
@@ -95,7 +103,7 @@ export default function NotificationsLog() {
 
         <button 
           onClick={fetchLogs}
-          className="bg-white border border-[#e2e8f0] hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all cursor-pointer self-start md:self-auto"
+          className="bg-white border border-[#cfd5dc] hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-md text-[11px] font-bold flex items-center gap-2 transition-all cursor-pointer self-start md:self-auto"
         >
           <RefreshCw className={`w-4 h-4 text-[#059669] ${loading ? 'animate-spin' : ''}`} />
           Refresh Logs
@@ -103,17 +111,17 @@ export default function NotificationsLog() {
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col md:flex-row items-center justify-between gap-2">
         
         {/* Search Input */}
-        <div className="relative w-full md:w-96">
+        <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input 
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by title, message body, or recipient..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#059669] focus:bg-white transition-all"
+            className="w-full h-9 bg-white border border-[#cfd5dc] rounded-md py-2 pl-9 pr-3 text-[11px] font-semibold text-slate-800 focus:outline-none focus:border-[#173f70] transition-all"
           />
         </div>
 
@@ -121,30 +129,30 @@ export default function NotificationsLog() {
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
               statusFilter === 'all' 
-                ? 'bg-[#059669] text-white shadow-xs' 
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-[#173f70] text-white shadow-sm' 
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#d7dce2]'
             }`}
           >
             All Logs ({notifications.length})
           </button>
           <button
             onClick={() => setStatusFilter('unread')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
               statusFilter === 'unread' 
-                ? 'bg-[#059669] text-white shadow-xs' 
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-[#173f70] text-white shadow-sm' 
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#d7dce2]'
             }`}
           >
             Unread ({notifications.filter(n => !n.is_read).length})
           </button>
           <button
             onClick={() => setStatusFilter('read')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
               statusFilter === 'read' 
-                ? 'bg-[#059669] text-white shadow-xs' 
-                : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-[#173f70] text-white shadow-sm' 
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-[#d7dce2]'
             }`}
           >
             Read ({notifications.filter(n => n.is_read).length})
@@ -154,7 +162,7 @@ export default function NotificationsLog() {
       </div>
 
       {/* Notifications Log Table Card */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden">
         
         {loading ? (
           <div className="p-12 text-center">
@@ -169,20 +177,27 @@ export default function NotificationsLog() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
+            <table className="w-full table-fixed text-left border-collapse">
+              <colgroup>
+                <col className="w-[13%]" />
+                <col className="w-[21%]" />
+                <col className="w-[22%]" />
+                <col className="w-[18%]" />
+                <col className="w-[16%]" />
+                <col className="w-[10%]" />
+              </colgroup>              <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-6">Status / ID</th>
-                  <th className="py-3.5 px-6">Notification Title</th>
-                  <th className="py-3.5 px-6">Message Body</th>
-                  <th className="py-3.5 px-6">Recipient</th>
-                  <th className="py-3.5 px-6">Timestamp</th>
+                  <th className="py-2.5 px-3">Status / ID</th>
+                  <th className="py-2.5 px-3">Notification Title</th>
+                  <th className="py-2.5 px-3">Message Body</th>
+                  <th className="py-2.5 px-3">Recipient</th>
+                  <th className="py-2.5 px-3">Timestamp</th>
                   <th className="py-3.5 px-6 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                {filteredNotifications.map((item, idx) => (
-                  <tr key={item.id || idx} className="hover:bg-slate-50/60 transition-colors">
+                {paginatedNotifications.map((item, idx) => (
+                  <tr key={item.id || idx} className="hover:bg-[#f8fafc] transition-colors">
                     
                     {/* Status / ID */}
                     <td className="py-4 px-6 whitespace-nowrap">
@@ -195,8 +210,8 @@ export default function NotificationsLog() {
                           <Bell className="w-4 h-4" />
                         </div>
                         <div>
-                          <span className="font-extrabold text-slate-800 block">#{item.id || idx + 1}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 ${
+                          <span className="font-extrabold text-slate-800 block truncate">#{item.id || idx + 1}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-xl inline-block mt-0.5 ${
                             item.is_read ? 'bg-slate-100 text-slate-500' : 'bg-emerald-100 text-emerald-800'
                           }`}>
                             {item.is_read ? 'Read' : 'Unread'}
@@ -217,20 +232,20 @@ export default function NotificationsLog() {
 
                     {/* Body */}
                     <td className="py-4 px-6 max-w-md">
-                      <p className="text-slate-600 line-clamp-2 leading-relaxed" title={item.body || item.message}>
+                      <p className="text-slate-600 line-clamp-2 leading-relaxed break-words" title={item.body || item.message}>
                         {item.body || item.message || 'No description body provided.'}
                       </p>
                     </td>
 
                     {/* Recipient */}
                     <td className="py-4 px-6 whitespace-nowrap">
-                      <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 inline-block">
-                        <span className="font-extrabold text-slate-800 block">
+                      <div className="bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 inline-block max-w-full">
+                        <span className="font-extrabold text-slate-800 block truncate">
                           {item.recipient_name || item.user_name || item.user_id || 'All Users'}
                         </span>
                         {item.recipient_phone && (
-                          <span className="text-[10px] font-bold text-[#059669] block">
-                            📱 {item.recipient_phone}
+                          <span className="text-[10px] font-bold text-[#059669] block truncate">
+                            <Phone className="inline w-3 h-3 mr-1" /> {item.recipient_phone}
                           </span>
                         )}
                       </div>
@@ -238,7 +253,7 @@ export default function NotificationsLog() {
 
                     {/* Timestamp */}
                     <td className="py-4 px-6 whitespace-nowrap text-slate-500">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1 min-w-0">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>{item.created_at || item.time || 'Recently'}</span>
                       </div>
@@ -248,7 +263,7 @@ export default function NotificationsLog() {
                     <td className="py-4 px-6 whitespace-nowrap text-right">
                       <button
                         onClick={() => setSelectedNotif(item)}
-                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                        className="bg-white hover:bg-slate-50 text-[#173f70] border border-[#d7dce2] px-2 py-1.5 rounded-md text-[10px] font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5 text-[#059669]" />
                         View
@@ -262,6 +277,18 @@ export default function NotificationsLog() {
           </div>
         )}
 
+        <div className="px-3 py-2.5 flex flex-wrap justify-between items-center gap-2 border-t border-[#d7dce2] bg-white">
+          <span className="text-[10px] text-slate-600 font-semibold">Showing {filteredNotifications.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, filteredNotifications.length)} of {filteredNotifications.length} logs</span>
+          <div className="flex items-center gap-1">
+            <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
+            {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
+            ))}
+            {totalPages > 3 && <span className="px-1 text-[10px] text-slate-500">…</span>}
+            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
+            <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
+          </div>
+        </div>
       </div>
 
       {/* Detail Modal */}
@@ -282,7 +309,7 @@ export default function NotificationsLog() {
                 onClick={() => setSelectedNotif(null)}
                 className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-extrabold flex items-center justify-center transition-all"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -338,3 +365,7 @@ export default function NotificationsLog() {
     </div>
   );
 }
+
+
+
+

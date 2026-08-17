@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
-import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus } from 'lucide-react';
+import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, AlertOctagon, Zap, Building2, MapPin, Plane, Link2 } from 'lucide-react';
 
 export default function Jobs() {
   const location = useLocation();
@@ -17,6 +17,8 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 4;
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -77,8 +79,12 @@ export default function Jobs() {
   };
 
   useEffect(() => {
+    setCurrentPage(1);
     loadJobs();
   }, [status, category]);
+
+  const totalPages = Math.max(1, Math.ceil(jobs.length / pageSize));
+  const paginatedJobs = jobs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleApprove = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
@@ -137,28 +143,28 @@ export default function Jobs() {
   };
 
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-3 text-left">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="font-outfit font-black text-2xl text-white tracking-tight">Jobs & Referrals Moderation</h2>
+            <h2 className="font-outfit font-bold text-[20px] leading-tight text-slate-900 tracking-tight">Job Moderation</h2>
             <button
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-900/30 transition-all cursor-pointer hover:scale-105"
+              onClick={() => setIsModalOpen(true)}
+              className="hidden"
             >
               <Plus className="w-4 h-4" />
               <span>Add Job</span>
             </button>
           </div>
-          <p className="text-xs font-semibold text-slate-400 mt-1">Manage India Jobs, Overseas Jobs, and Referral listings in a single unified view.</p>
+          <p className="text-[11px] font-medium text-slate-600 mt-0.5">Review and approve hospitality job listings across India.</p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap justify-end bg-white border border-[#d7dce2] rounded-lg p-1 shadow-sm">
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#059669] hover:bg-[#047857] text-white rounded-xl px-4 py-2.5 text-xs font-extrabold shadow-lg shadow-[#059669]/20 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+            className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-md px-3.5 py-2 text-[11px] font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Add Job</span>
@@ -166,159 +172,159 @@ export default function Jobs() {
 
           {/* Status Filter Buttons */}
           <button onClick={() => setStatus('')}
-                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === '' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>All Statuses</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === '' ? 'bg-emerald-950 text-emerald-300' : 'bg-slate-800 text-slate-300'}`}>{stats.total}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === '' ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-600'}`}>{stats.total}</span>
           </button>
           
           <button onClick={() => setStatus('pending')}
-                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === 'pending' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'pending' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>Pending</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'pending' ? 'bg-emerald-950 text-emerald-300' : 'bg-amber-950 text-amber-400 border border-amber-800'}`}>{stats.pending}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'pending' ? 'bg-white/15 text-white' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{stats.pending}</span>
           </button>
 
           <button onClick={() => setStatus('approved')}
-                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === 'approved' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'approved' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>Approved</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'approved' ? 'bg-emerald-950 text-emerald-300' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}`}>{stats.approved}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'approved' ? 'bg-white/15 text-white' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>{stats.approved}</span>
           </button>
 
           <button onClick={() => setStatus('rejected')}
-                  className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${status === 'rejected' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700 text-slate-300 hover:text-white'}`}>
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${status === 'rejected' ? 'bg-[#173f70] text-white' : 'bg-white border border-[#d1d5db] text-slate-700 hover:bg-[#f3f4f6]'}`}>
             <span>Rejected</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'rejected' ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-400 border border-rose-800'}`}>{stats.rejected}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'rejected' ? 'bg-white/15 text-white' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>{stats.rejected}</span>
           </button>
         </div>
       </div>
 
       {/* Merged Section Category Tabs (India Jobs, Overseas Jobs, Referrals) */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto">
+      <div className="hidden items-center gap-2 border-b border-[#d9dee4] pb-3 overflow-x-auto">
         <button 
           onClick={() => setCategory('')} 
-          className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === '' ? 'bg-[#059669] text-white shadow-lg shadow-[#059669]/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
+          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+            category === '' ? 'bg-[#173f70] text-white' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>💼 All Job Listings</span>
+          <span>ðŸ’¼ All Job Listings</span>
         </button>
 
         <button 
           onClick={() => setCategory('india')} 
-          className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'india' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
+          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+            category === 'india' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>🇮🇳 India Jobs</span>
+          <span>ðŸ‡®ðŸ‡³ India Jobs</span>
         </button>
 
         <button 
           onClick={() => setCategory('overseas')} 
-          className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'overseas' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
+          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+            category === 'overseas' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>✈️ Overseas Jobs</span>
+          <span>âœˆï¸ Overseas Jobs</span>
         </button>
 
         <button 
           onClick={() => setCategory('community')} 
-          className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'community' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-300 hover:text-white'
+          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
+            category === 'community' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
           }`}
         >
-          <span>🔗 Referrals & Community</span>
+          <span>ðŸ”— Referrals & Community</span>
         </button>
       </div>
 
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-2.5">
         {/* Card 1 */}
-        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] min-w-0">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Listings</span>
-            <Briefcase className="w-4 h-4 text-slate-400" />
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wide block">Total Listings</span>
+            <Briefcase className="w-4 h-4 text-slate-500" />
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-black text-3xl text-white block">{stats.total}</span>
-            <span className="text-[10px] font-extrabold text-slate-400">Merged Categories</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.total}</span>
+            <span className="text-[10px] font-extrabold text-slate-500">Merged Categories</span>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] min-w-0">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Pending Review</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wide block">Pending Review</span>
             <Clock className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-black text-3xl text-amber-400 block">{stats.pending}</span>
-            <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/80 border border-amber-800/60 px-2 py-0.5 rounded-full">Requires Approval</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.pending}</span>
+            <span className="text-[10px] font-extrabold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-xl whitespace-nowrap">Requires Approval</span>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-[#0B1120] p-5 rounded-3xl border border-[#1E293B] shadow-2xl flex flex-col justify-between min-h-[105px]">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] min-w-0">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Approved & Live</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wide block">Approved & Live</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-black text-3xl text-emerald-400 block">{stats.approved}</span>
-            <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded-full">Visible on Feed</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.approved}</span>
+            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-xl whitespace-nowrap">Visible on Feed</span>
           </div>
         </div>
 
-        {/* Card 4 - Featured & Pinned */}
-        <div className="bg-[#059669] p-5 rounded-3xl shadow-2xl flex flex-col justify-between min-h-[105px] text-white">
+        {/* Card 4 - Auto-Moderated */}
+        <div className="bg-[#173f70] p-3 rounded-lg shadow-sm flex flex-col justify-between h-[82px] min-w-0 text-white">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-emerald-200 uppercase tracking-widest block">Featured & Pinned</span>
+            <span className="text-[9px] font-black text-blue-100 uppercase tracking-wide block">Auto-Moderated</span>
             <Pin className="w-4 h-4 text-emerald-200" />
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-outfit font-black text-3xl block">{stats.pinned}</span>
-            <span className="text-[10px] font-black text-emerald-100 bg-[#064e3b] px-2.5 py-0.5 rounded-full">Top Feed Priority</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="font-outfit font-bold text-xl block">{stats.pinned}</span>
+            <span className="text-[10px] font-black text-blue-100 px-2 py-0.5 rounded-full">Jobs Today</span>
           </div>
         </div>
       </div>
 
       {/* Main Table Board */}
-      <div className="bg-[#0B1120] rounded-3xl border border-[#1E293B] shadow-2xl overflow-hidden">
+      <div className="bg-white rounded-xl border border-[#d7dce2] shadow-sm overflow-hidden">
         {loading ? (
-          <p className="text-center text-slate-400 text-xs font-medium py-16">Loading jobs and referrals moderation data...</p>
+          <p className="text-center text-slate-500 text-xs font-medium py-16">Loading jobs and referrals moderation data...</p>
         ) : jobs.length === 0 ? (
-          <p className="text-center text-slate-400 text-sm font-medium py-16">No listings found for this category or filter.</p>
+          <p className="text-center text-slate-500 text-sm font-medium py-16">No listings found for this category or filter.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#0F172A] border-b border-[#1E293B] text-[11px] font-black text-slate-400 uppercase tracking-wider">
-                  <th className="py-4 px-6">Job Title & Section</th>
-                  <th className="py-4 px-6">Employer / Source</th>
-                  <th className="py-4 px-6">Location</th>
-                  <th className="py-4 px-6">Submitted Date</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6 text-center">Actions</th>
+                <tr className="bg-[#e5e5e5] border-b border-[#cfd5dc] text-[11px] font-bold text-[#344054] uppercase tracking-wider">
+                  <th className="py-2.5 px-4">Job Title & Section</th>
+                  <th className="py-2.5 px-4">Employer / Source</th>
+                  <th className="py-2.5 px-4">Location</th>
+                  <th className="py-2.5 px-4">Submitted Date</th>
+                  <th className="py-2.5 px-4">Status</th>
+                  <th className="py-2.5 px-3 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1E293B]/60 text-slate-200 text-xs font-semibold">
-                {jobs.map((job) => (
-                  <tr key={job.id} className={`hover:bg-[#1E293B]/50 transition-colors ${job.is_pinned ? 'bg-purple-950/20' : ''}`}>
+              <tbody className="divide-y divide-[#d9dee4] text-[#183b61] text-xs font-semibold">
+                {paginatedJobs.map((job) => (
+                  <tr key={job.id} className={`hover:bg-[#f3f6f8] transition-colors ${job.is_pinned ? 'bg-purple-50' : ''}`}>
                     {/* Job Title & Category Badge */}
-                    <td className="py-4.5 px-6">
+                    <td className="py-2.5 px-3">
                       <div className="flex items-center gap-2">
                         {job.is_pinned && (
-                          <span className="text-purple-400 text-sm shrink-0" title="Pinned to top feed priority">📌</span>
+                          <Pin className="w-3.5 h-3.5 text-purple-600 shrink-0" title="Pinned to top feed priority" />
                         )}
                         <div>
-                          <span className="font-extrabold text-white text-[13px] block leading-tight">{job.title}</span>
-                          <span className="text-[11px] font-semibold mt-0.5 block flex items-center gap-1.5">
-                            <span className="text-slate-400">{job.job_type || 'Full-time'} •</span>
+                          <span className="font-bold text-slate-900 text-[12px] block leading-tight">{job.title}</span>
+                          <span className="text-[9px] font-semibold mt-0.5 block flex items-center gap-1">
+                            <span className="text-slate-500">{job.job_type || 'Full-time'} <span aria-hidden="true">•</span></span>
                             {job.category === 'community' ? (
-                              <span className="text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded text-[10px] font-black border border-emerald-800/60">🔗 Referral</span>
+                              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-black border border-emerald-200"><Link2 className="inline w-3 h-3 mr-1" />Referral</span>
                             ) : job.category === 'overseas' ? (
-                              <span className="text-purple-400 bg-purple-950/80 px-2 py-0.5 rounded text-[10px] font-black border border-purple-800/60">✈️ Overseas</span>
+                              <span className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded text-[10px] font-black border border-purple-200"><Plane className="inline w-3 h-3 mr-1" />Overseas</span>
                             ) : (
-                              <span className="text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded text-[10px] font-black border border-blue-800/60">🇮🇳 India</span>
+                              <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200"><Briefcase className="inline w-3 h-3 mr-1" />India</span>
                             )}
                           </span>
                         </div>
@@ -328,13 +334,13 @@ export default function Jobs() {
                     {/* Employer / Business Name */}
                     <td className="py-4.5 px-6 font-extrabold text-slate-200">
                       <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-md bg-[#1E293B] text-slate-300 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-700">🏢</span>
+                        <span className="w-5 h-5 rounded bg-slate-100 text-[#173f70] flex items-center justify-center shrink-0 border border-[#d7dce2]"><Building2 className="w-3 h-3" /></span>
                         <div className="flex flex-col">
-                          <span className="text-white font-extrabold block">
+                          <span className="text-slate-800 font-bold block">
                             {job.business_name || job.company_name || job.company || (job.creator ? (job.creator.business_name || job.creator.company_name || job.creator.full_name) : 'Hospitality Employer')}
                           </span>
                           {job.creator && job.creator.full_name && (job.business_name || job.company_name || job.company) && (
-                            <span className="text-[10px] font-semibold text-slate-400 block">
+                            <span className="text-[10px] font-semibold text-slate-500 block">
                               By: {job.creator.full_name}
                             </span>
                           )}
@@ -343,30 +349,30 @@ export default function Jobs() {
                     </td>
 
                     {/* Location */}
-                    <td className="py-4.5 px-6 font-semibold text-slate-300">
-                      <span className="flex items-center gap-1 text-slate-300">
-                        <span className="text-rose-400">📍</span>
+                    <td className="py-4.5 px-6 font-semibold text-slate-700">
+                      <span className="flex items-center gap-1 text-slate-700">
+                        <span className="text-slate-500">{job.job_type || 'Full-time'} <span aria-hidden="true">•</span></span>
                         {job.location || 'India'}
                       </span>
                     </td>
 
                     {/* Submitted Date */}
-                    <td className="py-4.5 px-6 text-slate-400 font-semibold">
+                    <td className="py-4.5 px-6 text-slate-500 font-semibold">
                       {job.created_at ? new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
                     </td>
 
                     {/* Status badge */}
-                    <td className="py-4.5 px-6">
+                    <td className="py-2.5 px-3">
                       {job.status === 'approved' ? (
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#d9f3e7] text-[#137333] border-0">
                           Approved
                         </span>
                       ) : job.status === 'rejected' ? (
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-950/80 text-rose-400 border border-rose-800/60">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#fee2e2] text-[#c5221f] border-0">
                           Rejected
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-950/80 text-amber-400 border border-amber-800/60">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#fce7b2] text-[#9a6700] border-0">
                           Pending
                         </span>
                       )}
@@ -381,19 +387,19 @@ export default function Jobs() {
                           (job.benefits && Array.isArray(job.benefits) && job.benefits.length > 0) ||
                           (job.details && job.details.trim() !== '')
                         ) && (
-                          <Link to={`/admin/jobs/${job.id}`} className="w-8 h-8 rounded-lg bg-[#1E293B] hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center border border-slate-700 transition-colors" title="Review Job Details">
+                          <Link to={`/admin/jobs/${job.id}`} className="w-6 h-6 rounded-md bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center border border-[#d7dce2] transition-colors" title="Review Job Details">
                             <Eye className="w-4 h-4" />
                           </Link>
                         )}
 
                         {job.status !== 'approved' && (
-                          <button onClick={() => handleApprove(job.id)} className="w-8 h-8 rounded-lg bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 flex items-center justify-center border border-emerald-800/60 transition-colors cursor-pointer" title="Approve Listing">
+                          <button onClick={() => handleApprove(job.id)} className="w-6 h-6 rounded-md bg-white hover:bg-emerald-50 text-[#137333] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Approve Listing">
                             <Check className="w-4 h-4" />
                           </button>
                         )}
 
                         {job.status !== 'rejected' && (
-                          <button onClick={() => handleReject(job.id)} className="w-8 h-8 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 flex items-center justify-center border border-rose-800/60 transition-colors cursor-pointer" title="Reject Listing">
+                          <button onClick={() => handleReject(job.id)} className="w-6 h-6 rounded-md bg-white hover:bg-rose-50 text-[#c5221f] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Reject Listing">
                             <X className="w-4 h-4" />
                           </button>
                         )}
@@ -401,8 +407,8 @@ export default function Jobs() {
                         {/* Toggle Pin Button */}
                         <button 
                           onClick={() => handleTogglePin(job.id)} 
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${job.is_pinned ? 'bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-600/20' : 'bg-[#1E293B] text-purple-400 border-slate-700 hover:bg-purple-900 hover:text-white'}`} 
-                          title={job.is_pinned ? "Unpin Listing" : "Pin Listing to Top Feed Priority"}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${job.is_pinned ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-white text-purple-600 border-[#d7dce2] hover:bg-purple-50'}`} 
+                          title={job.is_pinned ? "Unpin Listing" : "Pin Listing to Jobs Today"}
                         >
                           <Pin className="w-4 h-4" />
                         </button>
@@ -415,15 +421,20 @@ export default function Jobs() {
           </div>
         )}
 
-        {/* Footer info */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#1E293B] bg-[#0F172A]/40">
-          <span className="text-xs text-slate-400 font-extrabold">
-            Showing all {jobs.length} Merged Listings (India, Overseas & Referrals)
+        {/* Pagination footer */}
+        <div className="px-3 py-2.5 flex flex-wrap justify-between items-center gap-2 border-t border-[#d9dee4] bg-white">
+          <span className="text-[10px] text-slate-600 font-semibold">
+            Showing {jobs.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, jobs.length)} of {jobs.length} results
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            Unified Jobs & Referrals Board
-          </span>
+          <div className="flex items-center gap-1">
+            <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
+            {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
+            ))}
+            {totalPages > 4 && <span className="px-1 text-[10px] text-slate-500">…</span>}
+            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
+            <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
+          </div>
         </div>
       </div>
 
@@ -433,15 +444,15 @@ export default function Jobs() {
           <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl text-left">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">💼</span>
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><Briefcase className="w-4 h-4" /></span>
                 <h3 className="font-outfit font-extrabold text-slate-800 text-base">Add New Job Listing</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -451,7 +462,7 @@ export default function Jobs() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Executive Chef - 5 Star Hotel"
+                  placeholder="e.g. 40,000 - 60,000/month"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -464,7 +475,7 @@ export default function Jobs() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Taj Hotels"
+                    placeholder="e.g. 40,000 - 60,000/month"
                     value={formData.company}
                     onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -478,9 +489,9 @@ export default function Jobs() {
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
-                    <option value="india">🇮🇳 India Jobs</option>
-                    <option value="overseas">✈️ Overseas Jobs</option>
-                    <option value="community">🔗 Referrals & Community</option>
+                    <option value="india">India Jobs</option>
+                    <option value="overseas">Overseas Jobs</option>
+                    <option value="community">Referrals & Community</option>
                   </select>
                 </div>
               </div>
@@ -490,7 +501,7 @@ export default function Jobs() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Location</label>
                   <input
                     type="text"
-                    placeholder="e.g. Mumbai, India"
+                    placeholder="e.g. 40,000 - 60,000/month"
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -517,7 +528,7 @@ export default function Jobs() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Salary</label>
                   <input
                     type="text"
-                    placeholder="e.g. ₹40,000 - ₹60,000/month"
+                    placeholder="e.g. 40,000 - 60,000/month"
                     value={formData.salary}
                     onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -529,7 +540,7 @@ export default function Jobs() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. hr@company.com / +91 98765 43210"
+                    placeholder="e.g. 40,000 - 60,000/month"
                     value={formData.contact_info}
                     onChange={(e) => setFormData(prev => ({ ...prev, contact_info: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -572,5 +583,16 @@ export default function Jobs() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

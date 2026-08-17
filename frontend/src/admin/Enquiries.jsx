@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Plus, Eye, Phone, MoreVertical, Check, X, ShieldAlert, Sparkles, ChevronLeft, ChevronRight, UserPlus, Filter } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { Download, Plus, Eye, Phone, MoreVertical, Check, X, ShieldAlert, Sparkles, ChevronLeft, ChevronRight, UserPlus, Filter, FileText } from 'lucide-react';
 import { mockApi } from '../services/api';
 
 export default function Enquiries() {
@@ -8,6 +8,8 @@ export default function Enquiries() {
   const [activeEnquiry, setActiveEnquiry] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 4;
 
   // Dynamic stats calculated from real database entries
   const [stats, setStats] = useState({
@@ -57,8 +59,12 @@ export default function Enquiries() {
   };
 
   useEffect(() => {
+    setCurrentPage(1);
     loadEnquiries();
   }, [filterStatus]);
+
+  const totalPages = Math.max(1, Math.ceil(enquiries.length / pageSize));
+  const paginatedEnquiries = enquiries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleOpenDrawer = (enquiry) => {
     setActiveEnquiry(enquiry);
@@ -134,23 +140,23 @@ export default function Enquiries() {
   };
 
   return (
-    <div className="space-y-6 text-left relative overflow-hidden">
+    <div className="space-y-3 text-left relative overflow-hidden">
       
       {/* Breadcrumbs and Top Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+        <div className="space-y-0.5">
+          <div className="hidden">
             <span>Training & Overseas</span>
             <span>&gt;</span>
             <span className="text-slate-600">Enquiries</span>
           </div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Enquiries Management</h2>
+          <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900">Enquiries Management</h2>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button 
             onClick={exportCSV}
-            className="bg-white border border-[#e2e8f0] rounded-xl px-4 py-2 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+            className="bg-white border border-[#cfd5dc] rounded-md px-3 py-2 text-[11px] font-bold text-slate-700 flex items-center gap-1.5 hover:bg-slate-50 transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-slate-400" />
             Export CSV
@@ -158,46 +164,46 @@ export default function Enquiries() {
           
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-5 py-2.5 text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer flex items-center gap-1.5"
+            className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-md px-3.5 py-2 text-[11px] font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Manual Entry</span>
+            <span>Manual Entry</span>
           </button>
         </div>
       </div>
 
       {/* Dynamic KPI Cards Row (Calculated live from DB) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-4 gap-2.5">
         
         {/* Card 1: Total Enquiries */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
           <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Enquiries</span>
           <div className="flex items-center justify-between mt-2">
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block">{stats.total}</span>
+            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.total}</span>
             <span className="bg-emerald-50 text-[#059669] border border-emerald-100 text-[9px] font-extrabold px-2 py-0.5 rounded-md">Live Records</span>
           </div>
         </div>
 
         {/* Card 2: Pending Response */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
           <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Response</span>
           <div className="flex items-center justify-between mt-2">
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block">{stats.pending}</span>
+            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.pending}</span>
             <span className="bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-extrabold px-2 py-0.5 rounded-md">Needs Follow-up</span>
           </div>
         </div>
 
         {/* Card 3: Contacted Enquiries */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
           <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Contacted</span>
           <div className="flex items-center justify-between mt-2">
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block">{stats.contacted}</span>
+            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.contacted}</span>
             <span className="bg-emerald-50 text-[#059669] border border-emerald-100 text-[8px] font-extrabold px-2 py-0.5 rounded-md">Completed</span>
           </div>
         </div>
 
         {/* Card 4: High Priority */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
+        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
           <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">High Priority</span>
           <div className="flex items-center justify-between mt-2">
             <span className="font-outfit font-extrabold text-2xl text-purple-700 block">{stats.highPriority}</span>
@@ -208,15 +214,15 @@ export default function Enquiries() {
       </div>
 
       {/* Main Enquiries Table Card */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden">
         
         {/* Navigation Filters */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 border-b border-[#e2e8f0] bg-slate-50/10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-3 border-b border-[#d7dce2] bg-white">
           <div className="flex items-center gap-2 flex-wrap">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-white border border-[#e2e8f0] rounded-lg px-4 py-2 text-xs font-bold text-[#475569] focus:outline-none focus:border-[#059669]"
+              className="bg-white border border-[#cfd5dc] rounded-md px-3 py-1.5 text-[11px] font-bold text-slate-700 focus:outline-none focus:border-[#173f70]"
             >
               <option value="all">Filter Status: All</option>
               <option value="New Enquiry">New Enquiry</option>
@@ -233,11 +239,11 @@ export default function Enquiries() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                <th className="py-4 px-6">Name</th>
-                <th className="py-4 px-6">Mobile Number</th>
-                <th className="py-4 px-6">Program Interested In</th>
-                <th className="py-4 px-6">Date Submitted</th>
-                <th className="py-4 px-6">Status</th>
+                <th className="py-2.5 px-3">Name</th>
+                <th className="py-2.5 px-3">Mobile Number</th>
+                <th className="py-2.5 px-3">Program Interested In</th>
+                <th className="py-2.5 px-3">Date Submitted</th>
+                <th className="py-2.5 px-3">Status</th>
                 <th className="py-4 px-6 text-center">Actions</th>
               </tr>
             </thead>
@@ -250,11 +256,11 @@ export default function Enquiries() {
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-slate-400">No enquiries found in database. Click <b>+ Manual Entry</b> to add one.</td>
                 </tr>
-              ) : enquiries.map(enq => (
+              ) : paginatedEnquiries.map(enq => (
                 <tr key={enq.id} className="hover:bg-slate-50/30 transition-colors">
                   
                   {/* Name column */}
-                  <td className="py-4.5 px-6">
+                  <td className="py-2.5 px-3">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-white shadow-sm ${getAvatarColor(enq.name)}`}>
                         {(enq.name || 'E').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}
@@ -272,8 +278,8 @@ export default function Enquiries() {
                   </td>
 
                   {/* Program interested in */}
-                  <td className="py-4.5 px-6">
-                    <span className="bg-[#ccfbf1] text-[#0f766e] border border-[#99f6e4] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                  <td className="py-2.5 px-3">
+                    <span className="bg-[#ccfbf1] text-[#0f766e] border border-[#99f6e4] text-[10px] font-extrabold px-2.5 py-0.5 rounded-xl">
                       {enq.program}
                     </span>
                   </td>
@@ -284,7 +290,7 @@ export default function Enquiries() {
                   </td>
 
                   {/* Status Indicator */}
-                  <td className="py-4.5 px-6">
+                  <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2">
                       <span className={`w-1.5 h-1.5 rounded-full ${enq.status === 'Contacted' ? 'bg-slate-400' : (enq.status === 'Urgent Follow-up' ? 'bg-rose-500' : 'bg-emerald-500')}`} />
                       <span className={`${enq.status === 'Urgent Follow-up' ? 'text-rose-600' : 'text-slate-600'} font-bold`}>{enq.status}</span>
@@ -303,7 +309,7 @@ export default function Enquiries() {
                           <Phone className="w-4 h-4" />
                         </button>
                       ) : (
-                        <span className="text-[#059669] text-xs font-bold">✓</span>
+                        <Check className="w-4 h-4 text-emerald-600" />
                       )}
                     </div>
                   </td>
@@ -314,17 +320,21 @@ export default function Enquiries() {
           </table>
         </div>
 
-        {/* Footer pagination */}
-        <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/10">
-          <span className="text-xs font-bold text-slate-400">Total Enquiries Recorded: {enquiries.length}</span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Database Synchronization Live
-          </span>
+        {/* Pagination footer */}
+        <div className="px-3 py-2.5 flex flex-wrap justify-between items-center gap-2 border-t border-[#d7dce2] bg-white">
+          <span className="text-[10px] text-slate-600 font-semibold">Showing {enquiries.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, enquiries.length)} of {enquiries.length} enquiries</span>
+          <div className="flex items-center gap-1">
+            <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
+            {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
+              <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
+            ))}
+            {totalPages > 3 && <span className="px-1 text-[10px] text-slate-500">…</span>}
+            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#173f70] border-[#173f70] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
+            <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
+          </div>
         </div>
 
       </div>
-
       {/* MANUAL ENTRY MODAL DIALOG */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
@@ -333,7 +343,7 @@ export default function Enquiries() {
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">📝</span>
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><FileText className="w-4 h-4" /></span>
                 <h3 className="font-outfit font-extrabold text-slate-800 text-base">New Enquiry Manual Entry</h3>
               </div>
               <button 
@@ -341,7 +351,7 @@ export default function Enquiries() {
                 onClick={() => setIsModalOpen(false)} 
                 className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -350,7 +360,7 @@ export default function Enquiries() {
               
               {formError && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
-                  <span>⚠️ {formError}</span>
+                  <span>{formError}</span>
                 </div>
               )}
 
@@ -484,7 +494,7 @@ export default function Enquiries() {
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h3 className="font-outfit font-extrabold text-slate-800 text-base">Enquiry Detail</h3>
-                <button onClick={() => setDrawerOpen(false)} className="w-7 h-7 bg-white hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs shadow-sm border border-[#e2e8f0] cursor-pointer">✕</button>
+                <button onClick={() => setDrawerOpen(false)} className="w-7 h-7 bg-white hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold text-xs shadow-sm border border-[#e2e8f0] cursor-pointer">âœ•</button>
               </div>
 
               <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-xs relative text-left">
@@ -499,7 +509,7 @@ export default function Enquiries() {
                   <div className="space-y-0.5">
                     <h4 className="font-outfit font-extrabold text-slate-800 text-sm leading-none">{activeEnquiry.name}</h4>
                     <span className="text-[10px] text-slate-400 font-bold flex items-center gap-0.5 mt-1">
-                      🎓 {activeEnquiry.program}
+                      <FileText className="w-3 h-3" /> {activeEnquiry.program}
                     </span>
                   </div>
                 </div>
@@ -514,11 +524,11 @@ export default function Enquiries() {
 
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   <a href={`tel:${activeEnquiry.phone}`} className="bg-white border border-[#e2e8f0] hover:bg-slate-50 text-slate-700 rounded-lg py-2 text-xs font-bold transition-all text-center flex items-center justify-center gap-1 shadow-xs">
-                    📞 Call {activeEnquiry.phone}
+                    <Phone className="w-3 h-3" /> Call {activeEnquiry.phone}
                   </a>
                   <button onClick={() => handleMarkContacted(activeEnquiry.id)}
                           className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg py-2 text-xs font-bold transition-all text-center flex items-center justify-center gap-1 shadow-xs cursor-pointer">
-                    ✓ Mark Contacted
+                <X className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -535,3 +545,8 @@ export default function Enquiries() {
     </div>
   );
 }
+
+
+
+
+

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Megaphone, FileText, Trash2, RotateCcw, CheckCircle2, Bookmark, Eye, EyeOff, Pin } from 'lucide-react';
+﻿import React, { useEffect, useState } from 'react';
+import { Megaphone, FileText, FileEdit, Trash2, RotateCcw, CheckCircle2, Bookmark, Eye, EyeOff, Pin, Plus, CalendarClock, Clock3, Briefcase, GraduationCap, Award, Radio, X } from 'lucide-react';
 import axios from 'axios';
 import { mockApi } from '../services/api';
 
@@ -102,7 +102,7 @@ export default function CommunityFeed() {
     loadPosts();
   }, []);
 
-  // Toggle pin — optimistic UI update, then persist to backend
+  // Toggle pin â€” optimistic UI update, then persist to backend
   const handleTogglePin = async (id) => {
     const target = posts.find(p => p.id === id);
     const nextPinned = !target?.is_pinned;
@@ -219,22 +219,30 @@ export default function CommunityFeed() {
   };
 
   const getSourceIcon = (source, type = '') => {
-    if (source === 'job_post' || type.includes('Job Listing')) return '💼';
-    if (source === 'training' || type.includes('Training')) return '🎓';
-    if (type.includes('Announcement')) return '📢';
-    if (type.includes('Featured')) return '🏆';
-    return '📶';
+    const iconClass = "w-4 h-4";
+    if (source === 'job_post' || type.includes('Job Listing')) return <Briefcase className={iconClass} />;
+    if (source === 'training' || type.includes('Training')) return <GraduationCap className={iconClass} />;
+    if (type.includes('Announcement')) return <Megaphone className={iconClass} />;
+    if (type.includes('Featured')) return <Award className={iconClass} />;
+    return <Radio className={iconClass} />;
   };
-
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-4 text-left">
 
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800">Community Feed Manager</h2>
-          <p className="text-xs font-semibold text-slate-400 mt-0.5">Manage announcements, pin existing posts live, publish or unpublish stream entries.</p>
+          <h2 className="font-outfit font-bold text-[28px] tracking-tight text-slate-900">Community Feed Manager</h2>
+          <p className="text-[15px] font-medium text-slate-500 mt-1">Manage and schedule content across all community platforms.</p>
         </div>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#f58220] hover:bg-[#df6d0f] text-white text-sm font-bold shadow-sm transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Create New Post
+        </button>
       </div>
 
       {error && (
@@ -243,10 +251,10 @@ export default function CommunityFeed() {
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* KPI Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
+        <div className="grid grid-cols-4 gap-3">
+          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left">
             <div className="w-11 h-11 rounded-xl bg-emerald-50 text-[#059669] flex items-center justify-center shrink-0">
               <Megaphone className="w-5 h-5" />
             </div>
@@ -256,9 +264,9 @@ export default function CommunityFeed() {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
+          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left">
             <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 font-bold text-[#9333ea]">
-              <Pin className="w-5 h-5" />
+              <FileEdit className="w-5 h-5" />
             </div>
             <div>
               <span className="font-outfit font-extrabold text-2xl text-purple-700 block leading-tight">{stats.pinned}</span>
@@ -266,9 +274,9 @@ export default function CommunityFeed() {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 text-left">
+          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left">
             <div className="w-11 h-11 rounded-xl bg-[#fff7ed] text-[#c2410c] flex items-center justify-center shrink-0">
-              <FileText className="w-5 h-5" />
+              <Eye className="w-5 h-5" />
             </div>
             <div>
               <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{stats.drafts}</span>
@@ -276,40 +284,40 @@ export default function CommunityFeed() {
             </div>
           </div>
 
-          <div className="bg-[#065f46] p-5 rounded-2xl shadow-sm flex items-center gap-4 text-left text-white">
-            <div className="w-11 h-11 rounded-xl bg-emerald-800/60 text-emerald-200 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5" />
+          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left text-slate-900">
+            <div className="w-11 h-11 rounded-xl bg-[#d9f3e7] text-[#137333] flex items-center justify-center shrink-0">
+              <Clock3 className="w-5 h-5" />
             </div>
             <div>
               <span className="font-outfit font-extrabold text-2xl block leading-tight">{stats.total}</span>
-              <span className="text-[10px] font-extrabold text-emerald-200 uppercase tracking-widest mt-1 block">Total Stream Entries</span>
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-1 block">Total Stream Entries</span>
             </div>
           </div>
         </div>
 
         {/* Main Table Board */}
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
+        <div className="bg-[#f4f5f6] rounded-xl border border-[#d9dee4] shadow-sm overflow-hidden">
 
           {/* Tabs Bar */}
-          <div className="px-6 py-4 border-b border-[#e2e8f0] flex items-center justify-between bg-slate-50/30">
+          <div className="px-4 py-4 border-b border-[#d0d5db] flex items-center justify-between bg-[#f1f2f4]">
             <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={() => setTab('all')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'all' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <button onClick={() => setTab('all')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'all' ? 'bg-[#e5e7eb] text-slate-900' : 'text-slate-700 hover:bg-[#e5e7eb]'}`}>
                 All Stream Posts ({stats.total})
               </button>
-              <button onClick={() => setTab('published')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'published' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <button onClick={() => setTab('published')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'published' ? 'bg-[#e5e7eb] text-slate-900' : 'text-slate-700 hover:bg-[#e5e7eb]'}`}>
                 Published ({stats.published})
               </button>
-              <button onClick={() => setTab('pinned')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'pinned' ? 'bg-purple-600 text-white' : 'text-purple-700 bg-purple-50 hover:bg-purple-100'}`}>
-                📌 Pinned ({stats.pinned})
+              <button onClick={() => setTab('pinned')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'pinned' ? 'bg-[#e5e7eb] text-slate-900' : 'text-slate-700 hover:bg-[#e5e7eb]'}`}>
+                <Pin className="inline w-3 h-3 mr-1" /> Pinned ({stats.pinned})
               </button>
-              <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#e5e7eb] text-slate-900' : 'text-slate-700 hover:bg-[#e5e7eb]'}`}>
                 Drafts / Unpublished ({stats.drafts})
               </button>
-              <button onClick={() => setTab('archived')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'archived' ? 'bg-[#065f46] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <button onClick={() => setTab('archived')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'archived' ? 'bg-[#e5e7eb] text-slate-900' : 'text-slate-700 hover:bg-[#e5e7eb]'}`}>
                 Archived ({stats.archived})
               </button>
             </div>
-            <button onClick={loadPosts} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 flex items-center gap-1">
+            <button onClick={loadPosts} className="text-[10px] font-bold text-[#8aa0b9] hover:text-[#1d4b78] flex items-center gap-1">
               <RotateCcw className="w-3 h-3" /> Refresh
             </button>
           </div>
@@ -323,21 +331,21 @@ export default function CommunityFeed() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                    <th className="py-4 px-6">Entry Title & Details</th>
-                    <th className="py-4 px-6">Post Type & Source</th>
-                    <th className="py-4 px-6">Status</th>
-                    <th className="py-4 px-6">Created Date</th>
-                    <th className="py-4 px-6 text-center">Actions</th>
+                  <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-bold text-[#8aa0b9] uppercase tracking-wider">
+                    <th className="py-3 px-4">Entry Title & Details</th>
+                    <th className="py-3 px-4">Post Type & Source</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Created Date</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e2e8f0] text-xs font-medium">
+                <tbody className="divide-y divide-[#dce2e8] text-xs font-medium text-[#183b61]">
                   {filteredPosts.map((post) => (
-                    <tr key={post.id} className={`hover:bg-slate-50/80 transition-colors ${post.is_pinned ? 'bg-purple-50/30' : ''}`}>
-                      <td className="py-4.5 px-6">
+                    <tr key={post.id} className={`hover:bg-[#eef3f7] transition-colors ${post.is_pinned ? 'bg-purple-50/30' : ''}`}>
+                      <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           {post.is_pinned && (
-                            <span className="text-purple-600 text-sm shrink-0" title="Pinned to top feed priority">📌</span>
+                            <Pin className="w-3.5 h-3.5 text-purple-600 shrink-0" title="Pinned to top feed priority" />
                           )}
                           <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">
                             {getSourceIcon(post.source, post.post_type)}
@@ -351,41 +359,41 @@ export default function CommunityFeed() {
                         </div>
                       </td>
 
-                      <td className="py-4.5 px-6">
+                      <td className="py-4 px-4">
                         <span className={`px-2.5 py-1 rounded-md text-[9px] font-extrabold uppercase tracking-wider border ${getPostBadgeColor(post.post_type)}`}>
                           {post.post_type}
                         </span>
                       </td>
 
-                      <td className="py-4.5 px-6">
+                      <td className="py-4 px-4">
                         {post.status === 'Published' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-transparent text-[#006b57] border-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             Published
                           </span>
                         ) : post.status === 'Archived' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-100">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-transparent text-[#c5221f] border-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                             Archived
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-transparent text-[#b45309] border-0">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                             Unpublished / Draft
                           </span>
                         )}
                       </td>
 
-                      <td className="py-4.5 px-6 text-slate-500 font-bold">
+                      <td className="py-4 px-4 text-[#5b7694] font-semibold">
                         {post.date}
                       </td>
 
-                      <td className="py-4.5 px-6 text-center">
+                      <td className="py-4 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           {post.status === 'Published' ? (
                             <button
                               onClick={() => handleStatusChange(post.id, 'Draft')}
-                              className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-extrabold rounded-md transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+                              className="px-3 py-1 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[10px] font-extrabold rounded-md transition-all shadow-sm flex items-center gap-1 cursor-pointer"
                               title="Unpublish item from live feed"
                             >
                               <EyeOff className="w-3 h-3" />
@@ -394,7 +402,7 @@ export default function CommunityFeed() {
                           ) : (
                             <button
                               onClick={() => handleStatusChange(post.id, 'Published')}
-                              className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-extrabold rounded-md transition-all shadow-xs flex items-center gap-1 cursor-pointer font-bold"
+                              className="px-3 py-1 bg-[#1d4b78] hover:bg-[#163b61] text-white text-[10px] font-extrabold rounded-md transition-all shadow-sm flex items-center gap-1 cursor-pointer font-bold"
                               title="Publish item to live feed"
                             >
                               <Eye className="w-3 h-3" />
@@ -406,7 +414,7 @@ export default function CommunityFeed() {
                             onClick={() => handleTogglePin(post.id)}
                             className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all cursor-pointer ${
                               post.is_pinned
-                                ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                                ? 'bg-[#8b35e8] text-white border-[#8b35e8] shadow-xs'
                                 : 'bg-purple-50 text-purple-600 border-purple-100 hover:bg-purple-600 hover:text-white'
                             }`}
                             title={post.is_pinned ? "Unpin Post" : "Pin Post to Candidate Feed Top Priority"}
@@ -417,7 +425,7 @@ export default function CommunityFeed() {
                           {post.status === 'Published' && (
                             <button
                               onClick={() => handleStatusChange(post.id, 'Archived')}
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                              className="p-1.5 rounded-lg bg-[#f1f4f7] hover:bg-[#fee2e2] text-[#8aa0b9] hover:text-[#c5221f] transition-colors"
                               title="Archive"
                             >
                               <Bookmark className="w-3.5 h-3.5" />
@@ -427,7 +435,7 @@ export default function CommunityFeed() {
                           {post.status === 'Archived' && (
                             <button
                               onClick={() => handleStatusChange(post.id, 'Draft')}
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors"
+                              className="p-1.5 rounded-lg bg-[#f1f4f7] hover:bg-[#e2e8f0] text-[#6d849f] transition-colors"
                               title="Restore to Draft"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
@@ -436,7 +444,7 @@ export default function CommunityFeed() {
 
                           <button
                             onClick={() => handleDelete(post.id)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                            className="p-1.5 rounded-lg bg-[#f1f4f7] hover:bg-[#fee2e2] text-[#8aa0b9] hover:text-[#c5221f] transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -450,8 +458,8 @@ export default function CommunityFeed() {
             </div>
           )}
 
-          <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
-            <span className="text-xs text-slate-500 font-bold">
+          <div className="px-4 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-[#f1f2f4]">
+            <span className="text-xs text-[#5b7694] font-semibold">
               Showing all {filteredPosts.length} Combined Stream Posts (Jobs, Announcements & Training)
             </span>
           </div>
@@ -462,9 +470,9 @@ export default function CommunityFeed() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-[#f1f2f4]">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">📢</span>
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><Megaphone className="w-4 h-4" /></span>
                 <h3 className="font-outfit font-extrabold text-slate-800 text-base">Create New Community Post</h3>
               </div>
               <button
@@ -472,7 +480,7 @@ export default function CommunityFeed() {
                 onClick={() => setIsModalOpen(false)}
                 className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -482,7 +490,7 @@ export default function CommunityFeed() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 🎉 JobConnect 10,000 Placements Achieved!"
+                  placeholder="e.g. JobConnect 10,000 Placements Achieved!"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] focus:bg-white transition-all"
@@ -519,7 +527,7 @@ export default function CommunityFeed() {
 
               <div className="flex items-center justify-between p-3.5 bg-purple-50/70 border border-purple-200/80 rounded-2xl">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-base">📌</span>
+                  <Pin className="w-4 h-4 text-purple-700" />
                   <div>
                     <span className="text-xs font-extrabold text-purple-900 block">Pin to Feed Top Priority</span>
                     <span className="text-[10px] font-semibold text-purple-600 block">Feature this post at the very top of candidate feeds</span>
@@ -574,7 +582,7 @@ export default function CommunityFeed() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
+                  className="px-4 py-2 bg-[#f1f2f4] hover:bg-[#dfe5eb] text-[#506b89] rounded-xl text-xs font-bold transition-all"
                 >
                   Cancel
                 </button>
@@ -594,3 +602,4 @@ export default function CommunityFeed() {
     </div>
   );
 }
+
