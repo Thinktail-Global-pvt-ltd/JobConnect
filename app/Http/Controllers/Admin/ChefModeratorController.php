@@ -93,7 +93,10 @@ class ChefModeratorController extends Controller
                 $preferredRole = $user ? ($user->preferred_role ?: null) : null;
                 $currentEmployer = $user ? ($user->current_employer ?: null) : null;
                 $exp = $user ? ($user->experience_range ?: $user->experience_years ?: null) : null;
-                $photoPath = $user ? $user->profile_photo_path : null;
+                $photoPath = $user ? ($user->profile_photo_path ?: $user->profile_photo ?: null) : null;
+                if (!$photoPath && $chef) {
+                    $photoPath = $chef->profile_photo ?: $chef->profile_photo_path ?: $chef->avatar ?: $chef->photo_url ?: null;
+                }
                 $photoUrl = null;
                 if (!empty($photoPath)) {
                     if (str_starts_with($photoPath, 'http://') || str_starts_with($photoPath, 'https://')) {
