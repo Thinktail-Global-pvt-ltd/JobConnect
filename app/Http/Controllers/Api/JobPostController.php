@@ -632,22 +632,29 @@ class JobPostController extends Controller
             $jobPostId = null;
 
             $targetIdStr = (string)$targetId;
-            if (str_starts_with($targetIdStr, 'training_')) {
+            if (str_starts_with($targetIdStr, 'referral_')) {
+                $targetIdStr = str_replace('referral_', '', $targetIdStr);
+            } elseif (str_starts_with($targetIdStr, 'job_')) {
+                $targetIdStr = str_replace('job_', '', $targetIdStr);
+            }
+
+            if (str_starts_with((string)$targetId, 'training_')) {
                 $isTraining = true;
-                $trainingId = (int) str_replace('training_', '', $targetIdStr);
+                $trainingId = (int) str_replace('training_', '', (string)$targetId);
             } elseif ($request->boolean('is_training') || $request->input('type') === 'training' || $request->filled('training_id')) {
                 $isTraining = true;
-                $trainingId = (int) ($request->input('training_id') ?: $targetId);
+                $trainingId = (int) ($request->input('training_id') ?: $targetIdStr);
             } else {
+                $cleanId = (int)$targetIdStr;
                 if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
-                    $tObj = \App\Models\TrainingOpportunity::find($targetId);
-                    if ($tObj && !\App\Models\JobPost::find($targetId)) {
+                    $tObj = \App\Models\TrainingOpportunity::find($cleanId);
+                    if ($tObj && !\App\Models\JobPost::find($cleanId)) {
                         $isTraining = true;
                         $trainingId = $tObj->id;
                     }
                 }
                 if (!$isTraining) {
-                    $jobPostId = (int) $targetId;
+                    $jobPostId = $cleanId;
                 }
             }
 
@@ -847,6 +854,10 @@ class JobPostController extends Controller
                         }
                     } catch (\Throwable $th) {}
 
+                    $isReferral = (bool)$job->is_referral || 
+                                  $job->category === 'community' || 
+                                  in_array(strtolower(trim($creatorRole)), ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent', 'candidate']);
+
                     return [
                         'saved_id'              => $rec->id,
                         'id'                    => $job->id,
@@ -864,6 +875,11 @@ class JobPostController extends Controller
                         'job_type'              => $job->job_type,
                         'experience_range'      => $job->experience_range,
                         'description'           => $job->description,
+                        'is_referral'           => $isReferral,
+                        'is_referral_job'       => $isReferral,
+                        'posted_by_role'        => $creatorRole,
+                        'submitted_by_role'     => $job->submitted_by_role ?: $creatorRole,
+                        '_type'                 => $isReferral ? 'referral_job' : 'job',
                         'is_training'           => false,
                         'is_saved'              => true,
                         'saved'                 => true,
