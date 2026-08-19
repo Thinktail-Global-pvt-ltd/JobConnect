@@ -257,15 +257,6 @@ export default function CommunityFeed() {
           />
           <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
         </div>
-
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#f58220] hover:bg-[#df6d0f] text-white text-xs font-bold shadow-sm transition-colors shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Create New Post
-        </button>
       </div>
 
       {error && (
