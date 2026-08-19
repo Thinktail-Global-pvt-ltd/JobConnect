@@ -245,14 +245,19 @@ class JobModeratorController extends Controller
             }
 
             if (!$adminUser) {
-                // Ensure a valid user record exists for the foreign key constraint
-                $adminUser = \App\Models\User::create([
-                    'full_name'      => 'System Administrator',
-                    'name'           => 'System Administrator',
-                    'mobile_number'  => '9999999999',
-                    'active_profile' => 'employer',
-                    'is_available'   => true,
-                ]);
+                try {
+                    $adminUser = \App\Models\User::firstOrCreate(
+                        ['mobile_number' => '9999999999'],
+                        [
+                            'full_name'      => 'System Administrator',
+                            'name'           => 'System Administrator',
+                            'active_profile' => 'employer',
+                            'is_available'   => true,
+                        ]
+                    );
+                } catch (\Throwable $th) {
+                    $adminUser = \App\Models\User::first();
+                }
             }
 
             $userId = $adminUser->id;
@@ -297,7 +302,7 @@ class JobModeratorController extends Controller
                 'description'               => $description,
                 'contact_person'            => $contactPerson,
                 'contact_info'              => $contactInfo,
-                'status'                    => $request->input('status', 'approved'),
+                'status'                    => $request->input('status', 'pending'),
                 'is_pinned'                 => filter_var($request->input('is_pinned', false), FILTER_VALIDATE_BOOLEAN),
                 'is_referral'               => filter_var($request->input('is_referral', false), FILTER_VALIDATE_BOOLEAN),
                 'submitted_by_role'         => 'employer',
