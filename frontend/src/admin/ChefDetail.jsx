@@ -103,22 +103,42 @@ export default function ChefDetail() {
     );
   }
 
-  // Mappings fallback to match the exact details in the design screenshot
-  const name = chef.full_name || chef.name || 'Marco Santini';
-  const role = chef.preferred_role || 'Executive Sous Chef';
-  const experience = chef.experience_range || chef.experience || '12 Years Exp.';
-  const phone = chef.mobile_number || chef.phone || '+44 20 7946 0123';
-  const locationText = [chef.city, chef.country].filter(Boolean).join(', ') || 'London, UK';
-  const preference = chef.location_preference || 'India, Abroad';
+  // Mappings dynamically populated from API data
+  const name = chef.full_name || chef.name || 'Chef Profile';
+  const role = chef.preferred_role || 'Chef';
+  const experience = chef.experience_range || chef.experience || 'Not specified';
+  const phone = chef.mobile_number || chef.phone || 'Not provided';
+  const locationText = [chef.city, chef.country].filter(Boolean).join(', ') || 'Not specified';
+  const preference = chef.location_preference || chef.availability_info?.location_preference || 'Both';
   
-  const rawCalendly = chef.calendly_link || 'https://calendly.com/chef-marco-santini';
-  const calendly = rawCalendly.replace('https://', '');
+  const rawCalendly = chef.calendly_link || '';
+  const calendly = rawCalendly ? rawCalendly.replace(/^https?:\/\//, '') : null;
 
   const specialtiesList = chef.cuisine_specialty 
-    ? String(chef.cuisine_specialty).split(',').map(s => s.trim())
-    : ['Modern Italian', 'French Bistro', 'Molecular Gastronomy', 'Seafood Specialist'];
+    ? String(chef.cuisine_specialty).split(',').map(s => s.trim()).filter(Boolean)
+    : (chef.specialties ? String(chef.specialties).split(',').map(s => s.trim()).filter(Boolean) : []);
 
-  const bioDescription = chef.bio || 'Lead a team of 15 kitchen staff. Responsible for seasonal menu design, supplier relations, and maintaining a 2-AA Rosette standard. Overseeing food costs and labor budgets effectively.';
+  const bioDescription = chef.bio || 'No bio provided.';
+  const currentEmployer = chef.current_employer || chef.preferred_role || 'Independent Professional';
+
+  const resolveImageUrl = (path) => {
+    if (!path) return null;
+    let clean = String(path).replace('/backend/storage/', '/storage/');
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      return clean;
+    }
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return `http://localhost:8000${clean.startsWith('/') ? '' : '/'}${clean}`;
+      }
+      return `${origin}${clean.startsWith('/') ? '' : '/'}${clean}`;
+    }
+    return clean;
+  };
+
+  const rawPhoto = chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url;
+  const photoUrl = resolveImageUrl(rawPhoto);
 
   return (
     <div className="space-y-6 text-left">
@@ -177,9 +197,9 @@ export default function ChefDetail() {
             
             {/* Chef Profile Image */}
             <div className="w-32 h-32 rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden shadow-xs relative mb-4">
-              {(chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url) ? (
+              {photoUrl ? (
                 <img 
-                  src={chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url} 
+                  src={photoUrl} 
                   alt={name} 
                   className="w-full h-full object-cover"
                   onError={(e) => { e.target.style.display = 'none'; }}
@@ -256,14 +276,18 @@ export default function ChefDetail() {
             
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Calendly URL</span>
-              <a 
-                href={`https://${calendly}`} 
-                target="_blank" 
-                rel="noreferrer" 
-                className="text-xs text-blue-600 font-extrabold hover:underline block truncate"
-              >
-                {calendly}
-              </a>
+              {calendly ? (
+                <a 
+                  href={`https://${calendly}`} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="text-xs text-blue-600 font-extrabold hover:underline block truncate"
+                >
+                  {calendly}
+                </a>
+              ) : (
+                <span className="text-xs text-slate-400 font-semibold block">Not connected</span>
+              )}
             </div>
           </div>
 
@@ -277,7 +301,7 @@ export default function ChefDetail() {
             <h3 className="font-outfit font-extrabold text-sm text-slate-800">Cuisine Specialities</h3>
             
             <div className="flex flex-wrap gap-3">
-              {specialtiesList.map((item, idx) => (
+              {specialtiesList.length > 0 ? specialtiesList.map((item, idx) => (
                 <div 
                   key={idx} 
                   className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 shadow-2xs"
@@ -285,7 +309,9 @@ export default function ChefDetail() {
                   <UtensilsCrossed className="w-3.5 h-3.5 text-slate-500" />
                   <span>{item}</span>
                 </div>
-              ))}
+              )) : (
+                <span className="text-xs text-slate-400 font-semibold">No specialties specified</span>
+              )}
             </div>
           </div>
 
@@ -303,13 +329,13 @@ export default function ChefDetail() {
               <div className="flex-grow space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <div>
-                    <h4 className="text-sm font-extrabold text-slate-800">{chef.current_employer ? 'Chef' : 'Head Chef'}</h4>
+                    <h4 className="text-sm font-extrabold text-slate-800">{role}</h4>
                     <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                      {chef.current_employer || 'The Riverhouse Terrace, London'}
+                      {currentEmployer}
                     </p>
                   </div>
                   <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md shrink-0 self-start sm:self-auto">
-                    2020 — Present
+                    {experience}
                   </span>
                 </div>
 
