@@ -253,21 +253,21 @@ class ChefModeratorController extends Controller
     {
         $chef = ChefProfile::where('id', $id)->orWhere('user_id', $id)->first();
         if (!$chef) {
-            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'pending']);
+            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'rejected']);
         } else {
-            $chef->update(['approval_status' => 'pending']);
+            $chef->update(['approval_status' => 'rejected']);
         }
 
         if ($chef->user_id) {
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'approval_status')) {
-                User::where('id', $chef->user_id)->update(['approval_status' => 'pending']);
+                User::where('id', $chef->user_id)->update(['approval_status' => 'rejected']);
             }
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_approved')) {
                 User::where('id', $chef->user_id)->update(['is_approved' => false]);
             }
         }
 
-        return response()->json(['success' => true, 'message' => 'Chef unpublished successfully.']);
+        return response()->json(['success' => true, 'message' => 'Chef unpublished/rejected successfully.']);
     }
 
     /**

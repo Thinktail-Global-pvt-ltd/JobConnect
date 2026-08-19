@@ -118,11 +118,13 @@ export default function Chefs() {
   };
 
   const handleUnpublish = async (id) => {
-    setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'pending', approval_status: 'pending' } : c));
+    setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/unpublish`,
-        `/backend/api/admin/chefs/${id}/unpublish`
+        `/api/admin/chefs/${id}/reject`,
+        `/backend/api/admin/chefs/${id}/unpublish`,
+        `/backend/api/admin/chefs/${id}/reject`
       ];
       for (const ep of endpoints) {
         try {
