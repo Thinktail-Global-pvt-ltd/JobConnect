@@ -487,9 +487,9 @@ export default function Jobs() {
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
-                    <option value="india">India Jobs</option>
-                    <option value="overseas">Overseas Jobs</option>
-                    <option value="community">Referrals & Community</option>
+                    <option value="india">India</option>
+                    <option value="ksa">KSA</option>
+                    <option value="dubai">Dubai</option>
                   </select>
                 </div>
               </div>

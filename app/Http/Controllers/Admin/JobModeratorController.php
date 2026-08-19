@@ -258,7 +258,7 @@ class JobModeratorController extends Controller
             $userId = $adminUser->id;
 
             $category = strtolower(trim($request->input('category', 'india')));
-            if (!in_array($category, ['india', 'overseas', 'community'])) {
+            if (!in_array($category, ['india', 'ksa', 'dubai', 'overseas', 'community'])) {
                 $category = 'india';
             }
 

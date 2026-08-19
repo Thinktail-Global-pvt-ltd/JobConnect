@@ -81,8 +81,8 @@ class FeedController extends Controller
                     $q->where('category', 'community')
                       ->orWhere('is_referral', true);
                 });
-            } else if (in_array($filter, ['dubai', 'overseas'])) {
-                $query->where('category', $filter);
+            } else {
+                $query->where('category', strtolower($filter));
             }
         }
 
