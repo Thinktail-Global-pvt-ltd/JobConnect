@@ -51,23 +51,17 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $requestedRole = $this->normalizeRole($request->role ?? $request->role_type ?? $request->login_role);
+        $requestedRole = $request->role ?? $request->role_type ?? $request->login_role;
 
         if ($requestedRole) {
-            $user = User::where('mobile_number', $request->mobile_number)->first();
-            if ($user) {
-                $activeRole = $user->activeRole()->first();
-                $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
-                $existingRoleType = $this->normalizeRole($existingRoleType);
-
-                if ($existingRoleType && $existingRoleType !== $requestedRole) {
-                    $displayExisting = str_replace('_', ' ', $existingRoleType);
-                    $displayRequested = str_replace('_', ' ', $requestedRole);
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Role conflict error: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
-                    ], 400);
-                }
+            $existingRole = $this->checkRoleConflict($request->mobile_number, $requestedRole);
+            if ($existingRole) {
+                $displayExisting = str_replace('_', ' ', $existingRole);
+                $displayRequested = str_replace('_', ' ', $this->normalizeRole($requestedRole));
+                return response()->json([
+                    'success' => false,
+                    'message' => "Role conflict error: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+                ], 400);
             }
         }
 
@@ -417,5 +411,54 @@ class AuthController extends Controller
                 ];
             })
         ]);
+    }
+
+    private function checkRoleConflict(string $mobileNumber, string $requestedRole): ?string
+    {
+        $req = $this->normalizeRole($requestedRole);
+        if (!$req) return null;
+
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobileNumber);
+        $last10 = strlen($cleanMobile) >= 10 ? substr($cleanMobile, -10) : $cleanMobile;
+
+        $user = User::where('mobile_number', $mobileNumber)
+            ->orWhere('mobile_number', $cleanMobile)
+            ->orWhere('mobile_number', 'LIKE', '%' . $last10)
+            ->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        $existingRoles = [];
+        if ($user->active_profile) {
+            $existingRoles[] = $this->normalizeRole($user->active_profile);
+        }
+        if ($user->user_role) {
+            $existingRoles[] = $this->normalizeRole($user->user_role);
+        }
+
+        $rolesFromDb = $user->roles()->pluck('role_type')->toArray();
+        foreach ($rolesFromDb as $r) {
+            if ($r) $existingRoles[] = $this->normalizeRole($r);
+        }
+
+        if (\App\Models\ChefProfile::where('user_id', $user->id)->exists()) {
+            $existingRoles[] = 'chef';
+        }
+        if (\App\Models\EmployerProfile::where('user_id', $user->id)->exists()) {
+            $existingRoles[] = 'employer';
+        }
+        if (\App\Models\JobSeekerProfile::where('user_id', $user->id)->exists() || \App\Models\TalentProfile::where('user_id', $user->id)->exists()) {
+            $existingRoles[] = 'job_seeker';
+        }
+
+        $existingRoles = array_unique(array_filter($existingRoles));
+
+        if (!empty($existingRoles) && !in_array($req, $existingRoles)) {
+            return $existingRoles[0];
+        }
+
+        return null;
     }
 }

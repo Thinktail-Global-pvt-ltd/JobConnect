@@ -43,6 +43,17 @@ class WebAuthController extends Controller
 
         $mobile = $request->mobile_number;
         $targetRole = $request->input('login_role', 'job_seeker');
+
+        // Check for Role Conflict on existing user before requesting/sending OTP
+        $existingRole = $this->checkRoleConflict($mobile, $targetRole);
+        if ($existingRole) {
+            $displayExisting = str_replace('_', ' ', $existingRole);
+            $displayRequested = str_replace('_', ' ', $this->normalizeRole($targetRole));
+            return response()->json([
+                'success' => false,
+                'message' => "Role conflict error: Mobile number {$mobile} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+            ], 400);
+        }
         
         // Generate random 6-digit OTP
         $otp = (string) mt_rand(100000, 999999);
@@ -393,5 +404,73 @@ class WebAuthController extends Controller
             'success' => true,
             'message' => 'Logged out and token revoked successfully.'
         ]);
+    }
+
+    private function normalizeRole(?string $role): ?string
+    {
+        if (!$role) return null;
+        $r = strtolower(trim($role));
+        if (in_array($r, ['jobseeker', 'job_seeker', 'talent', 'candidate'])) {
+            return 'job_seeker';
+        }
+        if (in_array($r, ['employer', 'recruiter', 'hirer'])) {
+            return 'employer';
+        }
+        if (in_array($r, ['chef', 'cook'])) {
+            return 'chef';
+        }
+        if (in_array($r, ['agency', 'referrer'])) {
+            return 'agency';
+        }
+        return $r;
+    }
+
+    private function checkRoleConflict(string $mobileNumber, string $requestedRole): ?string
+    {
+        $req = $this->normalizeRole($requestedRole);
+        if (!$req) return null;
+
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobileNumber);
+        $last10 = strlen($cleanMobile) >= 10 ? substr($cleanMobile, -10) : $cleanMobile;
+
+        $user = User::where('mobile_number', $mobileNumber)
+            ->orWhere('mobile_number', $cleanMobile)
+            ->orWhere('mobile_number', 'LIKE', '%' . $last10)
+            ->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        $existingRoles = [];
+        if ($user->active_profile) {
+            $existingRoles[] = $this->normalizeRole($user->active_profile);
+        }
+        if ($user->user_role) {
+            $existingRoles[] = $this->normalizeRole($user->user_role);
+        }
+
+        $rolesFromDb = $user->roles()->pluck('role_type')->toArray();
+        foreach ($rolesFromDb as $r) {
+            if ($r) $existingRoles[] = $this->normalizeRole($r);
+        }
+
+        if (\App\Models\ChefProfile::where('user_id', $user->id)->exists()) {
+            $existingRoles[] = 'chef';
+        }
+        if (\App\Models\EmployerProfile::where('user_id', $user->id)->exists()) {
+            $existingRoles[] = 'employer';
+        }
+        if (\App\Models\JobSeekerProfile::where('user_id', $user->id)->exists() || \App\Models\TalentProfile::where('user_id', $user->id)->exists()) {
+            $existingRoles[] = 'job_seeker';
+        }
+
+        $existingRoles = array_unique(array_filter($existingRoles));
+
+        if (!empty($existingRoles) && !in_array($req, $existingRoles)) {
+            return $existingRoles[0];
+        }
+
+        return null;
     }
 }
