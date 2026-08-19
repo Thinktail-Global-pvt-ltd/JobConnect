@@ -221,6 +221,7 @@ export default function CommunityFeed() {
   });
 
   const getPostBadgeColor = (type = '') => {
+    if (type.includes('REFERRAL') || type.includes('Referral')) return 'bg-purple-100 text-purple-800 border-purple-300';
     if (type.includes('Job Listing')) return 'bg-blue-50 text-blue-700 border-blue-200';
     if (type.includes('Training')) return 'bg-[#ffedd5] text-[#c2410c] border-[#fed7aa]';
     if (type.includes('Announcement')) return 'bg-[#ccfbf1] text-[#0f766e] border-[#99f6e4]';

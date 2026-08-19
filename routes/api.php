@@ -539,6 +539,15 @@ Route::get('/admin/community-posts', function() {
     $jobPosts = \App\Models\JobPost::with('creator')->latest()->get();
     foreach ($jobPosts as $job) {
         $statusStr = $job->status === 'approved' ? 'Published' : ($job->status === 'rejected' ? 'Archived' : 'Draft');
+        
+        $creatorRole = strtolower(trim($job->submitted_by_role ?: ($job->creator ? ($job->creator->active_profile ?: $job->creator->user_role) : '')));
+        $isReferral = (bool)$job->is_referral || 
+                      $job->category === 'community' || 
+                      in_array($creatorRole, ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent', 'candidate']);
+
+        $catLabel = strtoupper($job->category ?: 'INDIA');
+        $postType = $isReferral ? "REFERRAL JOB ({$catLabel})" : "JOB LISTING ({$catLabel})";
+
         $feedItems->push([
             'id'         => 'job_' . $job->id,
             'raw_id'     => $job->id,
@@ -546,7 +555,8 @@ Route::get('/admin/community-posts', function() {
             'uid'        => 'JOB-' . sprintf('%04d', $job->id),
             'title'      => $job->title,
             'body'       => ($job->company ?? ($job->creator ? $job->creator->full_name : 'Employer')) . ' • ' . ($job->location ?? 'India'),
-            'post_type'  => 'Job Listing (' . ucfirst($job->category ?? 'dubai') . ')',
+            'post_type'  => $postType,
+            'is_referral' => $isReferral,
             'status'     => $statusStr,
             'is_pinned'  => (bool)$job->is_pinned,
             'created_at' => $job->created_at ? $job->created_at->toIso8601String() : null,
