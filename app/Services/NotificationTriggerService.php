@@ -117,11 +117,11 @@ class NotificationTriggerService
         $creator = $creatorId ? User::find($creatorId) : null;
 
         $jobTitle = $job->title ?: 'Job Listing';
-        $companyName = $job->company ?: 'JobConnect';
+        $companyName = $job->company ?: 'JobRito';
         $jobLocation = $job->location ?: 'India';
 
         $title = "Job Post Approved & Live! 🚀";
-        $body = "Great news! Your job post '{$jobTitle}' at {$companyName} is now approved and live on JobConnect feed.";
+        $body = "Great news! Your job post '{$jobTitle}' at {$companyName} is now approved and live on JobRito feed.";
 
         if ($creator) {
             self::sendToUser($creator->id, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
