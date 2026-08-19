@@ -462,7 +462,7 @@ export default function Jobs() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 40,000 - 60,000/month"
+                  placeholder="e.g. Executive Sous Chef"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -475,7 +475,7 @@ export default function Jobs() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. 40,000 - 60,000/month"
+                    placeholder="e.g. Marriott International"
                     value={formData.company}
                     onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -489,9 +489,9 @@ export default function Jobs() {
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
-          <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>
-          <span><Plane className="w-3.5 h-3.5" /> Overseas Jobs</span>
-          <span><Link2 className="w-3.5 h-3.5" /> Referrals & Community</span>
+                    <option value="india">India Jobs</option>
+                    <option value="overseas">Overseas Jobs</option>
+                    <option value="community">Referrals & Community</option>
                   </select>
                 </div>
               </div>
@@ -501,7 +501,7 @@ export default function Jobs() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Location</label>
                   <input
                     type="text"
-                    placeholder="e.g. 40,000 - 60,000/month"
+                    placeholder="e.g. Mumbai, India"
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -528,7 +528,7 @@ export default function Jobs() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Salary</label>
                   <input
                     type="text"
-                    placeholder="e.g. 40,000 - 60,000/month"
+                    placeholder="e.g. INR 40,000 - 60,000/month"
                     value={formData.salary}
                     onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -540,7 +540,7 @@ export default function Jobs() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. 40,000 - 60,000/month"
+                    placeholder="e.g. HR / +91 9876543210"
                     value={formData.contact_info}
                     onChange={(e) => setFormData(prev => ({ ...prev, contact_info: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
