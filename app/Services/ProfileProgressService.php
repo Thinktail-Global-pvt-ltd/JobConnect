@@ -184,14 +184,14 @@ class ProfileProgressService
 
         $empProfile = $user->employerProfile ?: \App\Models\EmployerProfile::where('user_id', $user->id)->first();
 
-        // 1. Business Name / Company Name (10%)
+        // 1. Business Name / Company Name (15%)
         $businessName = $empProfile ? $empProfile->business_name : null;
         if (!self::isFilled($businessName)) {
             $businessName = $user->current_employer;
         }
         if (self::isFilled($businessName)) {
-            $percentage += 10;
-            $breakdown['business_name'] = 10;
+            $percentage += 15;
+            $breakdown['business_name'] = 15;
         } else {
             $breakdown['business_name'] = 0;
         }
@@ -229,14 +229,14 @@ class ProfileProgressService
             $breakdown['contact_person_name'] = 0;
         }
 
-        // 5. Business Mobile / Contact Mobile (10%)
+        // 5. Business Mobile / Contact Mobile (15%)
         $mobile = $empProfile ? $empProfile->business_mobile : null;
         if (!self::isFilled($mobile)) {
             $mobile = $user->mobile_number;
         }
         if (self::isFilled($mobile)) {
-            $percentage += 10;
-            $breakdown['business_mobile'] = 10;
+            $percentage += 15;
+            $breakdown['business_mobile'] = 15;
         } else {
             $breakdown['business_mobile'] = 0;
         }
@@ -271,41 +271,14 @@ class ProfileProgressService
             $breakdown['operational_locations'] = 0;
         }
 
-        // 9. Nominee Name (5%)
-        $nomineeName = $empProfile ? $empProfile->nominee_name : null;
-        if (self::isFilled($nomineeName) && $nomineeName !== 'N/A') {
-            $percentage += 5;
-            $breakdown['nominee_name'] = 5;
-        } else {
-            $breakdown['nominee_name'] = 0;
-        }
-
-        // 10. Nominee Relationship (5%)
-        $nomineeRel = $empProfile ? $empProfile->nominee_relationship : null;
-        if (self::isFilled($nomineeRel) && $nomineeRel !== 'N/A') {
-            $percentage += 5;
-            $breakdown['nominee_relationship'] = 5;
-        } else {
-            $breakdown['nominee_relationship'] = 0;
-        }
-
-        // 11. Nominee Mobile (5%)
-        $nomineeMobile = $empProfile ? $empProfile->nominee_mobile : null;
-        if (self::isFilled($nomineeMobile) && $nomineeMobile !== 'N/A') {
-            $percentage += 5;
-            $breakdown['nominee_mobile'] = 5;
-        } else {
-            $breakdown['nominee_mobile'] = 0;
-        }
-
-        // 12. Preferred Language (5%)
+        // 9. Preferred Language (10%)
         $prefLang = $empProfile ? $empProfile->preferred_language : null;
         if (!self::isFilled($prefLang)) {
             $prefLang = $user->selected_language;
         }
         if (self::isFilled($prefLang)) {
-            $percentage += 5;
-            $breakdown['preferred_language'] = 5;
+            $percentage += 10;
+            $breakdown['preferred_language'] = 10;
         } else {
             $breakdown['preferred_language'] = 0;
         }
