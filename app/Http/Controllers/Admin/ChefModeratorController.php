@@ -221,6 +221,15 @@ class ChefModeratorController extends Controller
             $chef->update(['approval_status' => 'approved']);
         }
 
+        if ($chef->user_id) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'approval_status')) {
+                User::where('id', $chef->user_id)->update(['approval_status' => 'approved']);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_approved')) {
+                User::where('id', $chef->user_id)->update(['is_approved' => true]);
+            }
+        }
+
         // Shoot FCM Push Notification to Chef safely
         try {
             if ($chef && $chef->user_id) {
@@ -249,6 +258,15 @@ class ChefModeratorController extends Controller
             $chef->update(['approval_status' => 'pending']);
         }
 
+        if ($chef->user_id) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'approval_status')) {
+                User::where('id', $chef->user_id)->update(['approval_status' => 'pending']);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_approved')) {
+                User::where('id', $chef->user_id)->update(['is_approved' => false]);
+            }
+        }
+
         return response()->json(['success' => true, 'message' => 'Chef unpublished successfully.']);
     }
 
@@ -262,6 +280,15 @@ class ChefModeratorController extends Controller
             $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'rejected']);
         } else {
             $chef->update(['approval_status' => 'rejected']);
+        }
+
+        if ($chef->user_id) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'approval_status')) {
+                User::where('id', $chef->user_id)->update(['approval_status' => 'rejected']);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_approved')) {
+                User::where('id', $chef->user_id)->update(['is_approved' => false]);
+            }
         }
 
         return response()->json(['success' => true, 'message' => 'Chef rejected successfully.']);
