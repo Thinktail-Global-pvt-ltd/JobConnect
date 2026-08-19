@@ -9,7 +9,16 @@ import {
   CheckCircle2, 
   PauseCircle, 
   UtensilsCrossed, 
-  CheckCircle 
+  CheckCircle,
+  Languages,
+  Briefcase,
+  Share2,
+  ExternalLink,
+  Clock,
+  Compass,
+  Layers,
+  Globe2,
+  Link2
 } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
@@ -111,12 +120,25 @@ export default function ChefDetail() {
   const locationText = [chef.city, chef.country].filter(Boolean).join(', ') || 'Not specified';
   const preference = chef.location_preference || chef.availability_info?.location_preference || 'Both';
   
+  // 6 Newly Added / Extracted Fields
+  const language = chef.selected_language || chef.languages || chef.language || 'English';
+  const operationalExpertise = chef.operational_expertise || chef.operational_experties || chef.availability_info?.operational_expertise || 'Kitchen Operations, Menu Management';
+  const regionalExperience = chef.regional_experience || chef.regions_worked || chef.availability_info?.regional_experience || [chef.city, chef.country].filter(Boolean).join(', ') || 'Both (Global & Domestic)';
+  const employmentPreference = chef.employment_preference || chef.employment_type || chef.preferred_role || 'Full-time / Permanent';
+  const availabilityStatus = chef.availability_status || (chef.is_available !== false ? 'Available' : 'Unavailable');
+  
+  const socials = chef.socials || chef.social_links || {};
+  
   const rawCalendly = chef.calendly_link || '';
   const calendly = rawCalendly ? rawCalendly.replace(/^https?:\/\//, '') : null;
 
   const specialtiesList = chef.cuisine_specialty 
     ? String(chef.cuisine_specialty).split(',').map(s => s.trim()).filter(Boolean)
     : (chef.specialties ? String(chef.specialties).split(',').map(s => s.trim()).filter(Boolean) : []);
+
+  const opExpertiseList = operationalExpertise
+    ? String(operationalExpertise).split(',').map(s => s.trim()).filter(Boolean)
+    : ['Kitchen Operations', 'Menu Management', 'Staff Leadership'];
 
   const bioDescription = chef.bio || 'No bio provided.';
   const currentEmployer = chef.current_employer || chef.preferred_role || 'Independent Professional';
@@ -220,12 +242,13 @@ export default function ChefDetail() {
             <p className="text-xs font-bold text-slate-400 mt-1">{role}</p>
 
             {/* Badges Row */}
-            <div className="flex items-center gap-2 mt-4.5">
+            <div className="flex items-center gap-2 mt-4.5 flex-wrap justify-center">
               <span className="px-3 py-1 bg-[#eff6ff] text-[#1d4b78] rounded-xl text-xs font-bold">
                 {experience.includes('Exp') ? experience : `${experience} Exp.`}
               </span>
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold">
-                Phone Verified
+              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                {availabilityStatus}
               </span>
             </div>
 
@@ -235,7 +258,7 @@ export default function ChefDetail() {
             {/* Left aligned metadata rows */}
             <div className="w-full space-y-4 text-left text-xs font-semibold text-slate-500">
               
-              {/* Row 1 */}
+              {/* Phone Number */}
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
                   <Phone className="w-4 h-4" />
@@ -246,7 +269,7 @@ export default function ChefDetail() {
                 </div>
               </div>
 
-              {/* Row 2 */}
+              {/* Current Location */}
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
                   <MapPin className="w-4 h-4" />
@@ -257,7 +280,40 @@ export default function ChefDetail() {
                 </div>
               </div>
 
-              {/* Row 3 */}
+              {/* Language */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
+                  <Languages className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Language</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{language}</span>
+                </div>
+              </div>
+
+              {/* Regional Experience */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
+                  <Compass className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Regional Experience</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{regionalExperience}</span>
+                </div>
+              </div>
+
+              {/* Employment Preference */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Employment Preference</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{employmentPreference}</span>
+                </div>
+              </div>
+
+              {/* Job Location Preference */}
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
                   <Globe className="w-4 h-4" />
@@ -277,6 +333,14 @@ export default function ChefDetail() {
             <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-[#153e69]" /> Booking & Availability
             </h3>
+
+            <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1">
+              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest block">Current Status</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-xs text-emerald-800 font-extrabold block">{availabilityStatus}</span>
+              </div>
+            </div>
             
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Calendly URL</span>
@@ -297,7 +361,7 @@ export default function ChefDetail() {
 
         </div>
 
-        {/* Right Column (2/3 width): Cuisine, Work Exp, Activity Log */}
+        {/* Right Column (2/3 width): Cuisine, Operational Expertise, Work Exp, Socials, Activity Log */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* Card 1: Cuisine Specialities */}
@@ -319,7 +383,28 @@ export default function ChefDetail() {
             </div>
           </div>
 
-          {/* Card 2: Core Skills */}
+          {/* Card 2: Operational Expertise */}
+          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#153e69]" /> Operational Expertise
+            </h3>
+            
+            <div className="flex flex-wrap gap-2.5">
+              {opExpertiseList.length > 0 ? opExpertiseList.map((item, idx) => (
+                <div 
+                  key={idx} 
+                  className="px-3.5 py-1.5 bg-blue-50/70 border border-blue-200 text-[#1d4b78] rounded-xl text-xs font-bold flex items-center gap-1.5"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#153e69]"></span>
+                  <span>{item}</span>
+                </div>
+              )) : (
+                <span className="text-xs text-slate-400 font-semibold">Kitchen Operations & Management</span>
+              )}
+            </div>
+          </div>
+
+          {/* Card 3: Core Skills & Experience */}
           <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-5">
             <h3 className="font-outfit font-extrabold text-sm text-slate-800">Core Skills</h3>
             
@@ -363,7 +448,67 @@ export default function ChefDetail() {
             </div>
           </div>
 
-          {/* Card 3: Profile Activity Log */}
+          {/* Card 4: Social Profiles & Links */}
+          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-[#153e69]" /> Social Links & Profiles
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {socials.linkedin && (
+                <a href={socials.linkedin.startsWith('http') ? socials.linkedin : `https://${socials.linkedin}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50/50 border border-blue-100 hover:bg-blue-100/50 transition-colors">
+                  <Globe className="w-4 h-4 text-blue-600" />
+                  <div className="truncate text-xs">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">LinkedIn</span>
+                    <span className="font-extrabold text-blue-700 truncate block">{socials.linkedin}</span>
+                  </div>
+                </a>
+              )}
+              {socials.instagram && (
+                <a href={socials.instagram.startsWith('http') ? socials.instagram : `https://${socials.instagram}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-pink-50/50 border border-pink-100 hover:bg-pink-100/50 transition-colors">
+                  <Share2 className="w-4 h-4 text-pink-600" />
+                  <div className="truncate text-xs">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Instagram</span>
+                    <span className="font-extrabold text-pink-700 truncate block">{socials.instagram}</span>
+                  </div>
+                </a>
+              )}
+              {socials.facebook && (
+                <a href={socials.facebook.startsWith('http') ? socials.facebook : `https://${socials.facebook}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50/50 border border-blue-100 hover:bg-blue-100/50 transition-colors">
+                  <Link2 className="w-4 h-4 text-blue-800" />
+                  <div className="truncate text-xs">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Facebook</span>
+                    <span className="font-extrabold text-blue-900 truncate block">{socials.facebook}</span>
+                  </div>
+                </a>
+              )}
+              {socials.youtube && (
+                <a href={socials.youtube.startsWith('http') ? socials.youtube : `https://${socials.youtube}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-red-50/50 border border-red-100 hover:bg-red-100/50 transition-colors">
+                  <ExternalLink className="w-4 h-4 text-red-600" />
+                  <div className="truncate text-xs">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">YouTube</span>
+                    <span className="font-extrabold text-red-700 truncate block">{socials.youtube}</span>
+                  </div>
+                </a>
+              )}
+              {socials.website && (
+                <a href={socials.website.startsWith('http') ? socials.website : `https://${socials.website}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
+                  <Globe2 className="w-4 h-4 text-slate-600" />
+                  <div className="truncate text-xs">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Website</span>
+                    <span className="font-extrabold text-slate-800 truncate block">{socials.website}</span>
+                  </div>
+                </a>
+              )}
+              {(!socials.linkedin && !socials.instagram && !socials.facebook && !socials.youtube && !socials.website) && (
+                <div className="col-span-full p-4 bg-slate-50 rounded-2xl border border-slate-150 text-center text-xs font-semibold text-slate-400">
+                  No social profiles connected
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Card 5: Profile Activity Log */}
           <div className="bg-white rounded-3xl border border-[#e2e8f0] shadow-sm overflow-hidden">
             <div className="p-5 border-b border-[#e2e8f0]">
               <h3 className="font-outfit font-extrabold text-sm text-slate-800">Profile Activity Log</h3>
@@ -408,3 +553,4 @@ export default function ChefDetail() {
     </div>
   );
 }
+
