@@ -231,11 +231,25 @@ class ChefOnboardingController extends Controller
                 );
             });
 
-            $completenessResult = \App\Services\ProfileProgressService::calculateChef($user);
+            $user->refresh();
+            $photoPath = $user->profile_photo_path;
+            $photoUrl = null;
+            if (!empty($photoPath)) {
+                if (str_starts_with($photoPath, 'http://') || str_starts_with($photoPath, 'https://')) {
+                    $photoUrl = $photoPath;
+                } else {
+                    $photoUrl = url('/' . ltrim($photoPath, '/'));
+                }
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Chef onboarding completed successfully! Profile is pending administrator review.',
+                'profile_photo_path' => $photoPath,
+                'profile_photo' => $photoUrl ?: $photoPath,
+                'photo_url' => $photoUrl ?: $photoPath,
+                'avatar' => $photoUrl ?: $photoPath,
+                'avatar_url' => $photoUrl ?: $photoPath,
                 'completeness' => $completenessResult['completeness'],
                 'profile_completeness' => $completenessResult['completeness'],
                 'breakdown' => $completenessResult['breakdown'],
