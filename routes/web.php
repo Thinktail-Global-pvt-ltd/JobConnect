@@ -251,6 +251,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/jobs', [JobModeratorController::class, 'index']);
     Route::post('/jobs', [JobModeratorController::class, 'store']);
     Route::get('/jobs/{job}', [JobModeratorController::class, 'show']);
+    Route::match(['get', 'post'], '/jobs/{job}/update', [JobModeratorController::class, 'update']);
     Route::post('/jobs/{job}/approve', [JobModeratorController::class, 'approve']);
     Route::post('/jobs/{job}/reject', [JobModeratorController::class, 'reject']);
     Route::post('/jobs/{job}/toggle-pin', [JobModeratorController::class, 'togglePin']);

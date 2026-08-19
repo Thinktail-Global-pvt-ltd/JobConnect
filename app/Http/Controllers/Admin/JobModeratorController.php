@@ -167,6 +167,49 @@ class JobModeratorController extends Controller
     }
 
     /**
+     * Update an existing job post before approval/publishing.
+     */
+    public function update(Request $request, $job)
+    {
+        $jobModel = $job instanceof JobPost ? $job : JobPost::find($job);
+        if (!$jobModel) {
+            return response()->json(['success' => false, 'message' => 'Job posting not found.'], 404);
+        }
+
+        $data = $request->only([
+            'title',
+            'company',
+            'location',
+            'salary',
+            'salary_range',
+            'experience_range',
+            'job_type',
+            'work_type',
+            'description',
+            'vacancies',
+            'openings',
+            'category',
+            'status'
+        ]);
+
+        if ($request->filled('salary')) {
+            $data['salary_range'] = $request->salary;
+        }
+        if ($request->filled('work_type')) {
+            $data['job_type'] = $request->work_type;
+        }
+
+        $jobModel->update(array_filter($data, fn($v) => !is_null($v)));
+        $jobModel->load('creator');
+
+        return response()->json([
+            'success' => true,
+            'message' => "Job '{$jobModel->title}' updated successfully.",
+            'job'     => $jobModel
+        ]);
+    }
+
+    /**
      * Store a new job post directly into job_posts table.
      */
     public function store(Request $request)
