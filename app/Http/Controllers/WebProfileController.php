@@ -318,9 +318,9 @@ class WebProfileController extends Controller
             'company_logo' => 'nullable|image|max:5120', // PNG, JPG up to 5MB
             'operational_locations' => 'required|array',
             'operational_locations.*' => 'required|string|max:500',
-            'nominee_name' => 'required|string|max:255',
-            'nominee_relationship' => 'required|string|max:255',
-            'nominee_mobile' => 'required|string|max:20',
+            'nominee_name' => 'nullable|string|max:255',
+            'nominee_relationship' => 'nullable|string|max:255',
+            'nominee_mobile' => 'nullable|string|max:20',
         ]);
 
         if ($validator->fails()) {
