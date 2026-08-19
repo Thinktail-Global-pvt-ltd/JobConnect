@@ -824,12 +824,8 @@ class JobPostController extends Controller
 
             $unifiedSaved = $savedRecords->map(function ($rec) use ($jobPosts, $trainingOpps, $appliedJobIds, $appliedTrainingIds) {
                 if ($rec->job_post_id && isset($jobPosts[$rec->job_post_id])) {
-                    // If user HAS ALREADY APPLIED to this job, exclude it from saved jobs response!
-                    if (in_array((int)$rec->job_post_id, $appliedJobIds)) {
-                        return null;
-                    }
-
                     $job = $jobPosts[$rec->job_post_id];
+                    $hasApplied = in_array((int)$job->id, $appliedJobIds);
                     $creator = null;
                     try { $creator = $job->creator; } catch (\Throwable $th) {}
 
@@ -878,6 +874,9 @@ class JobPostController extends Controller
                         'posted_by_role'        => $creatorRole,
                         'submitted_by_role'     => $job->submitted_by_role ?: $creatorRole,
                         '_type'                 => $isReferral ? 'referral_job' : 'job',
+                        'applied'               => $hasApplied,
+                        'is_applied'            => $hasApplied,
+                        'has_applied'           => $hasApplied,
                         'is_training'           => false,
                         'is_saved'              => true,
                         'saved'                 => true,
