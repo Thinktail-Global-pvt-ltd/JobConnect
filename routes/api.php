@@ -118,7 +118,24 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::match(['get', 'post'], '/feed', [FeedController::class, 'index']);
 Route::match(['get', 'post'], '/jobs/feed', [FeedController::class, 'index']);
 Route::get('/jobs', function(\Illuminate\Http\Request $request) {
+    $user = $request->user();
+    if (!$user && $request->bearerToken()) {
+        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($request->bearerToken());
+        if ($tokenObj) $user = $tokenObj->tokenable;
+    }
+
     $query = \App\Models\JobPost::with('creator')->approved();
+
+    if ($user) {
+        $userRole = strtolower(trim($user->active_profile ?: ($user->user_role ?: '')));
+        $isChefOrSeeker = empty($userRole) || 
+                          in_array($userRole, ['chef', 'cook', 'job_seeker', 'jobseeker', 'candidate', 'talent']) ||
+                          \App\Models\ChefProfile::where('user_id', $user->id)->exists();
+        if ($isChefOrSeeker) {
+            $query->where('created_by', '!=', $user->id);
+        }
+    }
+
     if ($request->filled('category')) {
         $query->where('category', $request->category);
     }
