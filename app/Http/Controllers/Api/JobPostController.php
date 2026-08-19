@@ -311,10 +311,86 @@ class JobPostController extends Controller
             ->where('status', 'pending')
             ->latest()->get();
 
+        // Fetch details of users who saved any of this user's created jobs
+        $createdJobIds = $createdJobs->pluck('id')->merge($pendingCreatedJobs->pluck('id'))->filter()->toArray();
+        $savedByMap = [];
+        if (!empty($createdJobIds) && \Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
+            try {
+                $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                    ->join('users', 'saved_jobs.user_id', '=', 'users.id')
+                    ->whereIn('saved_jobs.job_post_id', $createdJobIds)
+                    ->select(
+                        'saved_jobs.job_post_id',
+                        'saved_jobs.id as saved_id',
+                        'saved_jobs.created_at as saved_at',
+                        'users.id as user_id',
+                        'users.full_name',
+                        'users.name',
+                        'users.mobile_number',
+                        'users.profile_photo_path',
+                        'users.active_profile',
+                        'users.user_role',
+                        'users.city'
+                    )
+                    ->get();
+
+                foreach ($savedRecords as $sRec) {
+                    $jId = $sRec->job_post_id;
+                    if (!isset($savedByMap[$jId])) {
+                        $savedByMap[$jId] = [];
+                    }
+
+                    $photoUrl = null;
+                    if (!empty($sRec->profile_photo_path)) {
+                        if (str_starts_with($sRec->profile_photo_path, 'http://') || str_starts_with($sRec->profile_photo_path, 'https://')) {
+                            $photoUrl = $sRec->profile_photo_path;
+                        } else {
+                            $photoUrl = url('/' . ltrim($sRec->profile_photo_path, '/'));
+                        }
+                    }
+
+                    $savedByMap[$jId][] = [
+                        'saved_id'           => $sRec->saved_id,
+                        'user_id'            => $sRec->user_id,
+                        'id'                 => $sRec->user_id,
+                        'full_name'          => $sRec->full_name ?: ($sRec->name ?: ('User #' . $sRec->user_id)),
+                        'name'               => $sRec->full_name ?: ($sRec->name ?: ('User #' . $sRec->user_id)),
+                        'mobile_number'      => $sRec->mobile_number,
+                        'role'               => $sRec->active_profile ?: ($sRec->user_role ?: 'job_seeker'),
+                        'active_role'        => $sRec->active_profile ?: ($sRec->user_role ?: 'job_seeker'),
+                        'profile_photo_path' => $photoUrl,
+                        'profile_photo_url'  => $photoUrl,
+                        'city'               => $sRec->city,
+                        'saved_at'           => $sRec->saved_at ? \Carbon\Carbon::parse($sRec->saved_at)->toIso8601String() : null,
+                        'saved_at_formatted' => $sRec->saved_at ? \Carbon\Carbon::parse($sRec->saved_at)->format('j M Y, h:i A') : null,
+                    ];
+                }
+            } catch (\Throwable $th) {}
+        }
+
+        $mapCreatedJobItem = function($job) use ($savedByMap) {
+            $savedUsers = isset($savedByMap[$job->id]) ? $savedByMap[$job->id] : [];
+            $savedCount = count($savedUsers);
+
+            $jobArr = $job->toArray();
+            $jobArr['total_saved_count']    = $savedCount;
+            $jobArr['saves_count']          = $savedCount;
+            $jobArr['saved_count']          = $savedCount;
+            $jobArr['saved_by_users_count'] = $savedCount;
+            $jobArr['saved_by_users']       = $savedUsers;
+            $jobArr['saved_users']          = $savedUsers;
+            $jobArr['saved_by']             = $savedUsers;
+
+            return $jobArr;
+        };
+
+        $mappedCreatedJobs = $createdJobs->map($mapCreatedJobItem);
+        $mappedPendingCreatedJobs = $pendingCreatedJobs->map($mapCreatedJobItem);
+
         $isJobSeekerOrChef = in_array($activeRole, ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent']);
         $combinedJobs = $isJobSeekerOrChef
-            ? $allAppliedJobs->concat($createdJobs)
-            : $createdJobs->concat($allAppliedJobs);
+            ? $allAppliedJobs->concat($mappedCreatedJobs)
+            : $mappedCreatedJobs->concat($allAppliedJobs);
 
         return response()->json([
             'success'                   => true,
@@ -323,8 +399,8 @@ class JobPostController extends Controller
             'total_created_jobs'        => $createdJobs->count(),
             'total_pending_jobs'        => $pendingCreatedJobs->count(),
             'applied_jobs'              => $allAppliedJobs->values(),
-            'created_jobs'              => $createdJobs,
-            'pending_created_jobs'      => $pendingCreatedJobs,
+            'created_jobs'              => $mappedCreatedJobs->values(),
+            'pending_created_jobs'      => $mappedPendingCreatedJobs->values(),
             'jobs'                      => $combinedJobs->values(),
             'data'                      => $combinedJobs->values(),
         ]);

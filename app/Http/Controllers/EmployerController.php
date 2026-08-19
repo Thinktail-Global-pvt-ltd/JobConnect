@@ -60,8 +60,65 @@ class EmployerController extends Controller
                 $totalContacted += $job->applications->where('status', 'contacted')->count();
             }
 
+            // Fetch details of users who saved these jobs
+            $allJobIds = $jobs->pluck('id')->filter()->toArray();
+            $savedByMap = [];
+            if (!empty($allJobIds) && \Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
+                try {
+                    $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                        ->join('users', 'saved_jobs.user_id', '=', 'users.id')
+                        ->whereIn('saved_jobs.job_post_id', $allJobIds)
+                        ->select(
+                            'saved_jobs.job_post_id',
+                            'saved_jobs.id as saved_id',
+                            'saved_jobs.created_at as saved_at',
+                            'users.id as user_id',
+                            'users.full_name',
+                            'users.name',
+                            'users.mobile_number',
+                            'users.profile_photo_path',
+                            'users.active_profile',
+                            'users.user_role',
+                            'users.city'
+                        )
+                        ->get();
+
+                    foreach ($savedRecords as $sRec) {
+                        $jId = $sRec->job_post_id;
+                        if (!isset($savedByMap[$jId])) {
+                            $savedByMap[$jId] = [];
+                        }
+
+                        $photoUrl = null;
+                        if (!empty($sRec->profile_photo_path)) {
+                            if (str_starts_with($sRec->profile_photo_path, 'http://') || str_starts_with($sRec->profile_photo_path, 'https://')) {
+                                $photoUrl = $sRec->profile_photo_path;
+                            } else {
+                                $photoUrl = url('/' . ltrim($sRec->profile_photo_path, '/'));
+                            }
+                        }
+
+                        $savedByMap[$jId][] = [
+                            'saved_id'           => $sRec->saved_id,
+                            'user_id'            => $sRec->user_id,
+                            'id'                 => $sRec->user_id,
+                            'full_name'          => $sRec->full_name ?: ($sRec->name ?: ('User #' . $sRec->user_id)),
+                            'name'               => $sRec->full_name ?: ($sRec->name ?: ('User #' . $sRec->user_id)),
+                            'mobile_number'      => $sRec->mobile_number,
+                            'role'               => $sRec->active_profile ?: ($sRec->user_role ?: 'job_seeker'),
+                            'active_role'        => $sRec->active_profile ?: ($sRec->user_role ?: 'job_seeker'),
+                            'profile_photo_path' => $photoUrl,
+                            'profile_photo_url'  => $photoUrl,
+                            'city'               => $sRec->city,
+                            'saved_at'           => $sRec->saved_at ? \Carbon\Carbon::parse($sRec->saved_at)->toIso8601String() : null,
+                            'saved_at_formatted' => $sRec->saved_at ? \Carbon\Carbon::parse($sRec->saved_at)->format('j M Y, h:i A') : null,
+                        ];
+                    }
+                } catch (\Throwable $th) {}
+            }
+
             // Map database status values to match frontend expected tabs (active, pending, closed)
-            $mappedJobs = $jobs->map(function ($job) {
+            $mappedJobs = $jobs->map(function ($job) use ($savedByMap) {
                 $status = 'pending';
                 if ($job->status === 'approved') {
                     $status = 'active';
@@ -228,15 +285,25 @@ class EmployerController extends Controller
                     ];
                 });
 
+                $savedUsers = isset($savedByMap[$job->id]) ? $savedByMap[$job->id] : [];
+                $savedCount = count($savedUsers);
+
                 return [
-                    'id' => $job->id,
-                    'title' => $job->title,
-                    'status' => $status,
-                    'location' => $job->location ?? 'N/A',
-                    'date_posted' => $job->created_at ? $job->created_at->format('j F Y') : 'N/A',
-                    'openings' => $job->open_positions ?? 1,
-                    'type' => $job->job_type ?? 'Full-time',
-                    'applicants' => $applicants,
+                    'id'                   => $job->id,
+                    'title'                => $job->title,
+                    'status'               => $status,
+                    'location'             => $job->location ?? 'N/A',
+                    'date_posted'          => $job->created_at ? $job->created_at->format('j F Y') : 'N/A',
+                    'openings'             => $job->open_positions ?? 1,
+                    'type'                 => $job->job_type ?? 'Full-time',
+                    'total_saved_count'    => $savedCount,
+                    'saves_count'          => $savedCount,
+                    'saved_count'          => $savedCount,
+                    'saved_by_users_count' => $savedCount,
+                    'saved_by_users'       => $savedUsers,
+                    'saved_users'          => $savedUsers,
+                    'saved_by'             => $savedUsers,
+                    'applicants'           => $applicants,
                 ];
             });
 
