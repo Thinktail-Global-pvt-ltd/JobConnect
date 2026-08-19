@@ -462,7 +462,6 @@ export default function Jobs() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Executive Sous Chef"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -475,7 +474,6 @@ export default function Jobs() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Marriott International"
                     value={formData.company}
                     onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -501,7 +499,6 @@ export default function Jobs() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Location</label>
                   <input
                     type="text"
-                    placeholder="e.g. Mumbai, India"
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -528,7 +525,6 @@ export default function Jobs() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Salary</label>
                   <input
                     type="text"
-                    placeholder="e.g. INR 40,000 - 60,000/month"
                     value={formData.salary}
                     onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -540,7 +536,6 @@ export default function Jobs() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. HR / +91 9876543210"
                     value={formData.contact_info}
                     onChange={(e) => setFormData(prev => ({ ...prev, contact_info: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -553,7 +548,6 @@ export default function Jobs() {
                 <textarea
                   rows="4"
                   required
-                  placeholder="Enter role responsibilities, requirements, and benefits..."
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] resize-none"
