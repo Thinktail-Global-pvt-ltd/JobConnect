@@ -566,25 +566,29 @@ export const mockApi = {
   },
 
   createJob: async (jobData) => {
-    // 1. Try realApi /api/admin/jobs
+    // 1. Try /api/admin/jobs/save
+    try {
+      const res = await realApi.post('/api/admin/jobs/save', jobData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+
+    // 2. Try /backend/api/admin/jobs/save
+    try {
+      const res = await axios.post('/backend/api/admin/jobs/save', jobData, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      });
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+
+    // 3. Try /api/admin/jobs/store
+    try {
+      const res = await realApi.post('/api/admin/jobs/store', jobData);
+      if (res.data && res.data.success) return res.data;
+    } catch (e) {}
+
+    // 4. Try /api/admin/jobs
     try {
       const res = await realApi.post('/api/admin/jobs', jobData);
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-
-    // 2. Try /admin/jobs
-    try {
-      const res = await axios.post('/admin/jobs', jobData, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-      });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-
-    // 3. Try /backend/api/admin/jobs
-    try {
-      const res = await axios.post('/backend/api/admin/jobs', jobData, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-      });
       if (res.data && res.data.success) return res.data;
     } catch (e) {}
 

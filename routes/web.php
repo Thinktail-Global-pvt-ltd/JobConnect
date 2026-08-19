@@ -49,16 +49,34 @@ Route::match(['get', 'post'], '/backend/api/admin/employers', function(\Illumina
     return (new \App\Http\Controllers\Admin\EmployerModeratorController)->index($request);
 });
 Route::match(['get', 'post'], '/api/admin/jobs', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('post')) {
+        return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
+    }
     return (new \App\Http\Controllers\Admin\JobModeratorController)->index($request);
 });
 Route::match(['get', 'post'], '/backend/api/admin/jobs', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('post')) {
+        return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
+    }
     return (new \App\Http\Controllers\Admin\JobModeratorController)->index($request);
 });
-Route::match(['get', 'post'], '/api/admin/chefs/create', function(\Illuminate\Http\Request $request) {
-    return (new \App\Http\Controllers\Admin\ChefModeratorController)->store($request);
+Route::match(['get', 'post'], '/api/admin/jobs/save', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
 });
-Route::match(['get', 'post'], '/backend/api/admin/chefs/create', function(\Illuminate\Http\Request $request) {
-    return (new \App\Http\Controllers\Admin\ChefModeratorController)->store($request);
+Route::match(['get', 'post'], '/backend/api/admin/jobs/save', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
+});
+Route::match(['get', 'post'], '/api/admin/jobs/store', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/jobs/store', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
+});
+Route::match(['get', 'post'], '/api/admin/jobs/create', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/jobs/create', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
 });
 Route::match(['get', 'post'], '/api/employer/chefs', function() {
     return (new \App\Http\Controllers\ChefProfileController)->employerFeed();
