@@ -92,6 +92,8 @@ class FeedController extends Controller
 
         $appliedJobMap = [];
         $appliedTrainingMap = [];
+        $savedJobMap = [];
+        $savedTrainingMap = [];
 
         if ($user) {
             $applications = JobApplication::where('applicant_id', $user->id)->get();
@@ -105,17 +107,37 @@ class FeedController extends Controller
                     $appliedTrainingMap[$tApp->training_id] = $tApp->status ?: 'applied';
                 }
             }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
+                $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                    ->where('user_id', $user->id)
+                    ->get();
+                foreach ($savedRecords as $sRec) {
+                    if ($sRec->job_post_id) {
+                        $savedJobMap[$sRec->job_post_id] = true;
+                    }
+                    if (!empty($sRec->training_id)) {
+                        $savedTrainingMap[$sRec->training_id] = true;
+                    }
+                }
+            }
         }
 
-        $jobs->transform(function ($job) use ($appliedJobMap) {
+        $jobs->transform(function ($job) use ($appliedJobMap, $savedJobMap) {
             $hasApplied = isset($appliedJobMap[$job->id]);
             $appStatus  = $hasApplied ? $appliedJobMap[$job->id] : null;
+            $hasSaved   = isset($savedJobMap[$job->id]);
 
             $job->applied            = $hasApplied;
             $job->is_applied         = $hasApplied;
             $job->has_applied        = $hasApplied;
             $job->user_applied       = $hasApplied;
             $job->application_status = $appStatus;
+
+            $job->saved              = $hasSaved;
+            $job->is_saved           = $hasSaved;
+            $job->has_saved          = $hasSaved;
+            $job->user_saved         = $hasSaved;
             $job->_type              = $job->is_referral ? 'referral_job' : 'job';
 
             // Normalize and parse currency
@@ -154,6 +176,10 @@ class FeedController extends Controller
                 $p->applied = false;
                 $p->is_applied = false;
                 $p->has_applied = false;
+                $p->saved = false;
+                $p->is_saved = false;
+                $p->has_saved = false;
+                $p->user_saved = false;
                 $p->posted_by_role = 'administrator';
                 if ($p->creator) {
                     $p->creator->active_profile = 'administrator';
@@ -165,9 +191,10 @@ class FeedController extends Controller
         $trainingOpportunities = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($t) use ($appliedTrainingMap) {
+            ->map(function ($t) use ($appliedTrainingMap, $savedTrainingMap) {
                 $hasApplied = isset($appliedTrainingMap[$t->id]);
                 $appStatus  = $hasApplied ? $appliedTrainingMap[$t->id] : null;
+                $hasSaved   = isset($savedTrainingMap[$t->id]);
 
                 return [
                     'id'                  => $t->id,
@@ -192,6 +219,10 @@ class FeedController extends Controller
                     'has_applied'         => $hasApplied,
                     'user_applied'        => $hasApplied,
                     'application_status'  => $appStatus ?: ($hasApplied ? 'applied' : null),
+                    'saved'               => $hasSaved,
+                    'is_saved'            => $hasSaved,
+                    'has_saved'           => $hasSaved,
+                    'user_saved'          => $hasSaved,
                     'created_at'          => $t->created_at ? $t->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
             });
