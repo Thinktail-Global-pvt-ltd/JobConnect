@@ -32,29 +32,7 @@ class FeedController extends Controller
             @opcache_reset();
         }
         // ----------------------------------------------------------------
-        // 1.  Fetch paginated job posts (Employer jobs & Referral jobs)
-        // ----------------------------------------------------------------
-        $query = JobPost::with('creator')->approved();
-
-        // Optional category or filter query parameter
-        $filter = $request->input('filter') ?? $request->input('category');
-        if (!empty($filter) && $filter !== 'all') {
-            if (in_array($filter, ['community', 'referral', 'referrals'])) {
-                $query->where(function($q) {
-                    $q->where('category', 'community')
-                      ->orWhere('is_referral', true);
-                });
-            } else if (in_array($filter, ['dubai', 'overseas'])) {
-                $query->where('category', $filter);
-            }
-        }
-
-        $perPage       = 15;
-        $jobsPaginated = $query->sortedFeed()->paginate($perPage);
-        $jobs          = $jobsPaginated->getCollection();
-
-        // ----------------------------------------------------------------
-        // 2.  Mark which jobs and training opportunities the current user has applied to
+        // 1. Resolve current user first
         // ----------------------------------------------------------------
         $user = $request->user();
         if (!$user) {
@@ -77,6 +55,40 @@ class FeedController extends Controller
             $uId = $request->input('user_id') ?: ($request->input('applicant_id') ?: $request->input('id'));
             $user = \App\Models\User::find($uId);
         }
+
+        // ----------------------------------------------------------------
+        // 2. Fetch paginated job posts (Employer jobs & Referral jobs)
+        // ----------------------------------------------------------------
+        $query = JobPost::with('creator')->approved();
+
+        if ($user) {
+            $userRole = strtolower(trim($user->active_profile ?: ($user->user_role ?: '')));
+            // Exclude jobs created by the current user if they are a chef or job seeker
+            $isChefOrSeeker = empty($userRole) || 
+                              in_array($userRole, ['chef', 'cook', 'job_seeker', 'jobseeker', 'candidate', 'talent']) ||
+                              \App\Models\ChefProfile::where('user_id', $user->id)->exists();
+
+            if ($isChefOrSeeker) {
+                $query->where('created_by', '!=', $user->id);
+            }
+        }
+
+        // Optional category or filter query parameter
+        $filter = $request->input('filter') ?? $request->input('category');
+        if (!empty($filter) && $filter !== 'all') {
+            if (in_array($filter, ['community', 'referral', 'referrals'])) {
+                $query->where(function($q) {
+                    $q->where('category', 'community')
+                      ->orWhere('is_referral', true);
+                });
+            } else if (in_array($filter, ['dubai', 'overseas'])) {
+                $query->where('category', $filter);
+            }
+        }
+
+        $perPage       = 15;
+        $jobsPaginated = $query->sortedFeed()->paginate($perPage);
+        $jobs          = $jobsPaginated->getCollection();
 
         $appliedJobMap = [];
         $appliedTrainingMap = [];
