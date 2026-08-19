@@ -1287,24 +1287,30 @@ Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
     try {
         $pendingJobs = \App\Models\JobPost::where('status', 'pending')->count();
 
-        $pendingTalent = \App\Models\User::whereHas('roles', function($q) {
-            $q->where('role_type', 'job_seeker');
+        $pendingTalent = \App\Models\User::where(function($q) {
+            $q->whereIn('active_profile', ['job_seeker', 'talent', 'jobseeker'])
+              ->orWhereIn('user_role', ['job_seeker', 'talent', 'jobseeker'])
+              ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']));
         })->where(function($q) {
             $q->where('approval_status', 'pending')
-              ->orWhere('is_approved', false)
               ->orWhere('status', 'pending');
         })->count();
 
-        $pendingEmployers = \App\Models\User::whereHas('roles', function($q) {
-            $q->where('role_type', 'employer');
+        $pendingEmployers = \App\Models\User::where(function($q) {
+            $q->whereIn('active_profile', ['employer', 'agency', 'hirer'])
+              ->orWhereIn('user_role', ['employer', 'agency', 'hirer'])
+              ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['employer', 'agency', 'hirer']));
         })->where(function($q) {
             $q->where('approval_status', 'pending')
-              ->orWhere('is_approved', false)
               ->orWhere('status', 'pending');
         })->count();
 
         $pendingChefs = \Illuminate\Support\Facades\DB::table('chef_profiles')
-            ->where('approval_status', 'pending')
+            ->where(function($q) {
+                $q->where('approval_status', 'pending')
+                  ->orWhereNull('approval_status')
+                  ->orWhere('approval_status', 'unapproved');
+            })
             ->count();
 
         $pendingCommunity = \App\Models\AdminPost::whereIn('status', ['draft', 'pending', 'reviewing'])->count();
@@ -1324,33 +1330,35 @@ Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
             }
         } catch (\Throwable $e) {}
 
+        $totalPendingUsers = $pendingTalent + $pendingEmployers + $pendingChefs;
+
         return response()->json([
             'success' => true,
             'counts' => [
-                'users' => $pendingTalent + $pendingEmployers + $pendingChefs,
-                'talent' => $pendingTalent,
-                'employers' => $pendingEmployers,
-                'chefs' => $pendingChefs,
-                'jobs' => $pendingJobs,
-                'community' => $pendingCommunity,
-                'training' => $pendingTraining,
+                'users'        => $totalPendingUsers,
+                'talent'       => $pendingTalent,
+                'employers'    => $pendingEmployers,
+                'chefs'        => $pendingChefs,
+                'jobs'         => $pendingJobs,
+                'community'    => $pendingCommunity,
+                'training'     => $pendingTraining,
                 'applications' => $pendingApplications,
-                'enquiries' => $pendingEnquiries,
+                'enquiries'    => $pendingEnquiries,
             ]
         ]);
     } catch (\Throwable $e) {
         return response()->json([
             'success' => true,
             'counts' => [
-                'users' => 0,
-                'talent' => 0,
-                'employers' => 0,
-                'chefs' => 0,
-                'jobs' => 1,
-                'community' => 0,
-                'training' => 0,
+                'users'        => 0,
+                'talent'       => 0,
+                'employers'    => 0,
+                'chefs'        => 0,
+                'jobs'         => 0,
+                'community'    => 0,
+                'training'     => 0,
                 'applications' => 0,
-                'enquiries' => 0,
+                'enquiries'    => 0,
             ]
         ]);
     }

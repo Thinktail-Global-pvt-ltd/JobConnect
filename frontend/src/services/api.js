@@ -1112,31 +1112,32 @@ export const mockApi = {
   },
 
   getSidebarStats: async () => {
-    try {
-      const res = await realApi.get('/api/admin/sidebar-stats');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get('/backend/api/admin/sidebar-stats');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get('http://localhost:8001/api/admin/sidebar-stats');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const endpoints = [
+      'http://178.16.138.159/backend/api/admin/sidebar-stats',
+      '/admin/sidebar-stats',
+      '/api/admin/sidebar-stats',
+      '/backend/api/admin/sidebar-stats',
+      'https://jobrito.com/api/admin/sidebar-stats'
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success && res.data.counts) return res.data;
+      } catch (e) {}
+    }
     return {
       success: true,
       counts: {
-        users: 24,
-        talent: 14,
-        employers: 6,
-        chefs: 4,
-        jobs: 21,
-        referrals: 5,
-        community: 12,
-        training: 6,
-        applications: 21,
-        enquiries: 3,
+        users: 0,
+        talent: 0,
+        employers: 0,
+        chefs: 0,
+        jobs: 0,
+        referrals: 0,
+        community: 0,
+        training: 0,
+        applications: 0,
+        enquiries: 0,
       }
     };
   },

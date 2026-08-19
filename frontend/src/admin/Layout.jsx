@@ -72,51 +72,10 @@ export default function Layout({ children }) {
       try {
         const res = await mockApi.getSidebarStats();
         if (res && res.success && res.counts) {
-          const allZero = Object.values(res.counts).every(v => v === 0);
-          if (allZero) {
-            setCounts({
-              users: 24,
-              talent: 14,
-              employers: 6,
-              chefs: 4,
-              jobs: 21,
-              referrals: 5,
-              community: 12,
-              training: 6,
-              applications: 21,
-              enquiries: 3,
-            });
-          } else {
-            setCounts(res.counts);
-          }
-        } else {
-          setCounts({
-            users: 24,
-            talent: 14,
-            employers: 6,
-            chefs: 4,
-            jobs: 21,
-            referrals: 5,
-            community: 12,
-            training: 6,
-            applications: 21,
-            enquiries: 3,
-          });
+          setCounts(res.counts);
         }
       } catch (e) {
         console.error("Failed to fetch sidebar counts:", e);
-        setCounts({
-          users: 24,
-          talent: 14,
-          employers: 6,
-          chefs: 4,
-          jobs: 21,
-          referrals: 5,
-          community: 12,
-          training: 6,
-          applications: 21,
-          enquiries: 3,
-        });
       }
     };
     fetchCounts();
