@@ -121,6 +121,10 @@ export default function ChefDetail() {
   const bioDescription = chef.bio || 'No bio provided.';
   const currentEmployer = chef.current_employer || chef.preferred_role || 'Independent Professional';
 
+  const skillsList = Array.isArray(chef.skills) 
+    ? chef.skills 
+    : (chef.skills ? String(chef.skills).split(',').map(s => s.trim()).filter(Boolean) : []);
+
   const resolveImageUrl = (path) => {
     if (!path) return null;
     let clean = String(path).replace('/backend/storage/', '/storage/');
@@ -315,10 +319,23 @@ export default function ChefDetail() {
             </div>
           </div>
 
-          {/* Card 2: Work Experience */}
+          {/* Card 2: Core Skills */}
           <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-5">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Work Experience</h3>
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Core Skills</h3>
             
+            {skillsList.length > 0 && (
+              <div className="flex flex-wrap gap-2 pb-2 border-b border-slate-100">
+                {skillsList.map((skill, idx) => (
+                  <span 
+                    key={idx} 
+                    className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-start gap-4">
               {/* Check Circle Icon wrapper */}
               <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-[#153e69] mt-0.5">
