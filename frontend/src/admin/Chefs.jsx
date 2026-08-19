@@ -99,11 +99,9 @@ export default function Chefs() {
   const handleApprove = async (id) => {
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
         `/api/admin/chefs/${id}/approve`,
-        `/backend/api/admin/chefs/${id}/approve`,
-        `${origin}/api/admin/chefs/${id}/approve`
+        `/backend/api/admin/chefs/${id}/approve`
       ];
       for (const ep of endpoints) {
         try {
@@ -115,17 +113,16 @@ export default function Chefs() {
       console.error('Approve failed:', err);
     } finally {
       await loadChefs();
+      await fetchPublishedEmployerChefs();
     }
   };
 
   const handleUnpublish = async (id) => {
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'pending', approval_status: 'pending' } : c));
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
         `/api/admin/chefs/${id}/unpublish`,
-        `/backend/api/admin/chefs/${id}/unpublish`,
-        `${origin}/api/admin/chefs/${id}/unpublish`
+        `/backend/api/admin/chefs/${id}/unpublish`
       ];
       for (const ep of endpoints) {
         try {
@@ -137,17 +134,16 @@ export default function Chefs() {
       console.error('Unpublish failed:', err);
     } finally {
       await loadChefs();
+      await fetchPublishedEmployerChefs();
     }
   };
 
   const handleReject = async (id) => {
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
         `/api/admin/chefs/${id}/reject`,
-        `/backend/api/admin/chefs/${id}/reject`,
-        `${origin}/api/admin/chefs/${id}/reject`
+        `/backend/api/admin/chefs/${id}/reject`
       ];
       for (const ep of endpoints) {
         try {
@@ -159,6 +155,7 @@ export default function Chefs() {
       console.error('Reject failed:', err);
     } finally {
       await loadChefs();
+      await fetchPublishedEmployerChefs();
     }
   };
 

@@ -221,18 +221,20 @@ class ChefModeratorController extends Controller
             $chef->update(['approval_status' => 'approved']);
         }
 
-        // Shoot FCM Push Notification to Chef
-        \App\Services\NotificationTriggerService::sendToUser(
-            $chef->user_id,
-            "Chef Profile Approved! 🎉",
-            "Congratulations! Your Chef profile has been approved by admin. Employers can now view & book you on JobConnect!"
-        );
-
-        if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Chef approved successfully.']);
+        // Shoot FCM Push Notification to Chef safely
+        try {
+            if ($chef && $chef->user_id) {
+                \App\Services\NotificationTriggerService::sendToUser(
+                    $chef->user_id,
+                    "Chef Profile Approved! 🎉",
+                    "Congratulations! Your Chef profile has been approved by admin. Employers can now view & book you on JobConnect!"
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('FCM Approval Notification Error: ' . $e->getMessage());
         }
 
-        return redirect()->back()->with('success', "Chef profile has been approved successfully.");
+        return response()->json(['success' => true, 'message' => 'Chef approved and published successfully.']);
     }
 
     /**
@@ -247,11 +249,7 @@ class ChefModeratorController extends Controller
             $chef->update(['approval_status' => 'pending']);
         }
 
-        if ($request->wantsJson() || $request->is('api/*') || $request->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Chef unpublished successfully.']);
-        }
-
-        return redirect()->back()->with('success', "Chef profile has been unpublished.");
+        return response()->json(['success' => true, 'message' => 'Chef unpublished successfully.']);
     }
 
     /**
@@ -266,11 +264,7 @@ class ChefModeratorController extends Controller
             $chef->update(['approval_status' => 'rejected']);
         }
 
-        if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json(['success' => true, 'message' => 'Chef rejected successfully.']);
-        }
-
-        return redirect()->back()->with('success', "Chef profile has been rejected.");
+        return response()->json(['success' => true, 'message' => 'Chef rejected successfully.']);
     }
 
     /**
