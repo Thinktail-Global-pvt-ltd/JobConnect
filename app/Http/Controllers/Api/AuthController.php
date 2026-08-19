@@ -41,6 +41,7 @@ class AuthController extends Controller
             'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
             'role'          => 'nullable|string',
             'role_type'     => 'nullable|string',
+            'login_role'    => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -50,7 +51,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $requestedRole = $this->normalizeRole($request->role ?? $request->role_type);
+        $requestedRole = $this->normalizeRole($request->role ?? $request->role_type ?? $request->login_role);
 
         if ($requestedRole) {
             $user = User::where('mobile_number', $request->mobile_number)->first();
@@ -88,6 +89,7 @@ class AuthController extends Controller
             'fcm_token'          => 'nullable|string',
             'role'              => 'nullable|string',
             'role_type'         => 'nullable|string',
+            'login_role'        => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -105,7 +107,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $requestedRole = $this->normalizeRole($request->role ?? $request->role_type);
+        $requestedRole = $this->normalizeRole($request->role ?? $request->role_type ?? $request->login_role);
 
         // Fetch user
         $user = User::where('mobile_number', $request->mobile_number)->first();

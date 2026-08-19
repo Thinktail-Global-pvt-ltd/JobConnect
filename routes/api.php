@@ -21,6 +21,8 @@ Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
 Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::match(['get', 'post'], '/request-otp', [AuthController::class, 'requestOtp']);
 Route::match(['get', 'post'], '/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::match(['get', 'post'], '/login', [AuthController::class, 'requestOtp']);
+Route::match(['get', 'post'], '/auth/login', [AuthController::class, 'requestOtp']);
 
 // Secured Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
