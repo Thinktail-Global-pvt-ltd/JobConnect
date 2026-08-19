@@ -455,15 +455,20 @@ class WebAuthController extends Controller
             if ($r) $existingRoles[] = $this->normalizeRole($r);
         }
 
-        if (\App\Models\ChefProfile::where('user_id', $user->id)->exists()) {
-            $existingRoles[] = 'chef';
-        }
-        if (\App\Models\EmployerProfile::where('user_id', $user->id)->exists()) {
-            $existingRoles[] = 'employer';
-        }
-        if (\App\Models\JobSeekerProfile::where('user_id', $user->id)->exists() || \App\Models\TalentProfile::where('user_id', $user->id)->exists()) {
-            $existingRoles[] = 'job_seeker';
-        }
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('chef_profiles') && \Illuminate\Support\Facades\DB::table('chef_profiles')->where('user_id', $user->id)->exists()) {
+                $existingRoles[] = 'chef';
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('employer_profiles') && \Illuminate\Support\Facades\DB::table('employer_profiles')->where('user_id', $user->id)->exists()) {
+                $existingRoles[] = 'employer';
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('talent_profiles') && \Illuminate\Support\Facades\DB::table('talent_profiles')->where('user_id', $user->id)->exists()) {
+                $existingRoles[] = 'job_seeker';
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('job_seeker_profiles') && \Illuminate\Support\Facades\DB::table('job_seeker_profiles')->where('user_id', $user->id)->exists()) {
+                $existingRoles[] = 'job_seeker';
+            }
+        } catch (\Throwable $th) {}
 
         $existingRoles = array_unique(array_filter($existingRoles));
 
