@@ -776,6 +776,24 @@ class JobPostController extends Controller
             }
         }
 
+        // 1. Fetch IDs of jobs and training programs already APPLIED by this user
+        $appliedJobIds = \App\Models\JobApplication::where('applicant_id', $userId)
+            ->pluck('job_post_id')
+            ->filter()
+            ->map(fn($id) => (int)$id)
+            ->toArray();
+
+        $appliedTrainingIds = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+            $appliedTrainingIds = \Illuminate\Support\Facades\DB::table('training_applications')
+                ->where('user_id', $userId)
+                ->pluck('training_id')
+                ->filter()
+                ->map(fn($id) => (int)$id)
+                ->toArray();
+        }
+
+        // 2. Fetch saved records
         $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
             ->where('user_id', $userId)
             ->latest()
@@ -784,15 +802,23 @@ class JobPostController extends Controller
         $jobIds = $savedRecords->pluck('job_post_id')->filter()->values();
         $trainingIds = $savedRecords->pluck('training_id')->filter()->values();
 
-        $jobPosts = \App\Models\JobPost::whereIn('id', $jobIds)->get()->keyBy('id');
+        $jobPosts = \App\Models\JobPost::with('creator')->whereIn('id', $jobIds)->get()->keyBy('id');
         $trainingOpps = collect();
         if ($trainingIds->count() > 0 && \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
             $trainingOpps = \App\Models\TrainingOpportunity::whereIn('id', $trainingIds)->get()->keyBy('id');
         }
 
-        $unifiedSaved = $savedRecords->map(function ($rec) use ($jobPosts, $trainingOpps) {
+        $unifiedSaved = $savedRecords->map(function ($rec) use ($jobPosts, $trainingOpps, $appliedJobIds, $appliedTrainingIds) {
             if ($rec->job_post_id && isset($jobPosts[$rec->job_post_id])) {
+                // If user HAS ALREADY APPLIED to this job, exclude it from saved jobs response!
+                if (in_array((int)$rec->job_post_id, $appliedJobIds)) {
+                    return null;
+                }
+
                 $job = $jobPosts[$rec->job_post_id];
+                $creator = $job->creator;
+                $postedByName = $job->company ?: ($creator?->full_name ?: ($job->contact_person ?: 'Employer'));
+
                 return [
                     'saved_id'              => $rec->id,
                     'id'                    => $job->id,
@@ -814,9 +840,26 @@ class JobPostController extends Controller
                     'is_saved'              => true,
                     'saved'                 => true,
                     'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
+                    'created_by'            => $job->created_by,
+                    'job_posted_by'         => $postedByName,
+                    'posted_by'             => [
+                        'id'                => $creator?->id ?? $job->created_by,
+                        'full_name'         => $creator?->full_name ?? $postedByName,
+                        'name'              => $postedByName,
+                        'company'           => $job->company ?? null,
+                        'role'              => $job->posted_by_role ?? 'employer',
+                        'mobile_number'     => $creator?->mobile_number ?? $job->contact_info ?? null,
+                        'profile_photo_url' => $creator?->profile_photo_url ?? $job->company_logo_url ?? null,
+                    ],
                 ];
             } elseif ($rec->training_id && isset($trainingOpps[$rec->training_id])) {
+                // If user HAS ALREADY APPLIED to this training, exclude it from saved jobs response!
+                if (in_array((int)$rec->training_id, $appliedTrainingIds)) {
+                    return null;
+                }
+
                 $training = $trainingOpps[$rec->training_id];
+                $providerName = $training->provider_name ?: 'Jobrito Academy';
                 return [
                     'saved_id'              => $rec->id,
                     'id'                    => 'training_' . $training->id,
@@ -824,7 +867,7 @@ class JobPostController extends Controller
                     'job_post_id'           => 'training_' . $training->id,
                     'job_id'                => 'training_' . $training->id,
                     'title'                 => $training->program_name ?: ('Training Program #' . $training->id),
-                    'company'               => $training->provider_name ?: 'Jobrito Academy',
+                    'company'               => $providerName,
                     'category'              => 'training',
                     'location'              => $training->location ?: 'India',
                     'country'               => 'India',
@@ -839,6 +882,17 @@ class JobPostController extends Controller
                     'is_saved'              => true,
                     'saved'                 => true,
                     'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
+                    'created_by'            => null,
+                    'job_posted_by'         => $providerName,
+                    'posted_by'             => [
+                        'id'                => null,
+                        'full_name'         => $providerName,
+                        'name'              => $providerName,
+                        'company'           => $providerName,
+                        'role'              => 'training_provider',
+                        'mobile_number'     => null,
+                        'profile_photo_url' => null,
+                    ],
                 ];
             }
             return null;
