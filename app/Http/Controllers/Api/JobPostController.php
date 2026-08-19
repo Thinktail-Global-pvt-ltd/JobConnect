@@ -776,134 +776,172 @@ class JobPostController extends Controller
             }
         }
 
-        // 1. Fetch IDs of jobs and training programs already APPLIED by this user
-        $appliedJobIds = \App\Models\JobApplication::where('applicant_id', $userId)
-            ->pluck('job_post_id')
-            ->filter()
-            ->map(fn($id) => (int)$id)
-            ->toArray();
+        try {
+            // 1. Fetch IDs of jobs and training programs already APPLIED by this user
+            $appliedJobIds = [];
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('job_applications')) {
+                    $appliedJobIds = \Illuminate\Support\Facades\DB::table('job_applications')
+                        ->where('applicant_id', $userId)
+                        ->pluck('job_post_id')
+                        ->filter()
+                        ->map(function ($id) { return (int)$id; })
+                        ->toArray();
+                }
+            } catch (\Throwable $th) {}
 
-        $appliedTrainingIds = [];
-        if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
-            $appliedTrainingIds = \Illuminate\Support\Facades\DB::table('training_applications')
+            $appliedTrainingIds = [];
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+                    $appliedTrainingIds = \Illuminate\Support\Facades\DB::table('training_applications')
+                        ->where('user_id', $userId)
+                        ->pluck('training_id')
+                        ->filter()
+                        ->map(function ($id) { return (int)$id; })
+                        ->toArray();
+                }
+            } catch (\Throwable $th) {}
+
+            // 2. Fetch saved records
+            $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
                 ->where('user_id', $userId)
-                ->pluck('training_id')
-                ->filter()
-                ->map(fn($id) => (int)$id)
-                ->toArray();
-        }
+                ->latest()
+                ->get();
 
-        // 2. Fetch saved records
-        $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
-            ->where('user_id', $userId)
-            ->latest()
-            ->get();
+            $jobIds = $savedRecords->pluck('job_post_id')->filter()->values();
+            $trainingIds = $savedRecords->pluck('training_id')->filter()->values();
 
-        $jobIds = $savedRecords->pluck('job_post_id')->filter()->values();
-        $trainingIds = $savedRecords->pluck('training_id')->filter()->values();
-
-        $jobPosts = \App\Models\JobPost::with('creator')->whereIn('id', $jobIds)->get()->keyBy('id');
-        $trainingOpps = collect();
-        if ($trainingIds->count() > 0 && \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
-            $trainingOpps = \App\Models\TrainingOpportunity::whereIn('id', $trainingIds)->get()->keyBy('id');
-        }
-
-        $unifiedSaved = $savedRecords->map(function ($rec) use ($jobPosts, $trainingOpps, $appliedJobIds, $appliedTrainingIds) {
-            if ($rec->job_post_id && isset($jobPosts[$rec->job_post_id])) {
-                // If user HAS ALREADY APPLIED to this job, exclude it from saved jobs response!
-                if (in_array((int)$rec->job_post_id, $appliedJobIds)) {
-                    return null;
-                }
-
-                $job = $jobPosts[$rec->job_post_id];
-                $creator = $job->creator;
-                $postedByName = $job->company ?: ($creator?->full_name ?: ($job->contact_person ?: 'Employer'));
-
-                return [
-                    'saved_id'              => $rec->id,
-                    'id'                    => $job->id,
-                    'job_post_id'           => $job->id,
-                    'job_id'                => $job->id,
-                    'title'                 => $job->title,
-                    'company'               => $job->company,
-                    'category'              => $job->category,
-                    'location'              => $job->location,
-                    'country'               => $job->country,
-                    'salary'                => $job->salary,
-                    'salary_min'            => $job->salary_min,
-                    'salary_max'            => $job->salary_max,
-                    'salary_currency'       => $job->salary_currency,
-                    'job_type'              => $job->job_type,
-                    'experience_range'      => $job->experience_range,
-                    'description'           => $job->description,
-                    'is_training'           => false,
-                    'is_saved'              => true,
-                    'saved'                 => true,
-                    'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
-                    'created_by'            => $job->created_by,
-                    'job_posted_by'         => $postedByName,
-                    'posted_by'             => [
-                        'id'                => $creator?->id ?? $job->created_by,
-                        'full_name'         => $creator?->full_name ?? $postedByName,
-                        'name'              => $postedByName,
-                        'company'           => $job->company ?? null,
-                        'role'              => $job->posted_by_role ?? 'employer',
-                        'mobile_number'     => $creator?->mobile_number ?? $job->contact_info ?? null,
-                        'profile_photo_url' => $creator?->profile_photo_url ?? $job->company_logo_url ?? null,
-                    ],
-                ];
-            } elseif ($rec->training_id && isset($trainingOpps[$rec->training_id])) {
-                // If user HAS ALREADY APPLIED to this training, exclude it from saved jobs response!
-                if (in_array((int)$rec->training_id, $appliedTrainingIds)) {
-                    return null;
-                }
-
-                $training = $trainingOpps[$rec->training_id];
-                $providerName = $training->provider_name ?: 'Jobrito Academy';
-                return [
-                    'saved_id'              => $rec->id,
-                    'id'                    => 'training_' . $training->id,
-                    'training_id'           => $training->id,
-                    'job_post_id'           => 'training_' . $training->id,
-                    'job_id'                => 'training_' . $training->id,
-                    'title'                 => $training->program_name ?: ('Training Program #' . $training->id),
-                    'company'               => $providerName,
-                    'category'              => 'training',
-                    'location'              => $training->location ?: 'India',
-                    'country'               => 'India',
-                    'salary'                => 'Paid Stipend',
-                    'salary_min'            => null,
-                    'salary_max'            => null,
-                    'salary_currency'       => 'INR',
-                    'job_type'              => 'Training / Program',
-                    'experience_range'      => 'Any',
-                    'description'           => $training->description ?: 'Specialized training program.',
-                    'is_training'           => true,
-                    'is_saved'              => true,
-                    'saved'                 => true,
-                    'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
-                    'created_by'            => null,
-                    'job_posted_by'         => $providerName,
-                    'posted_by'             => [
-                        'id'                => null,
-                        'full_name'         => $providerName,
-                        'name'              => $providerName,
-                        'company'           => $providerName,
-                        'role'              => 'training_provider',
-                        'mobile_number'     => null,
-                        'profile_photo_url' => null,
-                    ],
-                ];
+            $jobPosts = \App\Models\JobPost::with('creator')->whereIn('id', $jobIds)->get()->keyBy('id');
+            $trainingOpps = collect();
+            if ($trainingIds->count() > 0 && \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+                $trainingOpps = \App\Models\TrainingOpportunity::whereIn('id', $trainingIds)->get()->keyBy('id');
             }
-            return null;
-        })->filter()->values();
 
-        return response()->json([
-            'success'    => true,
-            'total'      => $unifiedSaved->count(),
-            'saved_jobs' => $unifiedSaved,
-            'jobs'       => $unifiedSaved,
-            'data'       => $unifiedSaved,
-        ]);
+            $unifiedSaved = $savedRecords->map(function ($rec) use ($jobPosts, $trainingOpps, $appliedJobIds, $appliedTrainingIds) {
+                if ($rec->job_post_id && isset($jobPosts[$rec->job_post_id])) {
+                    // If user HAS ALREADY APPLIED to this job, exclude it from saved jobs response!
+                    if (in_array((int)$rec->job_post_id, $appliedJobIds)) {
+                        return null;
+                    }
+
+                    $job = $jobPosts[$rec->job_post_id];
+                    $creator = null;
+                    try { $creator = $job->creator; } catch (\Throwable $th) {}
+
+                    $postedByName = !empty($job->company) ? $job->company : ($creator && !empty($creator->full_name) ? $creator->full_name : (!empty($job->contact_person) ? $job->contact_person : 'Employer'));
+
+                    $creatorRole = 'employer';
+                    try {
+                        if (!empty($job->submitted_by_role)) {
+                            $creatorRole = $job->submitted_by_role;
+                        } elseif ($creator && !empty($creator->active_profile)) {
+                            $creatorRole = $creator->active_profile;
+                        }
+                    } catch (\Throwable $th) {}
+
+                    $creatorPhoto = null;
+                    try {
+                        $creatorPhoto = $creator ? ($creator->profile_photo_url ?? ($creator->profile_photo_path ?? null)) : null;
+                        if (!$creatorPhoto && !empty($job->company_logo_url)) {
+                            $creatorPhoto = $job->company_logo_url;
+                        }
+                    } catch (\Throwable $th) {}
+
+                    return [
+                        'saved_id'              => $rec->id,
+                        'id'                    => $job->id,
+                        'job_post_id'           => $job->id,
+                        'job_id'                => $job->id,
+                        'title'                 => $job->title,
+                        'company'               => $job->company,
+                        'category'              => $job->category,
+                        'location'              => $job->location,
+                        'country'               => $job->country,
+                        'salary'                => $job->salary,
+                        'salary_min'            => $job->salary_min,
+                        'salary_max'            => $job->salary_max,
+                        'salary_currency'       => $job->salary_currency,
+                        'job_type'              => $job->job_type,
+                        'experience_range'      => $job->experience_range,
+                        'description'           => $job->description,
+                        'is_training'           => false,
+                        'is_saved'              => true,
+                        'saved'                 => true,
+                        'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
+                        'created_by'            => $job->created_by,
+                        'job_posted_by'         => $postedByName,
+                        'posted_by'             => [
+                            'id'                => $creator?->id ?? $job->created_by,
+                            'full_name'         => $creator?->full_name ?? $postedByName,
+                            'name'              => $postedByName,
+                            'company'           => $job->company ?? null,
+                            'role'              => $creatorRole,
+                            'mobile_number'     => $creator?->mobile_number ?? $job->contact_info ?? null,
+                            'profile_photo_url' => $creatorPhoto,
+                        ],
+                    ];
+                } elseif ($rec->training_id && isset($trainingOpps[$rec->training_id])) {
+                    // If user HAS ALREADY APPLIED to this training, exclude it from saved jobs response!
+                    if (in_array((int)$rec->training_id, $appliedTrainingIds)) {
+                        return null;
+                    }
+
+                    $training = $trainingOpps[$rec->training_id];
+                    $providerName = !empty($training->provider_name) ? $training->provider_name : 'Jobrito Academy';
+                    return [
+                        'saved_id'              => $rec->id,
+                        'id'                    => 'training_' . $training->id,
+                        'training_id'           => $training->id,
+                        'job_post_id'           => 'training_' . $training->id,
+                        'job_id'                => 'training_' . $training->id,
+                        'title'                 => $training->program_name ?: ('Training Program #' . $training->id),
+                        'company'               => $providerName,
+                        'category'              => 'training',
+                        'location'              => $training->location ?: 'India',
+                        'country'               => 'India',
+                        'salary'                => 'Paid Stipend',
+                        'salary_min'            => null,
+                        'salary_max'            => null,
+                        'salary_currency'       => 'INR',
+                        'job_type'              => 'Training / Program',
+                        'experience_range'      => 'Any',
+                        'description'           => $training->description ?: 'Specialized training program.',
+                        'is_training'           => true,
+                        'is_saved'              => true,
+                        'saved'                 => true,
+                        'saved_at'              => $rec->created_at ? \Carbon\Carbon::parse($rec->created_at)->toIso8601String() : null,
+                        'created_by'            => null,
+                        'job_posted_by'         => $providerName,
+                        'posted_by'             => [
+                            'id'                => null,
+                            'full_name'         => $providerName,
+                            'name'              => $providerName,
+                            'company'           => $providerName,
+                            'role'              => 'training_provider',
+                            'mobile_number'     => null,
+                            'profile_photo_url' => null,
+                        ],
+                    ];
+                }
+                return null;
+            })->filter()->values();
+
+            return response()->json([
+                'success'    => true,
+                'total'      => $unifiedSaved->count(),
+                'saved_jobs' => $unifiedSaved,
+                'jobs'       => $unifiedSaved,
+                'data'       => $unifiedSaved,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('getSavedJobs failed: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json([
+                'success'    => true,
+                'total'      => 0,
+                'saved_jobs' => [],
+                'jobs'       => [],
+                'data'       => [],
+            ]);
+        }
     }
 }
