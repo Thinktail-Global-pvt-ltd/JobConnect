@@ -56,11 +56,13 @@ class AuthController extends Controller
         if ($requestedRole) {
             $existingRole = $this->checkRoleConflict($request->mobile_number, $requestedRole);
             if ($existingRole) {
-                $displayExisting = str_replace('_', ' ', $existingRole);
-                $displayRequested = str_replace('_', ' ', $this->normalizeRole($requestedRole));
+                $displayExisting = $this->formatRoleDisplayName($existingRole);
+                $displayRequested = $this->formatRoleDisplayName($requestedRole);
                 return response()->json([
                     'success' => false,
-                    'message' => "Role conflict error: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+                    'message' => "Account Role Conflict: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+                    'existing_role' => $displayExisting,
+                    'requested_role' => $displayRequested,
                 ], 400);
             }
         }
@@ -114,11 +116,13 @@ class AuthController extends Controller
             $existingRoleType = $this->normalizeRole($existingRoleType);
 
             if ($requestedRole && $existingRoleType && $existingRoleType !== $requestedRole) {
-                $displayExisting = str_replace('_', ' ', $existingRoleType);
-                $displayRequested = str_replace('_', ' ', $requestedRole);
+                $displayExisting = $this->formatRoleDisplayName($existingRoleType);
+                $displayRequested = $this->formatRoleDisplayName($requestedRole);
                 return response()->json([
                     'success' => false,
-                    'message' => "Role conflict error: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot log in or change role to '{$displayRequested}'.",
+                    'message' => "Account Role Conflict: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot log in or change role to '{$displayRequested}'.",
+                    'existing_role' => $displayExisting,
+                    'requested_role' => $displayRequested,
                 ], 400);
             }
 
@@ -411,6 +415,20 @@ class AuthController extends Controller
                 ];
             })
         ]);
+    private function formatRoleDisplayName(?string $role): string
+    {
+        if (!$role) return 'Talent';
+        $r = strtolower(trim($role));
+        if (in_array($r, ['employer', 'recruiter', 'hirer', 'hire_talent'])) {
+            return 'Hire Talent';
+        }
+        if (in_array($r, ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent', 'candidate'])) {
+            return 'Talent';
+        }
+        if ($r === 'agency' || $r === 'referrer') {
+            return 'Agency / Referrer';
+        }
+        return ucfirst(str_replace('_', ' ', $r));
     }
 
     private function checkRoleConflict(string $mobileNumber, string $requestedRole): ?string

@@ -47,11 +47,13 @@ class WebAuthController extends Controller
         // Check for Role Conflict on existing user before requesting/sending OTP
         $existingRole = $this->checkRoleConflict($mobile, $targetRole);
         if ($existingRole) {
-            $displayExisting = str_replace('_', ' ', $existingRole);
-            $displayRequested = str_replace('_', ' ', $this->normalizeRole($targetRole));
+            $displayExisting = $this->formatRoleDisplayName($existingRole);
+            $displayRequested = $this->formatRoleDisplayName($targetRole);
             return response()->json([
                 'success' => false,
-                'message' => "Role conflict error: Mobile number {$mobile} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+                'message' => "Account Role Conflict: Mobile number {$mobile} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+                'existing_role' => $displayExisting,
+                'requested_role' => $displayRequested,
             ], 400);
         }
         
@@ -404,6 +406,22 @@ class WebAuthController extends Controller
             'success' => true,
             'message' => 'Logged out and token revoked successfully.'
         ]);
+    }
+
+    private function formatRoleDisplayName(?string $role): string
+    {
+        if (!$role) return 'Talent';
+        $r = strtolower(trim($role));
+        if (in_array($r, ['employer', 'recruiter', 'hirer', 'hire_talent'])) {
+            return 'Hire Talent';
+        }
+        if (in_array($r, ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent', 'candidate'])) {
+            return 'Talent';
+        }
+        if ($r === 'agency' || $r === 'referrer') {
+            return 'Agency / Referrer';
+        }
+        return ucfirst(str_replace('_', ' ', $r));
     }
 
     private function normalizeRole(?string $role): ?string
