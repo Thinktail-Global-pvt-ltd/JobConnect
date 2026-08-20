@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { mockApi } from '../services/api';
-import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X } from 'lucide-react';
+import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star } from 'lucide-react';
 
 export default function Applications() {
   const [apps, setApps] = useState([]);
