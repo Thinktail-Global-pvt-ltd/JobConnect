@@ -63,10 +63,22 @@ class EmployerController extends Controller
             // Fetch details of users who saved these jobs
             $allJobIds = $jobs->pluck('id')->filter()->toArray();
             $savedByMap = [];
+            $rawSavedCounts = [];
             if (!empty($allJobIds) && \Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
                 try {
+                    $countsQuery = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                        ->whereIn('job_post_id', $allJobIds)
+                        ->select('job_post_id', \Illuminate\Support\Facades\DB::raw('count(*) as aggregate'))
+                        ->groupBy('job_post_id')
+                        ->pluck('aggregate', 'job_post_id')
+                        ->toArray();
+
+                    foreach ($countsQuery as $jId => $cnt) {
+                        $rawSavedCounts[$jId] = (int)$cnt;
+                    }
+
                     $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
-                        ->join('users', 'saved_jobs.user_id', '=', 'users.id')
+                        ->leftJoin('users', 'saved_jobs.user_id', '=', 'users.id')
                         ->whereIn('saved_jobs.job_post_id', $allJobIds)
                         ->select(
                             'saved_jobs.job_post_id',
@@ -118,7 +130,7 @@ class EmployerController extends Controller
             }
 
             // Map database status values to match frontend expected tabs (active, pending, closed)
-            $mappedJobs = $jobs->map(function ($job) use ($savedByMap) {
+            $mappedJobs = $jobs->map(function ($job) use ($savedByMap, $rawSavedCounts) {
                 $status = 'pending';
                 if ($job->status === 'approved') {
                     $status = 'active';
@@ -286,7 +298,7 @@ class EmployerController extends Controller
                 });
 
                 $savedUsers = isset($savedByMap[$job->id]) ? $savedByMap[$job->id] : [];
-                $savedCount = count($savedUsers);
+                $savedCount = isset($rawSavedCounts[$job->id]) ? $rawSavedCounts[$job->id] : count($savedUsers);
 
                 return [
                     'id'                   => $job->id,

@@ -314,10 +314,22 @@ class JobPostController extends Controller
         // Fetch details of users who saved any of this user's created jobs
         $createdJobIds = $createdJobs->pluck('id')->merge($pendingCreatedJobs->pluck('id'))->filter()->toArray();
         $savedByMap = [];
+        $rawSavedCounts = [];
         if (!empty($createdJobIds) && \Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
             try {
+                $countsQuery = \Illuminate\Support\Facades\DB::table('saved_jobs')
+                    ->whereIn('job_post_id', $createdJobIds)
+                    ->select('job_post_id', \Illuminate\Support\Facades\DB::raw('count(*) as aggregate'))
+                    ->groupBy('job_post_id')
+                    ->pluck('aggregate', 'job_post_id')
+                    ->toArray();
+
+                foreach ($countsQuery as $jId => $cnt) {
+                    $rawSavedCounts[$jId] = (int)$cnt;
+                }
+
                 $savedRecords = \Illuminate\Support\Facades\DB::table('saved_jobs')
-                    ->join('users', 'saved_jobs.user_id', '=', 'users.id')
+                    ->leftJoin('users', 'saved_jobs.user_id', '=', 'users.id')
                     ->whereIn('saved_jobs.job_post_id', $createdJobIds)
                     ->select(
                         'saved_jobs.job_post_id',
@@ -368,10 +380,9 @@ class JobPostController extends Controller
             } catch (\Throwable $th) {}
         }
 
-        $mapCreatedJobItem = function($job) use ($savedByMap) {
+        $mapCreatedJobItem = function ($job) use ($savedByMap, $rawSavedCounts) {
             $savedUsers = isset($savedByMap[$job->id]) ? $savedByMap[$job->id] : [];
-            $savedCount = count($savedUsers);
-
+            $savedCount = isset($rawSavedCounts[$job->id]) ? $rawSavedCounts[$job->id] : count($savedUsers);
             $jobArr = $job->toArray();
             $jobArr['total_saved_count']    = $savedCount;
             $jobArr['saves_count']          = $savedCount;

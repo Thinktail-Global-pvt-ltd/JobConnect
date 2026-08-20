@@ -151,39 +151,47 @@ class AppointmentController extends Controller
     public function registeredChefsList()
     {
         try {
-            // Find all users with role_type = 'chef' or having chefProfile
-            $chefUsers = User::whereHas('roles', function ($q) {
-                $q->where('role_type', 'chef');
-            })->orWhereHas('chefProfile')
-            ->with(['chefProfile'])
-            ->get();
+            // Find all chef profiles and user records
+            $chefProfiles = \App\Models\ChefProfile::with(['user', 'user.socials'])->get();
+            
+            // Also find users registered as chef who may not have a ChefProfile record yet
+            $chefUsers = User::where(function($q) {
+                $q->where('active_profile', 'chef')
+                  ->orWhere('user_role', 'chef')
+                  ->orWhereHas('roles', fn($r) => $r->where('role_type', 'chef'));
+            })->with(['chefProfile', 'socials'])->get();
 
-            // Auto-create missing chef profiles
-            foreach ($chefUsers as $user) {
-                if (!$user->chefProfile) {
-                    \App\Models\ChefProfile::create([
-                        'user_id' => $user->id,
-                        'cuisine_specialty' => 'Multi-Cuisine',
-                        'bio' => 'Professional Chef',
-                        'approval_status' => 'approved',
+            $allChefsMap = collect();
+
+            foreach ($chefProfiles as $prof) {
+                $u = $prof->user;
+                $status = strtolower(trim($prof->approval_status ?: ($u ? ($u->approval_status ?: ($u->status ?: 'pending')) : 'pending')));
+                if (in_array($status, ['approved', 'active', 'published'])) {
+                    $allChefsMap->put($prof->id, [
+                        'profile' => $prof,
+                        'user' => $u
                     ]);
                 }
             }
 
-            // Reload all chefs with chefProfile — only return APPROVED/PUBLISHED chefs for employer discovery
-            $chefs = User::whereHas('roles', function ($q) {
-                $q->where('role_type', 'chef');
-            })->orWhereHas('chefProfile')
-            ->with(['chefProfile'])
-            ->get()
-            ->filter(function ($chef) {
-                // Only include chefs whose profile is approved
-                $profile = $chef->chefProfile;
-                if (!$profile) return false;
-                return $profile->approval_status === 'approved';
-            })
-            ->map(function ($chef) {
-                $profile = $chef->chefProfile;
+            foreach ($chefUsers as $u) {
+                $prof = $u->chefProfile;
+                $status = strtolower(trim($prof ? $prof->approval_status : ($u->approval_status ?: ($u->status ?: 'pending'))));
+                if (in_array($status, ['approved', 'active', 'published'])) {
+                    $pId = $prof ? $prof->id : ('user_' . $u->id);
+                    if (!$allChefsMap->has($pId)) {
+                        $allChefsMap->put($pId, [
+                            'profile' => $prof,
+                            'user' => $u
+                        ]);
+                    }
+                }
+            }
+
+            $mappedChefs = $allChefsMap->values()->map(function ($item) {
+                $profile = $item['profile'];
+                $chef = $item['user'];
+
                 $availability = [];
                 if ($profile && $profile->availability_info) {
                     if (is_array($profile->availability_info)) {
@@ -193,93 +201,133 @@ class AppointmentController extends Controller
                     }
                 }
 
-                $status = $profile ? ($profile->approval_status ?: 'approved') : 'approved';
-
                 $skills = [];
-                if (is_array($chef->skills)) {
+                if ($chef && is_array($chef->skills)) {
                     $skills = $chef->skills;
-                } elseif (is_string($chef->skills)) {
+                } elseif ($chef && is_string($chef->skills)) {
                     $skills = json_decode($chef->skills, true) ?: [];
                 }
 
+                $socialsObj = $chef ? $chef->socials : null;
+                $socialsData = $socialsObj ? [
+                    'instagram' => $socialsObj->instagram ?: null,
+                    'linkedin'  => $socialsObj->linkedin ?: null,
+                    'facebook'  => $socialsObj->facebook ?: null,
+                    'twitter'   => $socialsObj->twitter ?: null,
+                    'youtube'   => $socialsObj->youtube ?: null,
+                    'website'   => $socialsObj->website ?: null,
+                ] : null;
+
+                $photoPath = $chef ? $chef->profile_photo_path : null;
+                $photoUrl = null;
+                if (!empty($photoPath)) {
+                    if (str_starts_with($photoPath, 'http://') || str_starts_with($photoPath, 'https://')) {
+                        $photoUrl = $photoPath;
+                    } else {
+                        $photoUrl = url('/' . ltrim($photoPath, '/'));
+                    }
+                }
+
+                $name = $chef ? ($chef->full_name ?: ($chef->name ?: 'Chef')) : 'Chef';
+                $email = $chef ? ($chef->email ?: '') : '';
+                $mobile = $chef ? ($chef->mobile_number ?: '') : '';
+                $gender = $chef ? ($chef->gender ?: '') : '';
+                $country = $chef ? ($chef->country ?: 'India') : 'India';
+                $city = $chef ? ($chef->city ?: '') : '';
+                $exp = $chef ? ($chef->experience_range ?: ($chef->experience_years ?: '1-3 Years')) : '1-3 Years';
+                $role = $chef ? ($chef->preferred_role ?: 'Chef') : 'Chef';
+
                 return [
-                    'id' => $profile ? $profile->id : $chef->id,
-                    'user_id' => $chef->id,
-                    'full_name' => $chef->full_name ?: ('Chef #' . $chef->id),
-                    'name' => $chef->full_name ?: ('Chef #' . $chef->id),
-                    'email' => $chef->email ?: '',
-                    'mobile_number' => $chef->mobile_number ?: '',
-                    'gender' => $chef->gender ?: '',
-                    'country' => $chef->country ?? 'India',
-                    'city' => $chef->city ?: '',
-                    'job_location' => $chef->job_location ?? ($chef->city ?: 'N/A'),
-                    'preference' => $chef->preference ?? 'Both',
-                    'experience_range' => $chef->experience_range ?: '0',
-                    'experience' => $chef->experience_range ?: '0',
-                    'experience_years' => $chef->experience_years ?: $chef->experience_range ?: '0',
-                    'preferred_role' => $chef->preferred_role ?: 'Chef',
-                    'current_employer' => $chef->current_employer ?: 'N/A',
-                    'profile_photo_path' => $chef->profile_photo_path,
-                    'cuisine_specialty' => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
-                    'specialties' => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
-                    'bio' => $profile ? ($profile->bio ?: '') : '',
-                    'calendly_link' => $profile ? ($profile->calendly_link ?: '') : '',
-                    'calendly' => !empty($profile ? $profile->calendly_link : ''),
-                    'approval_status' => $profile->approval_status ?: 'pending',
-                    'status' => $profile->approval_status ?: 'pending',
-                    'is_approved' => $profile->approval_status === 'approved',
-                    'is_published' => $profile->approval_status === 'approved',
-                    'published' => $profile->approval_status === 'approved',
-                    'is_active' => $profile->approval_status === 'approved',
-                    'active' => $profile->approval_status === 'approved',
-                    'availability_info' => $availability,
-                    'skills' => $skills,
+                    'id'                     => $profile ? $profile->id : ($chef ? $chef->id : 0),
+                    'user_id'                => $chef ? $chef->id : 0,
+                    'full_name'              => $name,
+                    'name'                   => $name,
+                    'email'                  => $email,
+                    'mobile_number'          => $mobile,
+                    'phone'                  => $mobile,
+                    'gender'                 => $gender,
+                    'country'                => $country,
+                    'city'                   => $city,
+                    'job_location'           => $city ?: 'India',
+                    'preference'             => $chef ? ($chef->location_preference ?: 'Both') : 'Both',
+                    'experience_range'       => $exp,
+                    'experience'             => $exp,
+                    'experience_years'       => $exp,
+                    'preferred_role'         => $role,
+                    'current_employer'       => $chef ? ($chef->current_employer ?: 'Independent') : 'Independent',
+                    'profile_photo_path'     => $photoUrl,
+                    'profile_photo'          => $photoUrl,
+                    'photo_url'              => $photoUrl,
+                    'avatar'                 => $photoUrl,
+                    'avatar_url'             => $photoUrl,
+                    'cuisine_specialty'      => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
+                    'specialties'            => $profile ? ($profile->cuisine_specialty ?: 'Multi-Cuisine') : 'Multi-Cuisine',
+                    'operational_expertise'  => $profile ? ($profile->operational_experties ?: ($profile->operational_expertise ?: 'Kitchen Operations')) : 'Kitchen Operations',
+                    'operational_experties'  => $profile ? ($profile->operational_experties ?: ($profile->operational_expertise ?: 'Kitchen Operations')) : 'Kitchen Operations',
+                    'regional_experience'    => $country,
+                    'employment_preference'  => $role,
+                    'bio'                    => $profile ? ($profile->bio ?: '') : '',
+                    'calendly_link'          => $profile ? ($profile->calendly_link ?: '') : '',
+                    'calendly'               => !empty($profile ? $profile->calendly_link : ''),
+                    'approval_status'        => 'approved',
+                    'status'                 => 'approved',
+                    'is_approved'            => true,
+                    'is_published'           => true,
+                    'published'              => true,
+                    'is_active'              => true,
+                    'active'                 => true,
+                    'availability_info'      => $availability,
+                    'availability_status'    => $chef ? ($chef->availability_status ?: ($chef->is_available ? 'Available' : 'Unavailable')) : 'Available',
+                    'is_available'           => $chef ? (bool)$chef->is_available : true,
+                    'selected_language'      => $chef ? ($chef->selected_language ?: 'English') : 'English',
+                    'skills'                 => $skills,
+                    'socials'                => $socialsData,
                     'user' => [
-                        'id' => $chef->id,
-                        'full_name' => $chef->full_name,
-                        'email' => $chef->email,
-                        'mobile_number' => $chef->mobile_number,
-                        'gender' => $chef->gender,
-                        'country' => $chef->country ?? 'India',
-                        'city' => $chef->city,
-                        'job_location' => $chef->job_location ?? ($chef->city ?: 'N/A'),
-                        'preference' => $chef->preference ?? 'Both',
-                        'experience_range' => $chef->experience_range,
-                        'preferred_role' => $chef->preferred_role,
-                        'current_employer' => $chef->current_employer,
-                        'skills' => $skills,
-                        'profile_photo_path' => $chef->profile_photo_path,
+                        'id'                 => $chef ? $chef->id : 0,
+                        'full_name'          => $name,
+                        'email'              => $email,
+                        'mobile_number'      => $mobile,
+                        'gender'             => $gender,
+                        'country'            => $country,
+                        'city'               => $city,
+                        'job_location'       => $city ?: 'India',
+                        'preference'         => $chef ? ($chef->location_preference ?: 'Both') : 'Both',
+                        'experience_range'   => $exp,
+                        'preferred_role'     => $role,
+                        'current_employer'   => $chef ? ($chef->current_employer ?: 'Independent') : 'Independent',
+                        'skills'             => $skills,
+                        'profile_photo_path' => $photoUrl,
+                        'socials'            => $socialsData,
                     ]
                 ];
             });
-
-            $chefList = $chefs->values();
-            $totalCount = $chefList->count(); // Already filtered to approved only
+            $chefList = $mappedChefs->values();
+            $totalCount = $chefList->count();
 
             return response()->json([
-                'success' => true,
-                'status' => 'success',
-                'total' => $totalCount,
-                'total_all' => $totalCount,
-                'total_chefs' => $totalCount,
-                'published_count' => $totalCount,
-                'published_chefs' => $totalCount,
-                'approved_count' => $totalCount,
-                'active_count' => $totalCount,
+                'success'                => true,
+                'status'                 => 'success',
+                'total'                  => $totalCount,
+                'total_all'              => $totalCount,
+                'total_chefs'            => $totalCount,
+                'published_count'        => $totalCount,
+                'published_chefs'        => $totalCount,
+                'approved_count'         => $totalCount,
+                'active_count'           => $totalCount,
                 'active_published_chefs' => $totalCount,
                 'stats' => [
-                    'total' => $totalCount,
+                    'total'     => $totalCount,
                     'published' => $totalCount,
-                    'approved' => $totalCount,
-                    'active' => $totalCount,
-                    'pending' => 0,
-                    'hidden' => 0
+                    'approved'  => $totalCount,
+                    'active'    => $totalCount,
+                    'pending'   => 0,
+                    'hidden'    => 0
                 ],
-                'chefs' => $chefList,
+                'chefs'    => $chefList,
                 'profiles' => $chefList,
-                'items' => $chefList,
-                'data' => $chefList,
-                'results' => $chefList
+                'items'    => $chefList,
+                'data'     => $chefList,
+                'results'  => $chefList
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
