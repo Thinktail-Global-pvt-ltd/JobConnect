@@ -33,9 +33,10 @@ export default function ChefDetail() {
       ? (location.state.chef.approval_status || location.state.chef.status || 'pending') 
       : 'pending'
   );
+  const [imgFailed, setImgFailed] = useState(false);
 
   const fetchChefDetail = async () => {
-    setLoading(true);
+    setLoading(!chef);
     let data = location.state?.chef || null;
 
     try {
@@ -44,14 +45,19 @@ export default function ChefDetail() {
         const found = res.chefs.find(c => String(c.id) === String(id) || String(c.user_id) === String(id) || String(c.chef_id) === String(id));
         if (found) {
           data = data ? { ...found, ...data } : found;
-          if (found.profile_photo_path) data.profile_photo_path = found.profile_photo_path;
-          if (found.profile_photo) data.profile_photo = found.profile_photo;
-          if (found.avatar) data.avatar = found.avatar;
-          if (found.photo_url) data.photo_url = found.photo_url;
         }
       }
     } catch (e) {
       console.warn("Failed to find chef in list:", e);
+    }
+
+    if (!data) {
+      try {
+        const userRes = await realApi.get(`/api/admin/users/${id}`);
+        if (userRes.data?.success && userRes.data.user) {
+          data = userRes.data.user;
+        }
+      } catch (e) {}
     }
 
     if (data) {
@@ -149,7 +155,6 @@ export default function ChefDetail() {
     ? chef.skills 
     : (chef.skills ? String(chef.skills).split(',').map(s => s.trim()).filter(Boolean) : []);
 
-  const [imgFailed, setImgFailed] = useState(false);
   const rawPhoto = chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url;
   const photoUrl = resolveImageUrl(rawPhoto);
 

@@ -263,28 +263,20 @@ class FirebaseController extends Controller
                 $targetId = (int)$request->input('user_id');
                 $targetUser = User::find($targetId);
                 $mobile = $targetUser ? $targetUser->mobile_number : null;
-                $fcmToken = $targetUser ? $targetUser->fcm_token : null;
 
-                $query->where(function ($q) use ($targetId, $mobile, $fcmToken) {
+                $query->where(function ($q) use ($targetId, $mobile) {
                     $q->where('user_id', $targetId);
-                    if ($mobile) {
+                    if (!empty($mobile)) {
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
-                    }
-                    if ($fcmToken) {
-                        $q->orWhere('recipient', $fcmToken);
                     }
                 });
             } elseif (!$isAdmin && $user) {
                 $mobile = $user->mobile_number;
-                $fcmToken = $user->fcm_token;
 
-                $query->where(function ($q) use ($user, $mobile, $fcmToken) {
+                $query->where(function ($q) use ($user, $mobile) {
                     $q->where('user_id', $user->id);
-                    if ($mobile) {
+                    if (!empty($mobile)) {
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
-                    }
-                    if ($fcmToken) {
-                        $q->orWhere('recipient', $fcmToken);
                     }
                 });
             }
@@ -298,27 +290,17 @@ class FirebaseController extends Controller
                     $roleFilter = [$requestedRole];
                 }
 
-                $hasActiveProfile = \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile');
-                $hasActiveRole = \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_role');
-                $hasUserRole = \Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role');
-
-                $query->where(function ($subQ) use ($roleFilter, $hasActiveProfile, $hasActiveRole, $hasUserRole) {
-                    $subQ->whereHas('user', function ($uq) use ($roleFilter, $hasActiveProfile, $hasActiveRole, $hasUserRole) {
-                        $uq->where(function ($q) use ($roleFilter, $hasActiveProfile, $hasActiveRole, $hasUserRole) {
-                            $q->whereHas('roles', function ($rq) use ($roleFilter) {
-                                $rq->whereIn('role_type', $roleFilter);
-                            });
-                            if ($hasActiveProfile) {
-                                $q->orWhereIn('active_profile', $roleFilter);
-                            }
-                            if ($hasActiveRole) {
-                                $q->orWhereIn('active_role', $roleFilter);
-                            }
-                            if ($hasUserRole) {
-                                $q->orWhereIn('user_role', $roleFilter);
-                            }
+                $query->where(function ($subQ) use ($roleFilter) {
+                    $subQ->whereHas('user', function ($uq) use ($roleFilter) {
+                        $uq->where(function ($q) use ($roleFilter) {
+                            $q->whereIn('active_profile', $roleFilter)
+                              ->orWhereIn('active_role', $roleFilter)
+                              ->orWhereIn('user_role', $roleFilter)
+                              ->orWhereHas('roles', function ($rq) use ($roleFilter) {
+                                  $rq->whereIn('role_type', $roleFilter);
+                              });
                         });
-                    })->orWhereDoesntHave('user');
+                    })->orWhereNull('user_id');
                 });
             }
 
