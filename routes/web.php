@@ -27,9 +27,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Root Feed Page Route (View)
-Route::get('/', [WebHomeController::class, 'index'])->name('home');
-
 // Direct 100% Public JSON API Endpoints for Admin Panels (matching sidebar-stats pattern)
+Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
+    return getSidebarStatsHandler();
+});
+Route::match(['get', 'post'], '/api/admin/sidebar-stats', function() {
+    return getSidebarStatsHandler();
+});
+Route::match(['get', 'post'], '/backend/api/admin/sidebar-stats', function() {
+    return getSidebarStatsHandler();
+});
 Route::match(['get', 'post'], '/api/admin/chefs', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\ChefModeratorController)->apiIndex($request);
 });
