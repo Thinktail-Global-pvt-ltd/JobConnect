@@ -15,9 +15,9 @@ export default function Applications() {
 
   const handleNavigateToCandidateProfile = (applicant, app) => {
     const candidateObj = applicant || app?.applicant || {};
-    const userId = candidateObj.id || candidateObj.user_id || app?.applicant_id || app?.user_id;
+    const targetId = candidateObj.chef_profile_id || candidateObj.chef_profile?.id || candidateObj.chef_id || candidateObj.id || candidateObj.user_id || app?.applicant_id || app?.user_id;
 
-    if (!userId) {
+    if (!targetId) {
       alert("Candidate profile ID not available.");
       return;
     }
@@ -25,9 +25,9 @@ export default function Applications() {
     const role = (candidateObj.role || candidateObj.active_profile || candidateObj.user_role || '').toLowerCase();
     
     if (role.includes('employer') || role.includes('agency')) {
-      navigate(`/admin/employers/${userId}`, { state: { employer: candidateObj } });
+      navigate(`/admin/employers/${targetId}`, { state: { employer: candidateObj } });
     } else {
-      navigate(`/admin/chefs/${userId}`, { state: { chef: candidateObj } });
+      navigate(`/admin/chefs/${targetId}`, { state: { chef: candidateObj } });
     }
   };
 
