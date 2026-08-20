@@ -14,7 +14,13 @@ export const resolveImageUrl = (path) => {
   let clean = String(path).trim();
   if (!clean || clean === 'null' || clean === 'undefined') return null;
 
-  clean = clean.replace('/backend/storage/', '/storage/').replace('/backend/uploads/', '/uploads/');
+  if (clean.includes('/backend/uploads/')) {
+    const sub = '/backend/uploads/' + clean.split('/backend/uploads/')[1];
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${sub}`;
+    }
+    return sub;
+  }
 
   if (clean.includes('/uploads/')) {
     const sub = '/uploads/' + clean.split('/uploads/')[1];
@@ -34,9 +40,8 @@ export const resolveImageUrl = (path) => {
 
   if (clean.startsWith('http://') || clean.startsWith('https://')) {
     if (clean.includes('178.16.138.159') && typeof window !== 'undefined') {
-      const protocol = window.location.protocol;
-      const host = window.location.host;
-      return clean.replace(/http:\/\/178\.16\.138\.159(:[0-9]+)?/, `${protocol}//${host}`);
+      const subPath = clean.replace(/https?:\/\/178\.16\.138\.159(:[0-9]+)?/, '');
+      return `${window.location.origin}${subPath.startsWith('/') ? '' : '/'}${subPath}`;
     }
     return clean;
   }

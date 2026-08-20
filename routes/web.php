@@ -1155,6 +1155,51 @@ Route::match(['get', 'post'], '/api/admin/chefs/{chef}/unpublish', [\App\Http\Co
 Route::match(['get', 'post'], '/api/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
 Route::match(['get', 'post'], '/api/employer/chefs', [\App\Http\Controllers\ChefProfileController::class, 'employerFeed']);
 
+// Universal Upload Image Streaming Routes (Fixes Apache/Nginx 404 & Mixed Content)
+Route::get('/backend/uploads/{file}', function ($file) {
+    $paths = [
+        public_path("uploads/{$file}"),
+        public_path("backend/uploads/{$file}"),
+        base_path("uploads/{$file}"),
+        base_path("backend/uploads/{$file}"),
+        "/var/www/html/backend/uploads/{$file}",
+        "/var/www/jobconnect/public/uploads/{$file}",
+        "/var/www/jobconnect/uploads/{$file}",
+        "/var/www/jobconnect/backend/uploads/{$file}"
+    ];
+
+    foreach ($paths as $path) {
+        if (file_exists($path) && is_file($path)) {
+            $mime = \Illuminate\Support\Facades\File::mimeType($path) ?: 'image/jpeg';
+            return response()->file($path, ['Content-Type' => $mime, 'Access-Control-Allow-Origin' => '*']);
+        }
+    }
+
+    return response()->json(['error' => 'Image file not found'], 404);
+})->where('file', '.*');
+
+Route::get('/uploads/{file}', function ($file) {
+    $paths = [
+        public_path("uploads/{$file}"),
+        public_path("backend/uploads/{$file}"),
+        base_path("uploads/{$file}"),
+        base_path("backend/uploads/{$file}"),
+        "/var/www/html/backend/uploads/{$file}",
+        "/var/www/jobconnect/public/uploads/{$file}",
+        "/var/www/jobconnect/uploads/{$file}",
+        "/var/www/jobconnect/backend/uploads/{$file}"
+    ];
+
+    foreach ($paths as $path) {
+        if (file_exists($path) && is_file($path)) {
+            $mime = \Illuminate\Support\Facades\File::mimeType($path) ?: 'image/jpeg';
+            return response()->file($path, ['Content-Type' => $mime, 'Access-Control-Allow-Origin' => '*']);
+        }
+    }
+
+    return response()->json(['error' => 'Image file not found'], 404);
+})->where('file', '.*');
+
 // Dashboard Analytics Routes
 Route::match(['get', 'post'], '/admin/dashboard-stats', function() {
     return getAdminDashboardAnalytics();
