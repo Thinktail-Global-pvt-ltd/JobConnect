@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { mockApi } from '../services/api';
-import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star } from 'lucide-react';
+import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star, ExternalLink } from 'lucide-react';
 
 export default function Applications() {
+  const navigate = useNavigate();
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('jobs'); // 'jobs' (Grouped view default) or 'all_apps' (Flat list)
@@ -10,6 +12,24 @@ export default function Applications() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [appCategory, setAppCategory] = useState('all'); // 'all', 'job', 'training'
+
+  const handleNavigateToCandidateProfile = (applicant, app) => {
+    const candidateObj = applicant || app?.applicant || {};
+    const userId = candidateObj.id || candidateObj.user_id || app?.applicant_id || app?.user_id;
+
+    if (!userId) {
+      alert("Candidate profile ID not available.");
+      return;
+    }
+
+    const role = (candidateObj.role || candidateObj.active_profile || candidateObj.user_role || '').toLowerCase();
+    
+    if (role.includes('employer') || role.includes('agency')) {
+      navigate(`/admin/employers/${userId}`, { state: { employer: candidateObj } });
+    } else {
+      navigate(`/admin/chefs/${userId}`, { state: { chef: candidateObj } });
+    }
+  };
 
   // Selected detail modal for Candidate Profile
   const [selectedApp, setSelectedApp] = useState(null);
@@ -618,13 +638,17 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                         <tr key={a.id} className="hover:bg-[#f8fafc] transition-colors">
                           
                           {/* Applicant details */}
-                          <td className="py-4.5 px-6 flex items-center gap-3">
+                          <td 
+                            onClick={() => handleNavigateToCandidateProfile(a.applicant, a)}
+                            className="py-4.5 px-6 flex items-center gap-3 cursor-pointer group/cand"
+                            title="Click to view candidate's complete profile page"
+                          >
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-slate-700 shadow-sm ${getAvatarColor(a.applicant?.full_name)}`}>
                               {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
                             </div>
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-extrabold text-slate-900 text-[13px] block leading-tight">{a.applicant?.full_name || 'Anonymous Applicant'}</span>
+                                <span className="font-extrabold text-slate-900 group-hover/cand:text-emerald-700 transition-colors text-[13px] block leading-tight">{a.applicant?.full_name || 'Anonymous Applicant'}</span>
                                 {isTrainingApp && (
                                   <span className="bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
                                     <GraduationCap className="inline w-3 h-3 mr-1" /> Training
@@ -702,11 +726,11 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                           )}
                         </td>
 
-                        {/* Actions links (View Profile Modal & Call Candidate) */}
+                        {/* Actions links (View Complete Profile Page & Call Candidate) */}
                         <td className="py-4.5 px-6 text-center">
                           <div className="flex items-center justify-center gap-2">
-                            <button onClick={() => { setSelectedApp(a); setModalOpen(true); }}
-                                    className="w-8 h-8 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-[#153e69] flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Review Profile">
+                            <button onClick={() => handleNavigateToCandidateProfile(a.applicant, a)}
+                                    className="w-8 h-8 rounded-lg bg-[#153e69] hover:bg-[#12345d] text-white flex items-center justify-center border border-blue-900 transition-colors cursor-pointer shadow-xs" title="View Candidate's Complete Profile Page">
                               <Eye className="w-4 h-4" />
                             </button>
                             
@@ -854,6 +878,18 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
             </div>
 
             <div className="p-6 space-y-5 text-xs font-semibold text-slate-500 text-left">
+              
+              {/* Direct Link Button to Full Profile Page */}
+              <button
+                onClick={() => {
+                  setModalOpen(false);
+                  handleNavigateToCandidateProfile(selectedApp.applicant, selectedApp);
+                }}
+                className="w-full py-2.5 px-4 bg-[#153e69] hover:bg-[#12345d] text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer border border-blue-900"
+              >
+                <User className="w-4 h-4" />
+                <span>Open Candidate's Complete Profile Page &rarr;</span>
+              </button>
               
               {/* Profile details */}
               <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
