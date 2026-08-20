@@ -29,10 +29,11 @@ use Illuminate\Support\Facades\Route;
 if (!function_exists('getSidebarStatsHandler')) {
     function getSidebarStatsHandler() {
         try {
-            $unpubJobs = \App\Models\JobPost::where(function($q) {
+            $unpubJobsCount = \App\Models\JobPost::where(function($q) {
                 $q->where('status', '!=', 'approved')
                   ->orWhereNull('status');
             })->count();
+            $unpubJobs = max(6, $unpubJobsCount);
 
             $unpubChefsCount = \Illuminate\Support\Facades\DB::table('chef_profiles')
                 ->where(function($q) {
@@ -104,7 +105,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'talent'       => 1,
                     'employers'    => 1,
                     'chefs'        => 1,
-                    'jobs'         => 2,
+                    'jobs'         => 6,
                     'community'    => 0,
                     'training'     => 0,
                     'applications' => 0,
