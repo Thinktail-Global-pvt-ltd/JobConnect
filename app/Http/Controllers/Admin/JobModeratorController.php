@@ -97,8 +97,22 @@ class JobModeratorController extends Controller
 
         if (request()->wantsJson() || request()->ajax() || request()->isJson() || request()->is('api/*')) {
             return response()->json([
-                'success' => true,
-                'message' => "Job posting '{$jobModel->title}' has been approved successfully."
+                'success'   => true,
+                'message'   => "Job posting '{$jobModel->title}' has been approved successfully.",
+                'deep_link' => 'jobrito://jobs/' . $jobModel->id,
+                'url'       => 'jobrito://jobs/' . $jobModel->id,
+                'screen'    => 'job_detail',
+                'target_id' => (string)$jobModel->id,
+                'notification' => [
+                    'title'        => "Job Post Approved & Live! 🚀",
+                    'body'         => "Great news! Your job post '{$jobModel->title}' is now approved and live on Jobrito feed.",
+                    'event'        => 'job_approved',
+                    'screen'       => 'job_detail',
+                    'deep_link'    => 'jobrito://jobs/' . $jobModel->id,
+                    'url'          => 'jobrito://jobs/' . $jobModel->id,
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                    'target_id'    => (string)$jobModel->id,
+                ]
             ]);
         }
 
