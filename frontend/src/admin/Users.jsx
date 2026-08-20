@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { mockApi, realApi } from '../services/api';
+import { mockApi, realApi, resolveImageUrl } from '../services/api';
 import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X, Eye, Smartphone, MapPin, Star } from 'lucide-react';
 
 export default function Users() {

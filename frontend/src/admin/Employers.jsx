@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight, MapPin, FileText, Smartphone } from 'lucide-react';
 import axios from 'axios';
-import { realApi } from '../services/api';
+import { realApi, resolveImageUrl } from '../services/api';
 
 export default function Employers() {
   const [employers, setEmployers] = useState([]);
@@ -250,8 +250,17 @@ export default function Employers() {
                     {/* Business Name with avatar */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-white text-[#153e69] border border-[#b9cfbe] flex items-center justify-center font-black font-outfit text-xs shadow-sm shrink-0">
-                          {(emp.name || emp.business_name || emp.full_name || 'E')[0].toUpperCase()}
+                        <div className="w-8 h-8 rounded-xl bg-white text-[#153e69] border border-[#b9cfbe] flex items-center justify-center font-black font-outfit text-xs shadow-sm shrink-0 overflow-hidden">
+                          {resolveImageUrl(emp.profile_photo_path || emp.profile_photo || emp.company_logo_url || emp.logo_url) ? (
+                            <img 
+                              src={resolveImageUrl(emp.profile_photo_path || emp.profile_photo || emp.company_logo_url || emp.logo_url)} 
+                              alt={emp.name || emp.business_name} 
+                              className="w-full h-full object-cover rounded-xl"
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          ) : (
+                            (emp.name || emp.business_name || emp.full_name || 'E')[0].toUpperCase()
+                          )}
                         </div>
                         <div>
                           <span className="font-bold text-slate-900 text-xs text-[13px] block leading-tight">

@@ -58,6 +58,18 @@ class EmployerModeratorController extends Controller
             $emailAddr = optional($empProfile)->business_email ?: ($user->email ?: '');
             $locationHq = optional($empProfile)->business_location ?: ($user->city ?: 'India');
 
+            $rawPhoto = $user->profile_photo_path ?: optional($empProfile)->company_logo_url;
+            $photoUrl = $rawPhoto;
+            if (!empty($rawPhoto)) {
+                if (str_contains($rawPhoto, '178.16.138.159')) {
+                    $sub = str_replace('http://178.16.138.159', '', $rawPhoto);
+                    $sub = str_replace('https://178.16.138.159', '', $sub);
+                    $photoUrl = url($sub);
+                } elseif (!str_starts_with($rawPhoto, 'http://') && !str_starts_with($rawPhoto, 'https://')) {
+                    $photoUrl = url('/' . ltrim($rawPhoto, '/'));
+                }
+            }
+
             return [
                 'id'                   => $user->id,
                 'name'                 => $busName,
@@ -73,29 +85,75 @@ class EmployerModeratorController extends Controller
                 'status'               => $user->is_suspended ? 'Suspended' : 'Active',
                 'is_suspended'         => (bool) $user->is_suspended,
                 'created_at'           => $user->created_at ? $user->created_at->toIso8601String() : null,
+                'profile_photo_path'   => $photoUrl,
+                'profile_photo'        => $photoUrl,
+                'company_logo_url'     => $photoUrl,
                 'role_type'            => optional($user->roles->where('is_active', 1)->first())->role_type ?? 'employer',
                 'employer_profile'     => $empProfile,
             ];
         });
 
-        // Dynamic Growth Overview Statistics
-        $totalActiveEmployers = User::where('is_suspended', false)
-            ->where(function ($q) {
-                $q->whereHas('roles', function ($rq) {
-                    $rq->whereIn('role_type', ['employer', 'agency']);
-                })->orWhereHas('employerProfile');
-            })->count();
-
-        $totalNewPostings = JobPost::count();
-        $pendingVerificationCount = User::where('is_suspended', false)
-            ->whereHas('employerProfile', function ($epq) {
-                $epq->where('is_completed', false);
-            })->count();
-
         return response()->json([
             'success' => true,
             'total' => $employers->count(),
             'employers' => $employers
+        ]);
+    }
+
+    /**
+     * Show single employer detail by ID.
+     */
+    public function show($id)
+    {
+        $user = User::with(['employerProfile', 'jobPosts'])->find($id);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Employer user not found'], 404);
+        }
+
+        $empProfile = $user->employerProfile;
+        $busName = optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company'));
+        $contactName = optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A');
+        $phoneNum = optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A');
+        $emailAddr = optional($empProfile)->business_email ?: ($user->email ?: '');
+        $locationHq = optional($empProfile)->business_location ?: ($user->city ?: 'India');
+
+        $rawPhoto = $user->profile_photo_path ?: optional($empProfile)->company_logo_url;
+        $photoUrl = $rawPhoto;
+        if (!empty($rawPhoto)) {
+            if (str_contains($rawPhoto, '178.16.138.159')) {
+                $sub = str_replace('http://178.16.138.159', '', $rawPhoto);
+                $sub = str_replace('https://178.16.138.159', '', $sub);
+                $photoUrl = url($sub);
+            } elseif (!str_starts_with($rawPhoto, 'http://') && !str_starts_with($rawPhoto, 'https://')) {
+                $photoUrl = url('/' . ltrim($rawPhoto, '/'));
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'employer' => [
+                'id'                  => $user->id,
+                'name'                => $busName,
+                'business_name'       => $busName,
+                'contact'             => $contactName,
+                'contact_person_name' => $contactName,
+                'phone'               => $phoneNum,
+                'mobile_number'       => $phoneNum,
+                'email'               => $emailAddr,
+                'hq'                  => $locationHq,
+                'business_location'   => $locationHq,
+                'total_jobs'          => $user->jobPosts ? $user->jobPosts->count() : 0,
+                'active_jobs'         => $user->jobPosts ? $user->jobPosts->whereIn('status', ['approved', 'published'])->count() : 0,
+                'pending_jobs'        => $user->jobPosts ? $user->jobPosts->whereNotIn('status', ['approved', 'published'])->count() : 0,
+                'status'              => $user->is_suspended ? 'Suspended' : 'Active',
+                'is_suspended'        => (bool) $user->is_suspended,
+                'created_at'          => $user->created_at ? $user->created_at->toIso8601String() : null,
+                'profile_photo_path'  => $photoUrl,
+                'profile_photo'       => $photoUrl,
+                'company_logo_url'    => $photoUrl,
+                'jobs'                => $user->jobPosts,
+                'employer_profile'    => $empProfile,
+            ]
         ]);
     }
 

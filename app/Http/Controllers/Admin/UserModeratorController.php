@@ -73,7 +73,26 @@ class UserModeratorController extends Controller
             }
         }
 
-        $users = $query->latest()->get();
+        $rawUsers = $query->latest()->get();
+
+        $users = $rawUsers->map(function ($user) {
+            $rawPhoto = $user->profile_photo_path ?: $user->profile_photo;
+            $photoUrl = $rawPhoto;
+            if (!empty($rawPhoto)) {
+                if (str_contains($rawPhoto, '178.16.138.159')) {
+                    $sub = str_replace('http://178.16.138.159', '', $rawPhoto);
+                    $sub = str_replace('https://178.16.138.159', '', $sub);
+                    $photoUrl = url($sub);
+                } elseif (!str_starts_with($rawPhoto, 'http://') && !str_starts_with($rawPhoto, 'https://')) {
+                    $photoUrl = url('/' . ltrim($rawPhoto, '/'));
+                }
+            }
+
+            $user->profile_photo_path = $photoUrl;
+            $user->profile_photo = $photoUrl;
+            $user->avatar = $photoUrl;
+            return $user;
+        });
 
         return response()->json([
             'success' => true,

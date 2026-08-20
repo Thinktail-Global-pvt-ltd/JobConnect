@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, Sparkles, Palette, LayoutDashboard, UsersRound, BriefcaseBusiness, Share2, Radio, GraduationCap, Utensils, FileText, Building2, CircleHelp, Image, Settings2 } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, Sparkles, Palette, LayoutDashboard, UsersRound, BriefcaseBusiness, Share2, Radio, GraduationCap, Utensils, FileText, Building2, CircleHelp, Image, Settings2, CheckCircle2 } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import { mockApi } from '../services/api';
 import logoImg from '../assets/Jobrito full logo.png';
 import orbLogo from '../assets/jobrito full logo.png';
-// import orbLogo from '../assets/jobrito-orb-logo.png';
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, setTheme, THEMES } = useTheme();
   const [usersOpen, setUsersOpen] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -90,7 +90,7 @@ export default function Layout({ children }) {
   }, [location.pathname]);
 
   const handleMarkRead = async (id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    setNotifications(prev => prev.map(n => (n && n.id === id) ? { ...n, is_read: true } : n));
     setUnreadCount(prev => Math.max(0, prev - 1));
     setCounts(prev => ({ ...prev, notifications: Math.max(0, (prev.notifications || 1) - 1) }));
     try {
@@ -99,8 +99,31 @@ export default function Layout({ children }) {
     } catch (e) {}
   };
 
+  const handleNotifClick = (item) => {
+    if (!item) return;
+    if (item.id) handleMarkRead(item.id);
+    setNotifOpen(false);
+
+    const deeplink = item.deeplink || item.target_url || item.url || item.path;
+    if (deeplink) {
+      if (deeplink.startsWith('http://') || deeplink.startsWith('https://')) {
+        window.location.href = deeplink;
+      } else {
+        navigate(deeplink);
+      }
+    } else if (item.type === 'job_approved' || item.type === 'job_created') {
+      navigate('/admin/jobs');
+    } else if (item.type === 'chef_approved' || item.type === 'chef_onboarded') {
+      navigate('/admin/chefs');
+    } else if (item.type === 'application_received') {
+      navigate('/admin/applications');
+    } else {
+      navigate('/admin/notifications');
+    }
+  };
+
   const handleMarkAllRead = async () => {
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setNotifications(prev => prev.map(n => (n ? { ...n, is_read: true } : n)));
     setUnreadCount(0);
     setCounts(prev => ({ ...prev, notifications: 0 }));
     try {
@@ -442,17 +465,17 @@ export default function Layout({ children }) {
 
                   {/* Notification Items List */}
                   <div className="max-h-80 overflow-y-auto divide-y divide-[#1E293B]/60">
-                    {notifications.filter(item => !item.is_read).length === 0 ? (
+                    {(!Array.isArray(notifications) || notifications.filter(item => item && typeof item === 'object' && !item.is_read).length === 0) ? (
                       <div className="p-8 text-center text-slate-400 text-xs font-semibold flex flex-col items-center justify-center gap-1.5">
                         <CheckCircle2 className="w-6 h-6 text-emerald-400 mb-1" />
                         <span className="text-white font-bold">All caught up!</span>
                         <span className="text-[11px] text-slate-400">No unread notifications</span>
                       </div>
                     ) : (
-                      notifications.filter(item => !item.is_read).map(item => (
+                      notifications.filter(item => item && typeof item === 'object' && !item.is_read).map((item, idx) => (
                         <div 
-                          key={item.id} 
-                          onClick={() => handleMarkRead(item.id)}
+                          key={item.id || idx} 
+                          onClick={() => handleNotifClick(item)}
                           className="p-4 transition-colors cursor-pointer flex gap-3 items-start bg-[#0F172A]/70 hover:bg-[#1E293B]/80"
                         >
                           {/* Type Icon Badge */}
@@ -462,18 +485,18 @@ export default function Layout({ children }) {
 
                           <div className="flex-grow min-w-0">
                             <div className="flex items-center justify-between gap-2 mb-1">
-                              <span className="font-extrabold text-white text-xs truncate block">{item.title}</span>
-                              <span className="text-[9px] font-bold text-slate-400 shrink-0">{item.time_ago}</span>
+                              <span className="font-extrabold text-white text-xs truncate block">{item.title || 'Notification'}</span>
+                              <span className="text-[9px] font-bold text-slate-400 shrink-0">{item.time_ago || 'Now'}</span>
                             </div>
 
                             <p className="text-[11px] font-semibold text-slate-300 leading-snug line-clamp-2">
-                              {item.body}
+                              {item.body || item.message || ''}
                             </p>
 
                             {/* Recipient User Badge */}
                             <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-400">
                               <span className="truncate">
-                                To: <strong className="text-emerald-400">{item.recipient_name}</strong> ({item.recipient_phone})
+                                To: <strong className="text-emerald-400">{item.recipient_name || 'User'}</strong> ({item.recipient_phone || ''})
                               </span>
                               <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
                             </div>
@@ -484,10 +507,17 @@ export default function Layout({ children }) {
                   </div>
 
                   {/* Dropdown Footer */}
-                  <div className="px-5 py-2.5 bg-[#0F172A]/80 border-t border-[#1E293B] text-center">
+                  <div className="px-5 py-2.5 bg-[#0F172A]/80 border-t border-[#1E293B] flex items-center justify-between">
                     <span className="text-[10px] font-extrabold text-slate-400">
-                      Total {notifications.length} FCM notifications recorded in database
+                      Total {notifications.length} notifications
                     </span>
+                    <Link 
+                      to="/admin/notifications" 
+                      onClick={() => setNotifOpen(false)}
+                      className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                      View All Logs &rarr;
+                    </Link>
                   </div>
                 </div>
               )}

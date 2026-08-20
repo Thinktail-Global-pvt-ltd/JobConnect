@@ -149,6 +149,12 @@ Route::match(['get', 'post'], '/api/admin/employers', function(\Illuminate\Http\
 Route::match(['get', 'post'], '/backend/api/admin/employers', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\EmployerModeratorController)->index($request);
 });
+Route::match(['get', 'post'], '/api/admin/employers/{id}', function($id) {
+    return (new \App\Http\Controllers\Admin\EmployerModeratorController)->show($id);
+});
+Route::match(['get', 'post'], '/backend/api/admin/employers/{id}', function($id) {
+    return (new \App\Http\Controllers\Admin\EmployerModeratorController)->show($id);
+});
 Route::match(['get', 'post'], '/api/admin/jobs', function(\Illuminate\Http\Request $request) {
     if ($request->isMethod('post')) {
         return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);

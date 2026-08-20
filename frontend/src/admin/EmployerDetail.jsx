@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { Eye, ShieldCheck, Mail, MapPin, Smartphone, UserSquare2, Ban, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
-import { realApi, mockApi } from '../services/api';
+import { realApi, mockApi, resolveImageUrl } from '../services/api';
 
 export default function EmployerDetail() {
   const { id } = useParams();
   const location = useLocation();
   const [employer, setEmployer] = useState(location.state?.employer || null);
+  const [imgFailed, setImgFailed] = useState(false);
   const [loading, setLoading] = useState(!location.state?.employer);
   const [suspended, setSuspended] = useState(
     location.state?.employer 
@@ -97,6 +98,9 @@ export default function EmployerDetail() {
 
   const jobsList = employer.jobs || [];
 
+  const rawPhoto = employer.profile_photo_path || employer.profile_photo || employer.company_logo_url || employer.logo_url || employer.photo_url || employer.avatar;
+  const photoUrl = resolveImageUrl(rawPhoto);
+
   return (
     <div className="space-y-6 text-left">
       
@@ -111,8 +115,17 @@ export default function EmployerDetail() {
       <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         <div className="flex items-center gap-4.5">
           {/* Logo square */}
-          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-2xl shadow-xs font-outfit font-black text-[#153e69] shrink-0">
-            {name.charAt(0).toUpperCase()}
+          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-2xl shadow-xs font-outfit font-black text-[#153e69] shrink-0 overflow-hidden">
+            {(photoUrl && !imgFailed) ? (
+              <img 
+                src={photoUrl} 
+                alt={name} 
+                className="w-full h-full object-cover" 
+                onError={() => setImgFailed(true)}
+              />
+            ) : (
+              (name || 'E').charAt(0).toUpperCase()
+            )}
           </div>
 
           <div className="space-y-1.5">
