@@ -9,6 +9,45 @@ export const realApi = axios.create({
   }
 });
 
+export const resolveImageUrl = (path) => {
+  if (!path) return null;
+  let clean = String(path).trim();
+  if (!clean || clean === 'null' || clean === 'undefined') return null;
+
+  clean = clean.replace('/backend/storage/', '/storage/').replace('/backend/uploads/', '/uploads/');
+
+  if (clean.includes('/uploads/')) {
+    const sub = '/uploads/' + clean.split('/uploads/')[1];
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${sub}`;
+    }
+    return sub;
+  }
+
+  if (clean.includes('/storage/')) {
+    const sub = '/storage/' + clean.split('/storage/')[1];
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${sub}`;
+    }
+    return sub;
+  }
+
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    if (clean.includes('178.16.138.159') && typeof window !== 'undefined') {
+      const protocol = window.location.protocol;
+      const host = window.location.host;
+      return clean.replace(/http:\/\/178\.16\.138\.159(:[0-9]+)?/, `${protocol}//${host}`);
+    }
+    return clean;
+  }
+
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin;
+    return `${origin}${clean.startsWith('/') ? '' : '/'}${clean}`;
+  }
+  return clean;
+};
+
 // Inject Sanctum Auth Token in headers
 realApi.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token');

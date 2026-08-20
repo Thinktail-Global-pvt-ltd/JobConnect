@@ -21,7 +21,7 @@ import {
   Link2
 } from 'lucide-react';
 import axios from 'axios';
-import { realApi, mockApi } from '../services/api';
+import { realApi, mockApi, resolveImageUrl } from '../services/api';
 
 export default function ChefDetail() {
   const { id } = useParams();
@@ -147,22 +147,7 @@ export default function ChefDetail() {
     ? chef.skills 
     : (chef.skills ? String(chef.skills).split(',').map(s => s.trim()).filter(Boolean) : []);
 
-  const resolveImageUrl = (path) => {
-    if (!path) return null;
-    let clean = String(path).replace('/backend/storage/', '/storage/');
-    if (clean.startsWith('http://') || clean.startsWith('https://')) {
-      return clean;
-    }
-    if (typeof window !== 'undefined') {
-      const origin = window.location.origin;
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        return `http://localhost:8000${clean.startsWith('/') ? '' : '/'}${clean}`;
-      }
-      return `${origin}${clean.startsWith('/') ? '' : '/'}${clean}`;
-    }
-    return clean;
-  };
-
+  const [imgFailed, setImgFailed] = useState(false);
   const rawPhoto = chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url;
   const photoUrl = resolveImageUrl(rawPhoto);
 
@@ -223,16 +208,16 @@ export default function ChefDetail() {
             
             {/* Chef Profile Image */}
             <div className="w-32 h-32 rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden shadow-xs relative mb-4">
-              {photoUrl ? (
+              {(photoUrl && !imgFailed) ? (
                 <img 
                   src={photoUrl} 
                   alt={name} 
                   className="w-full h-full object-cover"
-                  onError={(e) => { e.target.style.display = 'none'; }}
+                  onError={() => setImgFailed(true)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center font-outfit font-black text-slate-350 text-4xl bg-slate-50">
-                  {name.charAt(0).toUpperCase()}
+                <div className="w-full h-full flex items-center justify-center font-outfit font-black text-slate-350 text-4xl bg-slate-100">
+                  {(name || 'C').charAt(0).toUpperCase()}
                 </div>
               )}
             </div>

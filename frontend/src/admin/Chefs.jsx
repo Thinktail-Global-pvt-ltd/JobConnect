@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Filter, Eye, EyeOff, Check, X, UserPlus, RefreshCw, Smartphone, List, Signal, Wifi, Battery, MapPin, Building2, Calendar, Star, ArrowUpRight, Award, CheckCircle2 } from 'lucide-react';
-import { mockApi } from '../services/api';
+import { mockApi, resolveImageUrl } from '../services/api';
 
 export default function Chefs() {
   const [viewMode, setViewMode] = useState('phone'); // 'phone' or 'table'
@@ -316,9 +316,9 @@ export default function Chefs() {
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-3">
                               <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
-                                {(chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url) ? (
+                                {resolveImageUrl(chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url) ? (
                                   <img 
-                                    src={chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url} 
+                                    src={resolveImageUrl(chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url)} 
                                     alt={name} 
                                     className="w-full h-full object-cover rounded-full"
                                     onError={(e) => { e.target.style.display = 'none'; }}

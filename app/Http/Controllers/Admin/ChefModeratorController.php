@@ -99,7 +99,13 @@ class ChefModeratorController extends Controller
                 }
                 $photoUrl = null;
                 if (!empty($photoPath)) {
-                    if (str_starts_with($photoPath, 'http://') || str_starts_with($photoPath, 'https://')) {
+                    if (str_contains($photoPath, '/uploads/')) {
+                        $uploadSubPath = '/uploads/' . explode('/uploads/', $photoPath)[1];
+                        $photoUrl = url($uploadSubPath);
+                    } elseif (str_contains($photoPath, '/storage/')) {
+                        $storageSubPath = '/storage/' . explode('/storage/', $photoPath)[1];
+                        $photoUrl = url($storageSubPath);
+                    } elseif (str_starts_with($photoPath, 'http://') || str_starts_with($photoPath, 'https://')) {
                         $photoUrl = $photoPath;
                     } else {
                         $photoUrl = url('/' . ltrim($photoPath, '/'));
