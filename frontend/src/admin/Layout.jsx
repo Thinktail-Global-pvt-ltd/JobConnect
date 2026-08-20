@@ -90,6 +90,9 @@ export default function Layout({ children }) {
   }, [location.pathname]);
 
   const handleMarkRead = async (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    setCounts(prev => ({ ...prev, notifications: Math.max(0, (prev.notifications || 1) - 1) }));
     try {
       await mockApi.markNotificationRead(id);
       fetchNotifications();
@@ -97,6 +100,9 @@ export default function Layout({ children }) {
   };
 
   const handleMarkAllRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+    setCounts(prev => ({ ...prev, notifications: 0 }));
     try {
       await mockApi.markAllNotificationsRead();
       fetchNotifications();
@@ -436,20 +442,22 @@ export default function Layout({ children }) {
 
                   {/* Notification Items List */}
                   <div className="max-h-80 overflow-y-auto divide-y divide-[#1E293B]/60">
-                    {notifications.length === 0 ? (
-                      <div className="p-6 text-center text-slate-400 text-xs font-semibold">
-                        <Bell className="w-4 h-4" />
+                    {notifications.filter(item => !item.is_read).length === 0 ? (
+                      <div className="p-8 text-center text-slate-400 text-xs font-semibold flex flex-col items-center justify-center gap-1.5">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-400 mb-1" />
+                        <span className="text-white font-bold">All caught up!</span>
+                        <span className="text-[11px] text-slate-400">No unread notifications</span>
                       </div>
                     ) : (
-                      notifications.map(item => (
+                      notifications.filter(item => !item.is_read).map(item => (
                         <div 
                           key={item.id} 
                           onClick={() => handleMarkRead(item.id)}
-                          className={`p-4 transition-colors cursor-pointer flex gap-3 items-start ${!item.is_read ? 'bg-[#0F172A]/70 hover:bg-[#1E293B]/80' : 'hover:bg-[#1E293B]/40 opacity-85'}`}
+                          className="p-4 transition-colors cursor-pointer flex gap-3 items-start bg-[#0F172A]/70 hover:bg-[#1E293B]/80"
                         >
                           {/* Type Icon Badge */}
                           <div className="w-8 h-8 rounded-xl bg-[#1E293B] border border-slate-700/60 flex items-center justify-center text-sm shrink-0 mt-0.5">
-                            {item.type === 'job_approved' ? <BriefcaseBusiness className="w-4 h-4" /> : item.type === 'chef_approved' ? <Utensils className="w-4 h-4" /> : item.type === 'application_received' ? <UsersRound className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+                            {item.type === 'job_approved' ? <BriefcaseBusiness className="w-4 h-4 text-emerald-400" /> : item.type === 'chef_approved' ? <Utensils className="w-4 h-4 text-amber-400" /> : item.type === 'application_received' ? <UsersRound className="w-4 h-4 text-sky-400" /> : <Bell className="w-4 h-4 text-emerald-400" />}
                           </div>
 
                           <div className="flex-grow min-w-0">
@@ -467,9 +475,7 @@ export default function Layout({ children }) {
                               <span className="truncate">
                                 To: <strong className="text-emerald-400">{item.recipient_name}</strong> ({item.recipient_phone})
                               </span>
-                              {!item.is_read && (
-                                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                              )}
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
                             </div>
                           </div>
                         </div>
