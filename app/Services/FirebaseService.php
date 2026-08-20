@@ -21,13 +21,60 @@ class FirebaseService
     public function sendPushNotification(string $deviceToken, string $title, string $body, array $data = []): array
     {
         try {
-            $notification = Notification::create($title, $body);
-            $message = CloudMessage::withTarget('token', $deviceToken)
-                ->withNotification($notification);
-
-            if (!empty($data)) {
-                $message = $message->withData($data);
+            // Auto-resolve deep link attributes if missing
+            $event = $data['event'] ?? ($data['type'] ?? 'general');
+            
+            if (empty($data['screen'])) {
+                if (in_array($event, ['profile_completion', 'complete_profile', 'profile_reminder']) || str_contains(strtolower($title), 'complete your profile')) {
+                    $data['screen'] = 'profile_completion';
+                } elseif (in_array($event, ['job_approved', 'job_alert', 'job_created', 'job_rejected']) || str_contains(strtolower($title), 'job')) {
+                    $data['screen'] = 'job_detail';
+                } elseif (in_array($event, ['candidate_shortlisted', 'employer_shortlisted_candidate', 'application_status_change']) || str_contains(strtolower($title), 'shortlisted') || str_contains(strtolower($title), 'application')) {
+                    $data['screen'] = 'application_detail';
+                } elseif (in_array($event, ['chef_approved', 'chef_booking']) || str_contains(strtolower($title), 'chef')) {
+                    $data['screen'] = 'chef_detail';
+                } else {
+                    $data['screen'] = 'notifications';
+                }
             }
+
+            if (empty($data['deep_link'])) {
+                if ($data['screen'] === 'profile_completion') {
+                    $data['deep_link'] = 'jobrito://complete-profile';
+                } elseif ($data['screen'] === 'job_detail' && !empty($data['job_id'])) {
+                    $data['deep_link'] = 'jobrito://jobs/' . $data['job_id'];
+                } elseif ($data['screen'] === 'application_detail' && !empty($data['application_id'])) {
+                    $data['deep_link'] = 'jobrito://applications/' . $data['application_id'];
+                } elseif ($data['screen'] === 'chef_detail' && !empty($data['chef_id'])) {
+                    $data['deep_link'] = 'jobrito://chefs/' . $data['chef_id'];
+                } else {
+                    $data['deep_link'] = 'jobrito://notifications';
+                }
+            }
+
+            if (empty($data['url'])) {
+                $data['url'] = $data['deep_link'];
+            }
+
+            if (empty($data['click_action'])) {
+                $data['click_action'] = 'FLUTTER_NOTIFICATION_CLICK';
+            }
+
+            if (empty($data['target_id'])) {
+                $data['target_id'] = (string)($data['job_id'] ?? ($data['application_id'] ?? ($data['chef_id'] ?? '')));
+            }
+
+            $notification = Notification::create($title, $body);
+            
+            // Format all values in data payload as strings for FCM compliance
+            $stringifiedData = [];
+            foreach ($data as $key => $val) {
+                $stringifiedData[$key] = is_array($val) ? json_encode($val) : (string)$val;
+            }
+
+            $message = CloudMessage::withTarget('token', $deviceToken)
+                ->withNotification($notification)
+                ->withData($stringifiedData);
 
             $this->messaging->send($message);
 

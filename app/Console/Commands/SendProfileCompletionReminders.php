@@ -68,6 +68,21 @@ class SendProfileCompletionReminders extends Command
                 continue;
             }
 
+            // DEDUPLICATION CHECK: Prevent multiple popups for the same user in 24 hours
+            $alreadySentToday = UserNotificationHistory::where('user_id', $user->id)
+                ->where(function($q) {
+                    $q->where('type', 'profile_completion')
+                      ->orWhere('type', 'complete_profile')
+                      ->orWhere('title', 'like', '%Complete Your Profile%');
+                })
+                ->where('created_at', '>=', now()->subHours(24))
+                ->exists();
+
+            if ($alreadySentToday) {
+                $this->line("Skipped User #{$user->id} (Reminder already sent in last 24 hours)");
+                continue;
+            }
+
             // Build customized title & body message based on role & missing percentage
             $userName = !empty($user->full_name) ? $user->full_name : 'User';
             $title = "Complete Your Profile (" . $completeness . "% Done) 🚀";
@@ -92,34 +107,48 @@ class SendProfileCompletionReminders extends Command
                 }
             }
 
+            // Deep link payload for mobile app
+            $payload = [
+                'event' => 'profile_completion',
+                'type' => 'profile_completion',
+                'screen' => 'profile_completion',
+                'deep_link' => 'jobrito://complete-profile',
+                'url' => 'jobrito://complete-profile',
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                'user_id' => (string)$user->id,
+                'completeness' => (string)$completeness,
+                'role' => (string)$activeRole,
+            ];
+
             // Send Push Notification
             $status = 'failed';
-            $meta = [];
+            $meta = $payload;
             if (!empty($fcmToken)) {
                 try {
-                    $result = $firebaseService->sendPushNotification($fcmToken, $title, $body);
+                    $result = $firebaseService->sendPushNotification($fcmToken, $title, $body, $payload);
                     $status = 'sent';
-                    $meta = is_array($result) ? $result : ['result' => $result];
+                    $meta = array_merge($payload, is_array($result) ? $result : ['result' => $result]);
                     $sentCount++;
                 } catch (\Throwable $e) {
                     $status = 'failed';
-                    $meta = ['error' => $e->getMessage()];
+                    $meta = array_merge($payload, ['error' => $e->getMessage()]);
                     $failedCount++;
                 }
             } else {
                 $status = 'failed_no_token';
-                $meta = ['reason' => 'No active FCM token found for user'];
+                $meta = array_merge($payload, ['reason' => 'No active FCM token found for user']);
                 $failedCount++;
             }
 
-            // Log entry into database notification history table
+            // Log entry into database notification history table with type profile_completion
             UserNotificationHistory::create([
                 'user_id' => $user->id,
-                'type' => 'fcm',
+                'type' => 'profile_completion',
                 'recipient' => $fcmToken ?: 'no_token',
                 'title' => $title,
                 'body' => $body,
                 'status' => $status,
+                'is_read' => false,
                 'metadata' => $meta,
             ]);
 

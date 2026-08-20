@@ -98,7 +98,12 @@ class NotificationTriggerService
             $title = "Job Post Created Successfully 🎉";
             $body = "Your job post '{$job->title}' at {$job->company} has been created and is waiting for admin approval.";
             self::sendToUser($creator, $title, $body, [
-                'job_id' => $job->id,
+                'job_id' => (string)$job->id,
+                'target_id' => (string)$job->id,
+                'screen' => 'job_detail',
+                'deep_link' => 'jobrito://jobs/' . $job->id,
+                'url' => 'jobrito://jobs/' . $job->id,
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 'event' => 'job_created',
                 'status' => 'pending'
             ]);
@@ -123,16 +128,35 @@ class NotificationTriggerService
         $title = "Job Post Approved & Live! 🚀";
         $body = "Great news! Your job post '{$jobTitle}' at {$companyName} is now approved and live on Jobrito feed.";
 
+        $employerPayload = [
+            'job_id' => (string)$job->id,
+            'target_id' => (string)$job->id,
+            'screen' => 'job_detail',
+            'deep_link' => 'jobrito://jobs/' . $job->id,
+            'url' => 'jobrito://jobs/' . $job->id,
+            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            'event' => 'job_approved'
+        ];
+
         if ($creator) {
-            self::sendToUser($creator->id, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
+            self::sendToUser($creator->id, $title, $body, $employerPayload);
         } else {
-            // Persist notification for default employer / user if creator not explicitly specified
-            self::sendToUser($creatorId ?: 47, $title, $body, ['job_id' => $job->id, 'event' => 'job_approved']);
+            self::sendToUser($creatorId ?: 47, $title, $body, $employerPayload);
         }
 
         // 2. Broadcast alert to active Chefs / Job Seekers
         $titleChef = "New Job Alert: {$jobTitle} 💼";
         $bodyChef = "{$companyName} is hiring for '{$jobTitle}' in {$jobLocation}. Apply now!";
+
+        $chefPayload = [
+            'job_id' => (string)$job->id,
+            'target_id' => (string)$job->id,
+            'screen' => 'job_detail',
+            'deep_link' => 'jobrito://jobs/' . $job->id,
+            'url' => 'jobrito://jobs/' . $job->id,
+            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            'event' => 'job_alert'
+        ];
 
         $chefUserIds = \App\Models\UserRole::whereIn('role_type', ['chef', 'job_seeker', 'talent'])->pluck('user_id')->toArray();
         if (empty($chefUserIds)) {
@@ -142,7 +166,7 @@ class NotificationTriggerService
         $uniqueChefIds = array_unique($chefUserIds);
         foreach ($uniqueChefIds as $candId) {
             if ($candId != $creatorId) {
-                self::sendToUser($candId, $titleChef, $bodyChef, ['job_id' => $job->id, 'event' => 'job_alert']);
+                self::sendToUser($candId, $titleChef, $bodyChef, $chefPayload);
             }
         }
     }
@@ -158,7 +182,15 @@ class NotificationTriggerService
         $title = "Job Post Update 📋";
         $body = "Your job post '{$jobTitle}' was reviewed and not approved at this time." . ($reason ? " Reason: {$reason}" : "");
 
-        self::sendToUser($creatorId ?: 47, $title, $body, ['job_id' => $job->id, 'event' => 'job_rejected']);
+        self::sendToUser($creatorId ?: 47, $title, $body, [
+            'job_id' => (string)$job->id,
+            'target_id' => (string)$job->id,
+            'screen' => 'job_detail',
+            'deep_link' => 'jobrito://jobs/' . $job->id,
+            'url' => 'jobrito://jobs/' . $job->id,
+            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            'event' => 'job_rejected'
+        ]);
     }
 
     /**
@@ -220,9 +252,14 @@ class NotificationTriggerService
         // 1. Notify Applicant (Chef / Job Seeker)
         if ($applicant) {
             self::sendToUser($applicant, $titleApplicant, $bodyApplicant, [
-                'application_id' => $application->id,
-                'job_id' => $application->job_post_id,
-                'status' => $newStatus,
+                'application_id' => (string)$application->id,
+                'target_id' => (string)$application->id,
+                'job_id' => (string)$application->job_post_id,
+                'screen' => 'application_detail',
+                'deep_link' => 'jobrito://applications/' . $application->id,
+                'url' => 'jobrito://applications/' . $application->id,
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                'status' => (string)$newStatus,
                 'event' => 'candidate_shortlisted'
             ]);
         }
@@ -231,10 +268,15 @@ class NotificationTriggerService
         $employerId = $application->employer_id ?: ($job ? $job->created_by : null);
         if ($employerId) {
             self::sendToUser($employerId, $titleEmployer, $bodyEmployer, [
-                'application_id' => $application->id,
-                'job_id' => $application->job_post_id,
-                'applicant_id' => $application->applicant_id,
-                'status' => $newStatus,
+                'application_id' => (string)$application->id,
+                'target_id' => (string)$application->id,
+                'job_id' => (string)$application->job_post_id,
+                'applicant_id' => (string)$application->applicant_id,
+                'screen' => 'application_detail',
+                'deep_link' => 'jobrito://applications/' . $application->id,
+                'url' => 'jobrito://applications/' . $application->id,
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                'status' => (string)$newStatus,
                 'event' => 'employer_shortlisted_candidate'
             ]);
         }

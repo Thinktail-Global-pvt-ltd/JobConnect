@@ -336,6 +336,29 @@ class FirebaseController extends Controller
                     } catch (\Throwable $e) {}
                 }
 
+                $meta = is_array($item->metadata) ? $item->metadata : (json_decode($item->metadata ?? '[]', true) ?: []);
+                $screen = $meta['screen'] ?? null;
+                $deepLink = $meta['deep_link'] ?? ($meta['url'] ?? null);
+
+                if (!$screen) {
+                    if (in_array($item->type, ['profile_completion', 'complete_profile']) || str_contains(strtolower($item->title ?? ''), 'complete your profile')) {
+                        $screen = 'profile_completion';
+                        $deepLink = 'jobrito://complete-profile';
+                    } elseif (str_contains(strtolower($item->title ?? ''), 'job')) {
+                        $screen = 'job_detail';
+                        $deepLink = isset($meta['job_id']) ? 'jobrito://jobs/' . $meta['job_id'] : 'jobrito://jobs';
+                    } elseif (str_contains(strtolower($item->title ?? ''), 'candidate') || str_contains(strtolower($item->title ?? ''), 'application') || str_contains(strtolower($item->title ?? ''), 'shortlisted')) {
+                        $screen = 'application_detail';
+                        $deepLink = isset($meta['application_id']) ? 'jobrito://applications/' . $meta['application_id'] : 'jobrito://applications';
+                    } elseif (str_contains(strtolower($item->title ?? ''), 'chef')) {
+                        $screen = 'chef_detail';
+                        $deepLink = isset($meta['chef_id']) ? 'jobrito://chefs/' . $meta['chef_id'] : 'jobrito://chefs';
+                    } else {
+                        $screen = 'notifications';
+                        $deepLink = 'jobrito://notifications';
+                    }
+                }
+
                 return [
                     'id' => $item->id,
                     'user_id' => $item->user_id,
@@ -344,6 +367,12 @@ class FirebaseController extends Controller
                     'recipient_role' => $recipientUser ? ($recipientUser->active_profile ?: 'user') : 'user',
                     'recipient_photo' => $recipientUser ? $recipientUser->profile_photo_path : null,
                     'type' => $item->type ?: 'fcm',
+                    'event' => $meta['event'] ?? ($item->type ?: 'fcm'),
+                    'screen' => $screen,
+                    'deep_link' => $deepLink,
+                    'url' => $deepLink,
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                    'target_id' => (string)($meta['job_id'] ?? ($meta['application_id'] ?? ($meta['chef_id'] ?? ''))),
                     'recipient' => $item->recipient,
                     'title' => $item->title,
                     'body' => $item->body,
@@ -352,7 +381,7 @@ class FirebaseController extends Controller
                     'created_at' => $item->created_at ? $item->created_at->toDateTimeString() : null,
                     'created_at_formatted' => $item->created_at ? $item->created_at->format('j M Y, h:i A') : 'N/A',
                     'time_ago' => $item->created_at ? $item->created_at->diffForHumans() : 'Just now',
-                    'metadata' => $item->metadata,
+                    'metadata' => $meta,
                 ];
             });
 
