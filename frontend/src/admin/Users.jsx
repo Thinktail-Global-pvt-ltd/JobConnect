@@ -114,13 +114,32 @@ export default function Users() {
     setModalType('user_detail');
     setModalLoading(true);
     try {
+      let fullUser = userItem;
+      try {
+        const res = await realApi.get(`/api/admin/users/${userItem.id}`);
+        if (res.data?.success && res.data.user) {
+          fullUser = { ...userItem, ...res.data.user };
+        }
+      } catch (e) {
+        try {
+          const res2 = await axios.get(`/backend/api/admin/users/${userItem.id}`);
+          if (res2.data?.success && res2.data.user) {
+            fullUser = { ...userItem, ...res2.data.user };
+          }
+        } catch (e2) {}
+      }
+
+      setSelectedUser(fullUser);
+      setModalTitle(`User Profile Details - ${fullUser.full_name || fullUser.mobile_number}`);
+
       const [jobsData, appsData] = await Promise.all([
         mockApi.getUserJobs(userItem.id).catch(() => ({ jobs: [] })),
         mockApi.getUserApplications(userItem.id).catch(() => ({ applications: [] }))
       ]);
+
       setModalData({
-        jobs: jobsData.jobs || [],
-        applications: appsData.applications || []
+        jobs: jobsData.jobs || (fullUser.job_posts_count ? Array(fullUser.job_posts_count).fill({}) : []),
+        applications: appsData.applications || (fullUser.applications_count ? Array(fullUser.applications_count).fill({}) : [])
       });
     } catch (err) {
       console.error(err);
@@ -316,7 +335,7 @@ export default function Users() {
                   </div>
 
                   {/* Full User Attributes Table Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Full Name</span>
                       <span className="font-extrabold text-slate-900 block">{selectedUser.full_name || 'N/A'}</span>
@@ -333,8 +352,18 @@ export default function Users() {
                     </div>
 
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Gender</span>
+                      <span className="font-extrabold text-slate-800 block capitalize">{selectedUser.gender || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">City / Location</span>
-                      <span className="font-extrabold text-slate-900 block"><MapPin className="w-3 h-3 inline-block mr-1" /> {selectedUser.city || selectedUser.location || 'N/A'}</span>
+                      <span className="font-extrabold text-slate-900 block"><MapPin className="w-3 h-3 inline-block mr-1" /> {selectedUser.city || selectedUser.location || selectedUser.country || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Country</span>
+                      <span className="font-extrabold text-slate-800 block">{selectedUser.country || 'India'}</span>
                     </div>
 
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
@@ -346,23 +375,45 @@ export default function Users() {
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Preferred Role</span>
                       <span className="font-extrabold text-purple-700 block">{selectedUser.preferred_role || 'N/A'}</span>
                     </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Current Employer</span>
+                      <span className="font-extrabold text-slate-800 block truncate">{selectedUser.current_employer || 'N/A'}</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Language</span>
+                      <span className="font-extrabold text-slate-800 block">{selectedUser.selected_language || 'English'}</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Availability Status</span>
+                      <span className="font-extrabold text-emerald-600 block">{selectedUser.availability_status || (selectedUser.is_available !== false ? 'Available' : 'Unavailable')}</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Account Status</span>
+                      <span className={`font-extrabold block ${selectedUser.is_suspended ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {selectedUser.is_suspended ? 'Suspended' : 'Active Account'}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Skills & Bio */}
-                  {(selectedUser.cuisine_specialty || selectedUser.skills || selectedUser.additional_skills) && (
+                  {(selectedUser.cuisine_specialty || (Array.isArray(selectedUser.skills) && selectedUser.skills.length > 0) || selectedUser.skills || selectedUser.additional_skills) && (
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-1">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Cuisine & Skills Specialty</span>
-                      <p className="text-xs font-bold text-emerald-300">
-                        {selectedUser.cuisine_specialty || selectedUser.skills || selectedUser.additional_skills}
+                      <p className="text-xs font-bold text-emerald-700">
+                        {Array.isArray(selectedUser.skills) ? selectedUser.skills.join(', ') : (selectedUser.cuisine_specialty || selectedUser.skills || selectedUser.additional_skills)}
                       </p>
                     </div>
                   )}
 
-                  {selectedUser.bio && (
+                  {(selectedUser.bio || (selectedUser.chef_profile && selectedUser.chef_profile.bio)) && (
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-1">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Bio / Summary</span>
                       <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap">
-                        {selectedUser.bio}
+                        {selectedUser.bio || selectedUser.chef_profile?.bio}
                       </p>
                     </div>
                   )}
@@ -372,13 +423,13 @@ export default function Users() {
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] text-center">
                       <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Jobs Posted</span>
                       <span className="font-outfit font-black text-lg text-emerald-700 mt-0.5 block">
-                        {modalData.jobs ? modalData.jobs.length : 0}
+                        {selectedUser.job_posts_count ?? (modalData.jobs ? modalData.jobs.length : 0)}
                       </span>
                     </div>
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] text-center">
                       <span className="text-[9px] font-extrabold text-slate-500 uppercase block">Applications Submitted</span>
                       <span className="font-outfit font-black text-lg text-blue-700 mt-0.5 block">
-                        {modalData.applications ? modalData.applications.length : 0}
+                        {selectedUser.applications_count ?? (modalData.applications ? modalData.applications.length : 0)}
                       </span>
                     </div>
                   </div>
@@ -386,7 +437,7 @@ export default function Users() {
                   {/* System Metadata */}
                   <div className="bg-white p-3 rounded-xl border border-[#d7dce2] flex justify-between items-center text-[10px] font-bold text-slate-500">
                     <span>User ID: #{selectedUser.id}</span>
-                    <span>Joined: {selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString() : 'N/A'}</span>
+                    <span>Joined: {selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('en-GB') : 'N/A'}</span>
                   </div>
                 </div>
               )}
