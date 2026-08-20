@@ -742,6 +742,18 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                 }
             }
 
+            $rawPhoto = $row->applicant_photo;
+            $photoUrl = $rawPhoto;
+            if (!empty($rawPhoto)) {
+                if (str_contains($rawPhoto, '178.16.138.159')) {
+                    $sub = str_replace('http://178.16.138.159', '', $rawPhoto);
+                    $sub = str_replace('https://178.16.138.159', '', $sub);
+                    $photoUrl = url($sub);
+                } elseif (!str_starts_with($rawPhoto, 'http://') && !str_starts_with($rawPhoto, 'https://')) {
+                    $photoUrl = url('/' . ltrim($rawPhoto, '/'));
+                }
+            }
+
             return [
                 'id'                  => $row->id,
                 'applicant_id'        => $row->applicant_id,
@@ -763,7 +775,9 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     'preferred_role'     => $row->applicant_preferred_role ?: '',
                     'current_employer'   => $row->applicant_current_employer ?: '',
                     'skills'             => $skills,
-                    'profile_photo_path' => $row->applicant_photo,
+                    'profile_photo_path' => $photoUrl,
+                    'profile_photo'      => $photoUrl,
+                    'avatar'             => $photoUrl,
                 ],
                 'job_post'            => [
                     'id'       => $row->job_post_id,

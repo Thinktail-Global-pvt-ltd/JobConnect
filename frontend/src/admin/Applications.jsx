@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { mockApi } from '../services/api';
+import { mockApi, resolveImageUrl } from '../services/api';
 import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star, ExternalLink } from 'lucide-react';
 
 export default function Applications() {
@@ -643,7 +643,18 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                             className="py-4.5 px-6 flex items-center gap-3 cursor-pointer group/cand"
                             title="Click to view candidate's complete profile page"
                           >
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-slate-700 shadow-sm ${getAvatarColor(a.applicant?.full_name)}`}>
+                            {resolveImageUrl(a.applicant?.profile_photo_path || a.applicant?.profile_photo || a.applicant?.avatar) ? (
+                              <img 
+                                src={resolveImageUrl(a.applicant?.profile_photo_path || a.applicant?.profile_photo || a.applicant?.avatar)} 
+                                alt={a.applicant?.full_name} 
+                                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-500 shadow-sm shrink-0" 
+                                onError={(e) => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'; }}
+                              />
+                            ) : null}
+                            <div 
+                              className={`w-9 h-9 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-slate-700 shadow-sm shrink-0 ${getAvatarColor(a.applicant?.full_name)}`}
+                              style={{ display: resolveImageUrl(a.applicant?.profile_photo_path || a.applicant?.profile_photo || a.applicant?.avatar) ? 'none' : 'flex' }}
+                            >
                               {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
                             </div>
                             <div>

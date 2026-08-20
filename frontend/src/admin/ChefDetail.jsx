@@ -35,18 +35,20 @@ export default function ChefDetail() {
   );
 
   const fetchChefDetail = async () => {
-    if (location.state?.chef) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
-    let data = null;
+    let data = location.state?.chef || null;
 
     try {
       const res = await mockApi.getChefs();
       if (res && res.chefs && Array.isArray(res.chefs)) {
-        const found = res.chefs.find(c => String(c.id) === String(id) || String(c.user_id) === String(id));
-        if (found) data = found;
+        const found = res.chefs.find(c => String(c.id) === String(id) || String(c.user_id) === String(id) || String(c.chef_id) === String(id));
+        if (found) {
+          data = data ? { ...found, ...data } : found;
+          if (found.profile_photo_path) data.profile_photo_path = found.profile_photo_path;
+          if (found.profile_photo) data.profile_photo = found.profile_photo;
+          if (found.avatar) data.avatar = found.avatar;
+          if (found.photo_url) data.photo_url = found.photo_url;
+        }
       }
     } catch (e) {
       console.warn("Failed to find chef in list:", e);
