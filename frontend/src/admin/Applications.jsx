@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { mockApi } from '../services/api';
 import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X } from 'lucide-react';
 
@@ -255,38 +255,27 @@ export default function Applications() {
 
   // Filter applications for specific selected job or flat view
   const getApplicationsForDisplay = () => {
-    let source = apps;
+    let source = selectedJob ? (selectedJob.applications || []) : apps;
 
-    if (appCategory === 'job') {
-      source = source.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training);
-    } else if (appCategory === 'training') {
-      source = source.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training);
-    }
-
-    if (selectedJob) {
-      source = source.filter(a => {
-        const jobId = a.job_post_id || a.job_post?.id || (a.is_training ? `training_${a.training_id || a.id}` : 'unknown');
-        return String(jobId) === String(selectedJob.id) || 
-               String(a.job_post_id) === String(selectedJob.id) || 
-               String(a.training_id) === String(selectedJob.real_id || selectedJob.id) ||
-               String(a.job_post?.real_id) === String(selectedJob.real_id || selectedJob.id);
-      });
+    if (!selectedJob) {
+      if (appCategory === 'job') {
+        source = source.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training);
+      } else if (appCategory === 'training') {
+        source = source.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training);
+      }
     }
 
     return source.filter(a => {
       const q = search.toLowerCase();
-      const matchSearch =
-        a.applicant?.full_name?.toLowerCase().includes(q) ||
-        a.applicant?.email?.toLowerCase().includes(q) ||
-        a.job_post?.title?.toLowerCase().includes(q) ||
-        a.job_post?.company?.toLowerCase().includes(q);
+      const matchSearch = !q ||
+        (a.applicant?.full_name && a.applicant.full_name.toLowerCase().includes(q)) ||
+        (a.applicant?.mobile_number && a.applicant.mobile_number.toLowerCase().includes(q)) ||
+        (a.applicant?.email && a.applicant.email.toLowerCase().includes(q)) ||
+        (a.job_post?.title && a.job_post.title.toLowerCase().includes(q)) ||
+        (a.job_post?.company && a.job_post.company.toLowerCase().includes(q));
 
       if (statusFilter === 'all') return matchSearch;
-      if (statusFilter === 'new') return a.status === 'new' && matchSearch;
-      if (statusFilter === 'contacted') return a.status === 'contacted' && matchSearch;
-      if (statusFilter === 'hired') return a.status === 'hired' && matchSearch;
-      if (statusFilter === 'rejected') return a.status === 'rejected' && matchSearch;
-      return matchSearch;
+      return a.status === statusFilter && matchSearch;
     });
   };
 
@@ -437,23 +426,32 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
 
         {/* Selected Job Back Bar (If in Job Detail View) */}
         {selectedJob && (
-          <div className="bg-[#f1f3f5] border-b border-[#d7dce2] px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-              <span className="text-slate-400">Applications for:</span>
-              <span className="text-slate-900 font-black">{selectedJob.title}</span>
-              {selectedJob.is_training ? (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
-                  <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING
-                </span>
-              ) : (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                  <Briefcase className="inline w-3 h-3 mr-1" /> JOB
-                </span>
-              )}
+          <div className="bg-[#f1f3f5] border-b border-[#d7dce2] px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => { setSelectedJob(null); setStatusFilter('all'); }}
+                className="px-3 py-1.5 rounded-lg bg-white border border-[#cfd5dc] hover:bg-slate-50 text-[#153e69] font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to All Listings</span>
+              </button>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 flex-wrap">
+                <span className="text-slate-400">Applications for:</span>
+                <span className="text-slate-900 font-black">{selectedJob.title}</span>
+                {selectedJob.is_training ? (
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
+                    <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                    <Briefcase className="inline w-3 h-3 mr-1" /> JOB
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Status Filter Tabs for Job */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {['all', 'new', 'contacted', 'hired', 'rejected'].map(st => (
                 <button
                   key={st}
@@ -626,14 +624,14 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                             </div>
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-extrabold text-white text-[13px] block leading-tight">{a.applicant?.full_name}</span>
+                                <span className="font-extrabold text-slate-900 text-[13px] block leading-tight">{a.applicant?.full_name || 'Anonymous Applicant'}</span>
                                 {isTrainingApp && (
                                   <span className="bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
                                     <GraduationCap className="inline w-3 h-3 mr-1" /> Training
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
+                              <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
                             </div>
                           </td>
 
@@ -644,7 +642,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-800' 
                                 : match.score >= 60 
                                   ? 'bg-amber-950 text-amber-400 border-amber-800' 
-                                  : 'bg-slate-900 text-slate-400 border-slate-800'
+                                  : 'bg-slate-100 text-slate-700 border-slate-300'
                             }`}>
                               <span><Target className="inline w-3 h-3 mr-1" /> {match.score}%</span>
                             </span>
@@ -655,17 +653,17 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                             <td className="py-2.5 px-3">
                               <div className="flex items-center gap-2">
                                 {isTrainingApp ? (
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-950 text-purple-400 border border-purple-800 shrink-0">
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
                                     <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800 shrink-0">
+                                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
                                     <Briefcase className="inline w-3 h-3 mr-1" /> JOB
                                   </span>
                                 )}
-                                <span className="font-extrabold text-white block text-[13px]">{a.job_post?.title}</span>
+                                <span className="font-extrabold text-slate-900 block text-[13px]">{a.job_post?.title || 'Listing'}</span>
                               </div>
-                              <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">{a.job_post?.company}</span>
+                              <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{a.job_post?.company || 'Employer'}</span>
                             </td>
                           )}
 
