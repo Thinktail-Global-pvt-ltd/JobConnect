@@ -156,7 +156,7 @@ export default function Layout({ children }) {
   
   const headerClass = isLight ? 'bg-[#f8f9fb] border-b border-[#d9dde3] text-slate-800' : isEmerald ? 'bg-[#02281D] border-b border-emerald-900/60 text-emerald-100' : 'bg-[#090D16] border-b border-[#1E293B] text-slate-100';
 
-  const mainClass = isLight ? 'flex-grow p-3 sm:p-4 md:p-5 bg-white text-slate-900 w-full max-w-full overflow-x-auto' : isEmerald ? 'flex-grow p-3 sm:p-4 md:p-5 bg-[#011710] text-emerald-100 w-full max-w-full overflow-x-auto' : 'flex-grow p-3 sm:p-4 md:p-5 bg-[#070A13] text-slate-100 w-full max-w-full overflow-x-auto';
+  const mainClass = isLight ? 'flex-grow p-5 sm:p-6 md:p-8 bg-[#f8fafc] text-slate-900 w-full max-w-full overflow-x-auto' : isEmerald ? 'flex-grow p-3 sm:p-4 md:p-5 bg-[#011710] text-emerald-100 w-full max-w-full overflow-x-auto' : 'flex-grow p-3 sm:p-4 md:p-5 bg-[#070A13] text-slate-100 w-full max-w-full overflow-x-auto';
 
   // Helper variables for theme-aware sidebar elements
   const sidebarDividerClass = isLight ? 'border-[#2462a7]/25' : 'border-[#1E293B]';
@@ -406,7 +406,7 @@ export default function Layout({ children }) {
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white font-black text-[9px] min-w-[18px] text-center shadow-md animate-pulse">
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-xl bg-rose-600 text-white font-black text-[9px] min-w-[18px] text-center shadow-md animate-pulse">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
