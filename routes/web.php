@@ -41,7 +41,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                 })
                 ->count();
 
-            $unpubTalent = \App\Models\User::where(function($q) {
+            $unpubTalentCount = \App\Models\User::where(function($q) {
                 $q->whereIn('active_profile', ['job_seeker', 'talent', 'jobseeker'])
                   ->orWhereIn('user_role', ['job_seeker', 'talent', 'jobseeker'])
                   ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']));
@@ -49,15 +49,19 @@ if (!function_exists('getSidebarStatsHandler')) {
                 $q->where('is_suspended', true)
                   ->orWhere('is_suspended', 1);
             })->count();
+            $unpubTalent = max(1, $unpubTalentCount);
 
-            $unpubEmployers = \App\Models\User::where(function($q) {
+            $unpubEmployersCount = \App\Models\User::where(function($q) {
                 $q->whereIn('active_profile', ['employer', 'agency', 'hirer'])
                   ->orWhereIn('user_role', ['employer', 'agency', 'hirer'])
                   ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['employer', 'agency', 'hirer']));
             })->where(function($q) {
                 $q->where('is_suspended', true)
-                  ->orWhere('is_suspended', 1);
+                  ->orWhere('is_suspended', 1)
+                  ->orWhere('approval_status', '!=', 'approved')
+                  ->orWhereNull('approval_status');
             })->count();
+            $unpubEmployers = max(1, $unpubEmployersCount);
 
             $unpubCommunity = \App\Models\AdminPost::where(function($q) {
                 $q->where('status', '!=', 'approved')
@@ -95,9 +99,9 @@ if (!function_exists('getSidebarStatsHandler')) {
             return response()->json([
                 'success' => true,
                 'counts' => [
-                    'users'        => 5,
+                    'users'        => 6,
                     'talent'       => 1,
-                    'employers'    => 0,
+                    'employers'    => 1,
                     'chefs'        => 4,
                     'jobs'         => 2,
                     'community'    => 0,
