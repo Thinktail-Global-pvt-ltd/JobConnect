@@ -1129,10 +1129,10 @@ export const mockApi = {
     return {
       success: true,
       counts: {
-        users: 6,
+        users: 3,
         talent: 1,
         employers: 1,
-        chefs: 4,
+        chefs: 1,
         jobs: 2,
         referrals: 0,
         community: 0,

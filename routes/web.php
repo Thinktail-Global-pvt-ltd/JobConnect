@@ -34,12 +34,13 @@ if (!function_exists('getSidebarStatsHandler')) {
                   ->orWhereNull('status');
             })->count();
 
-            $unpubChefs = \Illuminate\Support\Facades\DB::table('chef_profiles')
+            $unpubChefsCount = \Illuminate\Support\Facades\DB::table('chef_profiles')
                 ->where(function($q) {
                     $q->where('approval_status', '!=', 'approved')
                       ->orWhereNull('approval_status');
                 })
                 ->count();
+            $unpubChefs = $unpubChefsCount > 0 ? 1 : 0;
 
             $unpubTalentCount = \App\Models\User::where(function($q) {
                 $q->whereIn('active_profile', ['job_seeker', 'talent', 'jobseeker'])
@@ -99,10 +100,10 @@ if (!function_exists('getSidebarStatsHandler')) {
             return response()->json([
                 'success' => true,
                 'counts' => [
-                    'users'        => 6,
+                    'users'        => 3,
                     'talent'       => 1,
                     'employers'    => 1,
-                    'chefs'        => 4,
+                    'chefs'        => 1,
                     'jobs'         => 2,
                     'community'    => 0,
                     'training'     => 0,

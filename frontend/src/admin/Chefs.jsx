@@ -202,7 +202,7 @@ export default function Chefs() {
 
   // Dynamic KPI Stats calculation
   const totalCount = chefs.length;
-  const pendingCount = chefs.filter(c => c.status === 'pending' || c.approval_status === 'pending').length;
+  const pendingCount = chefs.filter(c => c.status !== 'approved' && c.approval_status !== 'approved').length;
   const approvedCount = chefs.filter(c => c.status === 'approved' || c.approval_status === 'approved').length;
   const calendlyCount = chefs.filter(c => c.calendly_link || c.calendly).length;
   const calendlyPercentage = totalCount > 0 ? Math.round((calendlyCount / totalCount) * 100) : 0;

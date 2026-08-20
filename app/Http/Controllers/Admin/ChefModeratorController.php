@@ -175,7 +175,7 @@ class ChefModeratorController extends Controller
             $chefList = $allChefs->values();
             $totalCount = $chefList->count();
             $approvedCount = $chefList->where('approval_status', 'approved')->count();
-            $pendingCount = $chefList->where('approval_status', 'pending')->count();
+            $pendingCount = $chefList->where('approval_status', '!=', 'approved')->count();
             $calendlyCount = $chefList->filter(fn($c) => !empty($c['calendly_link']))->count();
             $calendlySync = $totalCount > 0 ? round(($calendlyCount / $totalCount) * 100) : 0;
 
