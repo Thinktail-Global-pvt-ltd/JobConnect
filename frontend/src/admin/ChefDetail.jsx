@@ -404,49 +404,7 @@ export default function ChefDetail() {
             </div>
           </div>
 
-          {/* Card 3: Core Skills & Experience */}
-          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-5">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Core Skills</h3>
-            
-            {skillsList.length > 0 && (
-              <div className="flex flex-wrap gap-2 pb-2 border-b border-slate-100">
-                {skillsList.map((skill, idx) => (
-                  <span 
-                    key={idx} 
-                    className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-200"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            )}
 
-            <div className="flex items-start gap-4">
-              {/* Check Circle Icon wrapper */}
-              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-[#153e69] mt-0.5">
-                <CheckCircle className="w-4 h-4" />
-              </div>
-
-              {/* Exp content */}
-              <div className="flex-grow space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <div>
-                    <h4 className="text-sm font-extrabold text-slate-800">{role}</h4>
-                    <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                      {currentEmployer}
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md shrink-0 self-start sm:self-auto">
-                    {experience}
-                  </span>
-                </div>
-
-                <p className="text-xs font-semibold text-slate-650 leading-relaxed max-w-3xl">
-                  {bioDescription}
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* Card 4: Social Profiles & Links */}
           <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
