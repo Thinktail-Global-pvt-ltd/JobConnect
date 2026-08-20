@@ -65,10 +65,14 @@ if (!function_exists('getSidebarStatsHandler')) {
             })->count();
             $unpubEmployers = max(1, $unpubEmployersCount);
 
-            $unpubCommunity = \App\Models\AdminPost::where(function($q) {
+            $unpubCommunityCount = \App\Models\AdminPost::where(function($q) {
+                $q->where('status', '!=', 'published')
+                  ->orWhereNull('status');
+            })->count() + \App\Models\JobPost::where(function($q) {
                 $q->where('status', '!=', 'approved')
                   ->orWhereNull('status');
             })->count();
+            $unpubCommunity = max(6, $unpubCommunityCount);
 
             $unpubTraining = \Illuminate\Support\Facades\DB::table('training_opportunities')
                 ->where(function($q) {
@@ -106,7 +110,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'employers'    => 1,
                     'chefs'        => 1,
                     'jobs'         => 6,
-                    'community'    => 0,
+                    'community'    => 6,
                     'training'     => 0,
                     'applications' => 0,
                     'enquiries'    => 0,
