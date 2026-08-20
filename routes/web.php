@@ -675,60 +675,70 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
     }
 });
 
-// Admin Sidebar Live Counter Stats Endpoint (Pending approval counts only)
+// Admin Sidebar Live Counter Stats Endpoint (Unpublished / Unapproved counts)
 Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
     try {
-        $pendingJobs = \App\Models\JobPost::where('status', 'pending')->count();
+        $unpubJobs = \App\Models\JobPost::where(function($q) {
+            $q->where('status', '!=', 'approved')
+              ->orWhereNull('status');
+        })->count();
 
-        $pendingTalent = \App\Models\User::where(function($q) {
+        $unpubTalent = \App\Models\User::where(function($q) {
             $q->whereIn('active_profile', ['job_seeker', 'talent', 'jobseeker'])
               ->orWhereIn('user_role', ['job_seeker', 'talent', 'jobseeker'])
               ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']));
         })->where(function($q) {
-            $q->where('approval_status', 'pending')
-              ->orWhere('status', 'pending');
+            $q->where('approval_status', '!=', 'approved')
+              ->orWhereNull('approval_status')
+              ->orWhere('status', '!=', 'approved');
         })->count();
 
-        $pendingEmployers = \App\Models\User::where(function($q) {
+        $unpubEmployers = \App\Models\User::where(function($q) {
             $q->whereIn('active_profile', ['employer', 'agency', 'hirer'])
               ->orWhereIn('user_role', ['employer', 'agency', 'hirer'])
               ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['employer', 'agency', 'hirer']));
         })->where(function($q) {
-            $q->where('approval_status', 'pending')
-              ->orWhere('status', 'pending');
+            $q->where('approval_status', '!=', 'approved')
+              ->orWhereNull('approval_status')
+              ->orWhere('status', '!=', 'approved');
         })->count();
 
-        $pendingChefs = \Illuminate\Support\Facades\DB::table('chef_profiles')
+        $unpubChefs = \Illuminate\Support\Facades\DB::table('chef_profiles')
             ->where(function($q) {
-                $q->where('approval_status', 'pending')
-                  ->orWhereNull('approval_status')
-                  ->orWhere('approval_status', 'unapproved');
+                $q->where('approval_status', '!=', 'approved')
+                  ->orWhereNull('approval_status');
             })
             ->count();
 
-        $pendingCommunity = \App\Models\AdminPost::whereIn('status', ['draft', 'pending', 'reviewing'])->count();
+        $unpubCommunity = \App\Models\AdminPost::where(function($q) {
+            $q->where('status', '!=', 'approved')
+              ->orWhereNull('status');
+        })->count();
 
-        $pendingTraining = \Illuminate\Support\Facades\DB::table('training_opportunities')
-            ->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['draft', 'pending', 'reviewing'])
+        $unpubTraining = \Illuminate\Support\Facades\DB::table('training_opportunities')
+            ->where(function($q) {
+                $q->where(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), '!=', 'approved')
+                  ->orWhereNull('status');
+            })
             ->count();
 
-        $pendingApplications = \Illuminate\Support\Facades\DB::table('job_applications')
+        $unpubApplications = \Illuminate\Support\Facades\DB::table('job_applications')
             ->whereIn('status', ['new', 'pending', 'submitted'])
             ->count();
 
-        $totalPendingUsers = $pendingTalent + $pendingEmployers + $pendingChefs;
+        $totalUnpublishedUsers = $unpubTalent + $unpubEmployers + $unpubChefs;
 
         return response()->json([
             'success' => true,
             'counts' => [
-                'users'        => $totalPendingUsers,
-                'talent'       => $pendingTalent,
-                'employers'    => $pendingEmployers,
-                'chefs'        => $pendingChefs,
-                'jobs'         => $pendingJobs,
-                'community'    => $pendingCommunity,
-                'training'     => $pendingTraining,
-                'applications' => $pendingApplications,
+                'users'        => $totalUnpublishedUsers,
+                'talent'       => $unpubTalent,
+                'employers'    => $unpubEmployers,
+                'chefs'        => $unpubChefs,
+                'jobs'         => $unpubJobs,
+                'community'    => $unpubCommunity,
+                'training'     => $unpubTraining,
+                'applications' => $unpubApplications,
                 'enquiries'    => 0,
             ]
         ]);
