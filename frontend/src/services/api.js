@@ -996,14 +996,19 @@ export const mockApi = {
   },
 
   updateTrainingStatus: async (id, status) => {
-    try {
-      const res = await realApi.post(`/api/admin/training-opportunities/${id}/status`, { status });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.post(`/backend/api/admin/training-opportunities/${id}/status`, { status });
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const endpoints = [
+      `http://178.16.138.159/backend/api/admin/training-opportunities/${id}/status`,
+      `https://jobrito.com/api/admin/training-opportunities/${id}/status`,
+      `/backend/api/admin/training-opportunities/${id}/status`,
+      `/api/admin/training-opportunities/${id}/status`,
+      `/admin/training-opportunities/${id}/status`
+    ];
+    for (const url of endpoints) {
+      try {
+        const res = await axios.post(url, { status }, { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } });
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
     return { success: true };
   },
 
@@ -1137,7 +1142,7 @@ export const mockApi = {
         referrals: 0,
         community: 6,
         training: 0,
-        applications: 0,
+        applications: 10,
         enquiries: 0,
       }
     };

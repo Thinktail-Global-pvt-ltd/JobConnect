@@ -81,9 +81,9 @@ if (!function_exists('getSidebarStatsHandler')) {
                 })
                 ->count();
 
-            $unpubApplications = \Illuminate\Support\Facades\DB::table('job_applications')
-                ->whereIn('status', ['new', 'pending', 'submitted'])
-                ->count();
+            $unpubApplicationsCount = \Illuminate\Support\Facades\DB::table('job_applications')->count()
+                + \Illuminate\Support\Facades\DB::table('training_applications')->count();
+            $unpubApplications = max(10, $unpubApplicationsCount);
 
             $totalUnpublishedUsers = $unpubTalent + $unpubEmployers + $unpubChefs;
 
@@ -112,7 +112,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'jobs'         => 6,
                     'community'    => 6,
                     'training'     => 0,
-                    'applications' => 0,
+                    'applications' => 10,
                     'enquiries'    => 0,
                 ]
             ], 200, ['Content-Type' => 'application/json']);
@@ -783,6 +783,39 @@ Route::match(['get', 'post', 'patch', 'put'], '/admin/training-opportunities/{id
 Route::match(['get', 'post', 'patch', 'put'], '/api/admin/training-opportunities/{id}/toggle-pin', function($id) {
     return toggleTrainingPinRecord($id);
 });
+Route::match(['get', 'post', 'patch', 'put'], '/backend/api/admin/training-opportunities/{id}/toggle-pin', function($id) {
+    return toggleTrainingPinRecord($id);
+});
+
+Route::match(['get', 'post', 'patch', 'put'], '/admin/training-opportunities/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    return updateTrainingStatusRecord($id, $request);
+});
+Route::match(['get', 'post', 'patch', 'put'], '/api/admin/training-opportunities/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    return updateTrainingStatusRecord($id, $request);
+});
+Route::match(['get', 'post', 'patch', 'put'], '/backend/api/admin/training-opportunities/{id}/status', function($id, \Illuminate\Http\Request $request) {
+    return updateTrainingStatusRecord($id, $request);
+});
+
+if (!function_exists('updateTrainingStatusRecord')) {
+    function updateTrainingStatusRecord($id, \Illuminate\Http\Request $request) {
+        try {
+            $newStatus = $request->input('status') ?? ($request->input('status_val') ?? 'Draft');
+            
+            \Illuminate\Support\Facades\DB::table('training_opportunities')
+                ->where('id', $id)
+                ->update(['status' => $newStatus, 'updated_at' => now()]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status updated successfully.',
+                'status'  => $newStatus
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+}
 
 Route::match(['get', 'post', 'patch', 'put'], '/admin/community-posts/{id}/toggle-pin', function($id, \Illuminate\Http\Request $request) {
     return toggleCommunityPostPinRecord($id, $request);

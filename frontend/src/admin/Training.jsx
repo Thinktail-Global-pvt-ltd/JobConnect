@@ -69,14 +69,26 @@ export default function Training() {
     const isCurrentlyActive = currentStatus === 'Published' || currentStatus === 'Active';
     const newStatus = isCurrentlyActive ? 'Draft' : 'Published';
 
-    setPrograms(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+    setPrograms(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, status: newStatus } : p);
+
+      setStats(prevStats => {
+        const activeCount = updated.filter(p => p.status === 'Published' || p.status === 'Active').length;
+        const pendingCount = updated.filter(p => p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending').length;
+        return {
+          ...prevStats,
+          active: activeCount,
+          pending: pendingCount
+        };
+      });
+
+      return updated;
+    });
 
     try {
       await mockApi.updateTrainingStatus(id, newStatus);
     } catch (err) {
       console.error('Status update failed:', err);
-    } finally {
-      loadPrograms();
     }
   };
 
