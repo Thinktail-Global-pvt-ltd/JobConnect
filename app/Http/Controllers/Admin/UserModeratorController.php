@@ -102,6 +102,77 @@ class UserModeratorController extends Controller
     }
 
     /**
+     * Show single user profile details with all fields from users table.
+     */
+    public function show($id)
+    {
+        $user = User::with(['roles', 'socials', 'chefProfile', 'employerProfile'])
+            ->withCount(['jobPosts', 'applications'])
+            ->find($id);
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $rawPhoto = $user->profile_photo_path ?: $user->profile_photo;
+        $photoUrl = $rawPhoto;
+        if (!empty($rawPhoto)) {
+            if (str_contains($rawPhoto, '178.16.138.159')) {
+                $sub = str_replace('http://178.16.138.159', '', $rawPhoto);
+                $sub = str_replace('https://178.16.138.159', '', $sub);
+                $photoUrl = url($sub);
+            } elseif (!str_starts_with($rawPhoto, 'http://') && !str_starts_with($rawPhoto, 'https://')) {
+                $photoUrl = url('/' . ltrim($rawPhoto, '/'));
+            }
+        }
+
+        $skills = [];
+        if (is_array($user->skills)) {
+            $skills = $user->skills;
+        } elseif (is_string($user->skills) && !empty($user->skills)) {
+            $skills = json_decode($user->skills, true) ?: array_values(array_filter(array_map('trim', explode(',', $user->skills))));
+        }
+
+        $userData = [
+            'id'                  => $user->id,
+            'full_name'           => $user->full_name ?: 'Not Provided',
+            'mobile_number'       => $user->mobile_number ?: 'N/A',
+            'email'               => $user->email ?: 'N/A',
+            'gender'              => $user->gender ?: 'N/A',
+            'country'             => $user->country ?: 'India',
+            'city'                => $user->city ?: 'N/A',
+            'location'            => implode(', ', array_filter([$user->city, $user->country])) ?: 'N/A',
+            'experience_range'    => $user->experience_range ?: $user->experience_years ?: 'N/A',
+            'preferred_role'      => $user->preferred_role ?: 'N/A',
+            'current_employer'    => $user->current_employer ?: 'N/A',
+            'selected_language'   => $user->selected_language ?: 'English',
+            'availability_status' => $user->availability_status ?: ($user->is_available ? 'Available' : 'Unavailable'),
+            'is_available'        => (bool) $user->is_available,
+            'is_suspended'        => (bool) $user->is_suspended,
+            'status'              => $user->is_suspended ? 'Suspended' : 'Active Account',
+            'profile_photo_path'  => $photoUrl,
+            'profile_photo'       => $photoUrl,
+            'avatar'              => $photoUrl,
+            'image'               => $photoUrl,
+            'skills'              => $skills,
+            'active_role'         => $user->active_role || $user->active_profile || 'job_seeker',
+            'roles'               => $user->roles,
+            'socials'             => $user->socials,
+            'chef_profile'        => $user->chefProfile,
+            'employer_profile'    => $user->employerProfile,
+            'job_posts_count'     => $user->job_posts_count ?? 0,
+            'applications_count'  => $user->applications_count ?? 0,
+            'created_at'          => $user->created_at ? $user->created_at->toIso8601String() : null,
+            'updated_at'          => $user->updated_at ? $user->updated_at->toIso8601String() : null,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'user'    => $userData
+        ]);
+    }
+
+    /**
      * Display employers list (users with active employer role).
     /**
      * Display employers list (users with active employer role).

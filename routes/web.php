@@ -143,6 +143,12 @@ Route::match(['get', 'post'], '/api/admin/users', function(\Illuminate\Http\Requ
 Route::match(['get', 'post'], '/backend/api/admin/users', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\UserModeratorController)->index($request);
 });
+Route::match(['get', 'post'], '/api/admin/users/{id}', function($id) {
+    return (new \App\Http\Controllers\Admin\UserModeratorController)->show($id);
+});
+Route::match(['get', 'post'], '/backend/api/admin/users/{id}', function($id) {
+    return (new \App\Http\Controllers\Admin\UserModeratorController)->show($id);
+});
 Route::match(['get', 'post'], '/api/admin/employers', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\EmployerModeratorController)->index($request);
 });
