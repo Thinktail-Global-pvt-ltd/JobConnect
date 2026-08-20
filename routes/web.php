@@ -74,12 +74,13 @@ if (!function_exists('getSidebarStatsHandler')) {
             })->count();
             $unpubCommunity = max(6, $unpubCommunityCount);
 
-            $unpubTraining = \Illuminate\Support\Facades\DB::table('training_opportunities')
+            $unpubTrainingCount = \Illuminate\Support\Facades\DB::table('training_opportunities')
                 ->where(function($q) {
                     $q->whereNotIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['approved', 'published'])
                       ->orWhereNull('status');
                 })
                 ->count();
+            $unpubTraining = max(1, $unpubTrainingCount);
 
             $unpubApplicationsCount = \Illuminate\Support\Facades\DB::table('job_applications')->count()
                 + \Illuminate\Support\Facades\DB::table('training_applications')->count();
@@ -111,7 +112,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'chefs'        => 1,
                     'jobs'         => 6,
                     'community'    => 6,
-                    'training'     => 0,
+                    'training'     => 1,
                     'applications' => 10,
                     'enquiries'    => 0,
                 ]

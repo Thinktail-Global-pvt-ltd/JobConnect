@@ -244,7 +244,7 @@ class ChefModeratorController extends Controller
                 \App\Services\NotificationTriggerService::sendToUser(
                     $chef->user_id,
                     "Chef Profile Approved! 🎉",
-                    "Congratulations! Your Chef profile has been approved by admin. Employers can now view & book you on JobRito!"
+                    "Congratulations! Your Chef profile has been approved by admin. Employers can now view & book you on Jobrito!"
                 );
             }
         } catch (\Throwable $e) {

@@ -1141,7 +1141,7 @@ export const mockApi = {
         jobs: 6,
         referrals: 0,
         community: 6,
-        training: 0,
+        training: 1,
         applications: 10,
         enquiries: 0,
       }

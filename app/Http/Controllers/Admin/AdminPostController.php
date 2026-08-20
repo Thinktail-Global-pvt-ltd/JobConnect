@@ -81,7 +81,7 @@ class AdminPostController extends Controller
                     'source'     => 'training',
                     'uid'        => 'TO-' . sprintf('%04d', $train->id),
                     'title'      => $train->program_name ?? 'Training Program',
-                    'body'       => ($train->provider_name ?? 'JobRito') . ' • ' . ($train->location ?? 'Overseas'),
+                    'body'       => ($train->provider_name ?? 'Jobrito') . ' • ' . ($train->location ?? 'Overseas'),
                     'post_type'  => 'Training & Overseas',
                     'status'     => 'Published',
                     'is_pinned'  => (bool)$train->is_pinned,
