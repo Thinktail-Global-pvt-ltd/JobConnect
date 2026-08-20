@@ -419,6 +419,8 @@ class AuthController extends Controller
                 ];
             })
         ]);
+    }
+
     private function formatRoleDisplayName(?string $role): string
     {
         if (!$role) return 'Talent';
