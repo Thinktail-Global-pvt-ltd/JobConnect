@@ -9,7 +9,7 @@ export default function Enquiries() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10); // 10, 25, 50, or 'all'
 
   // Dynamic stats calculated from real database entries
   const [stats, setStats] = useState({
@@ -63,8 +63,9 @@ export default function Enquiries() {
     loadEnquiries();
   }, [filterStatus]);
 
-  const totalPages = Math.max(1, Math.ceil(enquiries.length / pageSize));
-  const paginatedEnquiries = enquiries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const effectivePageSize = pageSize === 'all' ? (enquiries.length || 1) : Number(pageSize);
+  const totalPages = Math.max(1, Math.ceil(enquiries.length / effectivePageSize));
+  const paginatedEnquiries = enquiries.slice((currentPage - 1) * effectivePageSize, currentPage * effectivePageSize);
 
   const handleOpenDrawer = (enquiry) => {
     setActiveEnquiry(enquiry);
@@ -322,7 +323,28 @@ export default function Enquiries() {
 
         {/* Pagination footer */}
         <div className="px-3 py-2.5 flex flex-wrap justify-between items-center gap-2 border-t border-[#d7dce2] bg-white">
-          <span className="text-[10px] text-slate-600 font-semibold">Showing {enquiries.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, enquiries.length)} of {enquiries.length} enquiries</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-slate-600 font-semibold">
+              Showing {enquiries.length === 0 ? 0 : ((currentPage - 1) * effectivePageSize) + 1}-{Math.min(currentPage * effectivePageSize, enquiries.length)} of {enquiries.length} enquiries
+            </span>
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+              <span>Per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                  setPageSize(val);
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-[#d7dce2] rounded text-[10px] font-bold px-1.5 py-0.5 text-slate-700 focus:outline-none cursor-pointer"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value="all">Show All ({enquiries.length})</option>
+              </select>
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
             {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
