@@ -179,7 +179,11 @@ class AuthController extends Controller
         // Restrict multiple active logins for the same account:
         // Revoke all previous Sanctum tokens so any previous device login is automatically logged out
         $user->tokens()->delete();
-        \App\Models\UserDeviceToken::where('user_id', $user->id)->update(['is_active' => false]);
+        if (\Illuminate\Support\Facades\Schema::hasTable('user_device_tokens')) {
+            try {
+                \App\Models\UserDeviceToken::where('user_id', $user->id)->update(['is_active' => false]);
+            } catch (\Throwable $e) {}
+        }
 
         // Generate new single active Sanctum auth token
         $token = $user->createToken('auth_token')->plainTextToken;
