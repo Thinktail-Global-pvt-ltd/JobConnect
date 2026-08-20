@@ -260,9 +260,33 @@ class FirebaseController extends Controller
 
             // Filter by specific user if user_id parameter passed
             if ($request->filled('user_id')) {
-                $query->where('user_id', $request->input('user_id'));
+                $targetId = (int)$request->input('user_id');
+                $targetUser = User::find($targetId);
+                $mobile = $targetUser ? $targetUser->mobile_number : null;
+                $fcmToken = $targetUser ? $targetUser->fcm_token : null;
+
+                $query->where(function ($q) use ($targetId, $mobile, $fcmToken) {
+                    $q->where('user_id', $targetId);
+                    if ($mobile) {
+                        $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
+                    }
+                    if ($fcmToken) {
+                        $q->orWhere('recipient', $fcmToken);
+                    }
+                });
             } elseif (!$isAdmin && $user) {
-                $query->where('user_id', $user->id);
+                $mobile = $user->mobile_number;
+                $fcmToken = $user->fcm_token;
+
+                $query->where(function ($q) use ($user, $mobile, $fcmToken) {
+                    $q->where('user_id', $user->id);
+                    if ($mobile) {
+                        $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
+                    }
+                    if ($fcmToken) {
+                        $q->orWhere('recipient', $fcmToken);
+                    }
+                });
             }
 
             // Filter by Role (employer, chef, talent/job_seeker) if role parameter passed
@@ -274,8 +298,27 @@ class FirebaseController extends Controller
                     $roleFilter = [$requestedRole];
                 }
 
-                $query->whereHas('user.roles', function ($rq) use ($roleFilter) {
-                    $rq->whereIn('role_type', $roleFilter);
+                $hasActiveProfile = \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile');
+                $hasActiveRole = \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_role');
+                $hasUserRole = \Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role');
+
+                $query->where(function ($subQ) use ($roleFilter, $hasActiveProfile, $hasActiveRole, $hasUserRole) {
+                    $subQ->whereHas('user', function ($uq) use ($roleFilter, $hasActiveProfile, $hasActiveRole, $hasUserRole) {
+                        $uq->where(function ($q) use ($roleFilter, $hasActiveProfile, $hasActiveRole, $hasUserRole) {
+                            $q->whereHas('roles', function ($rq) use ($roleFilter) {
+                                $rq->whereIn('role_type', $roleFilter);
+                            });
+                            if ($hasActiveProfile) {
+                                $q->orWhereIn('active_profile', $roleFilter);
+                            }
+                            if ($hasActiveRole) {
+                                $q->orWhereIn('active_role', $roleFilter);
+                            }
+                            if ($hasUserRole) {
+                                $q->orWhereIn('user_role', $roleFilter);
+                            }
+                        });
+                    })->orWhereDoesntHave('user');
                 });
             }
 
