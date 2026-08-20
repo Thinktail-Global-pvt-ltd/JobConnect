@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
-import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, AlertOctagon, Zap, Building2, MapPin, Plane, Link2 } from 'lucide-react';
+import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, AlertOctagon, Zap, Building2, MapPin, Plane, Link2, UserCheck } from 'lucide-react';
 
 export default function Jobs() {
   const location = useLocation();
@@ -14,11 +14,12 @@ export default function Jobs() {
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, pinned: 0 });
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState(initialCategory);
+  const [roleFilter, setRoleFilter] = useState(''); // '', 'chef', 'job_seeker', 'employer'
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 4;
+  const pageSize = 10;
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -83,8 +84,40 @@ export default function Jobs() {
     loadJobs();
   }, [status, category]);
 
-  const totalPages = Math.max(1, Math.ceil(jobs.length / pageSize));
-  const paginatedJobs = jobs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const chefCount = jobs.filter(j => {
+    const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
+    return r === 'chef' || r === 'cook';
+  }).length;
+
+  const jobseekerCount = jobs.filter(j => {
+    const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
+    return r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate';
+  }).length;
+
+  const employerCount = jobs.filter(j => {
+    const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
+    return r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer' || r === 'administrator' || r === 'admin';
+  }).length;
+
+  const filteredJobs = jobs.filter(job => {
+    if (!roleFilter) return true;
+    
+    const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
+    
+    if (roleFilter === 'chef') {
+      return r === 'chef' || r === 'cook';
+    }
+    if (roleFilter === 'job_seeker') {
+      return r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate';
+    }
+    if (roleFilter === 'employer') {
+      return r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer' || r === 'administrator' || r === 'admin';
+    }
+    return true;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / pageSize));
+  const paginatedJobs = filteredJobs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleApprove = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
@@ -195,6 +228,79 @@ export default function Jobs() {
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${status === 'rejected' ? 'bg-white/15 text-white' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>{stats.rejected}</span>
           </button>
         </div>
+      </div>
+
+      {/* Posted By Filter Bar */}
+      <div className="flex items-center justify-between gap-2 bg-white p-2 rounded-xl border border-[#d7dce2] shadow-2xs flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider px-1 flex items-center gap-1">
+            <UserCheck className="w-3.5 h-3.5 text-[#153e69]" /> Posted By:
+          </span>
+
+          <button
+            type="button"
+            onClick={() => { setRoleFilter(''); setCurrentPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              roleFilter === '' 
+                ? 'bg-[#153e69] text-white shadow-xs' 
+                : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            <span>All Roles</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === '' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+              {jobs.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setRoleFilter('chef'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              roleFilter === 'chef' 
+                ? 'bg-purple-700 text-white shadow-xs' 
+                : 'bg-white border border-purple-200 text-purple-800 hover:bg-purple-50'
+            }`}
+          >
+            <span>Chef</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'chef' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800 border border-purple-200'}`}>
+              {chefCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setRoleFilter('job_seeker'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              roleFilter === 'job_seeker' 
+                ? 'bg-blue-600 text-white shadow-xs' 
+                : 'bg-white border border-blue-200 text-blue-800 hover:bg-blue-50'
+            }`}
+          >
+            <span>Jobseeker</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'job_seeker' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800 border border-blue-200'}`}>
+              {jobseekerCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setRoleFilter('employer'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              roleFilter === 'employer' 
+                ? 'bg-emerald-700 text-white shadow-xs' 
+                : 'bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50'
+            }`}
+          >
+            <span>Employer</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'employer' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
+              {employerCount}
+            </span>
+          </button>
+        </div>
+
+        <span className="text-[11px] font-bold text-slate-500 px-2">
+          Showing {filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'}
+        </span>
       </div>
 
           <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>
@@ -424,15 +530,13 @@ export default function Jobs() {
         {/* Pagination footer */}
         <div className="px-3 py-2.5 flex flex-wrap justify-between items-center gap-2 border-t border-[#d9dee4] bg-white">
           <span className="text-[10px] text-slate-600 font-semibold">
-            Showing {jobs.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, jobs.length)} of {jobs.length} results
+            Showing {filteredJobs.length === 0 ? 0 : ((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, filteredJobs.length)} of {filteredJobs.length} results
           </span>
           <div className="flex items-center gap-1">
             <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(page => Math.max(1, page - 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-500 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">‹</button>
-            {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(page => (
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(page => (
               <button key={page} type="button" onClick={() => setCurrentPage(page)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === page ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{page}</button>
             ))}
-            {totalPages > 4 && <span className="px-1 text-[10px] text-slate-500">…</span>}
-            {totalPages > 3 && <button type="button" onClick={() => setCurrentPage(totalPages)} className={`w-6 h-6 rounded-md border text-[10px] font-bold cursor-pointer ${currentPage === totalPages ? 'bg-[#153e69] border-[#153e69] text-white' : 'bg-white border-[#d7dce2] text-slate-700 hover:bg-slate-50'}`}>{totalPages}</button>}
             <button type="button" disabled={currentPage === totalPages} onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))} className="w-6 h-6 rounded-md border border-[#d7dce2] bg-white text-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">›</button>
           </div>
         </div>
