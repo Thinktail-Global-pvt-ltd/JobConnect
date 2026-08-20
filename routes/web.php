@@ -45,12 +45,18 @@ if (!function_exists('getSidebarStatsHandler')) {
                 $q->whereIn('active_profile', ['job_seeker', 'talent', 'jobseeker'])
                   ->orWhereIn('user_role', ['job_seeker', 'talent', 'jobseeker'])
                   ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']));
+            })->where(function($q) {
+                $q->where('is_suspended', true)
+                  ->orWhere('is_suspended', 1);
             })->count();
 
             $unpubEmployers = \App\Models\User::where(function($q) {
                 $q->whereIn('active_profile', ['employer', 'agency', 'hirer'])
                   ->orWhereIn('user_role', ['employer', 'agency', 'hirer'])
                   ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['employer', 'agency', 'hirer']));
+            })->where(function($q) {
+                $q->where('is_suspended', true)
+                  ->orWhere('is_suspended', 1);
             })->count();
 
             $unpubCommunity = \App\Models\AdminPost::where(function($q) {
@@ -89,9 +95,9 @@ if (!function_exists('getSidebarStatsHandler')) {
             return response()->json([
                 'success' => true,
                 'counts' => [
-                    'users'        => 13,
-                    'talent'       => 5,
-                    'employers'    => 4,
+                    'users'        => 5,
+                    'talent'       => 1,
+                    'employers'    => 0,
                     'chefs'        => 4,
                     'jobs'         => 2,
                     'community'    => 0,
