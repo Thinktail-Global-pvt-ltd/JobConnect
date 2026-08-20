@@ -82,11 +82,12 @@ export default function Layout({ children }) {
     fetchNotifications();
 
     const timer = setInterval(() => {
+      fetchCounts();
       fetchNotifications();
-    }, 15000);
+    }, 10000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [location.pathname]);
 
   const handleMarkRead = async (id) => {
     try {

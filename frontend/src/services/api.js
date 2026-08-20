@@ -1113,17 +1113,21 @@ export const mockApi = {
 
   getSidebarStats: async () => {
     const endpoints = [
-      'http://178.16.138.159/backend/api/admin/sidebar-stats',
-      '/admin/sidebar-stats',
       '/api/admin/sidebar-stats',
       '/backend/api/admin/sidebar-stats',
-      'https://jobrito.com/api/admin/sidebar-stats'
+      '/admin/sidebar-stats',
+      'https://jobrito.com/backend/api/admin/sidebar-stats'
     ];
     for (const url of endpoints) {
       try {
-        const res = await axios.get(url, { headers: { Accept: 'application/json' } });
+        const res = await realApi.get(url);
         if (res.data && res.data.success && res.data.counts) return res.data;
-      } catch (e) {}
+      } catch (e) {
+        try {
+          const res = await axios.get(url, { headers: { Accept: 'application/json' } });
+          if (res.data && res.data.success && res.data.counts) return res.data;
+        } catch (err) {}
+      }
     }
     return {
       success: true,

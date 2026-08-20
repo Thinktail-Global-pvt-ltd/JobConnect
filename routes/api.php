@@ -1282,96 +1282,18 @@ Route::post('/admin/applications/test-apply', function(\Illuminate\Http\Request 
     }
 });
 
-// Admin Sidebar Live Counter Stats Endpoint (Unpublished / Unapproved counts)
+// Admin Sidebar Live Counter Stats Endpoint
 Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
-    try {
-        $unpubJobs = \App\Models\JobPost::where(function($q) {
-            $q->where('status', '!=', 'approved')
-              ->orWhereNull('status');
-        })->count();
-
-        $unpubTalent = \App\Models\User::where(function($q) {
-            $q->whereIn('active_profile', ['job_seeker', 'talent', 'jobseeker'])
-              ->orWhereIn('user_role', ['job_seeker', 'talent', 'jobseeker'])
-              ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']));
-        })->where(function($q) {
-            $q->where('approval_status', '!=', 'approved')
-              ->orWhereNull('approval_status')
-              ->orWhere('status', '!=', 'approved');
-        })->count();
-
-        $unpubEmployers = \App\Models\User::where(function($q) {
-            $q->whereIn('active_profile', ['employer', 'agency', 'hirer'])
-              ->orWhereIn('user_role', ['employer', 'agency', 'hirer'])
-              ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['employer', 'agency', 'hirer']));
-        })->where(function($q) {
-            $q->where('approval_status', '!=', 'approved')
-              ->orWhereNull('approval_status')
-              ->orWhere('status', '!=', 'approved');
-        })->count();
-
-        $unpubChefs = \Illuminate\Support\Facades\DB::table('chef_profiles')
-            ->where(function($q) {
-                $q->where('approval_status', '!=', 'approved')
-                  ->orWhereNull('approval_status');
-            })
-            ->count();
-
-        $unpubCommunity = \App\Models\AdminPost::where(function($q) {
-            $q->where('status', '!=', 'approved')
-              ->orWhereNull('status');
-        })->count();
-
-        $unpubTraining = \Illuminate\Support\Facades\DB::table('training_opportunities')
-            ->where(function($q) {
-                $q->where(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), '!=', 'approved')
-                  ->orWhereNull('status');
-            })
-            ->count();
-
-        $unpubApplications = \Illuminate\Support\Facades\DB::table('job_applications')
-            ->whereIn('status', ['new', 'pending', 'submitted'])
-            ->count();
-
-        $pendingEnquiries = 0;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('enquiries')) {
-                $pendingEnquiries = \Illuminate\Support\Facades\DB::table('enquiries')->whereIn('status', ['New Enquiry', 'Urgent Follow-up'])->count();
-            }
-        } catch (\Throwable $e) {}
-
-        $totalUnpublishedUsers = $unpubTalent + $unpubEmployers + $unpubChefs;
-
-        return response()->json([
-            'success' => true,
-            'counts' => [
-                'users'        => $totalUnpublishedUsers,
-                'talent'       => $unpubTalent,
-                'employers'    => $unpubEmployers,
-                'chefs'        => $unpubChefs,
-                'jobs'         => $unpubJobs,
-                'community'    => $unpubCommunity,
-                'training'     => $unpubTraining,
-                'applications' => $unpubApplications,
-                'enquiries'    => $pendingEnquiries,
-            ]
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'success' => true,
-            'counts' => [
-                'users'        => 0,
-                'talent'       => 0,
-                'employers'    => 0,
-                'chefs'        => 0,
-                'jobs'         => 0,
-                'community'    => 0,
-                'training'     => 0,
-                'applications' => 0,
-                'enquiries'    => 0,
-            ]
-        ]);
+    if (function_exists('getSidebarStatsHandler')) {
+        return getSidebarStatsHandler();
     }
+    return response()->json([
+        'success' => true,
+        'counts' => [
+            'users' => 0, 'talent' => 0, 'employers' => 0, 'chefs' => 0, 'jobs' => 0,
+            'community' => 0, 'training' => 0, 'applications' => 0, 'enquiries' => 0
+        ]
+    ]);
 });
 
 // ==========================================
