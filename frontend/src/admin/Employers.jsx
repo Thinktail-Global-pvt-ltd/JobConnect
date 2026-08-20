@@ -12,7 +12,7 @@ export default function Employers() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [viewEmpModalOpen, setViewEmpModalOpen] = useState(false);

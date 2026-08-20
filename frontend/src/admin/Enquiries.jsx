@@ -9,7 +9,7 @@ export default function Enquiries() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 4;
+  const pageSize = 10;
 
   // Dynamic stats calculated from real database entries
   const [stats, setStats] = useState({

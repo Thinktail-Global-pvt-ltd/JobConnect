@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Search, Filter, RefreshCw, CheckCircle, Clock, Eye, ShieldAlert, ArrowLeft, X, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { mockApi } from '../services/api';
@@ -10,7 +10,7 @@ export default function NotificationsLog() {
   const [statusFilter, setStatusFilter] = useState('all'); // all, unread, read
   const [selectedNotif, setSelectedNotif] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 10;
 
   const fetchLogs = async () => {
     setLoading(true);

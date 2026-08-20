@@ -10,7 +10,7 @@ export default function Training() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const pageSize = 4;
+  const pageSize = 10;
 
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
