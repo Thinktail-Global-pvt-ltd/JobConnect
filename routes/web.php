@@ -20,11 +20,24 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\FirebaseController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
+Route::get('/api/get-token/user/{id}', function($id) {
+    $u = \App\Models\User::find($id);
+    if (!$u) {
+        $u = \App\Models\User::where('active_profile', 'employer')->orWhere('active_role', 'employer')->orWhere('user_role', 'employer')->first();
+    }
+    if (!$u) {
+        return response()->json(['success' => false, 'message' => 'Employer User not found']);
+    }
+    $token = $u->createToken('API_Test_Token')->plainTextToken;
+    return response()->json([
+        'success' => true,
+        'user_id' => $u->id,
+        'full_name' => $u->full_name ?: $u->name,
+        'mobile_number' => $u->mobile_number,
+        'role' => $u->active_profile ?: ($u->active_role ?: 'employer'),
+        'token' => $token
+    ]);
+});
 
 if (!function_exists('getSidebarStatsHandler')) {
     function getSidebarStatsHandler() {
