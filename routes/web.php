@@ -76,7 +76,7 @@ if (!function_exists('getSidebarStatsHandler')) {
 
             $unpubTraining = \Illuminate\Support\Facades\DB::table('training_opportunities')
                 ->where(function($q) {
-                    $q->where(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), '!=', 'approved')
+                    $q->whereNotIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['approved', 'published'])
                       ->orWhereNull('status');
                 })
                 ->count();
