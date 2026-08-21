@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
-import { Eye, ShieldCheck, Mail, MapPin, Smartphone, UserSquare2, Ban, CheckCircle2 } from 'lucide-react';
+import { Eye, ShieldCheck, Mail, MapPin, Smartphone, UserSquare2, Ban, CheckCircle2, Building2, Globe, FileText, Layers, Briefcase, UserCheck, Languages, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi, resolveImageUrl } from '../services/api';
 
@@ -176,35 +176,93 @@ export default function EmployerDetail() {
       {/* Split grid sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Side: Contact Information (1/3) */}
-        <div className="lg:col-span-1">
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-50 pb-3">
-              <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Contact Information
+        {/* Left Side: Account Contact & Business Information (1/3) */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {/* Card 1: Account Information (Users Table) */}
+          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Account & Contact Info (Users Table)
             </h3>
 
-            {/* Info Items */}
-            <div className="space-y-4 text-xs font-semibold text-slate-500">
+            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
               <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Primary Contact</span>
-                <span className="text-slate-800 font-extrabold mt-1 block">{contact}</span>
-                <span className="text-slate-400 text-[10px] block mt-0.5">{role}</span>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Primary Contact Person</span>
+                <span className="text-slate-900 font-extrabold mt-0.5 block text-sm">{contact || 'N/A'}</span>
               </div>
-              <div className="border-t border-slate-50 pt-3">
+              <div className="border-t border-slate-50 pt-2.5">
                 <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Mobile Number</span>
-                <span className="text-slate-800 font-extrabold mt-1 block font-mono">{phone}</span>
+                <span className="text-slate-800 font-extrabold mt-0.5 block font-mono">{phone || 'N/A'}</span>
               </div>
-              <div className="border-t border-slate-50 pt-3">
+              <div className="border-t border-slate-50 pt-2.5">
                 <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
-                <span className="text-[#153e69] font-extrabold mt-1 block truncate">{email}</span>
+                <span className="text-[#153e69] font-extrabold mt-0.5 block truncate">{email || 'Not Provided'}</span>
+              </div>
+              <div className="border-t border-slate-50 pt-2.5 flex justify-between">
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">City & Country</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.city || employer.hq || 'India'}, {employer.country || 'India'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">User ID</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block font-mono">#{employer.id}</span>
+                </div>
               </div>
             </div>
 
-            <button className="w-full bg-white border border-[#cfd5dc] hover:bg-slate-50 text-slate-700 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer">
+            <button className="w-full bg-white border border-[#cfd5dc] hover:bg-slate-50 text-slate-700 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer mt-2">
               <Mail className="w-4 h-4 text-slate-400" />
               Send Direct Message
             </button>
           </div>
+
+          {/* Card 2: Business Profile (Employer Profiles Table) */}
+          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Building2 className="w-4 h-4 text-[#153e69]" /> Business Details (Employer Profile)
+            </h3>
+
+            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Registered Business Name</span>
+                <span className="text-slate-900 font-extrabold mt-0.5 block text-sm">{name || 'N/A'}</span>
+              </div>
+              <div className="border-t border-slate-50 pt-2.5">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Industry Segment</span>
+                <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.industry_segment || employer.employer_profile?.industry_segment || 'Hospitality / F&B'}</span>
+              </div>
+              <div className="border-t border-slate-50 pt-2.5">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Business HQ / Location</span>
+                <span className="text-slate-800 font-extrabold mt-0.5 block">{locationText || 'India'}</span>
+              </div>
+              <div className="border-t border-slate-50 pt-2.5">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Preferred Language</span>
+                <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.preferred_language || employer.employer_profile?.preferred_language || 'English'}</span>
+              </div>
+              <div className="border-t border-slate-50 pt-2.5">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Operational Locations</span>
+                <span className="text-slate-800 font-extrabold mt-0.5 block">
+                  {Array.isArray(employer.operational_locations || employer.employer_profile?.operational_locations) 
+                    ? (employer.operational_locations || employer.employer_profile?.operational_locations).join(', ') 
+                    : (employer.operational_locations || employer.employer_profile?.operational_locations || locationText || 'Delhi')}
+                </span>
+              </div>
+              {(employer.nominee_name || employer.employer_profile?.nominee_name) && (
+                <div className="border-t border-slate-50 pt-2.5">
+                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Nominee Details</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.nominee_name || employer.employer_profile?.nominee_name} ({employer.nominee_relationship || employer.employer_profile?.nominee_relationship || 'Contact'})</span>
+                  <span className="text-slate-500 font-mono text-[11px] block mt-0.5">{employer.nominee_mobile || employer.employer_profile?.nominee_mobile}</span>
+                </div>
+              )}
+              <div className="border-t border-slate-50 pt-2.5 flex items-center justify-between">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider">Profile Verification</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black">
+                  {employer.is_completed !== false ? 'Verified (100%)' : 'Incomplete'}
+                </span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         {/* Right Side: KPI boxes + Job Postings (2/3) */}
