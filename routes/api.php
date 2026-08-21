@@ -733,14 +733,15 @@ Route::match(['get', 'post'], '/notifications', [\App\Http\Controllers\FirebaseC
 Route::match(['get', 'post'], '/notifications/all', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/fcm/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
 Route::match(['get', 'post'], '/admin/notifications', [\App\Http\Controllers\FirebaseController::class, 'getNotificationHistory']);
-Route::match(['get', 'post'], '/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
-Route::match(['get', 'post'], '/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
-Route::match(['get', 'post'], '/notifications/seen', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
-Route::match(['get', 'post'], '/fcm/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
-Route::match(['get', 'post'], '/fcm/notifications/seen', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
-Route::match(['get', 'post'], '/fcm/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
-Route::match(['get', 'post'], '/user/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
-Route::match(['get', 'post'], '/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);
+Route::match(['get', 'post', 'put'], '/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post', 'put'], '/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post', 'put'], '/notifications/seen', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post', 'put'], '/fcm/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post', 'put'], '/fcm/notifications/seen', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post', 'put'], '/fcm/notifications/mark-read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post', 'put'], '/fcm/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);
+Route::match(['get', 'post', 'put'], '/user/notifications/read', [\App\Http\Controllers\FirebaseController::class, 'markRead']);
+Route::match(['get', 'post', 'put'], '/notifications/mark-all-read', [\App\Http\Controllers\FirebaseController::class, 'markAllRead']);
 
 // Profile Completeness Routes
 Route::get('/profile/completeness', [ProfileController::class, 'getCompleteness']);

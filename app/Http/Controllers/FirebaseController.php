@@ -465,6 +465,14 @@ class FirebaseController extends Controller
                 $affectedRows = \App\Models\UserNotificationHistory::where('user_id', $userId)->where('is_read', false)->update(['is_read' => true]);
             } elseif ($user) {
                 $affectedRows = \App\Models\UserNotificationHistory::where('user_id', $user->id)->where('is_read', false)->update(['is_read' => true]);
+            } elseif ($request->filled('role')) {
+                $role = strtolower($request->input('role'));
+                $roleFilter = in_array($role, ['job_seeker', 'talent', 'jobseeker']) ? ['job_seeker', 'talent', 'jobseeker'] : [$role];
+                $affectedRows = \App\Models\UserNotificationHistory::whereHas('user', function($uq) use ($roleFilter) {
+                    $uq->whereIn('active_profile', $roleFilter)
+                       ->orWhereIn('active_role', $roleFilter)
+                       ->orWhereIn('user_role', $roleFilter);
+                })->where('is_read', false)->update(['is_read' => true]);
             } else {
                 // Fallback: Mark all unread notifications as read
                 $affectedRows = \App\Models\UserNotificationHistory::where('is_read', false)->update(['is_read' => true]);
@@ -473,7 +481,7 @@ class FirebaseController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 'success',
-                'message' => 'Notification(s) marked as seen/read successfully. They will no longer appear in unread GET results.',
+                'message' => 'Notification(s) marked as seen/read successfully.',
                 'affected_notifications_count' => $affectedRows,
                 'user_id' => $userId ? (int)$userId : null
             ], 200);
@@ -490,7 +498,8 @@ class FirebaseController extends Controller
     }
 
     /**
-     * Mark all notifications as read.
+     * Mark all notifications as read for current user / role.
+     * PUT /api/fcm/notifications/mark-all-read
      * POST /api/notifications/mark-all-read
      */
     public function markAllRead(Request $request)
