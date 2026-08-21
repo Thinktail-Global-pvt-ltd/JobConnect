@@ -242,128 +242,80 @@ class FirebaseController extends Controller
     public function getNotificationHistory(Request $request)
     {
         try {
-            $user = $request->user() ?? Auth::user();
-            $tokenableUserId = null;
-
-            if ($request->bearerToken()) {
-                $tokenStr = trim($request->bearerToken());
-                if (str_contains($tokenStr, '|')) {
-                    $tokenId = (int)explode('|', $tokenStr)[0];
-                    try {
-                        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
-                        if ($tokenObj) {
-                            $tokenableUserId = (int)$tokenObj->tokenable_id;
-                            if (!$user) {
-                                $user = $tokenObj->tokenable ?: User::find($tokenableUserId);
-                            }
-                        }
-                    } catch (\Throwable $e) {}
-                }
-            }
-
-            if ($user && !$tokenableUserId) {
-                $tokenableUserId = (int)$user->id;
-            }
-
-            $isAdmin = $request->input('scope') === 'admin' 
-                || $request->is('*admin*') 
-                || $request->is('admin/*') 
-                || $request->is('api/admin/*') 
-                || $request->is('backend/api/admin/*') 
-                || $request->segment(1) === 'admin'
-                || $request->boolean('all');
-
-            // Ensure table and columns exist automatically
             \App\Models\UserNotificationHistory::ensureTableExists();
 
             $query = \App\Models\UserNotificationHistory::query();
 
-            // Exclude WhatsApp OTP notifications / login_auth_code logs (Only show FCM push notifications)
+            // Exclude ONLY whatsapp logs if type is whatsapp
             $query->where(function ($q) {
-                $q->where('type', 'not like', '%whatsapp%')
-                  ->where('type', 'not like', '%login_auth_code%')
-                  ->where('title', 'not like', '%whatsapp%')
-                  ->where('title', 'not like', '%login_auth_code%')
-                  ->where('body', 'not like', '%whatsapp%')
-                  ->where('body', 'not like', '%verification code%');
+                $q->whereNull('type')
+                  ->orWhere(function ($subQ) {
+                      $subQ->where('type', 'not like', '%whatsapp%')
+                           ->where('type', 'not like', '%login_auth_code%');
+                  });
             });
 
-            // Determine target user_id to filter by:
-            // 1. Explicit user_id parameter in request (e.g. ?user_id=148)
-            // 2. OR Sanctum tokenableUserId / authenticated user ID
-            $targetUserId = $request->filled('user_id') 
-                ? (int)$request->input('user_id') 
-                : ($tokenableUserId ?: ($user ? (int)$user->id : null));
-
-            if ($targetUserId && !$isAdmin && !$request->boolean('all')) {
-                $targetUser = ($user && $user->id == $targetUserId) ? $user : User::find($targetUserId);
+            // 1. Explicit user_id parameter in request e.g. ?user_id=148
+            if ($request->filled('user_id')) {
+                $targetId = (int)$request->input('user_id');
+                $targetUser = User::find($targetId);
                 $mobile = $targetUser ? $targetUser->mobile_number : null;
 
-                $query->where(function ($q) use ($targetUserId, $mobile) {
-                    $q->where('user_id', $targetUserId);
+                $query->where(function ($q) use ($targetId, $mobile) {
+                    $q->where('user_id', $targetId);
                     if (!empty($mobile)) {
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
                     }
                 });
-            }
+            } elseif (!$request->boolean('all') && $request->input('scope') !== 'all' && $request->input('scope') !== 'admin' && !$request->filled('role')) {
+                // 2. If Bearer token is passed without user_id / role / all param
+                $user = $request->user() ?? Auth::user();
+                $tokenableUserId = null;
 
-            // Filter by channel / type if requested (fcm, in_app)
-            if ($request->filled('type') && !str_contains(strtolower($request->input('type')), 'whatsapp')) {
-                $query->where('type', $request->input('type'));
-            } elseif ($request->filled('channel') && !str_contains(strtolower($request->input('channel')), 'whatsapp')) {
-                $query->where('type', $request->input('channel'));
-            }
-
-            // Filter unread notifications if unread=1 / unread=true
-            $isUnreadOnly = $request->boolean('unread') || $request->boolean('unread_only') || $request->input('unread') === '1' || $request->input('unread') === 1;
-            if ($isUnreadOnly && \Illuminate\Support\Facades\Schema::hasColumn('user_notification_histories', 'is_read')) {
-                $query->where(function($q) {
-                    $q->where('is_read', false)->orWhereNull('is_read')->orWhere('is_read', 0);
-                });
-            }
-
-            $rawHistory = $query->orderBy('created_at', 'desc')->get();
-
-            // If empty, fetch all rows from user_notification_histories without restriction
-            if ($rawHistory->isEmpty()) {
-                $rawHistory = \App\Models\UserNotificationHistory::orderBy('created_at', 'desc')->get();
-            }
-
-            // Deduplicate notifications: Hide repeated identical notifications sent to the same recipient within 300 seconds
-            $uniqueHistory = collect();
-            $seenKeys = [];
-
-            foreach ($rawHistory as $item) {
-                $recipientKey = $item->user_id ?: ($item->recipient ?: 'anon');
-                $cleanTitle = strtolower(trim($item->title ?? ''));
-                $cleanBody = strtolower(trim($item->body ?? ''));
-                $dedupKey = $recipientKey . '|' . $cleanTitle . '|' . $cleanBody;
-
-                $itemTimestamp = $item->created_at ? $item->created_at->timestamp : 0;
-
-                if (!isset($seenKeys[$dedupKey])) {
-                    $seenKeys[$dedupKey] = $itemTimestamp;
-                    $uniqueHistory->push($item);
-                } else {
-                    $previousTime = $seenKeys[$dedupKey];
-                    // Allow notification if sent more than 300s (5 minutes) apart
-                    if (abs($previousTime - $itemTimestamp) > 300) {
-                        $seenKeys[$dedupKey] = $itemTimestamp;
-                        $uniqueHistory->push($item);
+                if ($request->bearerToken()) {
+                    $tokenStr = trim($request->bearerToken());
+                    if (str_contains($tokenStr, '|')) {
+                        $tokenId = (int)explode('|', $tokenStr)[0];
+                        try {
+                            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                            if ($tokenObj) {
+                                $tokenableUserId = (int)$tokenObj->tokenable_id;
+                            }
+                        } catch (\Throwable $e) {}
                     }
+                }
+
+                $uid = $tokenableUserId ?: ($user ? (int)$user->id : null);
+                if ($uid) {
+                    $targetUser = User::find($uid);
+                    $mobile = $targetUser ? $targetUser->mobile_number : null;
+
+                    $query->where(function ($q) use ($uid, $mobile) {
+                        $q->where('user_id', $uid);
+                        if (!empty($mobile)) {
+                            $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
+                        }
+                    });
                 }
             }
 
-            $history = $uniqueHistory;
-            $unreadCount = $history->filter(fn($item) => empty($item->is_read))->count();
+            // Filter by channel / type if requested
+            if ($request->filled('type') && !str_contains(strtolower($request->input('type')), 'whatsapp')) {
+                $query->where('type', $request->input('type'));
+            }
 
-            $notifications = $history->map(function ($item) {
+            $rawHistory = $query->orderBy('id', 'desc')->get();
+
+            // If query filtered by user_id resulted in empty list, return all FCM notifications
+            if ($rawHistory->isEmpty()) {
+                $rawHistory = \App\Models\UserNotificationHistory::where(function ($q) {
+                    $q->whereNull('type')->orWhere('type', 'not like', '%whatsapp%');
+                })->orderBy('id', 'desc')->get();
+            }
+
+            $notifications = $rawHistory->map(function ($item) {
                 $recipientUser = null;
-                try {
-                    $recipientUser = $item->user;
-                } catch (\Throwable $e) {}
-
-                if (!$recipientUser && !empty($item->user_id)) {
+                if (!empty($item->user_id)) {
                     try {
                         $recipientUser = User::find($item->user_id);
                     } catch (\Throwable $e) {}
@@ -393,17 +345,17 @@ class FirebaseController extends Controller
                 return [
                     'id' => $item->id,
                     'user_id' => $item->user_id,
-                    'recipient_name' => $recipientUser ? ($recipientUser->full_name ?: 'User #' . $recipientUser->id) : 'Recipient User',
+                    'recipient_name' => $recipientUser ? ($recipientUser->full_name ?: 'User #' . $recipientUser->id) : ($item->recipient ?: 'Recipient User'),
                     'recipient_phone' => $recipientUser ? ($recipientUser->mobile_number ?: 'N/A') : ($item->recipient ?: 'N/A'),
                     'recipient_role' => $recipientUser ? ($recipientUser->active_profile ?: 'user') : 'user',
                     'recipient_photo' => $recipientUser ? $recipientUser->profile_photo_path : null,
                     'type' => $item->type ?: 'fcm',
-                    'event' => $meta['event'] ?? ($item->type ?: 'fcm'),
+                    'event' => $event,
                     'screen' => $meta['screen'] ?? 'notifications',
                     'deep_link' => $deepLink,
                     'url' => $webUrl,
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                    'target_id' => (string)($meta['job_id'] ?? ($meta['application_id'] ?? ($meta['chef_id'] ?? ''))),
+                    'target_id' => $targetId,
                     'recipient' => $item->recipient,
                     'title' => $item->title,
                     'body' => $item->body,
@@ -419,13 +371,8 @@ class FirebaseController extends Controller
             return response()->json([
                 'success' => true,
                 'total_notifications' => $notifications->count(),
-                'unread_count' => $unreadCount,
+                'unread_count' => $notifications->where('is_read', false)->count(),
                 'notifications' => $notifications->values(),
-                'data' => $notifications->values()
-            ], 200);
-
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('getNotificationHistory Exception: ' . $e->getMessage());
             return response()->json([
                 'success' => true,
                 'total_notifications' => 0,
