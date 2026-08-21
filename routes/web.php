@@ -183,6 +183,9 @@ Route::match(['get', 'post'], '/api/admin/employers/{id}', function($id) {
 Route::match(['get', 'post'], '/backend/api/admin/employers/{id}', function($id) {
     return (new \App\Http\Controllers\Admin\EmployerModeratorController)->show($id);
 });
+Route::match(['get', 'post'], '/backend/admin/employers/{id}', function($id) {
+    return (new \App\Http\Controllers\Admin\EmployerModeratorController)->show($id);
+});
 Route::match(['get', 'post'], '/api/admin/jobs', function(\Illuminate\Http\Request $request) {
     if ($request->isMethod('post')) {
         return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
