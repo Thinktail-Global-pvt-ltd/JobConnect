@@ -228,10 +228,10 @@ export default function EmployerDetail() {
         {/* Left Side: Account Contact & Business Information (1/3) */}
         <div className="lg:col-span-1 space-y-6">
           
-          {/* Card 1: Account Information (Users Table) */}
+          {/* Card 1: Account Information */}
           <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
             <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Account & Contact Info (Users Table)
+              <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Account & Contact Info
             </h3>
 
             <div className="space-y-3.5 text-xs font-semibold text-slate-600">
@@ -254,10 +254,10 @@ export default function EmployerDetail() {
             </div>
           </div>
 
-          {/* Card 2: Business Profile (Employer Profiles Table) */}
+          {/* Card 2: Business Profile */}
           <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
             <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Building2 className="w-4 h-4 text-[#153e69]" /> Business Details (Employer Profile)
+              <Building2 className="w-4 h-4 text-[#153e69]" /> Business Details
             </h3>
 
             <div className="space-y-3.5 text-xs font-semibold text-slate-600">
@@ -364,13 +364,12 @@ export default function EmployerDetail() {
                     <th className="py-3 px-6">Job Title</th>
                     <th className="py-3 px-6">Posted Date</th>
                     <th className="py-3 px-6">Status</th>
-                    <th className="py-3 px-6 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
                   {jobsList.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="py-8 text-center text-slate-400 font-bold">
+                      <td colSpan="3" className="py-8 text-center text-slate-400 font-bold">
                         No job postings found for this employer.
                       </td>
                     </tr>
@@ -396,11 +395,6 @@ export default function EmployerDetail() {
                             <span className={`px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider ${badgeClass}`}>
                               {job.status || 'Pending'}
                             </span>
-                          </td>
-                          <td className="py-3.5 px-6 text-right">
-                            <Link to="/admin/jobs" className="text-slate-400 hover:text-[#153e69] inline-block mr-2" title="View Job Details">
-                              <Eye className="w-4 h-4" />
-                            </Link>
                           </td>
                         </tr>
                       );
