@@ -373,13 +373,13 @@ class FirebaseController extends Controller
                 'total_notifications' => $notifications->count(),
                 'unread_count' => $notifications->where('is_read', false)->count(),
                 'notifications' => $notifications->values(),
-            return response()->json([
-                'success' => true,
-                'total_notifications' => 0,
-                'unread_count' => 0,
-                'notifications' => [],
-                'data' => []
+                'data' => $notifications->values(),
             ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
     }
 
