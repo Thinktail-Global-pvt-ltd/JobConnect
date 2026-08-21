@@ -20,17 +20,21 @@ export default function EmployerDetail() {
     setLoading(!employer);
     let data = null;
 
-    // 1. Try realApi (/api/admin/employers/:id)
-    try {
-      const res = await realApi.get(`/api/admin/employers/${id}`);
-      if (res.data?.success && res.data.employer) data = res.data.employer;
-    } catch (e) {}
+    const endpoints = [
+      `http://178.16.138.159/backend/api/admin/employers/${id}`,
+      `/backend/api/admin/employers/${id}`,
+      `/api/admin/employers/${id}`
+    ];
 
-    // 2. Try /backend/ path
-    if (!data) {
+    for (const ep of endpoints) {
       try {
-        const res = await axios.get(`/backend/api/admin/employers/${id}`);
-        if (res.data?.success && res.data.employer) data = res.data.employer;
+        const res = await axios.get(ep, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.data?.success && res.data.employer) {
+          data = res.data.employer;
+          break;
+        }
       } catch (e) {}
     }
 
@@ -92,11 +96,10 @@ export default function EmployerDetail() {
   const locationText = employer.business_location || employer.hq || '';
   const created = employer.created_at || '';
 
-  const totalJobs = employer.total_jobs ?? 0;
-  const activeJobs = employer.active_jobs ?? 0;
-  const pendingJobs = employer.pending_jobs ?? 0;
-
-  const jobsList = employer.jobs || [];
+  const jobsList = Array.isArray(employer.jobs) ? employer.jobs : [];
+  const totalJobs = employer.total_jobs ?? jobsList.length;
+  const activeJobs = employer.active_jobs ?? jobsList.filter(j => ['approved', 'published', 'active'].includes((j.status || '').toLowerCase())).length;
+  const pendingJobs = employer.pending_jobs ?? jobsList.filter(j => !['approved', 'published', 'active'].includes((j.status || '').toLowerCase())).length;
 
   const rawPhoto = employer.profile_photo_path || employer.profile_photo || employer.company_logo_url || employer.logo_url || employer.photo_url || employer.avatar;
   const photoUrl = resolveImageUrl(rawPhoto);
