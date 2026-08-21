@@ -353,9 +353,19 @@ export default function ChefDetail() {
 
         </div>
 
-        {/* Right Column (2/3 width): Cuisine, Operational Expertise, Work Exp, Socials, Activity Log */}
+        {/* Right Column (2/3 width): Bio, Cuisine, Operational Expertise, Socials, Activity Log */}
         <div className="lg:col-span-2 space-y-6">
           
+          {/* Card 0: Professional Bio & Overview */}
+          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-3">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-[#153e69]" /> Professional Bio / Overview
+            </h3>
+            <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
+              {chef.bio || chef.chef_profile?.bio || chef.chefProfile?.bio || chef.about || chef.description || 'No bio provided for this chef profile.'}
+            </p>
+          </div>
+
           {/* Card 1: Cuisine Specialities */}
           <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
             <h3 className="font-outfit font-extrabold text-sm text-slate-800">Cuisine Specialities</h3>

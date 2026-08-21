@@ -147,6 +147,7 @@ class UserModeratorController extends Controller
             'current_employer'    => $user->current_employer ?: 'N/A',
             'selected_language'   => $user->selected_language ?: 'English',
             'availability_status' => $user->availability_status ?: ($user->is_available ? 'Available' : 'Unavailable'),
+            'bio'                 => $user->bio ?: ($user->chefProfile ? $user->chefProfile->bio : null),
             'is_available'        => (bool) $user->is_available,
             'is_suspended'        => (bool) $user->is_suspended,
             'status'              => $user->is_suspended ? 'Suspended' : 'Active Account',
