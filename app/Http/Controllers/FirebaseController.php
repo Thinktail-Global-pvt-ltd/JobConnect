@@ -292,7 +292,18 @@ class FirebaseController extends Controller
                 ? (int)$request->input('user_id') 
                 : ($tokenableUserId ?: ($user ? (int)$user->id : null));
 
-            if ($targetUserId) {
+            if ($request->filled('user_id')) {
+                $targetId = (int)$request->input('user_id');
+                $targetUser = User::find($targetId);
+                $mobile = $targetUser ? $targetUser->mobile_number : null;
+
+                $query->where(function ($q) use ($targetId, $mobile) {
+                    $q->where('user_id', $targetId);
+                    if (!empty($mobile)) {
+                        $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
+                    }
+                });
+            } elseif ($targetUserId && !$request->filled('role')) {
                 $targetUser = ($user && $user->id == $targetUserId) ? $user : User::find($targetUserId);
                 $mobile = $targetUser ? $targetUser->mobile_number : null;
 
@@ -308,8 +319,11 @@ class FirebaseController extends Controller
                     ? ['job_seeker', 'talent', 'jobseeker'] 
                     : [$requestedRole];
 
-                $query->where(function ($subQ) use ($roleFilter, $requestedRole) {
-                    $subQ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.role')) = ?", [$requestedRole]);
+                $query->where(function ($subQ) use ($targetUserId, $roleFilter, $requestedRole) {
+                    if ($targetUserId) {
+                        $subQ->where('user_id', $targetUserId);
+                    }
+                    $subQ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.role')) = ?", [$requestedRole]);
                     $subQ->orWhereHas('user', function ($uq) use ($roleFilter) {
                         $uq->where(function ($q) use ($roleFilter) {
                             $q->whereIn('active_profile', $roleFilter)
@@ -340,6 +354,20 @@ class FirebaseController extends Controller
             }
 
             $rawHistory = $query->orderBy('created_at', 'desc')->get();
+
+            // Fallback: If user/role notification history is empty, fetch all recent FCM notifications
+            if ($rawHistory->isEmpty()) {
+                $fallbackQuery = \App\Models\UserNotificationHistory::query();
+                $fallbackQuery->where(function ($q) {
+                    $q->where('type', 'not like', '%whatsapp%')
+                      ->where('type', 'not like', '%login_auth_code%')
+                      ->where('title', 'not like', '%whatsapp%')
+                      ->where('title', 'not like', '%login_auth_code%')
+                      ->where('body', 'not like', '%whatsapp%')
+                      ->where('body', 'not like', '%verification code%');
+                });
+                $rawHistory = $fallbackQuery->orderBy('created_at', 'desc')->limit(50)->get();
+            }
 
             // Deduplicate notifications: Hide repeated identical notifications sent to the same recipient within 300 seconds
             $uniqueHistory = collect();
