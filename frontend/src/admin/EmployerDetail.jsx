@@ -198,22 +198,11 @@ export default function EmployerDetail() {
                 <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
                 <span className="text-[#153e69] font-extrabold mt-0.5 block truncate">{email || 'Not Provided'}</span>
               </div>
-              <div className="border-t border-slate-50 pt-2.5 flex justify-between">
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">City & Country</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.city || employer.hq || 'India'}, {employer.country || 'India'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">User ID</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block font-mono">#{employer.id}</span>
-                </div>
+              <div className="border-t border-slate-50 pt-2.5">
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">City & Country</span>
+                <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.city || employer.hq || 'India'}, {employer.country || 'India'}</span>
               </div>
             </div>
-
-            <button className="w-full bg-white border border-[#cfd5dc] hover:bg-slate-50 text-slate-700 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer mt-2">
-              <Mail className="w-4 h-4 text-slate-400" />
-              Send Direct Message
-            </button>
           </div>
 
           {/* Card 2: Business Profile (Employer Profiles Table) */}
