@@ -15,6 +15,8 @@ export default function Jobs() {
   const [status, setStatus] = useState('');
   const [category, setCategory] = useState(initialCategory);
   const [roleFilter, setRoleFilter] = useState(''); // '', 'chef', 'job_seeker', 'employer'
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const employerIdFilter = searchParams.get('employer_id') || searchParams.get('employer') || '';
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -31,10 +33,12 @@ export default function Jobs() {
     description: '',
   });
 
-  // Sync category when URL search query changes
+  // Sync category & search query when URL parameters change
   useEffect(() => {
     const cat = searchParams.get('category') || '';
     setCategory(cat);
+    const q = searchParams.get('search') || '';
+    if (q) setSearchQuery(q);
   }, [location.search]);
 
   // Load real jobs directly from job_posts table via admin API
@@ -100,19 +104,40 @@ export default function Jobs() {
   }).length;
 
   const filteredJobs = jobs.filter(job => {
-    if (!roleFilter) return true;
-    
-    const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
-    
-    if (roleFilter === 'chef') {
-      return r === 'chef' || r === 'cook';
+    // 1. Role Filter
+    if (roleFilter) {
+      const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
+      if (roleFilter === 'chef' && !(r === 'chef' || r === 'cook')) return false;
+      if (roleFilter === 'job_seeker' && !(r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate')) return false;
+      if (roleFilter === 'employer' && !(r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer' || r === 'administrator' || r === 'admin')) return false;
     }
-    if (roleFilter === 'job_seeker') {
-      return r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate';
+
+    // 2. Employer ID filter (if specified)
+    if (employerIdFilter) {
+      const createdBy = String(job.created_by || job.user_id || job.creator?.id || '');
+      if (createdBy && createdBy === String(employerIdFilter)) {
+        return true;
+      }
     }
-    if (roleFilter === 'employer') {
-      return r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer' || r === 'administrator' || r === 'admin';
+
+    // 3. Search query filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase().trim();
+      const title = (job.title || job.job_title || '').toLowerCase();
+      const company = (job.company || '').toLowerCase();
+      const creatorName = (job.creator?.full_name || job.creator?.name || '').toLowerCase();
+      const contactPerson = (job.contact_person || '').toLowerCase();
+      const locationStr = (job.location || '').toLowerCase();
+      const createdBy = String(job.created_by || job.user_id || '');
+
+      return title.includes(q) || 
+             company.includes(q) || 
+             creatorName.includes(q) || 
+             contactPerson.includes(q) || 
+             locationStr.includes(q) || 
+             createdBy === q;
     }
+
     return true;
   });
 
@@ -298,9 +323,23 @@ export default function Jobs() {
           </button>
         </div>
 
-        <span className="text-[11px] font-bold text-slate-500 px-2">
-          Showing {filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'}
-        </span>
+        <div className="flex items-center gap-2">
+          {searchQuery && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-[#153e69] border border-blue-200 text-xs font-black">
+              <span>Filtered by: "{searchQuery}"</span>
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="hover:text-rose-600 font-extrabold cursor-pointer ml-1 text-sm"
+                title="Clear filter"
+              >
+                ✕
+              </button>
+            </span>
+          )}
+          <span className="text-[11px] font-bold text-slate-500 px-2">
+            Showing {filteredJobs.length} {filteredJobs.length === 1 ? 'job' : 'jobs'}
+          </span>
+        </div>
       </div>
 
           <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>

@@ -287,7 +287,14 @@ export default function Employers() {
 
                     {/* Jobs Posted count */}
                     <td className="py-4 px-6 text-slate-900 font-bold">
-                      📄 {emp.posted_count ?? emp.job_posts_count ?? 0}
+                      <Link 
+                        to={`/admin/jobs?search=${encodeURIComponent(emp.name || emp.business_name || emp.company || emp.full_name || '')}&employer_id=${emp.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#eff6ff] hover:bg-[#153e69] text-[#1d4b78] hover:text-white border border-[#bfdbfe] text-xs font-black transition-all cursor-pointer shadow-xs group"
+                        title={`Click to view all jobs posted by ${emp.name || emp.business_name || emp.full_name}`}
+                      >
+                        <span>📄</span>
+                        <span>{emp.posted_count ?? emp.job_posts_count ?? 0}</span>
+                      </Link>
                     </td>
 
                     {/* Status Badge */}
