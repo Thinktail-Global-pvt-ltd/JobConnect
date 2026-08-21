@@ -279,10 +279,7 @@ class FirebaseController extends Controller
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
                     }
                 });
-            }
-
-            // Filter by Role (employer, chef, talent/job_seeker) if role parameter passed
-            if ($request->filled('role')) {
+            } elseif ($request->filled('role')) {
                 $requestedRole = strtolower($request->input('role'));
                 if (in_array($requestedRole, ['job_seeker', 'talent', 'jobseeker'])) {
                     $roleFilter = ['job_seeker', 'talent', 'jobseeker'];
