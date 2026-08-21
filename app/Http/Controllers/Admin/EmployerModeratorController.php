@@ -130,7 +130,11 @@ class EmployerModeratorController extends Controller
         }
 
         // Fetch employer job posts with robust multi-column match
-        $jobsQuery = \App\Models\JobPost::query()->where(function ($q) use ($user, $busName) {
+        $busNameClean = trim($busName);
+        $contactClean = trim($contactName);
+        $fullNameClean = trim($user->full_name ?? '');
+
+        $jobsQuery = \App\Models\JobPost::query()->where(function ($q) use ($user, $busNameClean, $contactClean, $fullNameClean) {
             $q->where('created_by', $user->id);
             if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'user_id')) {
                 $q->orWhere('user_id', $user->id);
@@ -138,11 +142,15 @@ class EmployerModeratorController extends Controller
             if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'employer_id')) {
                 $q->orWhere('employer_id', $user->id);
             }
-            if (!empty($busName)) {
-                $q->orWhere('company', $busName);
+            if (!empty($busNameClean) && strtolower($busNameClean) !== 'employer company') {
+                $q->orWhere('company', 'LIKE', '%' . $busNameClean . '%');
             }
-            if (!empty($user->full_name)) {
-                $q->orWhere('company', $user->full_name);
+            if (!empty($fullNameClean) && strtolower($fullNameClean) !== 'employer contact') {
+                $q->orWhere('company', 'LIKE', '%' . $fullNameClean . '%')
+                  ->orWhere('contact_person', 'LIKE', '%' . $fullNameClean . '%');
+            }
+            if (!empty($contactClean) && strtolower($contactClean) !== 'n/a') {
+                $q->orWhere('contact_person', 'LIKE', '%' . $contactClean . '%');
             }
         });
 
