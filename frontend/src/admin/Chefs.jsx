@@ -248,40 +248,6 @@ export default function Chefs() {
             </div>
           </div>
 
-          {/* KPI Cards (2 Columns on Half-Screen, 4 on Full-Screen) */}
-          <div className="grid grid-cols-4 gap-2.5">
-            <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Pending / Unpublished</div>
-              <div className="mt-2">
-                <span className="font-outfit font-bold text-xl text-amber-700 block">{pendingCount}</span>
-                <span className="text-[10px] font-extrabold text-amber-500/90 block mt-0.5">Hidden from Employer API</span>
-              </div>
-            </div>
-
-            <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Calendly Sync</div>
-              <div className="mt-2">
-                <span className="font-outfit font-bold text-xl text-slate-900 block">{calendlyPercentage}%</span>
-                <span className="text-[10px] font-extrabold text-slate-400 block mt-0.5">Active synchronization</span>
-              </div>
-            </div>
-
-            <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Active Published Chefs</div>
-              <div className="mt-2">
-                <span className="font-outfit font-bold text-xl text-emerald-700 block">{approvedCount}</span>
-                <span className="text-[10px] font-extrabold text-emerald-400 block mt-0.5">Visible on Employer API</span>
-              </div>
-            </div>
-
-            <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Applications</div>
-              <div className="mt-2">
-                <span className="font-outfit font-bold text-xl text-slate-900 block">{totalCount}</span>
-              </div>
-            </div>
-          </div>
-
           {/* Chefs List Table Card */}
           <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden">
             {loading ? (

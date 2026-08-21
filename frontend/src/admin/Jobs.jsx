@@ -342,57 +342,6 @@ export default function Jobs() {
         </button>
       </div>
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-4 gap-2.5">
-        {/* Card 1 */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] min-w-0">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wide block">Total Listings</span>
-            <Briefcase className="w-4 h-4 text-slate-500" />
-          </div>
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.total}</span>
-            <span className="text-[10px] font-extrabold text-slate-500">Merged Categories</span>
-          </div>
-        </div>
-
-        {/* Card 2 */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] min-w-0">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wide block">Pending Review</span>
-            <Clock className="w-4 h-4 text-amber-400" />
-          </div>
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.pending}</span>
-            <span className="text-[10px] font-extrabold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-xl whitespace-nowrap">Requires Approval</span>
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] min-w-0">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-wide block">Approved & Live</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.approved}</span>
-            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-xl whitespace-nowrap">Visible on Feed</span>
-          </div>
-        </div>
-
-        {/* Card 4 - Auto-Moderated */}
-        <div className="bg-[#153e69] p-3 rounded-lg shadow-sm flex flex-col justify-between h-[82px] min-w-0 text-white">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-black text-blue-100 uppercase tracking-wide block">Auto-Moderated</span>
-            <Pin className="w-4 h-4 text-emerald-200" />
-          </div>
-          <div className="mt-1 flex items-baseline justify-between">
-            <span className="font-outfit font-bold text-xl block">{stats.pinned}</span>
-            <span className="text-[10px] font-black text-blue-100 px-2 py-0.5 rounded-full">Jobs Today</span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Table Board */}
       <div className="bg-white rounded-xl border border-[#d7dce2] shadow-sm overflow-hidden">
         {loading ? (

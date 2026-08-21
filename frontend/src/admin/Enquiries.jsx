@@ -173,47 +173,6 @@ export default function Enquiries() {
         </div>
       </div>
 
-      {/* Dynamic KPI Cards Row (Calculated live from DB) */}
-      <div className="grid grid-cols-4 gap-2.5">
-        
-        {/* Card 1: Total Enquiries */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Enquiries</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.total}</span>
-            <span className="bg-emerald-50 text-[#059669] border border-emerald-100 text-[9px] font-extrabold px-2 py-0.5 rounded-md">Live Records</span>
-          </div>
-        </div>
-
-        {/* Card 2: Pending Response */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Response</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.pending}</span>
-            <span className="bg-rose-50 text-rose-600 border border-rose-100 text-[8px] font-extrabold px-2 py-0.5 rounded-md">Needs Follow-up</span>
-          </div>
-        </div>
-
-        {/* Card 3: Contacted Enquiries */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Contacted</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="font-outfit font-bold text-xl text-slate-900 block">{stats.contacted}</span>
-            <span className="bg-emerald-50 text-[#059669] border border-emerald-100 text-[8px] font-extrabold px-2 py-0.5 rounded-md">Completed</span>
-          </div>
-        </div>
-
-        {/* Card 4: High Priority */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px]">
-          <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">High Priority</span>
-          <div className="flex items-center justify-between mt-2">
-            <span className="font-outfit font-extrabold text-2xl text-purple-700 block">{stats.highPriority}</span>
-            <span className="bg-purple-50 text-purple-600 border border-purple-100 text-[9px] font-extrabold px-2 py-0.5 rounded-md">Priority</span>
-          </div>
-        </div>
-
-      </div>
-
       {/* Main Enquiries Table Card */}
       <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden">
         

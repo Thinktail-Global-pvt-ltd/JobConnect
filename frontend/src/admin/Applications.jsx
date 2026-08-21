@@ -373,29 +373,6 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
         </div>
       </div>
 
-      {/* Stats Cards Row (3 Columns) */}
-      <div className="grid grid-cols-3 gap-2.5">
-        {/* Card 1 */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] text-left">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Applications</span>
-          <span className="font-outfit font-bold text-xl text-slate-900 block mt-1">{apps.length}</span>
-        </div>
-        {/* Card 2 */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] text-left">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Listings with Applicants</span>
-          <span className="font-outfit font-bold text-xl text-emerald-700 block mt-1">
-            {groupedJobsList.length}
-          </span>
-        </div>
-        {/* Card 3 */}
-        <div className="bg-white p-3 rounded-lg border border-[#d7dce2] shadow-sm flex flex-col justify-between h-[82px] text-left">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Awaiting Review</span>
-          <span className="font-outfit font-bold text-xl text-amber-700 block mt-1">
-            {apps.filter(a => a.status === 'new').length}
-          </span>
-        </div>
-      </div>
-
       {/* Main Container Card */}
       <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden text-left">
         

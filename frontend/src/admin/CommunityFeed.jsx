@@ -267,48 +267,6 @@ export default function CommunityFeed() {
       )}
 
       <div className="space-y-4">
-        {/* KPI Stats Row */}
-        <div className="grid grid-cols-4 gap-3">
-          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left">
-            <div className="w-11 h-11 rounded-xl bg-emerald-50 text-[#059669] flex items-center justify-center shrink-0">
-              <Megaphone className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{stats.published}</span>
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Active / Published</span>
-            </div>
-          </div>
-
-          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left">
-            <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 font-bold text-[#9333ea]">
-              <FileEdit className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-outfit font-extrabold text-2xl text-purple-700 block leading-tight">{stats.pinned}</span>
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Pinned to Priority</span>
-            </div>
-          </div>
-
-          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left">
-            <div className="w-11 h-11 rounded-xl bg-[#fff7ed] text-[#c2410c] flex items-center justify-center shrink-0">
-              <Eye className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-outfit font-extrabold text-2xl text-slate-800 block leading-tight">{stats.drafts}</span>
-              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 block">Drafts / Unpublished</span>
-            </div>
-          </div>
-
-          <div className="bg-[#f4f5f6] p-4 rounded-xl border border-[#dfe3e8] shadow-sm flex items-center gap-4 text-left text-slate-900">
-            <div className="w-11 h-11 rounded-xl bg-[#d9f3e7] text-[#137333] flex items-center justify-center shrink-0">
-              <Clock3 className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-outfit font-extrabold text-2xl block leading-tight">{stats.total}</span>
-              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mt-1 block">Total Stream Entries</span>
-            </div>
-          </div>
-        </div>
 
         {/* Main Table Board */}
         <div className="bg-[#f4f5f6] rounded-xl border border-[#d9dee4] shadow-sm overflow-hidden">

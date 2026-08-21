@@ -229,59 +229,6 @@ export default function Training() {
         </button>
       </div>
 
-      {/* Dynamic KPI Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        
-        {/* Card 1: Active Programs */}
-        <div className="bg-white p-3.5 rounded-lg border border-[#d7dce2] shadow-sm flex items-center gap-3 text-left min-h-[82px]">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#059669] flex items-center justify-center shrink-0 font-bold text-xl">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-grow">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block truncate">Active Programs</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-0.5">{stats.active}</span>
-            <span className="text-[10px] font-bold text-emerald-600 block mt-0.5">Live on Candidate Feed</span>
-          </div>
-        </div>
-
-        {/* Card 2: Overseas Deployment Destinations */}
-        <div className="bg-white p-3.5 rounded-lg border border-[#d7dce2] shadow-sm flex items-center gap-3 text-left min-h-[82px]">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xl">
-            <Globe className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-grow">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block truncate">Overseas Destinations</span>
-            <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-0.5">{stats.countries_count} Countries</span>
-            <span className="text-[10px] font-bold text-slate-400 block mt-0.5">Global Placement Network</span>
-          </div>
-        </div>
-
-        {/* Card 3: Pinned / Priority Programs */}
-        <div className="hidden">
-          <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 font-bold text-xl">
-            <Pin className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-grow">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block truncate">Pinned to Priority</span>
-            <span className="font-outfit font-extrabold text-2xl text-purple-700 block mt-0.5">{stats.pinned}</span>
-            <span className="text-[10px] font-bold text-purple-600 block mt-0.5">Featured Feed Top</span>
-          </div>
-        </div>
-
-        {/* Card 4: Total Programs */}
-        <div className="bg-white p-3.5 rounded-lg border border-[#d7dce2] shadow-sm flex items-center gap-3 text-left min-h-[82px]">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-800/60 text-emerald-200 flex items-center justify-center shrink-0 font-bold text-xl">
-            <Sparkles className="w-6 h-6" />
-          </div>
-          <div className="min-w-0 flex-grow">
-            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block truncate">Total Programs</span>
-            <span className="font-outfit font-extrabold text-2xl block mt-0.5">{stats.total}</span>
-            <span className="text-[10px] font-bold text-emerald-100 block mt-0.5">Loaded at once</span>
-          </div>
-        </div>
-
-      </div>
-
       {/* Main Table Board */}
       <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden">
         
