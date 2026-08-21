@@ -337,27 +337,36 @@ export default function EmployerDetail() {
                       </td>
                     </tr>
                   ) : (
-                    jobsList.map(job => (
-                      <tr key={job.id} className="hover:bg-slate-50/20 transition-colors">
-                        <td className="py-3.5 px-6">
-                          <span className="font-extrabold text-slate-850 block text-[13px]">{job.title}</span>
-                          <span className="text-[9px] text-slate-400 font-bold block mt-0.5">ID: #{job.id}</span>
-                        </td>
-                        <td className="py-3.5 px-6 text-slate-500 font-bold">
-                          {job.date}
-                        </td>
-                        <td className="py-3.5 px-6">
-                          <span className={`px-2.5 py-1 rounded text-[9px] font-bold tracking-wider ${job.status_color}`}>
-                            {job.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-6 text-right">
-                          <Link to="/admin/jobs" className="text-slate-400 hover:text-slate-600 inline-block mr-2" title="View Job Details">
-                            <Eye className="w-4 h-4" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
+                    jobsList.map(job => {
+                      const statusStr = (job.status || 'pending').toLowerCase();
+                      const isAppr = ['approved', 'published', 'active'].includes(statusStr);
+                      const isRej = statusStr === 'rejected';
+                      const badgeClass = isAppr 
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : (isRej ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-amber-50 text-amber-700 border border-amber-200');
+
+                      return (
+                        <tr key={job.id} className="hover:bg-slate-50/20 transition-colors">
+                          <td className="py-3.5 px-6">
+                            <span className="font-extrabold text-slate-850 block text-[13px]">{job.title || job.job_title}</span>
+                            <span className="text-[9px] text-slate-400 font-bold block mt-0.5">ID: #{job.id} &nbsp;•&nbsp; Location: {job.location || 'India'}</span>
+                          </td>
+                          <td className="py-3.5 px-6 text-slate-500 font-bold">
+                            {job.posted_date || job.created_at_formatted || job.date || 'Recently'}
+                          </td>
+                          <td className="py-3.5 px-6">
+                            <span className={`px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider ${badgeClass}`}>
+                              {job.status || 'Pending'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-6 text-right">
+                            <Link to="/admin/jobs" className="text-slate-400 hover:text-[#153e69] inline-block mr-2" title="View Job Details">
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

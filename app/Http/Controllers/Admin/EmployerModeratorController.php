@@ -129,6 +129,47 @@ class EmployerModeratorController extends Controller
             }
         }
 
+        // Fetch employer job posts with robust multi-column match
+        $jobsQuery = \App\Models\JobPost::query()->where(function ($q) use ($user, $busName) {
+            $q->where('created_by', $user->id);
+            if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'user_id')) {
+                $q->orWhere('user_id', $user->id);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'employer_id')) {
+                $q->orWhere('employer_id', $user->id);
+            }
+            if (!empty($busName)) {
+                $q->orWhere('company', $busName);
+            }
+            if (!empty($user->full_name)) {
+                $q->orWhere('company', $user->full_name);
+            }
+        });
+
+        $allEmployerJobs = $jobsQuery->orderBy('id', 'desc')->get();
+
+        $mappedJobs = $allEmployerJobs->map(function ($j) {
+            $statusVal = strtolower($j->status ?: 'pending');
+            return [
+                'id'                   => $j->id,
+                'title'                => $j->title ?: 'Job Listing #' . $j->id,
+                'job_title'            => $j->title ?: 'Job Listing #' . $j->id,
+                'company'              => $j->company ?: 'Employer',
+                'location'             => $j->location ?: 'India',
+                'category'             => $j->category ?: 'india',
+                'salary'               => $j->salary ?: ($j->salary_min ? ($j->salary_min . ' - ' . $j->salary_max) : 'Competitive'),
+                'status'               => $statusVal,
+                'is_approved'          => in_array($statusVal, ['approved', 'published', 'active']),
+                'created_at'           => $j->created_at ? $j->created_at->toIso8601String() : null,
+                'posted_date'          => $j->created_at ? $j->created_at->format('M d, Y') : 'Recently',
+                'created_at_formatted' => $j->created_at ? $j->created_at->format('M d, Y') : 'Recently',
+            ];
+        });
+
+        $totalJobsCount = $mappedJobs->count();
+        $activeJobsCount = $mappedJobs->filter(fn($j) => in_array($j['status'], ['approved', 'published', 'active']))->count();
+        $pendingJobsCount = $mappedJobs->filter(fn($j) => !in_array($j['status'], ['approved', 'published', 'active']))->count();
+
         return response()->json([
             'success' => true,
             'employer' => [
@@ -153,16 +194,16 @@ class EmployerModeratorController extends Controller
                 'nominee_mobile'      => optional($empProfile)->nominee_mobile ?: null,
                 'is_completed'        => optional($empProfile)->is_completed ?? true,
                 'active_profile'      => $user->active_profile ?: ($user->active_role ?: 'employer'),
-                'total_jobs'          => $user->jobPosts ? $user->jobPosts->count() : 0,
-                'active_jobs'         => $user->jobPosts ? $user->jobPosts->whereIn('status', ['approved', 'published'])->count() : 0,
-                'pending_jobs'        => $user->jobPosts ? $user->jobPosts->whereNotIn('status', ['approved', 'published'])->count() : 0,
+                'total_jobs'          => $totalJobsCount,
+                'active_jobs'         => $activeJobsCount,
+                'pending_jobs'        => $pendingJobsCount,
                 'status'              => $user->is_suspended ? 'Suspended' : 'Active',
                 'is_suspended'        => (bool) $user->is_suspended,
                 'created_at'          => $user->created_at ? $user->created_at->toIso8601String() : null,
                 'profile_photo_path'  => $photoUrl,
                 'profile_photo'       => $photoUrl,
                 'company_logo_url'    => $photoUrl,
-                'jobs'                => $user->jobPosts,
+                'jobs'                => $mappedJobs->values(),
                 'user_data'           => [
                     'id'                => $user->id,
                     'full_name'         => $user->full_name ?: $user->name,
