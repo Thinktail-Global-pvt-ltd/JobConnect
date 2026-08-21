@@ -112,10 +112,29 @@ class FirebaseController extends Controller
         }
 
         if (empty($fcmToken)) {
+            $resolvedUserId = ($userId && User::where('id', $userId)->exists()) ? (int)$userId : ($user ? $user->id : null);
+            \App\Models\UserNotificationHistory::create([
+                'user_id' => $resolvedUserId,
+                'type' => 'fcm',
+                'recipient' => 'no_token',
+                'title' => $request->title ?: 'Test Push Notification 🎉',
+                'body' => $request->body ?: 'Your job posting is now live for candidates.',
+                'status' => 'failed_no_token',
+                'is_read' => false,
+                'metadata' => [
+                    'event' => $request->input('event', 'job_approved'),
+                    'target_id' => (string)$request->input('target_id', '84'),
+                    'role' => $request->input('role', 'employer'),
+                    'deep_link' => $request->input('deep_link', 'jobrito://job/84'),
+                    'reason' => 'No active FCM token found for user'
+                ]
+            ]);
+
             return response()->json([
-                'success' => false,
-                'message' => 'No active FCM device token found for User #' . ($userId ?? 'N/A') . '. Make sure to send fcm_token during login or via /api/user/fcm-token.'
-            ], 404);
+                'success' => true,
+                'message' => 'Notification created & persisted to DB (No active FCM device token found for User #' . ($resolvedUserId ?? 'N/A') . ').',
+                'user_id' => $resolvedUserId
+            ], 200);
         }
 
         try {
