@@ -24,13 +24,28 @@ export default function Jobs() {
   const pageSize = 10;
   const [formData, setFormData] = useState({
     title: '',
+    job_role: '',
     company: '',
     category: 'india',
+    job_category: 'Kitchen, Service, Bar & Beverage, Café',
+    industry_segment: 'Café',
     location: '',
+    country: 'Saudi Arabia',
     salary: '',
-    job_type: 'Full-time',
+    salary_min: '',
+    salary_max: '',
+    salary_currency: 'SAR',
+    experience_range: 'Mid Level (3-5 Years)',
+    job_type: 'Full-Time',
+    open_positions: 1,
+    contact_person: '',
     contact_info: '',
     description: '',
+    visa_assistance: false,
+    accommodation_available: false,
+    status: 'approved',
+    is_pinned: false,
+    is_referral: false,
   });
 
   // Sync category & search query when URL parameters change
@@ -178,18 +193,48 @@ export default function Jobs() {
     if (!formData.title || !formData.company || !formData.description || !formData.contact_info) return;
     setSubmitting(true);
 
+    const computedSalary = formData.salary || (formData.salary_min && formData.salary_max 
+      ? `${formData.salary_currency} ${formData.salary_min} - ${formData.salary_max}` 
+      : (formData.salary_min ? `${formData.salary_currency} ${formData.salary_min}` : 'Best in Industry'));
+
+    const payload = {
+      ...formData,
+      job_role: formData.job_role || formData.title,
+      salary: computedSalary,
+      open_positions: Number(formData.open_positions) || 1,
+      openings: Number(formData.open_positions) || 1,
+      vacancies: Number(formData.open_positions) || 1,
+      salary_min: formData.salary_min ? Number(formData.salary_min) : null,
+      salary_max: formData.salary_max ? Number(formData.salary_max) : null,
+    };
+
     try {
-      await mockApi.createJob(formData);
+      await mockApi.createJob(payload);
       setIsModalOpen(false);
       setFormData({
         title: '',
+        job_role: '',
         company: '',
         category: 'india',
+        job_category: 'Kitchen, Service, Bar & Beverage, Café',
+        industry_segment: 'Café',
         location: '',
+        country: 'Saudi Arabia',
         salary: '',
-        job_type: 'Full-time',
+        salary_min: '',
+        salary_max: '',
+        salary_currency: 'SAR',
+        experience_range: 'Mid Level (3-5 Years)',
+        job_type: 'Full-Time',
+        open_positions: 1,
+        contact_person: '',
         contact_info: '',
         description: '',
+        visa_assistance: false,
+        accommodation_available: false,
+        status: 'approved',
+        is_pinned: false,
+        is_referral: false,
       });
       await loadJobs();
     } catch (err) {
@@ -533,68 +578,202 @@ export default function Jobs() {
       {/* CREATE NEW JOB MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-lg overflow-hidden flex flex-col shadow-2xl text-left">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
+          <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl text-left">
+            
+            {/* Header */}
+            <div className="px-6 py-4.5 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><Briefcase className="w-4 h-4" /></span>
-                <h3 className="font-outfit font-extrabold text-slate-800 text-base">Add New Job Listing</h3>
+                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <Briefcase className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="font-outfit font-extrabold text-slate-800 text-base">Add New Job Listing</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold">Enter complete job details matching jobs/save API schema</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-600 flex items-center justify-center text-sm font-bold transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Job Title *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                />
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[82vh] overflow-y-auto">
+              
+              {/* Section 1: Basic Title & Role */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Title *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Sous Chef"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Role</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Sous Chef / Line Cook"
+                    value={formData.job_role}
+                    onChange={(e) => setFormData(prev => ({ ...prev, job_role: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
               </div>
 
+              {/* Section 2: Company & Industry Segment */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Company / Employer *</label>
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Thinktail Global Private Limited"
                     value={formData.company}
                     onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Category *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
-                  >
-                    <option value="india">India</option>
-                    <option value="ksa">KSA</option>
-                    <option value="dubai">Dubai</option>
-                  </select>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Industry Segment</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Café, Fine Dining, Hotel, QSR"
+                    value={formData.industry_segment}
+                    onChange={(e) => setFormData(prev => ({ ...prev, industry_segment: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
                 </div>
               </div>
 
+              {/* Section 3: Categories */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Primary Feed Category *</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="india">India Jobs</option>
+                    <option value="overseas">Overseas / KSA / Dubai</option>
+                    <option value="community">Community / Referral Jobs</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Category / Department</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Kitchen, Service, Bar & Beverage, Café"
+                    value={formData.job_category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, job_category: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+              </div>
+
+              {/* Section 4: Location & Country */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Location</label>
                   <input
                     type="text"
+                    placeholder="e.g. Riyadh, Central, Saudi Arabia"
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Country</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Saudi Arabia, India, UAE"
+                    value={formData.country}
+                    onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+              </div>
+
+              {/* Section 5: Salary Breakdown */}
+              <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-2.5">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Salary Details</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Currency</label>
+                    <select
+                      value={formData.salary_currency}
+                      onChange={(e) => setFormData(prev => ({ ...prev, salary_currency: e.target.value }))}
+                      className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                    >
+                      <option value="SAR">SAR (Saudi Riyal)</option>
+                      <option value="INR">INR (Indian Rupee)</option>
+                      <option value="AED">AED (UAE Dirham)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Min Salary</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 50000"
+                      value={formData.salary_min}
+                      onChange={(e) => setFormData(prev => ({ ...prev, salary_min: e.target.value }))}
+                      className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Max Salary</label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 80000"
+                      value={formData.salary_max}
+                      onChange={(e) => setFormData(prev => ({ ...prev, salary_max: e.target.value }))}
+                      className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Salary Range Display Text</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. SAR 50000 - 80000"
+                    value={formData.salary}
+                    onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
+                    className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+              </div>
+
+              {/* Section 6: Experience Range, Job Type, Vacancies */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Experience Range</label>
+                  <select
+                    value={formData.experience_range}
+                    onChange={(e) => setFormData(prev => ({ ...prev, experience_range: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="Entry Level (0-2 Years)">Entry Level (0-2 Years)</option>
+                    <option value="Mid Level (3-5 Years)">Mid Level (3-5 Years)</option>
+                    <option value="Senior Level (5+ Years)">Senior Level (5+ Years)</option>
+                    <option value="Executive Level (8+ Years)">Executive Level (8+ Years)</option>
+                  </select>
                 </div>
 
                 <div>
@@ -602,24 +781,39 @@ export default function Jobs() {
                   <select
                     value={formData.job_type}
                     onChange={(e) => setFormData(prev => ({ ...prev, job_type: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Part-Time">Part-Time</option>
                     <option value="Contract">Contract</option>
+                    <option value="Permanent">Permanent</option>
+                    <option value="Freelance">Freelance</option>
                     <option value="Internship">Internship</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Open Vacancies</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.open_positions}
+                    onChange={(e) => setFormData(prev => ({ ...prev, open_positions: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Section 7: Contact Information & Initial Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Salary</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Person</label>
                   <input
                     type="text"
-                    value={formData.salary}
-                    onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                    placeholder="e.g. Hiring Manager"
+                    value={formData.contact_person}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contact_person: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
 
@@ -628,36 +822,96 @@ export default function Jobs() {
                   <input
                     type="text"
                     required
+                    placeholder="e.g. hr@thinktail.com"
                     value={formData.contact_info}
                     onChange={(e) => setFormData(prev => ({ ...prev, contact_info: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Initial Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="approved">Approved (Live)</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
                 </div>
               </div>
 
+              {/* Section 8: Perks & Flags (Checkboxes) */}
+              <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100/80 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={formData.visa_assistance}
+                    onChange={(e) => setFormData(prev => ({ ...prev, visa_assistance: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>Visa Assistance</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={formData.accommodation_available}
+                    onChange={(e) => setFormData(prev => ({ ...prev, accommodation_available: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span>Accommodation</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_pinned}
+                    onChange={(e) => setFormData(prev => ({ ...prev, is_pinned: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span>Pin Listing</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_referral}
+                    onChange={(e) => setFormData(prev => ({ ...prev, is_referral: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Referral Job</span>
+                </label>
+              </div>
+
+              {/* Section 9: Job Description */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Job Description *</label>
                 <textarea
                   rows="4"
                   required
+                  placeholder="We are looking for an experienced Sous Chef to join our team..."
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] resize-none"
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] resize-none"
                 />
               </div>
 
+              {/* Submit Buttons */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all"
+                  className="px-4.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer disabled:opacity-60"
+                  className="px-6 py-2 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-xs font-bold shadow-sm shadow-[#059669]/10 transition-all cursor-pointer disabled:opacity-60"
                 >
                   {submitting ? 'Creating...' : 'Submit Job Listing'}
                 </button>
