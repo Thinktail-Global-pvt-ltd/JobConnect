@@ -158,7 +158,9 @@ Route::post('/admin/users/{user}/activate', [\App\Http\Controllers\Admin\UserMod
 Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserModeratorController::class, 'destroy']);
 Route::get('/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'index']);
 Route::get('/admin/employers/{id}', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'show']);
+Route::get('/employers/{id}', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'show']);
 Route::match(['get', 'post'], '/backend/admin/employers/{id}', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'show']);
+Route::match(['get', 'post'], '/backend/api/admin/employers/{id}', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'show']);
 Route::post('/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
 Route::match(['get', 'post'], '/admin/employers/create', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'store']);
 Route::get('/admin/chefs', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'apiIndex']);
