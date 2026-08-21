@@ -32,43 +32,72 @@ export default function JobDetail() {
 
   const loadJob = async () => {
     setLoading(true);
-    try {
-      // 1. Fetch via getJobDetail API (which searches real endpoints & list)
-      const data = await mockApi.getJobDetail(id);
-      if (data && (data.job || data.id)) {
-        const found = data.job || data;
-        setJob({
-          id: found.id,
-          title: found.title || `Job Listing #${found.id}`,
-          company: found.company || found.creator?.current_employer || found.creator?.full_name || 'Hospitality Employer',
-          salary: found.salary || found.salary_range || (found.salary_min ? `${found.salary_currency || ''} ${found.salary_min} - ${found.salary_max}` : 'INR 30,000 - 50,000'),
-          experience_range: found.experience_range || '0-2 Years',
-          job_type: found.job_type || found.work_type || 'Full-time',
-          location: found.location || 'India',
-          description: found.description || 'No description provided.',
-          requirements: found.requirements || [],
-          benefits: found.benefits || [],
-          status: found.status || 'approved',
-          created_at: found.created_at,
-          creator: found.creator || { full_name: found.company || 'Employer Contact', email: found.contact_info || 'N/A', mobile_number: found.contact_person || 'N/A' }
-        });
-        setLoading(false);
-        return;
-      }
+    let found = null;
 
-      // 2. Secondary fallback via getJobs
-      const jobsRes = await mockApi.getJobs();
-      if (jobsRes && jobsRes.jobs && Array.isArray(jobsRes.jobs)) {
-        const found = jobsRes.jobs.find(j => String(j.id) === String(id));
-        if (found) {
-          setJob(found);
-        }
+    try {
+      const res = await realApi.get(`/api/admin/jobs/${id}`);
+      if (res.data?.success && res.data.job) {
+        found = res.data.job;
       }
-    } catch (err) {
-      console.error('Failed to load job details:', err);
-    } finally {
-      setLoading(false);
+    } catch (e) {}
+
+    if (!found) {
+      const endpoints = [
+        `/backend/api/admin/jobs/${id}`,
+        `/api/admin/jobs/${id}`,
+        `/admin/jobs/${id}`
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await axios.get(ep, { headers: { 'Accept': 'application/json' } });
+          if (res.data?.job || res.data?.success) {
+            found = res.data.job || res.data;
+            break;
+          }
+        } catch (e) {}
+      }
     }
+
+    if (!found) {
+      try {
+        const data = await mockApi.getJobDetail(id);
+        if (data && (data.job || data.id)) {
+          found = data.job || data;
+        }
+      } catch (e) {}
+    }
+
+    if (found) {
+      const creator = found.creator || {};
+      const empP = creator.employer_profile || creator.employerProfile || {};
+      setJob({
+        ...found,
+        id: found.id,
+        title: found.title || found.job_role || `Job Listing #${found.id}`,
+        company: found.company || empP.business_name || creator.current_employer || creator.full_name || 'Hospitality Employer',
+        salary: found.salary || found.salary_range || (found.salary_min ? `${found.salary_currency || 'SAR'} ${found.salary_min} - ${found.salary_max}` : 'Best in Industry'),
+        experience_range: found.experience_range || '1-3 Years',
+        job_type: found.job_type || found.work_type || 'Full-time',
+        location: found.location || 'India',
+        country: found.country || 'India',
+        open_positions: found.open_positions || found.vacancies || 1,
+        category: found.category || found.job_category || 'india',
+        industry_segment: found.industry_segment || empP.industry_segment || 'Hospitality / F&B',
+        description: found.description || 'No detailed description provided.',
+        requirements: Array.isArray(found.requirements) ? found.requirements : (found.requirements ? [found.requirements] : []),
+        benefits: Array.isArray(found.benefits) ? found.benefits : (found.benefits ? [found.benefits] : []),
+        visa_assistance: Boolean(found.visa_assistance),
+        accommodation_available: Boolean(found.accommodation_available),
+        status: found.status || 'approved',
+        created_at: found.created_at,
+        creator: {
+          full_name: found.contact_person || creator.full_name || creator.name || empP.contact_person_name || 'Hiring Manager',
+          email: creator.email || empP.business_email || (str => str && str.includes('@') ? str : null)(found.contact_info) || 'Not Provided',
+          mobile_number: creator.mobile_number || empP.business_mobile || found.contact_info || 'N/A'
+        }
+      });
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -165,6 +194,10 @@ export default function JobDetail() {
     );
   }
 
+  const createdDateStr = job.created_at 
+    ? new Date(job.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'Recently';
+
   return (
     <div className="space-y-6 text-left">
       {/* Breadcrumbs & Back arrow */}
@@ -180,7 +213,7 @@ export default function JobDetail() {
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="space-y-1.5">
           <h2 className="font-outfit font-extrabold text-2xl text-slate-800 leading-snug">{job.title}</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {job.status === 'pending' ? (
               <span className="bg-[#059669] text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
                 New Request
@@ -193,6 +226,7 @@ export default function JobDetail() {
             <span className="text-[10px] font-bold text-slate-400">
               Submitted by {job.creator?.full_name || job.company || 'Employer'}
             </span>
+            <span className="text-[10px] font-bold text-slate-400">• Posted Date: {createdDateStr}</span>
           </div>
         </div>
 
@@ -228,32 +262,60 @@ export default function JobDetail() {
         {/* Left Side: Summary & Description */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Stats Bar */}
-          <div className="bg-white grid grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-2xl border border-[#e2e8f0] shadow-sm text-left">
+          {/* Stats & Key Information Bar */}
+          <div className="bg-white grid grid-cols-2 md:grid-cols-3 gap-4 p-5 rounded-2xl border border-[#e2e8f0] shadow-sm text-left">
             <div className="space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Salary Range</span>
-              <span className="font-outfit font-extrabold text-sm text-emerald-600 block">{job.salary || 'INR 30,000+'}</span>
+              <span className="font-outfit font-extrabold text-sm text-emerald-600 block">{job.salary || 'Best in Industry'}</span>
             </div>
             <div className="border-l border-slate-100 pl-4 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Experience</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.experience_range || 'Mid-Level'}</span>
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Experience Required</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.experience_range || '1-3 Years'}</span>
             </div>
             <div className="border-l border-slate-100 pl-4 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Work Type</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.job_type || 'Full-Time'}</span>
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Work / Job Type</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.job_type || 'Full-time'}</span>
             </div>
-            <div className="border-l border-slate-100 pl-4 space-y-0.5">
+            <div className="border-t border-slate-100 pt-3 space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Location</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.location || 'Gurgaon'}</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.location || 'India'}</span>
+            </div>
+            <div className="border-t border-l border-slate-100 pt-3 pl-4 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Open Vacancies</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.open_positions || 1} Position(s)</span>
+            </div>
+            <div className="border-t border-l border-slate-100 pt-3 pl-4 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Category & Segment</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 uppercase block">{job.category || 'India'} ({job.industry_segment || 'Hospitality'})</span>
             </div>
           </div>
 
           {/* Description Block */}
           <div className="bg-white p-7 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4 text-left">
-            <h3 className="font-outfit font-extrabold text-base text-slate-800">Job Description</h3>
+            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3">Job Description</h3>
             <p className="text-slate-600 leading-relaxed text-xs font-semibold whitespace-pre-line">
               {job.description || 'No detailed description provided for this job post.'}
             </p>
+          </div>
+
+          {/* Additional Features & Benefits Card */}
+          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4 text-left">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 border-b border-slate-100 pb-3">Job Features & Perks</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span className="text-slate-500 font-bold">Visa Assistance</span>
+                <span className={`px-2.5 py-0.5 rounded text-[10px] font-black ${job.visa_assistance ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+                  {job.visa_assistance ? 'Provided' : 'Not Specified'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span className="text-slate-500 font-bold">Accommodation Provided</span>
+                <span className={`px-2.5 py-0.5 rounded text-[10px] font-black ${job.accommodation_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
+                  {job.accommodation_available ? 'Provided' : 'Not Specified'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -270,7 +332,7 @@ export default function JobDetail() {
                 <span className="text-xl">🏢</span>
               </div>
 
-              <h4 className="font-outfit font-extrabold text-base text-slate-800">{job.company || 'Test business'}</h4>
+              <h4 className="font-outfit font-extrabold text-base text-slate-800">{job.company || 'Employer Company'}</h4>
               <div className="flex items-center gap-1 mt-0.5 text-[10px] font-bold text-[#059669]">
                 <span>✓</span>
                 <span>Verified Employer Account</span>
@@ -279,19 +341,19 @@ export default function JobDetail() {
               <div className="mt-5 space-y-3.5 text-xs font-semibold text-slate-500 border-t border-slate-50 pt-4">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 text-[10px] uppercase tracking-wider">Primary Contact</span>
-                  <span className="text-slate-800 font-bold">{job.creator?.full_name || 'Test Contact'}</span>
+                  <span className="text-slate-800 font-bold">{job.creator?.full_name || 'Hiring Manager'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 text-[10px] uppercase tracking-wider">Contact Phone</span>
-                  <span className="text-slate-800 font-bold font-mono text-[11px]">{job.creator?.mobile_number || job.creator?.phone || job.mobile_number || job.phone || job.contact_phone || 'N/A'}</span>
+                  <span className="text-slate-800 font-bold font-mono text-[11px]">{job.creator?.mobile_number || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 text-[10px] uppercase tracking-wider">Contact Email</span>
-                  <span className="text-[#059669] font-bold truncate max-w-[150px]">{job.creator?.email || 'test@test.com'}</span>
+                  <span className="text-[#153e69] font-bold truncate max-w-[150px]">{job.creator?.email || 'Not Provided'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 text-[10px] uppercase tracking-wider">Location</span>
-                  <span className="text-slate-800 font-bold">{job.location || 'Gurgaon, India'}</span>
+                  <span className="text-slate-800 font-bold">{job.location || 'India'}</span>
                 </div>
               </div>
             </div>
