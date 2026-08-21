@@ -129,35 +129,45 @@ class EmployerModeratorController extends Controller
             }
         }
 
-        // Fetch employer job posts with robust multi-column match
+        // Fetch employer job posts using explicit DB query matching user_id, created_by, employer_id, company, and contact_person
         $busNameClean = trim($busName);
         $contactClean = trim($contactName);
         $fullNameClean = trim($user->full_name ?? '');
 
-        $jobsQuery = \App\Models\JobPost::query()->where(function ($q) use ($user, $busNameClean, $contactClean, $fullNameClean) {
-            $q->where('created_by', $user->id);
-            if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'user_id')) {
-                $q->orWhere('user_id', $user->id);
+        $hasUserIdCol = \Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'user_id');
+        $hasEmployerIdCol = \Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'employer_id');
+        $hasCreatedByCol = \Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'created_by');
+
+        $jobsQuery = \Illuminate\Support\Facades\DB::table('job_posts')
+            ->select('job_posts.*');
+
+        $jobsQuery->where(function($q) use ($user, $busNameClean, $contactClean, $fullNameClean, $hasUserIdCol, $hasEmployerIdCol, $hasCreatedByCol) {
+            if ($hasCreatedByCol) {
+                $q->orWhere('job_posts.created_by', $user->id);
             }
-            if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'employer_id')) {
-                $q->orWhere('employer_id', $user->id);
+            if ($hasUserIdCol) {
+                $q->orWhere('job_posts.user_id', $user->id);
+            }
+            if ($hasEmployerIdCol) {
+                $q->orWhere('job_posts.employer_id', $user->id);
             }
             if (!empty($busNameClean) && strtolower($busNameClean) !== 'employer company') {
-                $q->orWhere('company', 'LIKE', '%' . $busNameClean . '%');
+                $q->orWhere('job_posts.company', 'LIKE', '%' . $busNameClean . '%');
             }
             if (!empty($fullNameClean) && strtolower($fullNameClean) !== 'employer contact') {
-                $q->orWhere('company', 'LIKE', '%' . $fullNameClean . '%')
-                  ->orWhere('contact_person', 'LIKE', '%' . $fullNameClean . '%');
+                $q->orWhere('job_posts.company', 'LIKE', '%' . $fullNameClean . '%')
+                  ->orWhere('job_posts.contact_person', 'LIKE', '%' . $fullNameClean . '%');
             }
             if (!empty($contactClean) && strtolower($contactClean) !== 'n/a') {
-                $q->orWhere('contact_person', 'LIKE', '%' . $contactClean . '%');
+                $q->orWhere('job_posts.contact_person', 'LIKE', '%' . $contactClean . '%');
             }
         });
 
-        $allEmployerJobs = $jobsQuery->orderBy('id', 'desc')->get();
+        $allEmployerJobs = $jobsQuery->orderBy('job_posts.id', 'desc')->get();
 
         $mappedJobs = $allEmployerJobs->map(function ($j) {
             $statusVal = strtolower($j->status ?: 'pending');
+            $cDate = $j->created_at ? \Carbon\Carbon::parse($j->created_at) : null;
             return [
                 'id'                   => $j->id,
                 'title'                => $j->title ?: 'Job Listing #' . $j->id,
@@ -165,12 +175,12 @@ class EmployerModeratorController extends Controller
                 'company'              => $j->company ?: 'Employer',
                 'location'             => $j->location ?: 'India',
                 'category'             => $j->category ?: 'india',
-                'salary'               => $j->salary ?: ($j->salary_min ? ($j->salary_min . ' - ' . $j->salary_max) : 'Competitive'),
+                'salary'               => $j->salary ?: (isset($j->salary_min) ? ($j->salary_min . ' - ' . $j->salary_max) : 'Competitive'),
                 'status'               => $statusVal,
                 'is_approved'          => in_array($statusVal, ['approved', 'published', 'active']),
-                'created_at'           => $j->created_at ? $j->created_at->toIso8601String() : null,
-                'posted_date'          => $j->created_at ? $j->created_at->format('M d, Y') : 'Recently',
-                'created_at_formatted' => $j->created_at ? $j->created_at->format('M d, Y') : 'Recently',
+                'created_at'           => $cDate ? $cDate->toIso8601String() : null,
+                'posted_date'          => $cDate ? $cDate->format('M d, Y') : 'Recently',
+                'created_at_formatted' => $cDate ? $cDate->format('M d, Y') : 'Recently',
             ];
         });
 
