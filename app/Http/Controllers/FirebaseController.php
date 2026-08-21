@@ -243,15 +243,26 @@ class FirebaseController extends Controller
     {
         try {
             $user = $request->user() ?? Auth::user();
-            if (!$user && $request->bearerToken()) {
-                $tokenStr = $request->bearerToken();
+            $tokenableUserId = null;
+
+            if ($request->bearerToken()) {
+                $tokenStr = trim($request->bearerToken());
                 if (str_contains($tokenStr, '|')) {
-                    $tokenId = explode('|', $tokenStr)[0];
-                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
-                    if ($tokenObj) {
-                        $user = $tokenObj->tokenable;
-                    }
+                    $tokenId = (int)explode('|', $tokenStr)[0];
+                    try {
+                        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                        if ($tokenObj) {
+                            $tokenableUserId = (int)$tokenObj->tokenable_id;
+                            if (!$user) {
+                                $user = $tokenObj->tokenable ?: User::find($tokenableUserId);
+                            }
+                        }
+                    } catch (\Throwable $e) {}
                 }
+            }
+
+            if ($user && !$tokenableUserId) {
+                $tokenableUserId = (int)$user->id;
             }
 
             $isAdmin = $request->input('scope') === 'admin' 
@@ -277,51 +288,40 @@ class FirebaseController extends Controller
                   ->where('body', 'not like', '%verification code%');
             });
 
-            // Filter by user_id parameter or role or authenticated user
-            if ($request->filled('user_id')) {
-                $targetId = (int)$request->input('user_id');
-                $targetUser = User::find($targetId);
+            $targetUserId = $request->filled('user_id') 
+                ? (int)$request->input('user_id') 
+                : ($tokenableUserId ?: ($user ? (int)$user->id : null));
+
+            if ($targetUserId) {
+                $targetUser = ($user && $user->id == $targetUserId) ? $user : User::find($targetUserId);
                 $mobile = $targetUser ? $targetUser->mobile_number : null;
 
-                $query->where(function ($q) use ($targetId, $mobile) {
-                    $q->where('user_id', $targetId);
+                $query->where(function ($q) use ($targetUserId, $mobile) {
+                    $q->where('user_id', $targetUserId);
                     if (!empty($mobile)) {
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
                     }
                 });
-            } else {
-                if ($request->filled('role')) {
-                    $requestedRole = strtolower($request->input('role'));
-                    $roleFilter = in_array($requestedRole, ['job_seeker', 'talent', 'jobseeker']) 
-                        ? ['job_seeker', 'talent', 'jobseeker'] 
-                        : [$requestedRole];
+            } elseif ($request->filled('role')) {
+                $requestedRole = strtolower($request->input('role'));
+                $roleFilter = in_array($requestedRole, ['job_seeker', 'talent', 'jobseeker']) 
+                    ? ['job_seeker', 'talent', 'jobseeker'] 
+                    : [$requestedRole];
 
-                    $query->where(function ($subQ) use ($user, $roleFilter, $requestedRole) {
-                        if ($user) {
-                            $subQ->where('user_id', $user->id);
-                        }
-                        $subQ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.role')) = ?", [$requestedRole]);
-                        $subQ->orWhereHas('user', function ($uq) use ($roleFilter) {
-                            $uq->where(function ($q) use ($roleFilter) {
-                                $q->whereIn('active_profile', $roleFilter)
-                                  ->orWhereIn('active_role', $roleFilter)
-                                  ->orWhereIn('user_role', $roleFilter)
-                                  ->orWhereHas('roles', function ($rq) use ($roleFilter) {
-                                      $rq->whereIn('role_type', $roleFilter);
-                                  });
-                            });
+                $query->where(function ($subQ) use ($roleFilter, $requestedRole) {
+                    $subQ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.role')) = ?", [$requestedRole]);
+                    $subQ->orWhereHas('user', function ($uq) use ($roleFilter) {
+                        $uq->where(function ($q) use ($roleFilter) {
+                            $q->whereIn('active_profile', $roleFilter)
+                              ->orWhereIn('active_role', $roleFilter)
+                              ->orWhereIn('user_role', $roleFilter)
+                              ->orWhereHas('roles', function ($rq) use ($roleFilter) {
+                                  $rq->whereIn('role_type', $roleFilter);
+                              });
                         });
-                        $subQ->orWhereNull('user_id')->orWhere('user_id', 0);
                     });
-                } elseif (!$isAdmin && $user) {
-                    $mobile = $user->mobile_number;
-                    $query->where(function ($q) use ($user, $mobile) {
-                        $q->where('user_id', $user->id);
-                        if (!empty($mobile)) {
-                            $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
-                        }
-                    });
-                }
+                    $subQ->orWhereNull('user_id')->orWhere('user_id', 0);
+                });
             }
 
             // Filter by channel / type if requested (fcm, in_app)
