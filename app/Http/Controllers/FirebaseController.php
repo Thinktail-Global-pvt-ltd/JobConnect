@@ -288,14 +288,19 @@ class FirebaseController extends Controller
                   ->where('body', 'not like', '%verification code%');
             });
 
-            // Filter by specific user ONLY if user_id parameter is explicitly passed in URL query
-            if ($request->filled('user_id')) {
-                $targetId = (int)$request->input('user_id');
-                $targetUser = User::find($targetId);
+            // Determine target user_id to filter by:
+            // 1. Explicit user_id parameter in request (e.g. ?user_id=148)
+            // 2. OR Sanctum tokenableUserId / authenticated user ID
+            $targetUserId = $request->filled('user_id') 
+                ? (int)$request->input('user_id') 
+                : ($tokenableUserId ?: ($user ? (int)$user->id : null));
+
+            if ($targetUserId && !$isAdmin && !$request->boolean('all')) {
+                $targetUser = ($user && $user->id == $targetUserId) ? $user : User::find($targetUserId);
                 $mobile = $targetUser ? $targetUser->mobile_number : null;
 
-                $query->where(function ($q) use ($targetId, $mobile) {
-                    $q->where('user_id', $targetId);
+                $query->where(function ($q) use ($targetUserId, $mobile) {
+                    $q->where('user_id', $targetUserId);
                     if (!empty($mobile)) {
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
                     }
