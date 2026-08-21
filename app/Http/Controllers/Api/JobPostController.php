@@ -152,12 +152,13 @@ class JobPostController extends Controller
         return response()->json([
             'success'   => true,
             'message'   => 'Job post submitted successfully and is pending moderation.',
-            'deep_link' => 'jobrito://jobs/' . $jobPost->id,
-            'url'       => 'jobrito://jobs/' . $jobPost->id,
+            'deep_link' => 'jobrito://job/' . $jobPost->id,
+            'url'       => 'https://jobrito.com/job/' . $jobPost->id,
             'screen'    => 'job_detail',
             'target_id' => (string)$jobPost->id,
             'job_post'  => array_merge($jobPost->toArray(), [
-                'deep_link' => 'jobrito://jobs/' . $jobPost->id,
+                'deep_link' => 'jobrito://job/' . $jobPost->id,
+                'url'       => 'https://jobrito.com/job/' . $jobPost->id,
                 'screen'    => 'job_detail',
             ]),
         ], 201);

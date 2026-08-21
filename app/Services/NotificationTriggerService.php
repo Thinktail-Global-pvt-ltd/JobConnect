@@ -101,8 +101,8 @@ class NotificationTriggerService
                 'job_id' => (string)$job->id,
                 'target_id' => (string)$job->id,
                 'screen' => 'job_detail',
-                'deep_link' => 'jobrito://jobs/' . $job->id,
-                'url' => 'jobrito://jobs/' . $job->id,
+                'deep_link' => 'jobrito://job/' . $job->id,
+                'url' => 'https://jobrito.com/job/' . $job->id,
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 'event' => 'job_created',
                 'status' => 'pending'
@@ -132,10 +132,11 @@ class NotificationTriggerService
             'job_id' => (string)$job->id,
             'target_id' => (string)$job->id,
             'screen' => 'job_detail',
-            'deep_link' => 'jobrito://jobs/' . $job->id,
-            'url' => 'jobrito://jobs/' . $job->id,
+            'deep_link' => 'jobrito://job/' . $job->id,
+            'url' => 'https://jobrito.com/job/' . $job->id,
             'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-            'event' => 'job_approved'
+            'event' => 'job_approved',
+            'role' => 'employer'
         ];
 
         if ($creator) {
@@ -152,10 +153,11 @@ class NotificationTriggerService
             'job_id' => (string)$job->id,
             'target_id' => (string)$job->id,
             'screen' => 'job_detail',
-            'deep_link' => 'jobrito://jobs/' . $job->id,
-            'url' => 'jobrito://jobs/' . $job->id,
+            'deep_link' => 'jobrito://job/' . $job->id,
+            'url' => 'https://jobrito.com/job/' . $job->id,
             'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-            'event' => 'job_alert'
+            'event' => 'job_approved',
+            'role' => 'chef'
         ];
 
         $chefUserIds = \App\Models\UserRole::whereIn('role_type', ['chef', 'job_seeker', 'talent'])->pluck('user_id')->toArray();
@@ -186,8 +188,8 @@ class NotificationTriggerService
             'job_id' => (string)$job->id,
             'target_id' => (string)$job->id,
             'screen' => 'job_detail',
-            'deep_link' => 'jobrito://jobs/' . $job->id,
-            'url' => 'jobrito://jobs/' . $job->id,
+            'deep_link' => 'jobrito://job/' . $job->id,
+            'url' => 'https://jobrito.com/job/' . $job->id,
             'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             'event' => 'job_rejected'
         ]);
@@ -249,15 +251,17 @@ class NotificationTriggerService
                 break;
         }
 
+        $jobIdStr = (string)($application->job_post_id ?? ($job ? $job->id : ''));
+
         // 1. Notify Applicant (Chef / Job Seeker)
         if ($applicant) {
             self::sendToUser($applicant, $titleApplicant, $bodyApplicant, [
                 'application_id' => (string)$application->id,
-                'target_id' => (string)$application->id,
-                'job_id' => (string)$application->job_post_id,
+                'target_id' => $jobIdStr,
+                'job_id' => $jobIdStr,
                 'screen' => 'application_detail',
-                'deep_link' => 'jobrito://applications/' . $application->id,
-                'url' => 'jobrito://applications/' . $application->id,
+                'deep_link' => 'jobrito://job/' . $jobIdStr . '/applicants',
+                'url' => 'https://jobrito.com/job/' . $jobIdStr . '/applicants',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 'status' => (string)$newStatus,
                 'event' => 'candidate_shortlisted'
@@ -269,15 +273,15 @@ class NotificationTriggerService
         if ($employerId) {
             self::sendToUser($employerId, $titleEmployer, $bodyEmployer, [
                 'application_id' => (string)$application->id,
-                'target_id' => (string)$application->id,
-                'job_id' => (string)$application->job_post_id,
+                'target_id' => $jobIdStr,
+                'job_id' => $jobIdStr,
                 'applicant_id' => (string)$application->applicant_id,
                 'screen' => 'application_detail',
-                'deep_link' => 'jobrito://applications/' . $application->id,
-                'url' => 'jobrito://applications/' . $application->id,
+                'deep_link' => 'jobrito://job/' . $jobIdStr . '/applicants',
+                'url' => 'https://jobrito.com/job/' . $jobIdStr . '/applicants',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 'status' => (string)$newStatus,
-                'event' => 'employer_shortlisted_candidate'
+                'event' => 'candidate_shortlisted'
             ]);
         }
     }

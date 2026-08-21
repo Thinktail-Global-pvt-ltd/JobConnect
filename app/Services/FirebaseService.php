@@ -39,21 +39,25 @@ class FirebaseService
             }
 
             if (empty($data['deep_link'])) {
-                if ($data['screen'] === 'profile_completion') {
-                    $data['deep_link'] = 'jobrito://complete-profile';
-                } elseif ($data['screen'] === 'job_detail' && !empty($data['job_id'])) {
-                    $data['deep_link'] = 'jobrito://jobs/' . $data['job_id'];
-                } elseif ($data['screen'] === 'application_detail' && !empty($data['application_id'])) {
-                    $data['deep_link'] = 'jobrito://applications/' . $data['application_id'];
-                } elseif ($data['screen'] === 'chef_detail' && !empty($data['chef_id'])) {
-                    $data['deep_link'] = 'jobrito://chefs/' . $data['chef_id'];
+                if (in_array($event, ['job_approved', 'job_alert', 'job_created', 'job_rejected']) || $data['screen'] === 'job_detail') {
+                    $targetId = $data['target_id'] ?? ($data['job_id'] ?? '');
+                    $data['deep_link'] = !empty($targetId) ? 'jobrito://job/' . $targetId : 'jobrito://my-jobs?tab=active';
+                } elseif (in_array($event, ['candidate_shortlisted', 'employer_shortlisted_candidate', 'application_status_change']) || $data['screen'] === 'application_detail') {
+                    $targetId = $data['target_id'] ?? ($data['job_id'] ?? ($data['application_id'] ?? ''));
+                    $data['deep_link'] = !empty($targetId) ? 'jobrito://job/' . $targetId . '/applicants' : 'jobrito://notifications';
+                } elseif (in_array($event, ['chef_detail', 'chef_approved']) || $data['screen'] === 'chef_detail') {
+                    $targetId = $data['target_id'] ?? ($data['chef_id'] ?? '');
+                    $data['deep_link'] = !empty($targetId) ? 'jobrito://chef/' . $targetId : 'jobrito://notifications';
+                } elseif (in_array($event, ['profile_completion', 'complete_profile', 'profile_reminder']) || $data['screen'] === 'profile_completion') {
+                    $role = strtolower($data['role'] ?? 'chef');
+                    $data['deep_link'] = 'jobrito://complete-profile/' . ($role === 'employer' ? 'employer' : 'chef');
                 } else {
                     $data['deep_link'] = 'jobrito://notifications';
                 }
             }
 
             if (empty($data['url'])) {
-                $data['url'] = $data['deep_link'];
+                $data['url'] = str_replace('jobrito://', 'https://jobrito.com/', $data['deep_link']);
             }
 
             if (empty($data['click_action'])) {

@@ -362,27 +362,25 @@ class FirebaseController extends Controller
                 }
 
                 $meta = is_array($item->metadata) ? $item->metadata : (json_decode($item->metadata ?? '[]', true) ?: []);
-                $screen = $meta['screen'] ?? null;
-                $deepLink = $meta['deep_link'] ?? ($meta['url'] ?? null);
+                $event = $meta['event'] ?? ($item->type ?: 'general');
+                $targetId = (string)($meta['target_id'] ?? ($meta['job_id'] ?? ($meta['application_id'] ?? ($meta['chef_id'] ?? ''))));
+                $role = $meta['role'] ?? ($recipientUser ? ($recipientUser->active_profile ?: 'chef') : 'chef');
 
-                if (!$screen) {
-                    if (in_array($item->type, ['profile_completion', 'complete_profile']) || str_contains(strtolower($item->title ?? ''), 'complete your profile')) {
-                        $screen = 'profile_completion';
-                        $deepLink = 'jobrito://complete-profile';
-                    } elseif (str_contains(strtolower($item->title ?? ''), 'job')) {
-                        $screen = 'job_detail';
-                        $deepLink = isset($meta['job_id']) ? 'jobrito://jobs/' . $meta['job_id'] : 'jobrito://jobs';
-                    } elseif (str_contains(strtolower($item->title ?? ''), 'candidate') || str_contains(strtolower($item->title ?? ''), 'application') || str_contains(strtolower($item->title ?? ''), 'shortlisted')) {
-                        $screen = 'application_detail';
-                        $deepLink = isset($meta['application_id']) ? 'jobrito://applications/' . $meta['application_id'] : 'jobrito://applications';
-                    } elseif (str_contains(strtolower($item->title ?? ''), 'chef')) {
-                        $screen = 'chef_detail';
-                        $deepLink = isset($meta['chef_id']) ? 'jobrito://chefs/' . $meta['chef_id'] : 'jobrito://chefs';
+                $deepLink = $meta['deep_link'] ?? null;
+                if (!$deepLink) {
+                    if ($event === 'job_approved' || str_contains(strtolower($item->title ?? ''), 'approved') || str_contains(strtolower($item->title ?? ''), 'job')) {
+                        $deepLink = !empty($targetId) ? 'jobrito://job/' . $targetId : 'jobrito://my-jobs?tab=active';
+                    } elseif ($event === 'candidate_shortlisted' || str_contains(strtolower($item->title ?? ''), 'candidate') || str_contains(strtolower($item->title ?? ''), 'application')) {
+                        $deepLink = !empty($targetId) ? 'jobrito://job/' . $targetId . '/applicants' : 'jobrito://notifications';
+                    } elseif ($event === 'chef_detail' || str_contains(strtolower($item->title ?? ''), 'chef')) {
+                        $deepLink = !empty($targetId) ? 'jobrito://chef/' . $targetId : 'jobrito://notifications';
+                    } elseif ($event === 'profile_completion' || str_contains(strtolower($item->title ?? ''), 'complete your profile')) {
+                        $deepLink = 'jobrito://complete-profile/' . (in_array(strtolower($role), ['employer', 'recruiter']) ? 'employer' : 'chef');
                     } else {
-                        $screen = 'notifications';
                         $deepLink = 'jobrito://notifications';
                     }
                 }
+                $webUrl = str_replace('jobrito://', 'https://jobrito.com/', $deepLink);
 
                 return [
                     'id' => $item->id,
@@ -393,9 +391,9 @@ class FirebaseController extends Controller
                     'recipient_photo' => $recipientUser ? $recipientUser->profile_photo_path : null,
                     'type' => $item->type ?: 'fcm',
                     'event' => $meta['event'] ?? ($item->type ?: 'fcm'),
-                    'screen' => $screen,
+                    'screen' => $meta['screen'] ?? 'notifications',
                     'deep_link' => $deepLink,
-                    'url' => $deepLink,
+                    'url' => $webUrl,
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                     'target_id' => (string)($meta['job_id'] ?? ($meta['application_id'] ?? ($meta['chef_id'] ?? ''))),
                     'recipient' => $item->recipient,

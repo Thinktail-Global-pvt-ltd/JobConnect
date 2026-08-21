@@ -107,17 +107,19 @@ class SendProfileCompletionReminders extends Command
                 }
             }
 
+            $roleStr = (strtolower($activeRole) === 'employer' || strtolower($activeRole) === 'recruiter') ? 'employer' : 'chef';
+
             // Deep link payload for mobile app
             $payload = [
                 'event' => 'profile_completion',
                 'type' => 'profile_completion',
                 'screen' => 'profile_completion',
-                'deep_link' => 'jobrito://complete-profile',
-                'url' => 'jobrito://complete-profile',
+                'deep_link' => 'jobrito://complete-profile/' . $roleStr,
+                'url' => 'https://jobrito.com/complete-profile/' . $roleStr,
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 'user_id' => (string)$user->id,
                 'completeness' => (string)$completeness,
-                'role' => (string)$activeRole,
+                'role' => $roleStr,
             ];
 
             // Send Push Notification
