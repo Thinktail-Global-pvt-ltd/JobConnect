@@ -277,7 +277,7 @@ class FirebaseController extends Controller
                   ->where('body', 'not like', '%verification code%');
             });
 
-            // Filter by specific user if user_id parameter passed
+            // Filter by user_id parameter or role or authenticated user
             if ($request->filled('user_id')) {
                 $targetId = (int)$request->input('user_id');
                 $targetUser = User::find($targetId);
@@ -289,35 +289,39 @@ class FirebaseController extends Controller
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
                     }
                 });
-            } elseif (!$isAdmin && $user) {
-                $mobile = $user->mobile_number;
+            } else {
+                if ($request->filled('role')) {
+                    $requestedRole = strtolower($request->input('role'));
+                    $roleFilter = in_array($requestedRole, ['job_seeker', 'talent', 'jobseeker']) 
+                        ? ['job_seeker', 'talent', 'jobseeker'] 
+                        : [$requestedRole];
 
-                $query->where(function ($q) use ($user, $mobile) {
-                    $q->where('user_id', $user->id);
-                    if (!empty($mobile)) {
-                        $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
-                    }
-                });
-            } elseif ($request->filled('role')) {
-                $requestedRole = strtolower($request->input('role'));
-                if (in_array($requestedRole, ['job_seeker', 'talent', 'jobseeker'])) {
-                    $roleFilter = ['job_seeker', 'talent', 'jobseeker'];
-                } else {
-                    $roleFilter = [$requestedRole];
-                }
-
-                $query->where(function ($subQ) use ($roleFilter) {
-                    $subQ->whereHas('user', function ($uq) use ($roleFilter) {
-                        $uq->where(function ($q) use ($roleFilter) {
-                            $q->whereIn('active_profile', $roleFilter)
-                              ->orWhereIn('active_role', $roleFilter)
-                              ->orWhereIn('user_role', $roleFilter)
-                              ->orWhereHas('roles', function ($rq) use ($roleFilter) {
-                                  $rq->whereIn('role_type', $roleFilter);
-                              });
+                    $query->where(function ($subQ) use ($user, $roleFilter, $requestedRole) {
+                        if ($user) {
+                            $subQ->where('user_id', $user->id);
+                        }
+                        $subQ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.role')) = ?", [$requestedRole]);
+                        $subQ->orWhereHas('user', function ($uq) use ($roleFilter) {
+                            $uq->where(function ($q) use ($roleFilter) {
+                                $q->whereIn('active_profile', $roleFilter)
+                                  ->orWhereIn('active_role', $roleFilter)
+                                  ->orWhereIn('user_role', $roleFilter)
+                                  ->orWhereHas('roles', function ($rq) use ($roleFilter) {
+                                      $rq->whereIn('role_type', $roleFilter);
+                                  });
+                            });
                         });
-                    })->orWhereNull('user_id');
-                });
+                        $subQ->orWhereNull('user_id')->orWhere('user_id', 0);
+                    });
+                } elseif (!$isAdmin && $user) {
+                    $mobile = $user->mobile_number;
+                    $query->where(function ($q) use ($user, $mobile) {
+                        $q->where('user_id', $user->id);
+                        if (!empty($mobile)) {
+                            $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
+                        }
+                    });
+                }
             }
 
             // Filter by channel / type if requested (fcm, in_app)
