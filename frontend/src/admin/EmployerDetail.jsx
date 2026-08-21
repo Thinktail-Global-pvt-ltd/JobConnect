@@ -20,22 +20,68 @@ export default function EmployerDetail() {
     setLoading(!employer);
     let data = null;
 
-    const endpoints = [
-      `http://178.16.138.159/backend/api/admin/employers/${id}`,
-      `/backend/api/admin/employers/${id}`,
-      `/api/admin/employers/${id}`
-    ];
+    // 1. Try realApi /api/admin/employers/:id
+    try {
+      const res = await realApi.get(`/api/admin/employers/${id}`);
+      if (res.data?.success && res.data.employer) {
+        data = res.data.employer;
+      }
+    } catch (e) {}
 
-    for (const ep of endpoints) {
+    // 2. Try realApi /api/admin/users/:id
+    if (!data) {
       try {
-        const res = await axios.get(ep, {
-          headers: { 'Accept': 'application/json' }
-        });
-        if (res.data?.success && res.data.employer) {
-          data = res.data.employer;
-          break;
+        const res = await realApi.get(`/api/admin/users/${id}`);
+        if (res.data?.success && res.data.user) {
+          const u = res.data.user;
+          const empP = u.employer_profile || u.employerProfile || {};
+          data = {
+            id: u.id,
+            user_id: u.id,
+            name: empP.business_name || u.current_employer || u.full_name || 'Employer',
+            business_name: empP.business_name || u.current_employer || u.full_name || 'Employer',
+            contact: empP.contact_person_name || u.full_name || 'N/A',
+            contact_person_name: empP.contact_person_name || u.full_name || 'N/A',
+            phone: empP.business_mobile || u.mobile_number || 'N/A',
+            mobile_number: empP.business_mobile || u.mobile_number || 'N/A',
+            email: empP.business_email || u.email || 'Not Provided',
+            hq: empP.business_location || u.city || 'India',
+            business_location: empP.business_location || u.city || 'India',
+            city: u.city || empP.business_location || 'India',
+            country: u.country || 'India',
+            industry_segment: empP.industry_segment || 'Hospitality / F&B',
+            preferred_language: empP.preferred_language || u.selected_language || 'English',
+            operational_locations: empP.operational_locations || [],
+            nominee_name: empP.nominee_name || null,
+            nominee_relationship: empP.nominee_relationship || null,
+            nominee_mobile: empP.nominee_mobile || null,
+            is_completed: empP.is_completed ?? true,
+            is_suspended: Boolean(u.is_suspended),
+            status: u.is_suspended ? 'Suspended' : 'Active',
+            created_at: u.created_at || '',
+            profile_photo_path: u.profile_photo_path || empP.company_logo_path || null,
+            jobs: Array.isArray(u.job_posts || u.jobPosts) ? (u.job_posts || u.jobPosts) : [],
+          };
         }
       } catch (e) {}
+    }
+
+    // 3. Fallback to axios endpoint list
+    if (!data) {
+      const endpoints = [
+        `/backend/api/admin/employers/${id}`,
+        `/api/admin/employers/${id}`,
+        `/admin/employers/${id}`
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await axios.get(ep, { headers: { 'Accept': 'application/json' } });
+          if (res.data?.success && res.data.employer) {
+            data = res.data.employer;
+            break;
+          }
+        } catch (e) {}
+      }
     }
 
     if (data) {

@@ -180,6 +180,9 @@ Route::match(['get', 'post'], '/backend/api/admin/employers', function(\Illumina
 Route::match(['get', 'post'], '/api/admin/employers/{id}', function($id) {
     return (new \App\Http\Controllers\Admin\EmployerModeratorController)->show($id);
 });
+Route::match(['get', 'post'], '/admin/employers/{id}', function($id) {
+    return (new \App\Http\Controllers\Admin\EmployerModeratorController)->show($id);
+});
 Route::match(['get', 'post'], '/backend/api/admin/employers/{id}', function($id) {
     return (new \App\Http\Controllers\Admin\EmployerModeratorController)->show($id);
 });
