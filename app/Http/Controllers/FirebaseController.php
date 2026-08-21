@@ -289,7 +289,7 @@ class FirebaseController extends Controller
                 $query->where(function ($q) use ($targetUserId, $mobile) {
                     $q->where('user_id', $targetUserId);
                     if (!empty($mobile)) {
-                        $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
+                        $q->orWhere('recipient', $mobile);
                     }
                 });
             } elseif ($request->filled('role') && !$targetUserId) {
