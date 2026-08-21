@@ -244,9 +244,28 @@ class FirebaseController extends Controller
         try {
             \App\Models\UserNotificationHistory::ensureTableExists();
 
+            $user = $request->user() ?? Auth::user();
+            $tokenableUserId = null;
+
+            if ($request->bearerToken()) {
+                $tokenStr = trim($request->bearerToken());
+                if (str_contains($tokenStr, '|')) {
+                    $tokenId = (int)explode('|', $tokenStr)[0];
+                    try {
+                        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                        if ($tokenObj) {
+                            $tokenableUserId = (int)$tokenObj->tokenable_id;
+                            if (!$user) {
+                                $user = $tokenObj->tokenable ?: User::find($tokenableUserId);
+                            }
+                        }
+                    } catch (\Throwable $e) {}
+                }
+            }
+
             $query = \App\Models\UserNotificationHistory::query();
 
-            // Exclude ONLY whatsapp logs if type is whatsapp
+            // Exclude WhatsApp OTP notifications / login_auth_code logs
             $query->where(function ($q) {
                 $q->whereNull('type')
                   ->orWhere(function ($subQ) {
@@ -255,48 +274,43 @@ class FirebaseController extends Controller
                   });
             });
 
+            // Determine target user_id to filter by:
             // 1. Explicit user_id parameter in request e.g. ?user_id=148
-            if ($request->filled('user_id')) {
-                $targetId = (int)$request->input('user_id');
-                $targetUser = User::find($targetId);
+            // 2. OR Sanctum tokenableUserId / authenticated user ID from Bearer token
+            $targetUserId = $request->filled('user_id') 
+                ? (int)$request->input('user_id') 
+                : ($tokenableUserId ?: ($user ? (int)$user->id : null));
+
+            // If user_id parameter or Bearer token is provided (and not explicitly requesting all/admin scope)
+            if ($targetUserId && !$request->boolean('all') && $request->input('scope') !== 'all' && $request->input('scope') !== 'admin') {
+                $targetUser = ($user && $user->id == $targetUserId) ? $user : User::find($targetUserId);
                 $mobile = $targetUser ? $targetUser->mobile_number : null;
 
-                $query->where(function ($q) use ($targetId, $mobile) {
-                    $q->where('user_id', $targetId);
+                $query->where(function ($q) use ($targetUserId, $mobile) {
+                    $q->where('user_id', $targetUserId);
                     if (!empty($mobile)) {
                         $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
                     }
                 });
-            } elseif (!$request->boolean('all') && $request->input('scope') !== 'all' && $request->input('scope') !== 'admin' && !$request->filled('role')) {
-                // 2. If Bearer token is passed without user_id / role / all param
-                $user = $request->user() ?? Auth::user();
-                $tokenableUserId = null;
+            } elseif ($request->filled('role') && !$targetUserId) {
+                $requestedRole = strtolower($request->input('role'));
+                $roleFilter = in_array($requestedRole, ['job_seeker', 'talent', 'jobseeker']) 
+                    ? ['job_seeker', 'talent', 'jobseeker'] 
+                    : [$requestedRole];
 
-                if ($request->bearerToken()) {
-                    $tokenStr = trim($request->bearerToken());
-                    if (str_contains($tokenStr, '|')) {
-                        $tokenId = (int)explode('|', $tokenStr)[0];
-                        try {
-                            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
-                            if ($tokenObj) {
-                                $tokenableUserId = (int)$tokenObj->tokenable_id;
-                            }
-                        } catch (\Throwable $e) {}
-                    }
-                }
-
-                $uid = $tokenableUserId ?: ($user ? (int)$user->id : null);
-                if ($uid) {
-                    $targetUser = User::find($uid);
-                    $mobile = $targetUser ? $targetUser->mobile_number : null;
-
-                    $query->where(function ($q) use ($uid, $mobile) {
-                        $q->where('user_id', $uid);
-                        if (!empty($mobile)) {
-                            $q->orWhere('recipient', $mobile)->orWhere('recipient_phone', $mobile);
-                        }
+                $query->where(function ($subQ) use ($roleFilter, $requestedRole) {
+                    $subQ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.role')) = ?", [$requestedRole]);
+                    $subQ->orWhereHas('user', function ($uq) use ($roleFilter) {
+                        $uq->where(function ($q) use ($roleFilter) {
+                            $q->whereIn('active_profile', $roleFilter)
+                              ->orWhereIn('active_role', $roleFilter)
+                              ->orWhereIn('user_role', $roleFilter)
+                              ->orWhereHas('roles', function ($rq) use ($roleFilter) {
+                                  $rq->whereIn('role_type', $roleFilter);
+                              });
+                        });
                     });
-                }
+                });
             }
 
             // Filter by channel / type if requested
@@ -305,13 +319,6 @@ class FirebaseController extends Controller
             }
 
             $rawHistory = $query->orderBy('id', 'desc')->get();
-
-            // If query filtered by user_id resulted in empty list, return all FCM notifications
-            if ($rawHistory->isEmpty()) {
-                $rawHistory = \App\Models\UserNotificationHistory::where(function ($q) {
-                    $q->whereNull('type')->orWhere('type', 'not like', '%whatsapp%');
-                })->orderBy('id', 'desc')->get();
-            }
 
             $notifications = $rawHistory->map(function ($item) {
                 $recipientUser = null;
