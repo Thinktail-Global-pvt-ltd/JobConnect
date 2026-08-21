@@ -43,11 +43,12 @@ class EmployerController extends Controller
 
             // Calculate counts
             // Note: active matches 'approved', pending matches 'pending', closed matches 'closed'
-            $activeJobsCount = $jobs->where('status', 'approved')->count();
-            $pendingJobsCount = $jobs->where('status', 'pending')->count();
+            $activeJobsCount = $jobs->whereIn('status', ['approved', 'published', 'active'])->count();
+            $pendingJobsCount = $jobs->whereNotIn('status', ['approved', 'published', 'active', 'closed'])->count();
+            $closedJobsCount = $jobs->where('status', 'closed')->count();
 
             // Aggregate stats across active job posts
-            $activeJobs = $jobs->where('status', 'approved');
+            $activeJobs = $jobs->whereIn('status', ['approved', 'published', 'active']);
             $totalApplicants = 0;
             $totalShortlisted = 0;
             $totalRejected = 0;
@@ -319,7 +320,7 @@ class EmployerController extends Controller
                 ];
             });
 
-            if ($request->wantsJson() || $request->ajax() || $request->is('api/*')) {
+            if ($request->wantsJson() || $request->ajax() || $request->is('api/*') || $request->is('backend/api/*')) {
                 return response()->json([
                     'success' => true,
                     'metrics' => [
@@ -329,6 +330,9 @@ class EmployerController extends Controller
                         'contacted' => $totalContacted,
                         'active_jobs_count' => $activeJobsCount,
                         'pending_jobs_count' => $pendingJobsCount,
+                        'closed_jobs_count' => $closedJobsCount,
+                        'closed_jobs' => $closedJobsCount,
+                        'total_closed_jobs' => $closedJobsCount,
                     ],
                     'jobs' => $mappedJobs,
                 ]);

@@ -229,10 +229,8 @@ class JobModeratorController extends Controller
     public function store(Request $request)
     {
         try {
-            $request->validate([
-                'title'     => 'required|string|max:255',
-                'location'  => 'required|string|max:255',
-            ]);
+            $title = $request->input('title') ?: ($request->input('job_role') ?: 'Sous Chef');
+            $location = $request->input('location') ?: 'India';
 
             $adminUser = auth()->user();
             if (!$adminUser) {
@@ -276,14 +274,18 @@ class JobModeratorController extends Controller
 
             $userId = $adminUser->id;
 
-            $category = strtolower(trim($request->input('category', 'india')));
-            if (!in_array($category, ['india', 'ksa', 'dubai', 'overseas', 'community'])) {
+            $rawCategory = strtolower(trim($request->input('category') ?: ($request->input('job_category') ?: 'india')));
+            if (str_contains($rawCategory, 'overseas') || str_contains($rawCategory, 'dubai') || str_contains(strtolower($location), 'saudi') || str_contains(strtolower($location), 'riyadh') || str_contains(strtolower($location), 'dubai')) {
+                $category = 'overseas';
+            } elseif (str_contains($rawCategory, 'community')) {
+                $category = 'community';
+            } else {
                 $category = 'india';
             }
 
             $salaryMin = $request->filled('salary_min') ? floatval($request->salary_min) : null;
             $salaryMax = $request->filled('salary_max') ? floatval($request->salary_max) : null;
-            $salaryCurrency = $request->input('salary_currency', 'INR');
+            $salaryCurrency = $request->input('salary_currency', 'SAR');
 
             $salaryStr = $request->input('salary');
             if (!$salaryStr) {
@@ -296,15 +298,17 @@ class JobModeratorController extends Controller
                 }
             }
 
+            $companyName = $request->input('company') ?: ($adminUser ? ($adminUser->current_employer ?: ($adminUser->full_name ?: 'Jobrito Partner')) : 'Jobrito Partner');
             $contactPerson = $request->input('contact_person') ?: ($adminUser ? ($adminUser->full_name ?: $adminUser->name) : 'Hiring Manager');
             $contactInfo   = $request->input('contact_info') ?: ($adminUser ? ($adminUser->email ?: $adminUser->mobile_number) : 'contact@jobrito.com');
-            $description   = $request->input('description') ?: "Job Opportunity for {$request->input('title')} in {$request->input('location')}. Apply now on Jobrito.";
+            $description   = $request->input('description') ?: "Job Opportunity for {$title} in {$location}. Apply now on Jobrito.";
+            $openPositions = intval($request->input('open_positions') ?: ($request->input('openings') ?: ($request->input('vacancies') ?: 1)));
 
             $job = JobPost::create([
                 'created_by'                => $userId,
-                'title'                     => $request->input('title'),
-                'company'                   => $request->input('company') ?: 'Jobrito Partner',
-                'location'                  => $request->input('location'),
+                'title'                     => $title,
+                'company'                   => $companyName,
+                'location'                  => $location,
                 'category'                  => $category,
                 'salary'                    => $salaryStr,
                 'salary_min'                => $salaryMin,
@@ -312,7 +316,7 @@ class JobModeratorController extends Controller
                 'salary_currency'           => $salaryCurrency,
                 'experience_range'          => $request->input('experience_range', '1-3 Years'),
                 'job_type'                  => $request->input('job_type', 'Full-Time'),
-                'open_positions'            => intval($request->input('open_positions', 1)),
+                'open_positions'            => $openPositions,
                 'description'               => $description,
                 'contact_person'            => $contactPerson,
                 'contact_info'              => $contactInfo,
@@ -320,7 +324,7 @@ class JobModeratorController extends Controller
                 'is_pinned'                 => filter_var($request->input('is_pinned', false), FILTER_VALIDATE_BOOLEAN),
                 'is_referral'               => filter_var($request->input('is_referral', false), FILTER_VALIDATE_BOOLEAN),
                 'submitted_by_role'         => 'employer',
-                'country'                   => $request->input('country') ?: 'India',
+                'country'                   => $request->input('country') ?: (str_contains(strtolower($location), 'saudi') ? 'Saudi Arabia' : 'India'),
                 'visa_assistance'           => filter_var($request->input('visa_assistance', false), FILTER_VALIDATE_BOOLEAN),
                 'accommodation_available'   => filter_var($request->input('accommodation_available', false), FILTER_VALIDATE_BOOLEAN),
             ]);
