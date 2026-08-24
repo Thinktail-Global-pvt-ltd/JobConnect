@@ -193,31 +193,18 @@ export default function EmployerDetail() {
           </div>
         </div>
 
-        {/* Header Action Buttons */}
+        {/* Header Action Buttons (Single Toggle Button) */}
         <div className="flex items-center gap-2.5">
           <button 
-            onClick={handleSuspend} 
-            disabled={suspended}
-            className={`border rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs ${
+            onClick={suspended ? handleActivate : handleSuspend} 
+            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer ${
               suspended 
-                ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-50' 
-                : 'bg-white border-[#f0a9a9] hover:bg-rose-50 text-[#d32f2f] cursor-pointer'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                : 'bg-white border border-[#f0a9a9] hover:bg-rose-50 text-[#d32f2f]'
             }`}
           >
-            <Ban className="w-4 h-4" />
-            Suspend Employer
-          </button>
-          <button 
-            onClick={handleActivate} 
-            disabled={!suspended}
-            className={`rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs ${
-              !suspended 
-                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-50' 
-                : 'bg-[#f58220] hover:bg-[#df6d0f] text-white cursor-pointer'
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            Activate Employer
+            {suspended ? <CheckCircle2 className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+            <span>{suspended ? 'Activate Employer' : 'Suspend Employer'}</span>
           </button>
         </div>
       </div>
