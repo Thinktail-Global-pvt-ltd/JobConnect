@@ -35,14 +35,20 @@ class FirebaseController extends Controller
                 'fcm_token' => $request->fcm_token,
             ]);
 
+            $deviceType = strtolower($request->input('device_type') ?: ($request->input('platform') ?: ''));
+            if (!$deviceType) {
+                $ua = strtolower($request->header('User-Agent', ''));
+                $deviceType = (str_contains($ua, 'ios') || str_contains($ua, 'iphone') || str_contains($ua, 'ipad') || str_contains($ua, 'darwin') || str_contains($ua, 'cfnetwork')) ? 'ios' : 'android';
+            }
+
             UserDeviceToken::updateOrCreate(
                 [
                     'user_id' => $user->id,
                     'fcm_token' => $request->fcm_token,
                 ],
                 [
-                    'device_type' => $request->input('device_type', 'android'),
-                    'device_name' => $request->input('device_name', 'Mobile Device'),
+                    'device_type' => $deviceType,
+                    'device_name' => $request->input('device_name', $deviceType === 'ios' ? 'iOS Device' : 'Android Device'),
                     'is_active' => true,
                 ]
             );

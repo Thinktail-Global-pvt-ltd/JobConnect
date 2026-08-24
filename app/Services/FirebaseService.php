@@ -76,9 +76,50 @@ class FirebaseService
                 $stringifiedData[$key] = is_array($val) ? json_encode($val) : (string)$val;
             }
 
+            // Ensure click_action & content_available are present in data payload for iOS Flutter messaging
+            $stringifiedData['click_action'] = 'FLUTTER_NOTIFICATION_CLICK';
+            $stringifiedData['content_available'] = 'true';
+            $stringifiedData['priority'] = 'high';
+
+            // Build APNs Config for Apple iOS Push Notification Service (APNs)
+            $apnsConfig = \Kreait\Firebase\Messaging\ApnsConfig::fromArray([
+                'headers' => [
+                    'apns-priority' => '10',
+                    'apns-push-type' => 'alert',
+                ],
+                'payload' => [
+                    'aps' => [
+                        'alert' => [
+                            'title' => $title,
+                            'body'  => $body,
+                        ],
+                        'sound' => 'default',
+                        'badge' => 1,
+                        'content-available' => 1,
+                        'mutable-content' => 1,
+                        'category' => 'FLUTTER_NOTIFICATION_CLICK',
+                    ],
+                ],
+            ]);
+
+            // Build Android Config for high priority Android push notifications
+            $androidConfig = \Kreait\Firebase\Messaging\AndroidConfig::fromArray([
+                'ttl' => '3600s',
+                'priority' => 'high',
+                'notification' => [
+                    'title' => $title,
+                    'body'  => $body,
+                    'sound' => 'default',
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                    'channel_id' => 'high_importance_channel',
+                ],
+            ]);
+
             $message = CloudMessage::withTarget('token', $deviceToken)
                 ->withNotification($notification)
-                ->withData($stringifiedData);
+                ->withData($stringifiedData)
+                ->withApnsConfig($apnsConfig)
+                ->withAndroidConfig($androidConfig);
 
             $this->messaging->send($message);
 
