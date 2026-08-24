@@ -12,7 +12,7 @@ export default function Jobs() {
 
   const [jobs, setJobs] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0, pinned: 0 });
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(searchParams.get('status') || searchParams.get('tab') || '');
   const [category, setCategory] = useState(initialCategory);
   const [roleFilter, setRoleFilter] = useState(''); // '', 'chef', 'job_seeker', 'employer'
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');

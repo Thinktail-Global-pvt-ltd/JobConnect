@@ -439,7 +439,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <Link 
-                    to="/admin/jobs" 
+                    to="/admin/jobs?status=pending" 
                     className="px-3.5 py-1.5 text-xs font-bold border border-rose-200 text-rose-500 bg-white hover:bg-rose-50 rounded-xl transition-all shadow-sm shrink-0"
                   >
                     Review &rarr;
@@ -465,7 +465,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <Link 
-                    to="/admin/chefs" 
+                    to="/admin/chefs?status=pending" 
                     className="px-3.5 py-1.5 text-xs font-bold border border-orange-200 text-orange-500 bg-white hover:bg-orange-50 rounded-xl transition-all shadow-sm shrink-0"
                   >
                     Review &rarr;
@@ -491,7 +491,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <Link 
-                    to="/admin/training" 
+                    to="/admin/training?status=pending" 
                     className="px-3.5 py-1.5 text-xs font-bold border border-purple-200 text-purple-500 bg-white hover:bg-purple-50 rounded-xl transition-all shadow-sm shrink-0"
                   >
                     Review &rarr;

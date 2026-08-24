@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Filter, Eye, EyeOff, Check, X, UserPlus, RefreshCw, Smartphone, Phone, List, Signal, Wifi, Battery, MapPin, Building2, Calendar, Star, ArrowUpRight, Award, CheckCircle2 } from 'lucide-react';
 import { mockApi, resolveImageUrl } from '../services/api';
 
 export default function Chefs() {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialStatus = searchParams.get('status') || searchParams.get('tab') || '';
+
   const [viewMode, setViewMode] = useState('phone'); // 'phone' or 'table'
   const [chefs, setChefs] = useState([]);
   const [publishedChefs, setPublishedChefs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [phoneSpecialtyFilter, setPhoneSpecialtyFilter] = useState('');
   const [selectedChef, setSelectedChef] = useState(null);
 

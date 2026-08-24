@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin, X, Building2, Lightbulb, Target, Search } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 
 export default function Training() {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialTab = searchParams.get('status') || searchParams.get('tab') || 'all';
+
   const [programs, setPrograms] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, countries_count: 0, pinned: 0 });
-  const [tab, setTab] = useState('all');
+  const [tab, setTab] = useState(initialTab);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
