@@ -519,31 +519,6 @@ export default function Dashboard() {
                   </Link>
                 </div>
 
-                {/* Action Row 4: Applications Requiring Action */}
-                <div className={`p-3 border rounded-xl flex items-center justify-between gap-4 transition-all hover:shadow-sm ${
-                  isLight ? 'bg-white border-slate-200' : 'bg-[#0f172a]/60 border-[#1E293B]'
-                }`}>
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <span className="text-xl font-black text-emerald-500 min-w-[24px]">{stats.pending_apps ?? stats.applications_pending ?? 0}</span>
-                    <div className="min-w-0">
-                      <span className={`text-xs font-black block ${textPrimaryClass}`}>
-                        Applications Requiring Action
-                      </span>
-                      <span className={`text-[11px] font-semibold mt-0.5 block truncate ${textSecondaryClass}`}>
-                        Applications waiting for employer action.
-                      </span>
-                    </div>
-                  </div>
-                  <Link 
-                    to="/admin/applications" 
-                    className="px-3.5 py-1.5 text-xs font-bold border border-emerald-200 text-emerald-500 bg-white hover:bg-emerald-50 rounded-xl transition-all shadow-sm shrink-0"
-                  >
-                    View &rarr;
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
