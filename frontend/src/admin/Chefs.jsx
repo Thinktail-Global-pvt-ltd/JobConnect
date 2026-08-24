@@ -273,7 +273,14 @@ export default function Chefs() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#d7dce2] text-slate-700 text-xs font-semibold">
-                    {chefs.map((chef) => {
+                    {chefs.filter(c => {
+                      if (!statusFilter) return true;
+                      const st = (c.approval_status || c.status || 'pending').toLowerCase();
+                      if (statusFilter === 'pending') return st !== 'approved' && st !== 'published';
+                      if (statusFilter === 'approved') return st === 'approved' || st === 'published';
+                      if (statusFilter === 'rejected') return st === 'rejected';
+                      return true;
+                    }).map((chef) => {
                       const name = chef.full_name || chef.name || 'Unnamed Chef';
                       const email = chef.email || '';
                       const mobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;

@@ -7,7 +7,8 @@ import { realApi, mockApi } from '../services/api';
 export default function Training() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const initialTab = searchParams.get('status') || searchParams.get('tab') || 'all';
+  const rawStatus = searchParams.get('status') || searchParams.get('tab') || 'all';
+  const initialTab = (rawStatus === 'pending' || rawStatus === 'draft') ? 'drafts' : rawStatus;
 
   const [programs, setPrograms] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, countries_count: 0, pinned: 0 });
