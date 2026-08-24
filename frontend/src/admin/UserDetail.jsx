@@ -148,6 +148,16 @@ export default function UserDetail() {
 
   const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'US';
 
+  const hasProfessionalDetails = 
+    (preferredRole && preferredRole !== 'N/A') || 
+    (experience && experience !== 'N/A') || 
+    (currentEmployer && currentEmployer !== 'N/A') || 
+    skillsList.length > 0;
+
+  const totalApplied = appliedJobs.length || user.applications_count || 0;
+  const totalPosted = postedJobs.length || user.job_posts_count || 0;
+  const hasActivityData = totalApplied > 0 || totalPosted > 0;
+
   return (
     <div className="space-y-6 text-left pb-12">
       
@@ -229,8 +239,8 @@ export default function UserDetail() {
       {/* Split grid sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Side: Account Contact & Professional Details (1/3) */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Left Side: Account Contact & Professional Details */}
+        <div className={hasActivityData ? "lg:col-span-1 space-y-6" : "lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 space-y-0"}>
           
           {/* Card 1: Account & Contact Info */}
           <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
@@ -258,132 +268,136 @@ export default function UserDetail() {
             </div>
           </div>
 
-          {/* Card 2: Professional & Skills Details */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Briefcase className="w-4 h-4 text-[#153e69]" /> Professional Details
-            </h3>
+          {/* Card 2: Professional & Skills Details (Only show if available) */}
+          {hasProfessionalDetails && (
+            <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
+              <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <Briefcase className="w-4 h-4 text-[#153e69]" /> Professional Details
+              </h3>
 
-            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Role & Preference</span>
-                <span className="text-purple-700 font-extrabold mt-0.5 block capitalize">{role} • {preferredRole}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Experience Level</span>
-                <span className="text-amber-700 font-extrabold mt-0.5 block">{experience !== 'N/A' ? `☆ ${experience}` : 'N/A'}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Current Employer</span>
-                <span className="text-slate-900 font-extrabold mt-0.5 block">{currentEmployer}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Gender & Language</span>
-                <span className="text-slate-800 font-extrabold mt-0.5 block capitalize">{gender} • {language.toUpperCase()}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Availability</span>
-                <span className="text-emerald-700 font-extrabold mt-0.5 block">{availability}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block mb-1.5">Cuisine & Skills</span>
-                {skillsList.length > 0 ? (
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {skillsList.map((skill, idx) => (
-                      <span key={idx} className="bg-slate-50 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-200">
-                        {skill}
-                      </span>
-                    ))}
+              <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+                {preferredRole !== 'N/A' && (
+                  <div>
+                    <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Role & Preference</span>
+                    <span className="text-purple-700 font-extrabold mt-0.5 block capitalize">{role} • {preferredRole}</span>
                   </div>
-                ) : (
-                  <span className="text-slate-400 font-normal">No specialized skills listed.</span>
+                )}
+                {experience !== 'N/A' && (
+                  <div>
+                    <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Experience Level</span>
+                    <span className="text-amber-700 font-extrabold mt-0.5 block">☆ {experience}</span>
+                  </div>
+                )}
+                {currentEmployer !== 'N/A' && (
+                  <div>
+                    <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Current Employer</span>
+                    <span className="text-slate-900 font-extrabold mt-0.5 block">{currentEmployer}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Gender & Language</span>
+                  <span className="text-slate-800 font-extrabold mt-0.5 block capitalize">{gender} • {language.toUpperCase()}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Availability</span>
+                  <span className="text-emerald-700 font-extrabold mt-0.5 block">{availability}</span>
+                </div>
+                {skillsList.length > 0 && (
+                  <div>
+                    <span className="text-slate-400 text-[9px] uppercase tracking-wider block mb-1.5">Cuisine & Skills</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {skillsList.map((skill, idx) => (
+                        <span key={idx} className="bg-slate-50 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-200">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-          </div>
+          )}
 
         </div>
 
-        {/* Right Side: Stats & Activity Table (2/3) */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Top 3 KPI Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Right Side: Stats & Activity Table (Only show if activity data exists) */}
+        {hasActivityData && (
+          <div className="lg:col-span-2 space-y-6">
             
-            {/* Card 1: Applications Submitted */}
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">APPLICATIONS SUBMITTED</span>
-              <span className="font-outfit font-black text-3xl text-slate-900 block leading-none">{appliedJobs.length || user.applications_count || 0}</span>
-              <div className="w-full h-1 bg-blue-500 rounded-full"></div>
+            {/* Top 3 KPI Stats Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              
+              {/* Card 1: Applications Submitted */}
+              <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">APPLICATIONS SUBMITTED</span>
+                <span className="font-outfit font-black text-3xl text-slate-900 block leading-none">{totalApplied}</span>
+                <div className="w-full h-1 bg-blue-500 rounded-full"></div>
+              </div>
+
+              {/* Card 2: Jobs Posted */}
+              <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">JOBS POSTED</span>
+                <span className="font-outfit font-black text-3xl text-slate-900 block leading-none">{totalPosted}</span>
+                <div className="w-full h-1 bg-emerald-500 rounded-full"></div>
+              </div>
+
+              {/* Card 3: Account Status */}
+              <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">ACCOUNT STATUS</span>
+                <span className={`font-outfit font-black text-xl block leading-none uppercase ${suspended ? 'text-rose-600' : 'text-emerald-600'}`}>
+                  {suspended ? 'SUSPENDED' : 'ACTIVE'}
+                </span>
+                <div className={`w-full h-1 rounded-full ${suspended ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
+              </div>
+
             </div>
 
-            {/* Card 2: Jobs Posted */}
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">JOBS POSTED</span>
-              <span className="font-outfit font-black text-3xl text-slate-900 block leading-none">{postedJobs.length || user.job_posts_count || 0}</span>
-              <div className="w-full h-1 bg-emerald-500 rounded-full"></div>
-            </div>
+            {/* Activity / Applications Table Card */}
+            {totalApplied > 0 && (
+              <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-[#153e69]" /> Applied Job Applications
+                  </h3>
+                  <Link to="/admin/applications" className="text-xs font-bold text-[#153e69] hover:underline">
+                    View All Applications &rarr;
+                  </Link>
+                </div>
 
-            {/* Card 3: Account Status */}
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">ACCOUNT STATUS</span>
-              <span className={`font-outfit font-black text-xl block leading-none uppercase ${suspended ? 'text-rose-600' : 'text-emerald-600'}`}>
-                {suspended ? 'SUSPENDED' : 'ACTIVE'}
-              </span>
-              <div className={`w-full h-1 rounded-full ${suspended ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
-            </div>
-
-          </div>
-
-          {/* Activity / Applications Table Card */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#153e69]" /> Applied Job Applications
-              </h3>
-              {appliedJobs.length > 0 && (
-                <Link to="/admin/applications" className="text-xs font-bold text-[#153e69] hover:underline">
-                  View All Applications &rarr;
-                </Link>
-              )}
-            </div>
-
-            {appliedJobs.length === 0 ? (
-              <p className="text-xs text-slate-400 font-semibold py-8 text-center">No job applications submitted by this candidate yet.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                      <th className="py-2.5 px-3">Job Title</th>
-                      <th className="py-2.5 px-3">Applied Date</th>
-                      <th className="py-2.5 px-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f1f5f9] text-xs font-semibold text-slate-700">
-                    {appliedJobs.map(app => (
-                      <tr key={app.id} className="hover:bg-[#f8fafc]">
-                        <td className="py-3 px-3">
-                          <span className="font-bold text-slate-900 block">{app.job_title || app.title || 'Listing'}</span>
-                          <span className="text-[10px] text-slate-400 font-medium block">{app.company || 'Employer'}</span>
-                        </td>
-                        <td className="py-3 px-3 text-slate-400 font-medium">
-                          {app.created_at ? new Date(app.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {app.status || 'Applied'}
-                          </span>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                        <th className="py-2.5 px-3">Job Title</th>
+                        <th className="py-2.5 px-3">Applied Date</th>
+                        <th className="py-2.5 px-3">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#f1f5f9] text-xs font-semibold text-slate-700">
+                      {appliedJobs.map(app => (
+                        <tr key={app.id} className="hover:bg-[#f8fafc]">
+                          <td className="py-3 px-3">
+                            <span className="font-bold text-slate-900 block">{app.job_title || app.title || 'Listing'}</span>
+                            <span className="text-[10px] text-slate-400 font-medium block">{app.company || 'Employer'}</span>
+                          </td>
+                          <td className="py-3 px-3 text-slate-400 font-medium">
+                            {app.created_at ? new Date(app.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              {app.status || 'Applied'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
-          </div>
 
-        </div>
+          </div>
+        )}
 
       </div>
 
