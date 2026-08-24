@@ -150,75 +150,75 @@ export default function UserDetail() {
 
   return (
     <div className="space-y-6 text-left pb-12">
-      {/* Top Navigation & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-            <Link to="/admin/users" className="hover:text-[#153e69] transition-colors">Talent / Jobseeker</Link>
-            <span>&gt;</span>
-            <span className="text-slate-800 font-bold">User Detail</span>
-          </div>
-          <h1 className="text-2xl font-bold font-outfit text-slate-900">User Profile Details</h1>
-        </div>
-
-        <Link 
-          to="/admin/users" 
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#d7dce2] rounded-md text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm self-start sm:self-auto"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back to Users</span>
-        </Link>
+      
+      {/* Breadcrumbs */}
+      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 flex-wrap">
+        <Link to="/admin/users" className="hover:text-slate-600">Talent / Jobseeker</Link>
+        <span className="text-slate-300">&gt;</span>
+        <span className="text-slate-600">User Detail</span>
       </div>
 
-      {/* Main Profile Header Card */}
-      <div className="bg-white rounded-xl border border-[#d7dce2] p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-700 border-2 border-emerald-200 flex items-center justify-center font-extrabold text-xl shrink-0 overflow-hidden shadow-inner">
+      {/* Header Profile Summary Block */}
+      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+        <div className="flex items-center gap-4.5">
+          {/* Avatar square */}
+          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-xl shadow-xs font-outfit font-black text-[#153e69] shrink-0 overflow-hidden">
             {resolveImageUrl(user.profile_photo_path || user.profile_photo || user.avatar) ? (
               <img 
                 src={resolveImageUrl(user.profile_photo_path || user.profile_photo || user.avatar)} 
                 alt={fullName} 
-                className="w-full h-full object-cover rounded-2xl"
-                onError={(e) => { e.target.style.display = 'none'; }}
+                className="w-full h-full object-cover" 
               />
             ) : (
               initials
             )}
           </div>
 
-          <div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-xl font-bold text-slate-900 font-outfit">{fullName}</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-800 border border-emerald-200">
-                Role: {role}
-              </span>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                suspended ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-outfit font-extrabold text-xl text-slate-800 leading-none">{fullName}</h2>
+              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                suspended ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-[#eff6ff] text-[#1d4b78]'
               }`}>
-                {suspended ? 'Suspended' : 'Active Account'}
+                {suspended ? 'Suspended' : 'Active'}
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-1">User ID: #{user.id} • Registered on {joinedDate}</p>
+            
+            <p className="text-xs font-bold text-slate-400">
+              📍 {city !== 'N/A' ? `${city}, ` : ''}{country} &nbsp;•&nbsp; Member since {joinedDate}
+            </p>
           </div>
         </div>
 
         {/* Header Action Buttons */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleToggleSuspend}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-extrabold transition-colors border shadow-sm cursor-pointer ${
-              suspended
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
-                : 'bg-white hover:bg-rose-50 text-rose-600 border-rose-200'
+        <div className="flex items-center gap-2.5">
+          <button 
+            onClick={handleToggleSuspend} 
+            disabled={suspended}
+            className={`border rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs ${
+              suspended 
+                ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-50' 
+                : 'bg-white border-[#f0a9a9] hover:bg-rose-50 text-[#d32f2f] cursor-pointer'
             }`}
           >
-            {suspended ? <CheckCircle2 className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
-            <span>{suspended ? 'Activate User' : 'Suspend User'}</span>
+            <Ban className="w-4 h-4" />
+            Suspend User
           </button>
-
+          <button 
+            onClick={handleToggleSuspend} 
+            disabled={!suspended}
+            className={`rounded-lg px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs ${
+              !suspended 
+                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-50' 
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
+            }`}
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Activate User
+          </button>
           <button
             onClick={handleDeleteUser}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-50 hover:bg-rose-100 hover:text-rose-700 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+            className="p-2.5 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-[#d7dce2] rounded-lg transition-colors cursor-pointer"
             title="Delete User"
           >
             <Trash2 className="w-4 h-4" />
@@ -226,130 +226,167 @@ export default function UserDetail() {
         </div>
       </div>
 
-      {/* User Information Grid (3 Columns Box Layout) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Split grid sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Full Name */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Full Name</span>
-          <span className="text-xs font-extrabold text-slate-900 block mt-1">{fullName}</span>
+        {/* Left Side: Account Contact & Professional Details (1/3) */}
+        <div className="lg:col-span-1 space-y-6">
+          
+          {/* Card 1: Account & Contact Info */}
+          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Account & Contact Info
+            </h3>
+
+            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Full Name</span>
+                <span className="text-slate-900 font-extrabold mt-0.5 block text-sm">{fullName}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Mobile Number</span>
+                <span className="text-slate-900 font-extrabold mt-0.5 block font-mono">{phone}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
+                <span className="text-blue-700 font-extrabold mt-0.5 block">{email}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">City & Country</span>
+                <span className="text-slate-900 font-extrabold mt-0.5 block">{city !== 'N/A' ? `${city}, ` : ''}{country}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Professional & Skills Details */}
+          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
+            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Briefcase className="w-4 h-4 text-[#153e69]" /> Professional Details
+            </h3>
+
+            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Role & Preference</span>
+                <span className="text-purple-700 font-extrabold mt-0.5 block capitalize">{role} • {preferredRole}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Experience Level</span>
+                <span className="text-amber-700 font-extrabold mt-0.5 block">{experience !== 'N/A' ? `☆ ${experience}` : 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Current Employer</span>
+                <span className="text-slate-900 font-extrabold mt-0.5 block">{currentEmployer}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Gender & Language</span>
+                <span className="text-slate-800 font-extrabold mt-0.5 block capitalize">{gender} • {language.toUpperCase()}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Availability</span>
+                <span className="text-emerald-700 font-extrabold mt-0.5 block">{availability}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block mb-1.5">Cuisine & Skills</span>
+                {skillsList.length > 0 ? (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {skillsList.map((skill, idx) => (
+                      <span key={idx} className="bg-slate-50 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-200">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-slate-400 font-normal">No specialized skills listed.</span>
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        {/* Mobile Phone */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Mobile Phone</span>
-          <div className="flex items-center gap-1.5 mt-1 font-mono text-xs font-extrabold text-emerald-700">
-            <Smartphone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            {phone !== 'N/A' ? (
-              <a href={`tel:${phone}`} className="hover:underline">{phone}</a>
+        {/* Right Side: Stats & Activity Table (2/3) */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Top 3 KPI Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            {/* Card 1: Applications Submitted */}
+            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">APPLICATIONS SUBMITTED</span>
+              <span className="font-outfit font-black text-3xl text-slate-900 block leading-none">{appliedJobs.length || user.applications_count || 0}</span>
+              <div className="w-full h-1 bg-blue-500 rounded-full"></div>
+            </div>
+
+            {/* Card 2: Jobs Posted */}
+            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">JOBS POSTED</span>
+              <span className="font-outfit font-black text-3xl text-slate-900 block leading-none">{postedJobs.length || user.job_posts_count || 0}</span>
+              <div className="w-full h-1 bg-emerald-500 rounded-full"></div>
+            </div>
+
+            {/* Card 3: Account Status */}
+            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">ACCOUNT STATUS</span>
+              <span className={`font-outfit font-black text-xl block leading-none uppercase ${suspended ? 'text-rose-600' : 'text-emerald-600'}`}>
+                {suspended ? 'SUSPENDED' : 'ACTIVE'}
+              </span>
+              <div className={`w-full h-1 rounded-full ${suspended ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
+            </div>
+
+          </div>
+
+          {/* Activity / Applications Table Card */}
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#153e69]" /> Applied Job Applications
+              </h3>
+              {appliedJobs.length > 0 && (
+                <Link to="/admin/applications" className="text-xs font-bold text-[#153e69] hover:underline">
+                  View All Applications &rarr;
+                </Link>
+              )}
+            </div>
+
+            {appliedJobs.length === 0 ? (
+              <p className="text-xs text-slate-400 font-semibold py-8 text-center">No job applications submitted by this candidate yet.</p>
             ) : (
-              <span className="text-slate-400 font-semibold">N/A</span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                      <th className="py-2.5 px-3">Job Title</th>
+                      <th className="py-2.5 px-3">Applied Date</th>
+                      <th className="py-2.5 px-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#f1f5f9] text-xs font-semibold text-slate-700">
+                    {appliedJobs.map(app => (
+                      <tr key={app.id} className="hover:bg-[#f8fafc]">
+                        <td className="py-3 px-3">
+                          <span className="font-bold text-slate-900 block">{app.job_title || app.title || 'Listing'}</span>
+                          <span className="text-[10px] text-slate-400 font-medium block">{app.company || 'Employer'}</span>
+                        </td>
+                        <td className="py-3 px-3 text-slate-400 font-medium">
+                          {app.created_at ? new Date(app.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {app.status || 'Applied'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
+
         </div>
 
-        {/* Email Address */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Email Address</span>
-          <span className={`text-xs font-extrabold block mt-1 ${email !== 'N/A' ? 'text-blue-700' : 'text-blue-600'}`}>{email}</span>
-        </div>
-
-        {/* Gender */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Gender</span>
-          <span className="text-xs font-extrabold text-slate-800 block mt-1 capitalize">{gender}</span>
-        </div>
-
-        {/* City / Location */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">City / Location</span>
-          <div className="flex items-center gap-1 mt-1 text-xs font-extrabold text-slate-900">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>{city}</span>
-          </div>
-        </div>
-
-        {/* Country */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Country</span>
-          <span className="text-xs font-extrabold text-slate-900 block mt-1">{country}</span>
-        </div>
-
-        {/* Experience Level */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Experience Level</span>
-          <span className={`text-xs font-extrabold block mt-1 ${experience !== 'N/A' ? 'text-amber-700' : 'text-amber-600'}`}>
-            {experience !== 'N/A' ? `☆ ${experience}` : 'N/A'}
-          </span>
-        </div>
-
-        {/* Preferred Role */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Preferred Role</span>
-          <span className={`text-xs font-extrabold block mt-1 ${preferredRole !== 'N/A' ? 'text-purple-700' : 'text-purple-600'}`}>{preferredRole}</span>
-        </div>
-
-        {/* Current Employer */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Current Employer</span>
-          <span className="text-xs font-extrabold text-slate-800 block mt-1">{currentEmployer}</span>
-        </div>
-
-        {/* Language */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Language</span>
-          <span className="text-xs font-extrabold text-slate-800 block mt-1 uppercase">{language}</span>
-        </div>
-
-        {/* Availability Status */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Availability Status</span>
-          <span className="text-xs font-extrabold text-emerald-700 block mt-1">{availability}</span>
-        </div>
-
-        {/* Account Status */}
-        <div className="bg-white p-4 rounded-xl border border-[#d7dce2] shadow-sm">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Account Status</span>
-          <span className={`text-xs font-extrabold block mt-1 ${suspended ? 'text-rose-600' : 'text-emerald-700'}`}>
-            {suspended ? 'Suspended Account' : 'Active Account'}
-          </span>
-        </div>
       </div>
 
-      {/* Cuisine & Skills Specialty Box */}
-      <div className="bg-white p-5 rounded-xl border border-[#d7dce2] shadow-sm space-y-3">
-        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Cuisine & Skills Specialty</span>
-        {skillsList.length > 0 ? (
-          <div className="flex items-center gap-2 flex-wrap">
-            {skillsList.map((skill, idx) => (
-              <span key={idx} className="bg-slate-50 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
-                {skill}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-slate-400 font-medium">No specialized skills listed.</p>
-        )}
-      </div>
-
-      {/* Stats Summary KPIs Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-6 rounded-xl border border-[#d7dce2] shadow-sm text-center">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Jobs Posted</span>
-          <span className="text-3xl font-extrabold text-emerald-600 block mt-1 font-outfit">{postedJobs.length || user.job_posts_count || 0}</span>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl border border-[#d7dce2] shadow-sm text-center">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Applications Submitted</span>
-          <span className="text-3xl font-extrabold text-blue-600 block mt-1 font-outfit">{appliedJobs.length || user.applications_count || 0}</span>
-        </div>
-      </div>
-
-      {/* Footer Info Metadata Bar */}
-      <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 px-2 py-1">
-        <span>User ID: #{user.id}</span>
-        <span>Joined: {joinedDate}</span>
-      </div>
     </div>
   );
 }
