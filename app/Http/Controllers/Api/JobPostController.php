@@ -589,7 +589,7 @@ class JobPostController extends Controller
         $userId = $user ? $user->id : 0;
 
         // 1. Fetch Job Applications
-        $jobApplications = \App\Models\JobApplication::with(['jobPost.creator'])
+        $jobApplications = \App\Models\JobApplication::with(['jobPost.creator.employerProfile'])
             ->where('applicant_id', $userId)
             ->latest()
             ->get();
@@ -597,6 +597,45 @@ class JobPostController extends Controller
         $mappedJobApps = $jobApplications->map(function ($app) {
             $job = $app->jobPost;
             if (!$job) return null;
+
+            $creator = $job->creator ?: ($job->created_by ? \App\Models\User::with('employerProfile')->find($job->created_by) : null);
+            $postedBy = null;
+            if ($creator) {
+                $empProfile = $creator->employerProfile ?: ($creator->employer_profile ?: null);
+                $postedBy = [
+                    'id'                  => $creator->id,
+                    'user_id'             => $creator->id,
+                    'name'                => $creator->full_name ?: ($creator->name ?: ($job->company ?: 'Employer')),
+                    'full_name'           => $creator->full_name ?: ($creator->name ?: ($job->company ?: 'Employer')),
+                    'business_name'       => $empProfile ? ($empProfile->business_name ?: $job->company) : ($job->company ?: 'Employer'),
+                    'company'             => $job->company ?: ($empProfile ? $empProfile->business_name : 'Employer'),
+                    'email'               => $creator->email ?: 'N/A',
+                    'mobile_number'       => $creator->mobile_number ?: ($creator->phone ?: 'N/A'),
+                    'phone'               => $creator->mobile_number ?: ($creator->phone ?: 'N/A'),
+                    'city'                => $creator->city ?: ($job->location ?: 'India'),
+                    'country'             => $creator->country ?: ($job->country ?: 'India'),
+                    'role'                => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
+                    'profile_photo_path'  => $creator->profile_photo_path ?: ($creator->profile_photo ?: null),
+                    'profile_photo'       => $creator->profile_photo_path ?: ($creator->profile_photo ?: null),
+                ];
+            } else {
+                $postedBy = [
+                    'id'                  => null,
+                    'user_id'             => null,
+                    'name'                => $job->company ?: 'Jobrito Employer',
+                    'full_name'           => $job->company ?: 'Jobrito Employer',
+                    'business_name'       => $job->company ?: 'Jobrito Employer',
+                    'company'             => $job->company ?: 'Jobrito Employer',
+                    'email'               => 'support@jobrito.com',
+                    'mobile_number'       => 'N/A',
+                    'phone'               => 'N/A',
+                    'city'                => $job->location ?: 'India',
+                    'country'             => $job->country ?: 'India',
+                    'role'                => $job->submitted_by_role ?: 'employer',
+                    'profile_photo_path'  => null,
+                    'profile_photo'       => null,
+                ];
+            }
 
             return [
                 'application_id'        => (string)$app->id,
@@ -622,6 +661,9 @@ class JobPostController extends Controller
                 'job_type'              => $job->job_type,
                 'experience_range'      => $job->experience_range,
                 'description'           => $job->description,
+                'posted_by'             => $postedBy,
+                'postedby'              => $postedBy,
+                'posted_by_user'        => $postedBy,
                 'created_at'            => $app->created_at ? $app->created_at->toIso8601String() : null,
             ];
         })->filter()->values();
@@ -640,6 +682,23 @@ class JobPostController extends Controller
                     $training = \App\Models\TrainingOpportunity::find($tApp->training_id);
                 }
                 $tId = $training ? $training->id : ($tApp->training_id ?: $tApp->id);
+
+                $tPostedBy = [
+                    'id'                  => null,
+                    'user_id'             => null,
+                    'name'                => $training ? ($training->provider_name ?: 'Jobrito Academy') : 'Jobrito Academy',
+                    'full_name'           => $training ? ($training->provider_name ?: 'Jobrito Academy') : 'Jobrito Academy',
+                    'business_name'       => $training ? ($training->provider_name ?: 'Jobrito Academy') : 'Jobrito Academy',
+                    'company'             => $training ? ($training->provider_name ?: 'Jobrito Academy') : 'Jobrito Academy',
+                    'email'               => 'academy@jobrito.com',
+                    'mobile_number'       => 'N/A',
+                    'phone'               => 'N/A',
+                    'city'                => $training ? ($training->location ?: 'India') : 'India',
+                    'country'             => 'India',
+                    'role'                => 'training_provider',
+                    'profile_photo_path'  => null,
+                    'profile_photo'       => null,
+                ];
 
                 return [
                     'application_id'        => 'training_' . $tApp->id,
@@ -667,6 +726,9 @@ class JobPostController extends Controller
                     'job_type'              => 'Training / Program',
                     'experience_range'      => 'Any',
                     'description'           => $training ? ($training->description ?: 'Specialized training program.') : 'Specialized training program.',
+                    'posted_by'             => $tPostedBy,
+                    'postedby'              => $tPostedBy,
+                    'posted_by_user'        => $tPostedBy,
                     'created_at'            => $tApp->created_at ? $tApp->created_at->toIso8601String() : null,
                 ];
             });
