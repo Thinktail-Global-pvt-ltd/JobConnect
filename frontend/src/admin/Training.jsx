@@ -27,7 +27,7 @@ export default function Training() {
     name: '',
     curriculum: '',
     countries: '',
-    duration: '12 Months',
+    duration: '',
     employer_details: '',
     skills_covered: '',
     benefits: '',
@@ -142,7 +142,7 @@ export default function Training() {
           name: '',
           curriculum: '',
           countries: '',
-          duration: '12 Months',
+          duration: '',
           employer_details: '',
           skills_covered: '',
           benefits: '',
@@ -424,7 +424,7 @@ export default function Training() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleCreateSubmit} autoComplete="off" className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               {errorMsg && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
                   <span>{errorMsg}</span>
@@ -437,7 +437,7 @@ export default function Training() {
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. Advanced Culinary Arts & Overseas Deployment"
+                  autoComplete="off"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -463,7 +463,7 @@ export default function Training() {
                   <input 
                     type="text" 
                     required
-                    placeholder="e.g. UK, UAE, Saudi Arabia"
+                    autoComplete="off"
                     value={formData.countries}
                     onChange={(e) => setFormData(prev => ({ ...prev, countries: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -477,7 +477,7 @@ export default function Training() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Employer Details</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. Marriott International, Hyatt UK"
+                    autoComplete="off"
                     value={formData.employer_details}
                     onChange={(e) => setFormData(prev => ({ ...prev, employer_details: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -488,7 +488,7 @@ export default function Training() {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Training Duration</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. 12 Months (6m Training + 6m Placement)"
+                    autoComplete="off"
                     value={formData.duration}
                     onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -501,7 +501,6 @@ export default function Training() {
                 <label className="text-xs font-bold text-slate-700 block mb-1">Skills Covered</label>
                 <textarea 
                   rows={2}
-                  placeholder="e.g. Pastry & Bakery, Fine Dining Service, HACCP Safety, Tandoor"
                   value={formData.skills_covered}
                   onChange={(e) => setFormData(prev => ({ ...prev, skills_covered: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -513,7 +512,6 @@ export default function Training() {
                 <label className="text-xs font-bold text-slate-700 block mb-1">Training Benefits</label>
                 <textarea 
                   rows={3}
-                  placeholder="e.g. UK Skilled Worker Visa Support, Free Accommodation, Paid Stipend, Health Insurance"
                   value={formData.benefits}
                   onChange={(e) => setFormData(prev => ({ ...prev, benefits: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -525,19 +523,17 @@ export default function Training() {
                 <label className="text-xs font-bold text-slate-700 block mb-1">Placement Opportunities</label>
                 <textarea 
                   rows={2}
-                  placeholder="e.g. Guaranteed 100% International Placement upon course completion"
                   value={formData.placement_opportunities}
                   onChange={(e) => setFormData(prev => ({ ...prev, placement_opportunities: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                 />
               </div>
 
-              {/* Field 9: Curriculum / Provider (Full Width & Larger Height Box) */}
+              {/* Field 9: Curriculum / Provider */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Curriculum / Provider</label>
                 <textarea 
                   rows={4}
-                  placeholder="e.g. Michelin Prep Institute Curriculum & Specialized Culinary Certifications, Advanced Pastry Modules & Food Safety Standard Certifications"
                   value={formData.curriculum}
                   onChange={(e) => setFormData(prev => ({ ...prev, curriculum: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] min-h-[100px]"
