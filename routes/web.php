@@ -124,7 +124,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'chefs'        => $totalChefsCount,
                     'jobs'         => $pendingJobsCount,
                     'community'    => $communityCount,
-                    'training'     => \Illuminate\Support\Facades\Schema::hasTable('training_opportunities') ? \Illuminate\Support\Facades\DB::table('training_opportunities')->count() : 0,
+                    'training'     => $pendingTrainingCount,
                     'applications' => $totalApplications,
                     'pending_jobs' => $pendingJobsCount,
                     'pending_chefs' => $pendingChefsCount,
