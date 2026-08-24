@@ -1220,7 +1220,7 @@ export const mockApi = {
         chefs: chefCount,
         jobs: jobs.length,
         referrals: jobs.filter(j => j.is_referral).length,
-        community: jobs.filter(j => j.category === 'community').length,
+        community: jobs.filter(j => !j.status || j.status.toLowerCase() === 'pending' || j.status.toLowerCase() === 'draft').length,
         training: 0,
         applications: apps.length,
         pending_jobs: jobs.filter(j => !j.status || j.status.toLowerCase() === 'pending' || j.status.toLowerCase() === 'draft').length,

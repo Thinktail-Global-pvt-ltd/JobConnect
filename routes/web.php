@@ -83,8 +83,17 @@ if (!function_exists('getSidebarStatsHandler')) {
                     ->count('user_id');
             }
 
-            $totalJobsCount = \App\Models\JobPost::count();
-            $communityCount = \App\Models\JobPost::where('category', 'community')->count();
+            $unpubJobPostsCount = \App\Models\JobPost::where(function($q) {
+                $q->whereNotIn('status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
+            })->count();
+
+            $unpubAdminPostsCount = \Illuminate\Support\Facades\Schema::hasTable('admin_posts')
+                ? \Illuminate\Support\Facades\DB::table('admin_posts')->where(function($q) {
+                    $q->whereNotIn('status', ['published', 'Published', 'archived', 'Archived']);
+                  })->count()
+                : 0;
+
+            $communityCount = $unpubJobPostsCount + $unpubAdminPostsCount;
 
             $pendingTrainingCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
                 ? \Illuminate\Support\Facades\DB::table('training_opportunities')
