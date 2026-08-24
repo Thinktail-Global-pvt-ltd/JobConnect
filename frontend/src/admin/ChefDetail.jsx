@@ -176,31 +176,35 @@ export default function ChefDetail() {
           </h2>
         </div>
 
-        {/* Right Side: Action Buttons */}
+        {/* Right Side: Action Buttons (Dynamic based on approval status) */}
         <div className="flex items-center gap-3 flex-wrap">
-          <button 
-            onClick={handleReject} 
-            className="bg-white border border-[#153e69] hover:bg-slate-50 text-[#153e69] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-          >
-            <Ban className="w-4 h-4 text-[#153e69]" />
-            Reject Profile
-          </button>
-          
-          <button 
-            onClick={handleUnpublish} 
-            className="bg-[#eff6ff] hover:bg-blue-100 text-[#153e69] rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-          >
-            <PauseCircle className="w-4 h-4 text-[#153e69]" />
-            Suspend Profile
-          </button>
-
-          <button 
-            onClick={handleApprove} 
-            className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-xl px-5 py-2.5 text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-          >
-            <CheckCircle2 className="w-4 h-4 text-white" />
-            Approve Profile
-          </button>
+          {['approved', 'published', 'active'].includes((status || '').toLowerCase()) ? (
+            <>
+              <button 
+                onClick={handleReject} 
+                className="bg-white border border-[#d32f2f] hover:bg-rose-50 text-[#d32f2f] rounded-xl px-5 py-2.5 text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+              >
+                <Ban className="w-4 h-4 text-[#d32f2f]" />
+                Reject Profile
+              </button>
+              
+              <button 
+                onClick={handleUnpublish} 
+                className="bg-[#eff6ff] hover:bg-blue-100 text-[#153e69] border border-blue-200 rounded-xl px-5 py-2.5 text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+              >
+                <PauseCircle className="w-4 h-4 text-[#153e69]" />
+                Suspend Profile
+              </button>
+            </>
+          ) : (
+            <button 
+              onClick={handleApprove} 
+              className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-xl px-6 py-2.5 text-xs font-extrabold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+            >
+              <CheckCircle2 className="w-4 h-4 text-white" />
+              Approve Profile
+            </button>
+          )}
         </div>
       </div>
 
