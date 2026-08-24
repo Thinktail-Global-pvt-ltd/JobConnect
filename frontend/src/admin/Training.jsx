@@ -269,7 +269,6 @@ export default function Training() {
                 <tr className="bg-slate-50/50 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
                   <th className="py-2.5 px-3">Program Name</th>
                   <th className="py-2.5 px-3">Employer</th>
-                  <th className="py-2.5 px-3">Duration</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3">Created Date</th>
                   <th className="py-2.5 px-3 text-center">Actions</th>
@@ -292,23 +291,18 @@ export default function Training() {
 
                   return (
                     <tr key={prog.id} className={`hover:bg-slate-50/50 transition-colors ${prog.is_pinned ? 'bg-purple-50/30' : ''}`}>
-                      {/* Program Name & Curriculum */}
+                      {/* Program Name */}
                       <td className="py-3 px-3 max-w-xs">
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-center gap-2">
                           {prog.is_pinned && (
                             <Pin className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" title="Pinned to top feed priority" />
                           )}
-                          <div>
-                            <span 
-                              onClick={() => navigate(`/admin/training/${prog.id}`, { state: { program: prog } })}
-                              className="font-extrabold text-[#153e69] hover:underline cursor-pointer text-[13px] block leading-tight"
-                            >
-                              {prog.name}
-                            </span>
-                            <span className="text-[11px] text-slate-500 font-semibold block mt-0.5">
-                              <strong>Curriculum:</strong> {prog.curriculum || prog.provider_name || 'Hospitality Curricula'}
-                            </span>
-                          </div>
+                          <span 
+                            onClick={() => navigate(`/admin/training/${prog.id}`, { state: { program: prog } })}
+                            className="font-extrabold text-[#153e69] hover:underline cursor-pointer text-[13px] block leading-tight"
+                          >
+                            {prog.name}
+                          </span>
                         </div>
                       </td>
 
@@ -317,11 +311,6 @@ export default function Training() {
                         <span className="font-extrabold text-[#153e69] text-xs block">
                           {prog.employer_details || prog.employer || 'Test'}
                         </span>
-                      </td>
-
-                      {/* Duration */}
-                      <td className="py-3 px-3 text-slate-600 font-bold whitespace-nowrap">
-                        {prog.duration || '3 months'}
                       </td>
 
                       {/* Status badge */}
