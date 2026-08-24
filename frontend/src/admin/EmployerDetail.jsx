@@ -141,6 +141,12 @@ export default function EmployerDetail() {
   const email = employer.business_email || employer.email || '';
   const locationText = employer.business_location || employer.hq || '';
   const created = employer.created_at || '';
+  const formattedJoinedDate = created ? (() => {
+    try {
+      const d = new Date(created);
+      return isNaN(d.getTime()) ? created : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch(e) { return created; }
+  })() : 'Recently';
 
   const jobsList = Array.isArray(employer.jobs) ? employer.jobs : [];
   const totalJobs = employer.total_jobs ?? jobsList.length;
@@ -161,10 +167,10 @@ export default function EmployerDetail() {
       </div>
 
       {/* Header Profile Summary Block */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="flex items-center gap-4.5">
           {/* Logo square */}
-          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-2xl shadow-xs font-outfit font-black text-[#153e69] shrink-0 overflow-hidden">
+          <div className="w-14 h-14 bg-slate-50 border border-[#cfd5dc] rounded-xl flex items-center justify-center text-xl shadow-xs font-outfit font-black text-[#153e69] shrink-0 overflow-hidden">
             {(photoUrl && !imgFailed) ? (
               <img 
                 src={photoUrl} 
@@ -177,10 +183,10 @@ export default function EmployerDetail() {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="font-outfit font-extrabold text-xl text-slate-800 leading-none">{name}</h2>
-              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+              <span className={`px-2.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider ${
                 suspended ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-[#eff6ff] text-[#1d4b78]'
               }`}>
                 {suspended ? 'Suspended' : 'Active'}
@@ -188,13 +194,13 @@ export default function EmployerDetail() {
             </div>
             
             <p className="text-xs font-bold text-slate-400">
-              📍 {locationText} &nbsp;•&nbsp; Member since {created}
+              📍 {locationText || 'India'} &nbsp;•&nbsp; Member since {formattedJoinedDate}
             </p>
           </div>
         </div>
 
         {/* Header Action Buttons (Single Toggle Button) */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 self-start md:self-auto">
           <button 
             onClick={suspended ? handleActivate : handleSuspend} 
             className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer ${
