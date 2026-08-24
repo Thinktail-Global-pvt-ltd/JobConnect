@@ -81,13 +81,13 @@ export default function JobDetail() {
       const empP = creator.employer_profile || creator.employerProfile || {};
       
       const titleVal = found.title || found.job_role || `Job Listing #${found.id}`;
-      const jobRoleVal = found.job_role || found.role || titleVal;
+      const jobRoleVal = found.job_role || found.role || 'N/A';
       const companyVal = found.company || found.business_name || empP.business_name || creator.current_employer || creator.full_name || 'Hospitality Employer';
-      const industryVal = found.industry_segment || empP.industry_segment || 'Café & Hospitality';
+      const industryVal = found.industry_segment || empP.industry_segment || 'N/A';
       const categoryVal = found.category || (found.is_referral ? 'community' : 'india');
-      const jobCategoryVal = found.job_category || found.department || 'Kitchen, Service, Bar & Beverage';
-      const locationVal = found.location || 'India';
-      const countryVal = found.country || 'India';
+      const jobCategoryVal = found.job_category || found.department || 'N/A';
+      const locationVal = found.location || 'N/A';
+      const countryVal = found.country || 'N/A';
       const currencyVal = found.salary_currency || 'SAR';
       const minSalVal = found.salary_min || '';
       const maxSalVal = found.salary_max || '';
@@ -167,13 +167,13 @@ export default function JobDetail() {
     if (!job) return;
     setEditForm({
       title: job.title || '',
-      job_role: job.job_role || '',
+      job_role: job.job_role === 'N/A' ? '' : (job.job_role || ''),
       company: job.company || '',
-      industry_segment: job.industry_segment || '',
+      industry_segment: job.industry_segment === 'N/A' ? '' : (job.industry_segment || ''),
       category: job.category || 'india',
-      job_category: job.job_category || '',
-      location: job.location || '',
-      country: job.country || '',
+      job_category: job.job_category === 'N/A' ? '' : (job.job_category || ''),
+      location: job.location === 'N/A' ? '' : (job.location || ''),
+      country: job.country === 'N/A' ? '' : (job.country || ''),
       salary_currency: job.salary_currency || 'SAR',
       salary_min: job.salary_min || '',
       salary_max: job.salary_max || '',
@@ -267,7 +267,7 @@ export default function JobDetail() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="font-outfit font-extrabold text-2xl text-slate-800 leading-snug">{job.title}</h2>
-            {job.job_role && job.job_role !== job.title && (
+            {job.job_role && job.job_role !== 'N/A' && job.job_role !== job.title && (
               <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
                 Role: {job.job_role}
               </span>
@@ -359,27 +359,43 @@ export default function JobDetail() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
               <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Title & Role</span>
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Title</span>
                 <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.title}</span>
-                {job.job_role && <span className="text-[11px] text-slate-500 block">Role: {job.job_role}</span>}
+              </div>
+
+              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Role</span>
+                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.job_role}</span>
               </div>
 
               <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
                 <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Company / Employer</span>
                 <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.company}</span>
-                {job.industry_segment && <span className="text-[11px] text-slate-500 block">Industry: {job.industry_segment}</span>}
               </div>
 
               <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Feed Category & Department</span>
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Industry Segment</span>
+                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.industry_segment}</span>
+              </div>
+
+              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Primary Feed Category</span>
                 <span className="font-outfit font-extrabold text-sm text-slate-800 capitalize block">{job.category} Jobs</span>
-                {job.job_category && <span className="text-[11px] text-slate-500 block">Department: {job.job_category}</span>}
               </div>
 
               <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Location & Country</span>
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Category / Department</span>
+                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.job_category}</span>
+              </div>
+
+              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Location</span>
                 <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.location}</span>
-                {job.country && <span className="text-[11px] text-slate-500 block">Country: {job.country}</span>}
+              </div>
+
+              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Country</span>
+                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.country}</span>
               </div>
 
               <div className="p-3 bg-emerald-50/40 rounded-xl border border-emerald-100 space-y-0.5 md:col-span-2">
