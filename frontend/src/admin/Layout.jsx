@@ -311,7 +311,7 @@ export default function Layout({ children }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-xl text-[11px] font-black bg-[#059669] text-white shadow-sm border border-emerald-500">
-                    {counts.users ?? (counts.talent + counts.employers + counts.chefs)}
+                    {(counts.pending_talent ?? counts.talent ?? 0) + (counts.pending_employers ?? counts.employers ?? 0) + (counts.pending_chefs ?? counts.chefs ?? 0)}
                   </span>
                   {usersOpen ? (
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />

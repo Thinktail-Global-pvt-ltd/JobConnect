@@ -141,12 +141,12 @@ if (!function_exists('getSidebarStatsHandler')) {
                 }
             })->count();
 
-            $totalUsers = \App\Models\User::count();
+            $pendingUsersCount = $pendingTalentCount + $pendingEmployersCount + $pendingChefsCount;
 
             return response()->json([
                 'success' => true,
                 'counts' => [
-                    'users'             => $totalUsers,
+                    'users'             => $pendingUsersCount,
                     'talent'            => $pendingTalentCount,
                     'employers'         => $pendingEmployersCount,
                     'chefs'             => $pendingChefsCount,
@@ -154,6 +154,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'community'         => $communityCount,
                     'training'          => $pendingTrainingCount,
                     'applications'      => $totalApplications,
+                    'pending_users'     => $pendingUsersCount,
                     'pending_talent'    => $pendingTalentCount,
                     'pending_employers' => $pendingEmployersCount,
                     'pending_jobs'      => $pendingJobsCount,
