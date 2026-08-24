@@ -146,7 +146,7 @@ export default function Layout({ children }) {
 
   const userSubItems = [
     { name: 'Talent / Jobseeker', path: '/admin/users', icon: null, countKey: 'talent' },
-    { name: 'Employer', path: '/admin/employers', icon: null, countKey: 'pending_employers' },
+    { name: 'Employer', path: '/admin/employers', icon: null, countKey: 'employers' },
     { name: 'Chef', path: '/admin/chefs', icon: null, countKey: 'pending_chefs' },
   ];
 
