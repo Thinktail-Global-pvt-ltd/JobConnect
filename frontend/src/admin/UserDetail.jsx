@@ -169,10 +169,10 @@ export default function UserDetail() {
       </div>
 
       {/* Header Profile Summary Block */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="flex items-center gap-4.5">
           {/* Avatar square */}
-          <div className="w-14 h-14 bg-white border border-[#cfd5dc] rounded-xl flex items-center justify-center text-xl shadow-xs font-outfit font-black text-[#153e69] shrink-0 overflow-hidden">
+          <div className="w-14 h-14 bg-slate-50 border border-[#cfd5dc] rounded-xl flex items-center justify-center text-xl shadow-xs font-outfit font-black text-[#153e69] shrink-0 overflow-hidden">
             {resolveImageUrl(user.profile_photo_path || user.profile_photo || user.avatar) ? (
               <img 
                 src={resolveImageUrl(user.profile_photo_path || user.profile_photo || user.avatar)} 
@@ -184,10 +184,10 @@ export default function UserDetail() {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="font-outfit font-extrabold text-xl text-slate-800 leading-none">{fullName}</h2>
-              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+              <span className={`px-2.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider ${
                 suspended ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-[#eff6ff] text-[#1d4b78]'
               }`}>
                 {suspended ? 'Suspended' : 'Active'}
@@ -201,7 +201,7 @@ export default function UserDetail() {
         </div>
 
         {/* Header Action Buttons (Single Toggle Button) */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-start md:self-auto">
           <button 
             onClick={handleToggleSuspend} 
             className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer ${
@@ -224,19 +224,19 @@ export default function UserDetail() {
         </div>
       </div>
 
-      {/* Split grid sections */}
+      {/* Main Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Left Side: Account Contact & Professional Details */}
-        <div className={hasActivityData ? "lg:col-span-1 space-y-6" : "lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 space-y-0"}>
+        {/* Left / Primary Information Column */}
+        <div className={hasActivityData ? "lg:col-span-1 space-y-6" : (hasProfessionalDetails ? "lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 space-y-0" : "lg:col-span-3 max-w-2xl")}>
           
           {/* Card 1: Account & Contact Info */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5">
             <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
               <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Account & Contact Info
             </h3>
 
-            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-600">
               <div>
                 <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Full Name</span>
                 <span className="text-slate-900 font-extrabold mt-0.5 block text-sm">{fullName}</span>
@@ -252,6 +252,14 @@ export default function UserDetail() {
               <div>
                 <span className="text-slate-400 text-[9px] uppercase tracking-wider block">City & Country</span>
                 <span className="text-slate-900 font-extrabold mt-0.5 block">{city !== 'N/A' ? `${city}, ` : ''}{country}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Account Role</span>
+                <span className="text-purple-700 font-extrabold mt-0.5 block uppercase">{role}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Registration Date</span>
+                <span className="text-slate-700 font-extrabold mt-0.5 block">{joinedDate}</span>
               </div>
             </div>
           </div>
