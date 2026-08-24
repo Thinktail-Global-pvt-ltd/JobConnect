@@ -73,10 +73,10 @@ export default function ChefDetail() {
 
   const handleApprove = async () => {
     try {
-      await mockApi.approveChef(id);
       setStatus('approved');
+      if (chef) setChef(prev => prev ? { ...prev, approval_status: 'approved', status: 'approved' } : prev);
+      await mockApi.approveChef(id);
       alert("Chef profile published & approved successfully!");
-      fetchChefDetail();
     } catch (err) {
       console.error(err);
     }
@@ -84,10 +84,10 @@ export default function ChefDetail() {
 
   const handleUnpublish = async () => {
     try {
-      await mockApi.unpublishChef(id);
       setStatus('pending');
-      alert("Chef profile unpublished successfully!");
-      fetchChefDetail();
+      if (chef) setChef(prev => prev ? { ...prev, approval_status: 'pending', status: 'pending' } : prev);
+      await mockApi.unpublishChef(id);
+      alert("Chef profile suspended / unpublished successfully!");
     } catch (err) {
       console.error(err);
     }
@@ -95,10 +95,10 @@ export default function ChefDetail() {
 
   const handleReject = async () => {
     try {
-      await mockApi.rejectChef(id);
       setStatus('rejected');
+      if (chef) setChef(prev => prev ? { ...prev, approval_status: 'rejected', status: 'rejected' } : prev);
+      await mockApi.rejectChef(id);
       alert("Chef profile rejected successfully!");
-      fetchChefDetail();
     } catch (err) {
       console.error(err);
     }

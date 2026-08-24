@@ -930,51 +930,75 @@ export const mockApi = {
   approveChef: async (id) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      `http://178.16.138.159/backend/api/admin/chefs/${id}/approve`,
-      `${origin}/backend/api/admin/chefs/${id}/approve`,
+      `/api/admin/chefs/${id}/approve`,
       `/backend/api/admin/chefs/${id}/approve`,
-      `/api/admin/chefs/${id}/approve`
+      `${origin}/backend/api/admin/chefs/${id}/approve`,
+      `http://178.16.138.159/backend/api/admin/chefs/${id}/approve`
     ];
     for (const url of endpoints) {
       try {
         const res = await axios.post(url, {}, { headers: { Accept: 'application/json' } });
-        if (res.data && res.data.success) return res.data;
+        if (res.data && res.data.success) {
+          const chefs = mockDb.getChefs();
+          const updated = chefs.map(c => (String(c.id) === String(id) || String(c.user_id) === String(id)) ? { ...c, approval_status: 'approved', status: 'approved' } : c);
+          mockDb.setChefs(updated);
+          return res.data;
+        }
       } catch (e) {}
     }
+    const chefs = mockDb.getChefs();
+    const updated = chefs.map(c => (String(c.id) === String(id) || String(c.user_id) === String(id)) ? { ...c, approval_status: 'approved', status: 'approved' } : c);
+    mockDb.setChefs(updated);
     return { success: true };
   },
 
   rejectChef: async (id) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      `http://178.16.138.159/backend/api/admin/chefs/${id}/reject`,
-      `${origin}/backend/api/admin/chefs/${id}/reject`,
+      `/api/admin/chefs/${id}/reject`,
       `/backend/api/admin/chefs/${id}/reject`,
-      `/api/admin/chefs/${id}/reject`
+      `${origin}/backend/api/admin/chefs/${id}/reject`,
+      `http://178.16.138.159/backend/api/admin/chefs/${id}/reject`
     ];
     for (const url of endpoints) {
       try {
         const res = await axios.post(url, {}, { headers: { Accept: 'application/json' } });
-        if (res.data && res.data.success) return res.data;
+        if (res.data && res.data.success) {
+          const chefs = mockDb.getChefs();
+          const updated = chefs.map(c => (String(c.id) === String(id) || String(c.user_id) === String(id)) ? { ...c, approval_status: 'rejected', status: 'rejected' } : c);
+          mockDb.setChefs(updated);
+          return res.data;
+        }
       } catch (e) {}
     }
+    const chefs = mockDb.getChefs();
+    const updated = chefs.map(c => (String(c.id) === String(id) || String(c.user_id) === String(id)) ? { ...c, approval_status: 'rejected', status: 'rejected' } : c);
+    mockDb.setChefs(updated);
     return { success: true };
   },
 
   unpublishChef: async (id) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      `http://178.16.138.159/backend/api/admin/chefs/${id}/unpublish`,
-      `${origin}/backend/api/admin/chefs/${id}/unpublish`,
+      `/api/admin/chefs/${id}/unpublish`,
       `/backend/api/admin/chefs/${id}/unpublish`,
-      `/api/admin/chefs/${id}/unpublish`
+      `${origin}/backend/api/admin/chefs/${id}/unpublish`,
+      `http://178.16.138.159/backend/api/admin/chefs/${id}/unpublish`
     ];
     for (const url of endpoints) {
       try {
         const res = await axios.post(url, {}, { headers: { Accept: 'application/json' } });
-        if (res.data && res.data.success) return res.data;
+        if (res.data && res.data.success) {
+          const chefs = mockDb.getChefs();
+          const updated = chefs.map(c => (String(c.id) === String(id) || String(c.user_id) === String(id)) ? { ...c, approval_status: 'pending', status: 'pending' } : c);
+          mockDb.setChefs(updated);
+          return res.data;
+        }
       } catch (e) {}
     }
+    const chefs = mockDb.getChefs();
+    const updated = chefs.map(c => (String(c.id) === String(id) || String(c.user_id) === String(id)) ? { ...c, approval_status: 'pending', status: 'pending' } : c);
+    mockDb.setChefs(updated);
     return { success: true };
   },
 
