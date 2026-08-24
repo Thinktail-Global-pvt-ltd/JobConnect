@@ -85,12 +85,25 @@ export default function Jobs() {
     if (data && Array.isArray(data.jobs)) {
       const allJobs = data.jobs;
       setJobs(allJobs);
+
+      const pendingCount = allJobs.filter(j => 
+        !j.status || j.status.toLowerCase() === 'pending' || j.status.toLowerCase() === 'draft' || j.status.toLowerCase() === 'unread'
+      ).length;
+
+      const approvedCount = allJobs.filter(j => 
+        j.status?.toLowerCase() === 'approved' || j.status?.toLowerCase() === 'published'
+      ).length;
+
+      const rejectedCount = allJobs.filter(j => 
+        j.status?.toLowerCase() === 'rejected' || j.status?.toLowerCase() === 'suspended'
+      ).length;
+
       setStats({
-        total: data.stats?.total ?? allJobs.length,
-        pending: data.stats?.pending ?? allJobs.filter(j => j.status === 'pending').length,
-        approved: data.stats?.approved ?? allJobs.filter(j => j.status === 'approved').length,
-        rejected: data.stats?.rejected ?? allJobs.filter(j => j.status === 'rejected').length,
-        pinned: data.stats?.pinned ?? allJobs.filter(j => Boolean(j.is_pinned)).length
+        total: allJobs.length,
+        pending: pendingCount,
+        approved: approvedCount,
+        rejected: rejectedCount,
+        pinned: allJobs.filter(j => Boolean(j.is_pinned)).length
       });
     } else {
       setJobs([]);

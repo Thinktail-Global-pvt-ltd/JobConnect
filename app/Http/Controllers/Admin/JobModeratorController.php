@@ -58,11 +58,18 @@ class JobModeratorController extends Controller
 
         $jobs = $query->latest()->get();
 
+        $pendingJobsCount = JobPost::where(function($q) {
+            $q->where('status', 'pending')
+              ->orWhere('status', 'Pending')
+              ->orWhereNull('status')
+              ->orWhereNotIn('status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
+        })->count();
+
         $stats = [
             'total'    => JobPost::count(),
-            'pending'  => JobPost::where('status', 'pending')->count(),
-            'approved' => JobPost::where('status', 'approved')->count(),
-            'rejected' => JobPost::where('status', 'rejected')->count(),
+            'pending'  => $pendingJobsCount,
+            'approved' => JobPost::whereIn('status', ['approved', 'Approved', 'published', 'Published'])->count(),
+            'rejected' => JobPost::whereIn('status', ['rejected', 'Rejected'])->count(),
             'pinned'   => JobPost::where('is_pinned', true)->count(),
         ];
 
