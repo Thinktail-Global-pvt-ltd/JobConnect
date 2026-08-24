@@ -121,7 +121,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'users'        => $totalUsers,
                     'talent'       => $talentCount,
                     'employers'    => $employerCount,
-                    'chefs'        => $totalChefsCount,
+                    'chefs'        => $pendingChefsCount,
                     'jobs'         => $pendingJobsCount,
                     'community'    => $communityCount,
                     'training'     => $pendingTrainingCount,
