@@ -1188,11 +1188,10 @@ export const mockApi = {
 
   getSidebarStats: async () => {
     const endpoints = [
-      '/admin/sidebar-stats',
-      '/api/admin/sidebar-stats',
       '/backend/api/admin/sidebar-stats',
-      'https://jobrito.com/admin/sidebar-stats',
-      'https://jobrito.com/api/admin/sidebar-stats',
+      '/api/admin/sidebar-stats',
+      '/admin/sidebar-stats',
+      'http://178.16.138.159/backend/api/admin/sidebar-stats',
       'https://jobrito.com/backend/api/admin/sidebar-stats'
     ];
     for (const url of endpoints) {
@@ -1201,19 +1200,33 @@ export const mockApi = {
         if (res.data && res.data.success && res.data.counts) return res.data;
       } catch (e) {}
     }
+
+    // Dynamic Fallback calculation from actual mockDb arrays
+    const users = mockDb.getUsers();
+    const jobs = mockDb.getJobs();
+    const apps = mockDb.getApplications();
+    const chefs = mockDb.getChefs();
+
+    const talentCount = users.filter(u => !u.role_type || u.role_type === 'job_seeker' || u.role === 'job_seeker').length;
+    const employerCount = users.filter(u => u.role_type === 'employer' || u.role === 'employer').length || 4;
+    const chefCount = chefs.length || 5;
+
     return {
       success: true,
       counts: {
-        users: 3,
-        talent: 1,
-        employers: 1,
-        chefs: 1,
-        jobs: 6,
-        referrals: 0,
-        community: 6,
-        training: 1,
-        applications: 10,
-        enquiries: 0,
+        users: talentCount + employerCount + chefCount,
+        talent: talentCount,
+        employers: employerCount,
+        chefs: chefCount,
+        jobs: jobs.length,
+        referrals: jobs.filter(j => j.is_referral).length,
+        community: jobs.filter(j => j.category === 'community').length,
+        training: 0,
+        applications: apps.length,
+        pending_jobs: jobs.filter(j => !j.status || j.status.toLowerCase() === 'pending' || j.status.toLowerCase() === 'draft').length,
+        pending_chefs: chefs.filter(c => !c.approval_status || c.approval_status.toLowerCase() === 'pending' || c.status?.toLowerCase() === 'pending').length,
+        pending_apps: apps.filter(a => a.status === 'new' || a.status === 'pending').length,
+        pending_training: 0,
       }
     };
   },

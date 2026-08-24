@@ -51,92 +51,86 @@ Route::match(['get', 'post'], '/backend/api/get-token/user/{id}', function($id) 
 if (!function_exists('getSidebarStatsHandler')) {
     function getSidebarStatsHandler() {
         try {
-            $unpubJobsCount = \App\Models\JobPost::where(function($q) {
-                $q->where('status', '!=', 'approved')
-                  ->orWhereNull('status');
+            $pendingJobsCount = \App\Models\JobPost::where(function($q) {
+                $q->where('status', 'pending')
+                  ->orWhere('status', 'Pending')
+                  ->orWhereNull('status')
+                  ->orWhereNotIn('status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
             })->count();
-            $unpubJobs = max(6, $unpubJobsCount);
 
-            $unpubChefsCount = \Illuminate\Support\Facades\DB::table('chef_profiles')
-                ->where(function($q) {
-                    $q->where('approval_status', '!=', 'approved')
-                      ->orWhereNull('approval_status');
-                })
-                ->count();
-            $unpubChefs = $unpubChefsCount > 0 ? 1 : 0;
+            $pendingChefsCount = \App\Models\ChefProfile::where(function($q) {
+                $q->where('approval_status', 'pending')
+                  ->orWhere('approval_status', 'Pending')
+                  ->orWhereNull('approval_status')
+                  ->orWhereNotIn('approval_status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
+            })->count();
 
-            $unpubTalentCount = \App\Models\User::where(function($q) {
+            $talentCount = \App\Models\User::where(function($q) {
                 $q->whereIn('active_profile', ['job_seeker', 'talent', 'jobseeker'])
                   ->orWhereIn('user_role', ['job_seeker', 'talent', 'jobseeker'])
                   ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']));
-            })->where(function($q) {
-                $q->where('is_suspended', true)
-                  ->orWhere('is_suspended', 1);
             })->count();
-            $unpubTalent = max(1, $unpubTalentCount);
 
-            $unpubEmployersCount = \App\Models\User::where(function($q) {
+            $employerCount = \App\Models\User::where(function($q) {
                 $q->whereIn('active_profile', ['employer', 'agency', 'hirer'])
                   ->orWhereIn('user_role', ['employer', 'agency', 'hirer'])
                   ->orWhereHas('roles', fn($r) => $r->whereIn('role_type', ['employer', 'agency', 'hirer']));
-            })->where(function($q) {
-                $q->where('is_suspended', true)
-                  ->orWhere('is_suspended', 1)
-                  ->orWhere('approval_status', '!=', 'approved')
-                  ->orWhereNull('approval_status');
             })->count();
-            $unpubEmployers = max(1, $unpubEmployersCount);
 
-            $unpubCommunityCount = \App\Models\AdminPost::where(function($q) {
-                $q->where('status', '!=', 'published')
-                  ->orWhereNull('status');
-            })->count() + \App\Models\JobPost::where(function($q) {
-                $q->where('status', '!=', 'approved')
-                  ->orWhereNull('status');
-            })->count();
-            $unpubCommunity = max(6, $unpubCommunityCount);
+            $totalChefsCount = \App\Models\ChefProfile::count();
+            $totalJobsCount = \App\Models\JobPost::count();
 
-            $unpubTrainingCount = \Illuminate\Support\Facades\DB::table('training_opportunities')
-                ->where(function($q) {
-                    $q->whereNotIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['approved', 'published'])
-                      ->orWhereNull('status');
-                })
-                ->count();
-            $unpubTraining = max(1, $unpubTrainingCount);
+            $communityCount = \App\Models\JobPost::where('category', 'community')->count();
 
-            $unpubApplicationsCount = \Illuminate\Support\Facades\DB::table('job_applications')->count()
-                + \Illuminate\Support\Facades\DB::table('training_applications')->count();
-            $unpubApplications = max(10, $unpubApplicationsCount);
+            $pendingTrainingCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
+                ? \Illuminate\Support\Facades\DB::table('training_opportunities')
+                    ->where(function($q) {
+                        $q->whereNotIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['approved', 'published'])
+                          ->orWhereNull('status');
+                    })->count()
+                : 0;
 
-            $totalUnpublishedUsers = $unpubTalent + $unpubEmployers + $unpubChefs;
+            $totalApplications = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
+                ? \Illuminate\Support\Facades\DB::table('job_applications')->count()
+                : 0;
+
+            $pendingAppsCount = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
+                ? \Illuminate\Support\Facades\DB::table('job_applications')
+                    ->whereIn('status', ['new', 'pending', 'applied'])
+                    ->count()
+                : 0;
+
+            $totalUsers = \App\Models\User::count();
 
             return response()->json([
                 'success' => true,
                 'counts' => [
-                    'users'        => $totalUnpublishedUsers,
-                    'talent'       => $unpubTalent,
-                    'employers'    => $unpubEmployers,
-                    'chefs'        => $unpubChefs,
-                    'jobs'         => $unpubJobs,
-                    'community'    => $unpubCommunity,
-                    'training'     => $unpubTraining,
-                    'applications' => $unpubApplications,
-                    'enquiries'    => 0,
+                    'users'        => $totalUsers,
+                    'talent'       => $talentCount,
+                    'employers'    => $employerCount,
+                    'chefs'        => $totalChefsCount,
+                    'jobs'         => $totalJobsCount,
+                    'community'    => $communityCount,
+                    'training'     => \Illuminate\Support\Facades\Schema::hasTable('training_opportunities') ? \Illuminate\Support\Facades\DB::table('training_opportunities')->count() : 0,
+                    'applications' => $totalApplications,
+                    'pending_jobs' => $pendingJobsCount,
+                    'pending_chefs' => $pendingChefsCount,
+                    'pending_apps' => $pendingAppsCount,
+                    'pending_training' => $pendingTrainingCount,
                 ]
             ], 200, ['Content-Type' => 'application/json']);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => true,
                 'counts' => [
-                    'users'        => 3,
-                    'talent'       => 1,
-                    'employers'    => 1,
-                    'chefs'        => 1,
-                    'jobs'         => 6,
-                    'community'    => 6,
-                    'training'     => 1,
-                    'applications' => 10,
-                    'enquiries'    => 0,
+                    'users'        => 0,
+                    'talent'       => 0,
+                    'employers'    => 0,
+                    'chefs'        => 0,
+                    'jobs'         => 0,
+                    'community'    => 0,
+                    'training'     => 0,
+                    'applications' => 0,
                 ]
             ], 200, ['Content-Type' => 'application/json']);
         }
