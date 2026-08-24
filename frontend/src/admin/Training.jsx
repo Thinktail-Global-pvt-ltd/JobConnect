@@ -293,9 +293,11 @@ export default function Training() {
                             >
                               {prog.name}
                             </span>
-                            <span className="text-[10px] text-slate-500 font-semibold block mt-1">
-                              <strong>Provider:</strong> {prog.curriculum || 'Hospitality Curricula'}
-                            </span>
+                            {prog.curriculum && prog.curriculum.toLowerCase() !== 'test' && (
+                              <span className="text-[10px] text-slate-500 font-semibold block mt-1">
+                                <strong>Curriculum / Provider:</strong> {prog.curriculum || prog.provider_name || 'Hospitality Curricula'}
+                              </span>
+                            )}
                             {prog.employer_details && (
                               <span className="text-[10px] text-blue-600 font-semibold block mt-0.5"><Building2 className="inline w-3 h-3 mr-1" /> <strong>Employer:</strong> {prog.employer_details}
                               </span>
