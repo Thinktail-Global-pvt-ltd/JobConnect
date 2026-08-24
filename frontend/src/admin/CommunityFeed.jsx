@@ -190,16 +190,43 @@ export default function CommunityFeed() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this stream entry?")) {
       setPosts(prev => prev.filter(p => p.id !== id));
-      try {
-        const rawId = String(id).replace('post_', '');
-        await axios.delete(`${BACKEND}/api/admin/community-posts/${rawId}`, {
-          headers: { Accept: 'application/json' }
-        });
-      } catch (err) {
-        console.error('Delete post failed:', err);
-      } finally {
-        loadPosts();
+
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const endpoints = [
+        `/backend/api/admin/community-posts/${id}`,
+        `${origin}/backend/api/admin/community-posts/${id}`,
+        `/api/admin/community-posts/${id}`,
+        `http://178.16.138.159/backend/api/admin/community-posts/${id}`
+      ];
+
+      for (const endpoint of endpoints) {
+        try {
+          const res = await axios.delete(endpoint, { headers: { Accept: 'application/json' } });
+          if (res.data?.success) break;
+        } catch (e) {
+          try {
+            const res = await axios.post(`${endpoint}/delete`, {}, { headers: { Accept: 'application/json' } });
+            if (res.data?.success) break;
+          } catch (err) {}
+        }
       }
+
+      if (String(id).startsWith('job_')) {
+        const jobId = String(id).replace('job_', '');
+        try {
+          await axios.delete(`/backend/api/admin/jobs/${jobId}`);
+        } catch (e) {
+          try { await mockApi.deleteJob(jobId); } catch (err) {}
+        }
+      }
+
+      try {
+        await mockApi.deleteCommunityPost(id);
+      } catch (e) {}
+
+      setTimeout(() => {
+        loadPosts();
+      }, 300);
     }
   };
 

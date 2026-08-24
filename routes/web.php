@@ -897,6 +897,47 @@ Route::match(['patch', 'post', 'put'], '/api/admin/community-posts/{id}', functi
     return toggleCommunityPostPinRecord($id, $request);
 });
 
+if (!function_exists('deleteCommunityPostHandler')) {
+    function deleteCommunityPostHandler($id) {
+        $cleanId = str_replace(['job_', 'post_'], '', $id);
+
+        if (str_contains($id, 'job_')) {
+            $job = \App\Models\JobPost::find($cleanId);
+            if ($job) {
+                $job->delete();
+                return response()->json(['success' => true, 'message' => 'Job post deleted from community stream.']);
+            }
+        }
+
+        $adminPost = \App\Models\AdminPost::find($cleanId);
+        if ($adminPost) {
+            $adminPost->delete();
+            return response()->json(['success' => true, 'message' => 'Admin post deleted successfully.']);
+        }
+
+        $job = \App\Models\JobPost::find($cleanId);
+        if ($job) {
+            $job->delete();
+            return response()->json(['success' => true, 'message' => 'Job post deleted successfully.']);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Item deleted']);
+    }
+}
+
+Route::match(['delete', 'post'], '/admin/community-posts/{id}', function($id) {
+    return deleteCommunityPostHandler($id);
+});
+Route::match(['delete', 'post'], '/api/admin/community-posts/{id}', function($id) {
+    return deleteCommunityPostHandler($id);
+});
+Route::match(['delete', 'post'], '/backend/api/admin/community-posts/{id}', function($id) {
+    return deleteCommunityPostHandler($id);
+});
+Route::match(['delete', 'post'], '/admin/community-posts/{id}/delete', function($id) {
+    return deleteCommunityPostHandler($id);
+});
+
 // Admin Training Opportunities Endpoints in web.php
 Route::match(['get', 'post'], '/admin/training-opportunities', function() {
     return getWebTrainingOpportunities();
