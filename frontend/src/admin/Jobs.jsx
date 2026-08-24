@@ -132,6 +132,20 @@ export default function Jobs() {
   }).length;
 
   const filteredJobs = jobs.filter(job => {
+    // 0. Status Filter
+    if (status) {
+      const s = (job.status || '').toLowerCase();
+      if (status === 'pending') {
+        if (!(s === 'pending' || s === 'draft' || s === 'unread' || s === '')) return false;
+      } else if (status === 'approved') {
+        if (!(s === 'approved' || s === 'published' || s === 'active')) return false;
+      } else if (status === 'rejected') {
+        if (!(s === 'rejected' || s === 'suspended')) return false;
+      } else if (status === 'closed') {
+        if (s !== 'closed') return false;
+      }
+    }
+
     // 1. Role Filter
     if (roleFilter) {
       const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
@@ -515,13 +529,17 @@ export default function Jobs() {
 
                     {/* Status badge */}
                     <td className="py-2.5 px-3">
-                      {job.status === 'approved' ? (
+                      {job.status === 'approved' || job.status === 'published' || job.status === 'active' ? (
                         <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#d9f3e7] text-[#137333] border-0">
                           Approved
                         </span>
                       ) : job.status === 'rejected' ? (
                         <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#fee2e2] text-[#c5221f] border-0">
                           Rejected
+                        </span>
+                      ) : job.status === 'closed' ? (
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                          Closed
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#fce7b2] text-[#9a6700] border-0">
