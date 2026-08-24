@@ -52,7 +52,7 @@ if (!function_exists('getSidebarStatsHandler')) {
     function getSidebarStatsHandler() {
         try {
             $pendingJobsCount = \App\Models\JobPost::where(function($q) {
-                $q->whereIn('status', ['pending', 'Pending', 'draft', 'Draft', 'unread', 'Unread'])
+                $q->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['pending', 'draft', 'unread'])
                   ->orWhereNull('status');
             })->count();
 
