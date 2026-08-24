@@ -84,6 +84,9 @@ class JobPostController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title'                  => 'required|string|max:255',
+            'job_role'               => 'nullable|string|max:255',
+            'industry_segment'       => 'nullable|string|max:255',
+            'job_category'           => 'nullable|string|max:255',
             'category'               => 'required|string|max:50',
             'company'                => 'required|string|max:255',
             'contact_info'           => 'required|string',

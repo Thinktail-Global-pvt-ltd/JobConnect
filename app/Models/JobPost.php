@@ -10,7 +10,10 @@ class JobPost extends Model
     protected $fillable = [
         'created_by',
         'title',
+        'job_role',
         'category', // india, overseas, community
+        'job_category',
+        'industry_segment',
         'company',
         'salary',
         'salary_min',

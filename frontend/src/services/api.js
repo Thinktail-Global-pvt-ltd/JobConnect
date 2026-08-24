@@ -363,16 +363,30 @@ const mockEndpoints = {
     const newJob = {
       id: String(Date.now()),
       title: jobData.title,
+      job_role: jobData.job_role || jobData.title,
       company: jobData.company,
+      industry_segment: jobData.industry_segment || 'Café & Hospitality',
       category: jobData.category || 'india',
+      job_category: jobData.job_category || 'Kitchen, Service, Bar & Beverage',
       location: jobData.location || 'India',
+      country: jobData.country || 'India',
       salary: jobData.salary || 'INR 30,000+',
+      salary_min: jobData.salary_min || null,
+      salary_max: jobData.salary_max || null,
+      salary_currency: jobData.salary_currency || 'SAR',
+      experience_range: jobData.experience_range || 'Mid Level (3-5 Years)',
       job_type: jobData.job_type || 'Full-time',
+      open_positions: Number(jobData.open_positions) || 1,
+      contact_person: jobData.contact_person || 'Hiring Manager',
+      contact_info: jobData.contact_info || 'hr@thinktail.com',
+      visa_assistance: Boolean(jobData.visa_assistance),
+      accommodation_available: Boolean(jobData.accommodation_available),
       description: jobData.description,
-      status: 'pending',
-      is_pinned: false,
+      status: jobData.status || 'approved',
+      is_pinned: Boolean(jobData.is_pinned),
+      is_referral: Boolean(jobData.is_referral),
       created_at: new Date().toISOString(),
-      creator: { full_name: jobData.company, mobile_number: jobData.contact_info || 'N/A' }
+      creator: { full_name: jobData.contact_person || jobData.company, mobile_number: jobData.contact_info || 'N/A' }
     };
     mockDb.setJobs([newJob, ...jobs]);
     return { success: true, job: newJob };

@@ -199,18 +199,32 @@ class JobModeratorController extends Controller
 
         $data = $request->only([
             'title',
+            'job_role',
             'company',
+            'industry_segment',
+            'job_category',
             'location',
+            'country',
             'salary',
+            'salary_min',
+            'salary_max',
+            'salary_currency',
             'salary_range',
             'experience_range',
             'job_type',
             'work_type',
+            'contact_person',
+            'contact_info',
+            'open_positions',
             'description',
             'vacancies',
             'openings',
             'category',
-            'status'
+            'status',
+            'visa_assistance',
+            'accommodation_available',
+            'is_pinned',
+            'is_referral'
         ]);
 
         if ($request->filled('salary')) {
@@ -314,6 +328,9 @@ class JobModeratorController extends Controller
             $job = JobPost::create([
                 'created_by'                => $userId,
                 'title'                     => $title,
+                'job_role'                  => $request->input('job_role') ?: $title,
+                'industry_segment'          => $request->input('industry_segment', 'Café & Hospitality'),
+                'job_category'              => $request->input('job_category', 'Kitchen, Service, Bar & Beverage'),
                 'company'                   => $companyName,
                 'location'                  => $location,
                 'category'                  => $category,
