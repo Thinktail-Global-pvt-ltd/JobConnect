@@ -12,6 +12,7 @@ import Term from "./Term";
 import AdminLogin from "./admin/AdminLogin";
 import Dashboard from "./admin/Dashboard";
 import Users from "./admin/Users";
+import UserDetail from "./admin/UserDetail";
 import Jobs from "./admin/Jobs";
 import JobDetail from "./admin/JobDetail";
 import Referrals from "./admin/Referrals";
@@ -127,6 +128,7 @@ function App() {
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/dashboard" element={<Layout><Dashboard /></Layout>} />
         <Route path="/admin/users" element={<Layout><Users /></Layout>} />
+        <Route path="/admin/users/:id" element={<Layout><UserDetail /></Layout>} />
         <Route path="/admin/jobs" element={<Layout><Jobs /></Layout>} />
         <Route path="/admin/jobs/:id" element={<Layout><JobDetail /></Layout>} />
         <Route path="/admin/referrals" element={<Layout><Referrals /></Layout>} />

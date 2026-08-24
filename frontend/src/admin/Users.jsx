@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { mockApi, realApi, resolveImageUrl } from '../services/api';
 import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X, Eye, Smartphone, MapPin, Star } from 'lucide-react';
 
 export default function Users() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
@@ -107,45 +108,8 @@ export default function Users() {
     loadUsers();
   };
 
-  const handleViewUserDetail = async (userItem) => {
-    setSelectedUser(userItem);
-    setModalOpen(true);
-    setModalTitle(`User Profile Details - ${userItem.full_name || userItem.mobile_number}`);
-    setModalType('user_detail');
-    setModalLoading(true);
-    try {
-      let fullUser = userItem;
-      try {
-        const res = await realApi.get(`/api/admin/users/${userItem.id}`);
-        if (res.data?.success && res.data.user) {
-          fullUser = { ...userItem, ...res.data.user };
-        }
-      } catch (e) {
-        try {
-          const res2 = await axios.get(`/backend/api/admin/users/${userItem.id}`);
-          if (res2.data?.success && res2.data.user) {
-            fullUser = { ...userItem, ...res2.data.user };
-          }
-        } catch (e2) {}
-      }
-
-      setSelectedUser(fullUser);
-      setModalTitle(`User Profile Details - ${fullUser.full_name || fullUser.mobile_number}`);
-
-      const [jobsData, appsData] = await Promise.all([
-        mockApi.getUserJobs(userItem.id).catch(() => ({ jobs: [] })),
-        mockApi.getUserApplications(userItem.id).catch(() => ({ applications: [] }))
-      ]);
-
-      setModalData({
-        jobs: jobsData.jobs || (fullUser.job_posts_count ? Array(fullUser.job_posts_count).fill({}) : []),
-        applications: appsData.applications || (fullUser.applications_count ? Array(fullUser.applications_count).fill({}) : [])
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setModalLoading(false);
-    }
+  const handleViewUserDetail = (userItem) => {
+    navigate(`/admin/users/${userItem.id}`, { state: { user: userItem } });
   };
 
   const getAvatarStyle = (name) => {
@@ -226,7 +190,9 @@ export default function Users() {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-[#d7dce2] shadow-sm ${getAvatarStyle(user.full_name)}`}>
                         {user.full_name ? user.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
                       </div>
-                      <span className="font-extrabold text-slate-900 text-[13px]">{user.full_name || 'Not Provided'}</span>
+                      <Link to={`/admin/users/${user.id}`} state={{ user }} className="font-extrabold text-slate-900 text-[13px] hover:text-[#153e69] hover:underline">
+                        {user.full_name || 'Not Provided'}
+                      </Link>
                     </td>
 
                     {/* Mobile Number */}
