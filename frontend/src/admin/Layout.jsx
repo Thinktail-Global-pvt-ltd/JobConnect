@@ -145,8 +145,8 @@ export default function Layout({ children }) {
   ];
 
   const userSubItems = [
-    { name: 'Talent / Jobseeker', path: '/admin/users', icon: null, countKey: 'talent' },
-    { name: 'Employer', path: '/admin/employers', icon: null, countKey: 'employers' },
+    { name: 'Talent / Jobseeker', path: '/admin/users', icon: null, countKey: 'pending_talent' },
+    { name: 'Employer', path: '/admin/employers', icon: null, countKey: 'pending_employers' },
     { name: 'Chef', path: '/admin/chefs', icon: null, countKey: 'pending_chefs' },
   ];
 
@@ -311,7 +311,7 @@ export default function Layout({ children }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-xl text-[11px] font-black bg-[#059669] text-white shadow-sm border border-emerald-500">
-                    {counts.users ?? (counts.talent + counts.employers + counts.chefs)}
+                    {counts.pending_users ?? ((counts.pending_talent ?? 0) + (counts.pending_employers ?? 0) + (counts.pending_chefs ?? 0))}
                   </span>
                   {usersOpen ? (
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -327,7 +327,7 @@ export default function Layout({ children }) {
               <div className={`pl-6 space-y-0.5 ${subItemsContainerBg}`}>
                 {userSubItems.map((sub) => {
                   const active = isActive(sub.path);
-                  const countVal = counts[sub.countKey] ?? 0;
+                  const countVal = sub.countKey ? (counts[sub.countKey] ?? 0) : 0;
                   return (
                     <Link
                       key={sub.name}
