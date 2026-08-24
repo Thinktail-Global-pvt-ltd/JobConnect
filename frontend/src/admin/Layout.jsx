@@ -155,7 +155,6 @@ export default function Layout({ children }) {
     { name: 'Community Feed', path: '/admin/community', icon: null, countKey: 'community' },
     { name: 'Training & Overseas', path: '/admin/training', icon: null, countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: null, countKey: 'applications' },
-    { name: 'Enquiries', path: '/admin/enquiries', icon: null, countKey: 'enquiries' },
     { name: 'Notifications & Logs', path: '/admin/notifications', icon: null, countKey: 'notifications' },
   ];
 
