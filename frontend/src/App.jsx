@@ -19,6 +19,7 @@ import Referrals from "./admin/Referrals";
 import CommunityFeed from "./admin/CommunityFeed";
 import LiveFeed from "./admin/LiveFeed";
 import Training from "./admin/Training";
+import TrainingDetail from "./admin/TrainingDetail";
 import EditTraining from "./admin/EditTraining";
 import Chefs from "./admin/Chefs";
 import ChefDetail from "./admin/ChefDetail";
@@ -135,6 +136,7 @@ function App() {
         <Route path="/admin/community" element={<Layout><CommunityFeed /></Layout>} />
         <Route path="/admin/live-feed" element={<Layout><LiveFeed /></Layout>} />
         <Route path="/admin/training" element={<Layout><Training /></Layout>} />
+        <Route path="/admin/training/:id" element={<Layout><TrainingDetail /></Layout>} />
         <Route path="/admin/training/edit" element={<Layout><EditTraining /></Layout>} />
         <Route path="/admin/chefs" element={<Layout><Chefs /></Layout>} />
         <Route path="/admin/chefs/:id" element={<Layout><ChefDetail /></Layout>} />

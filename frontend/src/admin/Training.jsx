@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin, X, Building2, Lightbulb, Target, Search } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 
 export default function Training() {
+  const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const rawStatus = searchParams.get('status') || searchParams.get('tab') || 'all';
@@ -286,7 +287,12 @@ export default function Training() {
                             <Pin className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" title="Pinned to top feed priority" />
                           )}
                           <div>
-                            <span className="font-extrabold text-slate-800 text-[13px] block leading-tight">{prog.name}</span>
+                            <span 
+                              onClick={() => navigate(`/admin/training/${prog.id}`, { state: { program: prog } })}
+                              className="font-extrabold text-[#153e69] hover:underline cursor-pointer text-[13px] block leading-tight"
+                            >
+                              {prog.name}
+                            </span>
                             <span className="text-[10px] text-slate-500 font-semibold block mt-1">
                               <strong>Provider:</strong> {prog.curriculum || 'Hospitality Curricula'}
                             </span>
@@ -336,8 +342,8 @@ export default function Training() {
                       <td className="py-2.5 px-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button 
-                            onClick={() => setSelectedProgram(prog)}
-                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center border border-[#e2e8f0] transition-colors cursor-pointer" 
+                            onClick={() => navigate(`/admin/training/${prog.id}`, { state: { program: prog } })}
+                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-[#153e69] hover:text-white text-slate-400 border border-[#e2e8f0] transition-colors cursor-pointer flex items-center justify-center" 
                             title="View Program Details"
                           >
                             <Eye className="w-4 h-4" />
