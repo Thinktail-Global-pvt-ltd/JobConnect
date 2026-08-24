@@ -113,23 +113,38 @@ if (!function_exists('getSidebarStatsHandler')) {
                     ->count()
                 : 0;
 
+            $pendingTalentCount = \App\Models\User::where(function($q) {
+                $q->where('is_suspended', 1)->orWhere('is_suspended', true);
+            })->where(function($q) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('user_roles')) {
+                    $q->whereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']));
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role')) {
+                    $q->orWhereIn('user_role', ['job_seeker', 'talent', 'jobseeker']);
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_role')) {
+                    $q->orWhereIn('active_role', ['job_seeker', 'talent', 'jobseeker']);
+                }
+            })->count();
+
             $totalUsers = \App\Models\User::count();
 
             return response()->json([
                 'success' => true,
                 'counts' => [
-                    'users'        => $totalUsers,
-                    'talent'       => $talentCount,
-                    'employers'    => $employerCount,
-                    'chefs'        => $pendingChefsCount,
-                    'jobs'         => $pendingJobsCount,
-                    'community'    => $communityCount,
-                    'training'     => $pendingTrainingCount,
-                    'applications' => $totalApplications,
-                    'pending_jobs' => $pendingJobsCount,
-                    'pending_chefs' => $pendingChefsCount,
-                    'pending_apps' => $pendingAppsCount,
-                    'pending_training' => $pendingTrainingCount,
+                    'users'             => $totalUsers,
+                    'talent'            => $pendingTalentCount,
+                    'employers'         => $employerCount,
+                    'chefs'             => $pendingChefsCount,
+                    'jobs'              => $pendingJobsCount,
+                    'community'         => $communityCount,
+                    'training'          => $pendingTrainingCount,
+                    'applications'      => $totalApplications,
+                    'pending_talent'    => $pendingTalentCount,
+                    'pending_jobs'      => $pendingJobsCount,
+                    'pending_chefs'     => $pendingChefsCount,
+                    'pending_apps'      => $pendingAppsCount,
+                    'pending_training'  => $pendingTrainingCount,
                 ]
             ], 200, ['Content-Type' => 'application/json']);
         } catch (\Throwable $e) {
