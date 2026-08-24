@@ -52,17 +52,13 @@ if (!function_exists('getSidebarStatsHandler')) {
     function getSidebarStatsHandler() {
         try {
             $pendingJobsCount = \App\Models\JobPost::where(function($q) {
-                $q->where('status', 'pending')
-                  ->orWhere('status', 'Pending')
-                  ->orWhereNull('status')
-                  ->orWhereNotIn('status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
+                $q->whereIn('status', ['pending', 'Pending', 'draft', 'Draft', 'unread', 'Unread'])
+                  ->orWhereNull('status');
             })->count();
 
             $pendingChefsCount = \App\Models\ChefProfile::where(function($q) {
-                $q->where('approval_status', 'pending')
-                  ->orWhere('approval_status', 'Pending')
-                  ->orWhereNull('approval_status')
-                  ->orWhereNotIn('approval_status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
+                $q->whereIn('approval_status', ['pending', 'Pending', 'draft', 'Draft', 'unread', 'Unread'])
+                  ->orWhereNull('approval_status');
             })->count();
 
             $talentCount = \Illuminate\Support\Facades\Schema::hasTable('user_roles')
