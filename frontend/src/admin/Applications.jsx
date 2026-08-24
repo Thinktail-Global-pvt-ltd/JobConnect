@@ -322,31 +322,31 @@ export default function Applications() {
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setSelectedJob(null)}
-                className="p-2 rounded-xl bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1 text-xs font-bold shadow-xs cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all flex items-center gap-1 text-xs font-bold shadow-2xs cursor-pointer"
               >
-                <ArrowLeft className="w-4 h-4 text-[#059669]" />
+                <ArrowLeft className="w-4 h-4 text-emerald-700" />
                 <span>All Listings</span>
               </button>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900">
                     {selectedJob.title}
                   </h2>
                   {selectedJob.is_training ? (
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-xl bg-purple-100 text-purple-800 border border-purple-300">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
                       <GraduationCap className="inline w-3 h-3 mr-1" /> TRAINING OPPORTUNITY
                     </span>
                   ) : (
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-xl bg-blue-100 text-blue-800 border border-blue-300">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                       <Briefcase className="inline w-3 h-3 mr-1" /> JOB LISTING
                     </span>
                   )}
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-xl bg-emerald-100 text-emerald-800">
-                    {selectedJob.applications.length} Applicants
+                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {selectedJob.applications.length} Applicant{selectedJob.applications.length > 1 ? 's' : ''}
                   </span>
                 </div>
-                <p className="text-xs font-semibold text-slate-400 mt-1">
-$1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.location}
+                <p className="text-xs font-semibold text-slate-500 mt-1">
+                  {selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.location}
                 </p>
               </div>
             </div>
@@ -475,7 +475,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                    <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                       <th className="py-2.5 px-3">Program / Job Listing & Provider</th>
                       <th className="py-2.5 px-3">Type Badge</th>
                       <th className="py-2.5 px-3">Location</th>
@@ -484,7 +484,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                       <th className="py-4 px-6 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#1E293B]/60 text-slate-700 text-xs font-semibold">
+                  <tbody className="divide-y divide-[#d7dce2] text-slate-700 text-xs font-semibold">
                     {filteredJobsList.map(job => {
                       const newCount = job.applications.filter(a => a.status === 'new').length;
                       const contactedCount = job.applications.filter(a => a.status === 'contacted').length;
@@ -500,7 +500,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-3">
                               <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
-                                job.is_training ? 'bg-purple-950 text-purple-400 border-purple-800' : 'bg-blue-950 text-blue-400 border-blue-800'
+                                job.is_training ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200'
                               }`}>
                                 {job.is_training ? <GraduationCap className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
                               </div>
@@ -551,7 +551,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                                 </span>
                               )}
                               {contactedCount > 0 && (
-                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-blue-950 text-blue-400 border border-blue-800/60">
+                                <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200">
                                   {contactedCount} Contacted
                                 </span>
                               )}
@@ -596,7 +596,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-black text-slate-400 uppercase tracking-wider">
+                    <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                       <th className="py-2.5 px-3">Applicant Candidate</th>
                       <th className="py-4 px-6 text-center">Match %</th>
                       {!selectedJob && <th className="py-2.5 px-3">Applied Post & Type</th>}
@@ -606,7 +606,7 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                       <th className="py-4 px-6 text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#1E293B]/60 text-slate-700 text-xs font-semibold">
+                  <tbody className="divide-y divide-[#d7dce2] text-slate-700 text-xs font-semibold">
                     {currentDisplayApps.map(a => {
                       const match = calculateMatchPercentage(a);
                       const isTrainingApp = a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training;
@@ -629,21 +629,21 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                               />
                             ) : null}
                             <div 
-                              className={`w-9 h-9 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-slate-700 shadow-sm shrink-0 ${getAvatarColor(a.applicant?.full_name)}`}
+                              className={`w-9 h-9 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-[#d7dce2] shadow-sm shrink-0 ${getAvatarColor(a.applicant?.full_name)}`}
                               style={{ display: resolveImageUrl(a.applicant?.profile_photo_path || a.applicant?.profile_photo || a.applicant?.avatar) ? 'none' : 'flex' }}
                             >
                               {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
                             </div>
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-extrabold text-slate-900 group-hover/cand:text-emerald-700 transition-colors text-[13px] block leading-tight">{a.applicant?.full_name || 'Anonymous Applicant'}</span>
+                                <span className="font-extrabold text-slate-900 group-hover/cand:text-[#153e69] transition-colors text-[13px] block leading-tight">{a.applicant?.full_name || 'Anonymous Applicant'}</span>
                                 {isTrainingApp && (
                                   <span className="bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
                                     <GraduationCap className="inline w-3 h-3 mr-1" /> Training
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-slate-500 font-bold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
+                              <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
                             </div>
                           </td>
 
@@ -651,10 +651,10 @@ $1{selectedJob.company} <span aria-hidden="true">•</span> {selectedJob.locatio
                           <td className="py-4.5 px-6 text-center">
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black shadow-2xs border ${
                               match.score >= 80 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-800' 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                 : match.score >= 60 
-                                  ? 'bg-amber-950 text-amber-400 border-amber-800' 
-                                  : 'bg-slate-100 text-slate-700 border-slate-300'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                                  : 'bg-slate-50 text-slate-700 border-slate-200'
                             }`}>
                               <span><Target className="inline w-3 h-3 mr-1" /> {match.score}%</span>
                             </span>
