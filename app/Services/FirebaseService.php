@@ -21,6 +21,14 @@ class FirebaseService
     public function sendPushNotification(string $deviceToken, string $title, string $body, array $data = []): array
     {
         try {
+            // Check if token is a raw 64-character APNs token instead of an FCM Registration Token
+            if (preg_match('/^[a-fA-F0-9]{64}$/', trim($deviceToken))) {
+                return [
+                    'success' => false,
+                    'message' => 'The provided token is a raw Apple APNs token (64 hex chars). FCM API requires an FCM Registration Token generated via FirebaseMessaging.instance.getToken().',
+                ];
+            }
+
             // Auto-resolve deep link attributes if missing
             $event = $data['event'] ?? ($data['type'] ?? 'general');
             
