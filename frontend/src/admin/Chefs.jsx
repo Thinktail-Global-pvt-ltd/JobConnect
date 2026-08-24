@@ -256,7 +256,7 @@ export default function Chefs() {
           <div className="bg-white rounded-lg border border-[#d7dce2] shadow-sm overflow-hidden">
             {loading ? (
               <p className="text-center text-slate-400 text-xs font-medium py-16">Loading chef profiles...</p>
-            ) : chefs.length === 0 ? (
+            ) : filteredChefs.length === 0 ? (
               <p className="text-center text-slate-400 text-sm font-medium py-16">No chef profiles found for this filter.</p>
             ) : (
               <div className="overflow-x-auto">
@@ -273,14 +273,7 @@ export default function Chefs() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#d7dce2] text-slate-700 text-xs font-semibold">
-                    {chefs.filter(c => {
-                      if (!statusFilter) return true;
-                      const st = (c.approval_status || c.status || 'pending').toLowerCase();
-                      if (statusFilter === 'pending') return st !== 'approved' && st !== 'published';
-                      if (statusFilter === 'approved') return st === 'approved' || st === 'published';
-                      if (statusFilter === 'rejected') return st === 'rejected';
-                      return true;
-                    }).map((chef) => {
+                    {filteredChefs.map((chef) => {
                       const name = chef.full_name || chef.name || 'Unnamed Chef';
                       const email = chef.email || '';
                       const mobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;
@@ -417,7 +410,7 @@ export default function Chefs() {
 
             <div className="px-6 py-4 flex justify-between items-center border-t border-[#e2e8f0] bg-slate-50/30">
               <span className="text-xs text-slate-500 font-bold">
-                Showing all {chefs.length} chef application(s)
+                Showing all {filteredChefs.length} chef application(s)
               </span>
             </div>
           </div>
