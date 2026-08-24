@@ -284,10 +284,6 @@ export default function JobDetail() {
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Open Vacancies</span>
               <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.open_positions || 1} Position(s)</span>
             </div>
-            <div className="border-t border-l border-slate-100 pt-3 pl-4 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Category & Segment</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-800 uppercase block">{job.category || 'India'} ({job.industry_segment || 'Hospitality'})</span>
-            </div>
           </div>
 
           {/* Description Block */}
@@ -296,26 +292,6 @@ export default function JobDetail() {
             <p className="text-slate-600 leading-relaxed text-xs font-semibold whitespace-pre-line">
               {job.description || 'No detailed description provided for this job post.'}
             </p>
-          </div>
-
-          {/* Additional Features & Benefits Card */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4 text-left">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 border-b border-slate-100 pb-3">Job Features & Perks</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="text-slate-500 font-bold">Visa Assistance</span>
-                <span className={`px-2.5 py-0.5 rounded text-[10px] font-black ${job.visa_assistance ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
-                  {job.visa_assistance ? 'Provided' : 'Not Specified'}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="text-slate-500 font-bold">Accommodation Provided</span>
-                <span className={`px-2.5 py-0.5 rounded text-[10px] font-black ${job.accommodation_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}`}>
-                  {job.accommodation_available ? 'Provided' : 'Not Specified'}
-                </span>
-              </div>
-            </div>
           </div>
         </div>
 
