@@ -205,6 +205,15 @@ export default function Chefs() {
   };
 
   // Dynamic KPI Stats calculation
+  const filteredChefs = (chefs || []).filter(c => {
+    if (!statusFilter) return true;
+    const st = (c.approval_status || c.status || 'pending').toLowerCase();
+    if (statusFilter === 'pending') return st !== 'approved' && st !== 'published';
+    if (statusFilter === 'approved') return st === 'approved' || st === 'published';
+    if (statusFilter === 'rejected') return st === 'rejected';
+    return true;
+  });
+
   const totalCount = chefs.length;
   const pendingCount = chefs.filter(c => c.status !== 'approved' && c.approval_status !== 'approved').length;
   const approvedCount = chefs.filter(c => c.status === 'approved' || c.approval_status === 'approved').length;
