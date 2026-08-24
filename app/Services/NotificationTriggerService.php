@@ -34,24 +34,26 @@ class NotificationTriggerService
                 $targetUserId = $user ? $user->id : (int)$userId;
             }
 
-            $fcmToken = $user ? $user->fcm_token : null;
-            if (empty($fcmToken) && $user) {
-                $deviceRecord = UserDeviceToken::where('user_id', $user->id)
+            // Collect ALL active FCM tokens for the user (both iOS & Android devices)
+            $tokens = [];
+            if ($user && !empty($user->fcm_token)) {
+                $tokens[] = $user->fcm_token;
+            }
+            if ($targetUserId) {
+                $dbTokens = UserDeviceToken::where('user_id', $targetUserId)
                     ->where('is_active', true)
-                    ->latest()
-                    ->first();
-                if ($deviceRecord) {
-                    $fcmToken = $deviceRecord->fcm_token;
-                }
+                    ->pluck('fcm_token')
+                    ->toArray();
+                $tokens = array_unique(array_filter(array_merge($tokens, $dbTokens)));
             }
 
             $result = null;
-            if (!empty($fcmToken)) {
+            $firebaseService = app(FirebaseService::class);
+            foreach ($tokens as $fcmToken) {
                 try {
-                    $firebaseService = app(FirebaseService::class);
-                    $result = $firebaseService->sendPushNotification($fcmToken, $title, $body);
+                    $result = $firebaseService->sendPushNotification($fcmToken, $title, $body, $metadata);
                 } catch (\Throwable $ex) {
-                    Log::error('FCM Push send error: ' . $ex->getMessage());
+                    Log::error('FCM Push send error for token ' . substr($fcmToken, 0, 15) . ': ' . $ex->getMessage());
                 }
             }
 

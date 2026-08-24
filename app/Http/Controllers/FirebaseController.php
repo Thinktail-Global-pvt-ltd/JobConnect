@@ -98,26 +98,28 @@ class FirebaseController extends Controller
             ], 422);
         }
 
-        $fcmToken = $request->input('fcm_token');
+        $fcmTokenInput = $request->input('fcm_token');
         $userId = $request->input('user_id');
         $user = null;
+
+        $tokens = [];
+        if (!empty($fcmTokenInput)) {
+            $tokens[] = $fcmTokenInput;
+        }
 
         if ($userId) {
             $user = User::find($userId);
             if ($user && !empty($user->fcm_token)) {
-                $fcmToken = $user->fcm_token;
-            } else {
-                $deviceTokenRecord = UserDeviceToken::where('user_id', $userId)
-                    ->where('is_active', true)
-                    ->latest()
-                    ->first();
-                if ($deviceTokenRecord) {
-                    $fcmToken = $deviceTokenRecord->fcm_token;
-                }
+                $tokens[] = $user->fcm_token;
             }
+            $deviceTokens = UserDeviceToken::where('user_id', $userId)
+                ->where('is_active', true)
+                ->pluck('fcm_token')
+                ->toArray();
+            $tokens = array_unique(array_filter(array_merge($tokens, $deviceTokens)));
         }
 
-        if (empty($fcmToken)) {
+        if (empty($tokens)) {
             $resolvedUserId = ($userId && User::where('id', $userId)->exists()) ? (int)$userId : ($user ? $user->id : null);
             \App\Models\UserNotificationHistory::create([
                 'user_id' => $resolvedUserId,
@@ -145,51 +147,41 @@ class FirebaseController extends Controller
 
         try {
             $firebaseService = app(\App\Services\FirebaseService::class);
-            $result = $firebaseService->sendPushNotification(
-                $fcmToken,
-                $request->title,
-                $request->body
-            );
+            $results = [];
+            $payloadData = $request->all();
 
-            // Log to database user_notification_histories table safely
+            foreach ($tokens as $token) {
+                try {
+                    $res = $firebaseService->sendPushNotification(
+                        $token,
+                        $request->title,
+                        $request->body,
+                        $payloadData
+                    );
+                    $results[] = $res;
+                } catch (\Throwable $e) {
+                    $results[] = ['success' => false, 'error' => $e->getMessage(), 'token' => substr($token, 0, 15)];
+                }
+            }
+
             $resolvedUserId = ($userId && User::where('id', $userId)->exists()) ? (int)$userId : ($user ? $user->id : null);
-
-            \App\Models\UserNotificationHistory::create([
-                'user_id' => $resolvedUserId,
-                'type' => 'fcm',
-                'recipient' => $fcmToken,
-                'title' => $request->title,
-                'body' => $request->body,
-                'status' => 'sent',
-                'metadata' => is_array($result) ? $result : ['result' => (string)$result],
-            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Push notification request shot successfully for User #' . ($userId ?? ($user ? $user->id : 'N/A')),
-                'target_user_id' => $userId ? (int)$userId : ($user ? $user->id : null),
-                'fcm_token' => $fcmToken,
+                'message' => 'Push notification request sent to ' . count($tokens) . ' device token(s) for User #' . ($userId ?? ($user ? $user->id : 'N/A')),
+                'target_user_id' => $resolvedUserId,
+                'tokens_count' => count($tokens),
                 'title' => $request->title,
                 'body' => $request->body,
-                'firebase_result' => $result
+                'results' => $results
             ]);
         } catch (\Exception $e) {
             $resolvedUserId = ($userId && User::where('id', $userId)->exists()) ? (int)$userId : ($user ? $user->id : null);
-            \App\Models\UserNotificationHistory::create([
-                'user_id' => $resolvedUserId,
-                'type' => 'fcm',
-                'recipient' => $fcmToken,
-                'title' => $request->title,
-                'body' => $request->body,
-                'status' => 'failed',
-                'metadata' => ['error' => $e->getMessage()],
-            ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Firebase Initialization Error: ' . $e->getMessage() . '. Please verify that your credentials file exists and is valid in storage/app/firebase/firebase_credentials.json',
-                'target_user_id' => $userId ? (int)$userId : null,
-                'fcm_token' => $fcmToken,
+                'message' => 'Firebase Error: ' . $e->getMessage(),
+                'target_user_id' => $resolvedUserId,
             ], 200);
         }
     }
@@ -201,25 +193,28 @@ class FirebaseController extends Controller
     {
         try {
             $user = User::find($userId);
-            $fcmToken = $user ? $user->fcm_token : null;
-
-            if (!$fcmToken && $user) {
-                $device = UserDeviceToken::where('user_id', $user->id)->where('is_active', true)->latest()->first();
-                if ($device) {
-                    $fcmToken = $device->fcm_token;
-                }
+            $tokens = [];
+            if ($user && !empty($user->fcm_token)) {
+                $tokens[] = $user->fcm_token;
+            }
+            if ($userId) {
+                $dbTokens = UserDeviceToken::where('user_id', $userId)->where('is_active', true)->pluck('fcm_token')->toArray();
+                $tokens = array_unique(array_filter(array_merge($tokens, $dbTokens)));
             }
 
             $status = 'sent';
-            $firebaseResult = null;
+            $firebaseResult = [];
 
-            if ($fcmToken) {
-                try {
-                    $firebaseService = app(\App\Services\FirebaseService::class);
-                    $firebaseResult = $firebaseService->sendPushNotification($fcmToken, $title, $body);
-                } catch (\Throwable $ex) {
-                    $status = 'failed';
-                    $firebaseResult = ['error' => $ex->getMessage()];
+            if (!empty($tokens)) {
+                $firebaseService = app(\App\Services\FirebaseService::class);
+                foreach ($tokens as $token) {
+                    try {
+                        $res = $firebaseService->sendPushNotification($token, $title, $body, array_merge(['event' => $type], $metadata));
+                        $firebaseResult[] = $res;
+                    } catch (\Throwable $ex) {
+                        $status = 'failed';
+                        $firebaseResult[] = ['error' => $ex->getMessage(), 'token' => substr($token, 0, 15)];
+                    }
                 }
             }
 
