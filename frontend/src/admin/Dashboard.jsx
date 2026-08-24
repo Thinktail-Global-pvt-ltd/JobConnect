@@ -89,28 +89,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Date Picker Button */}
-          <button className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold shadow-sm transition-all ${
-            isLight 
-              ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200' 
-              : 'bg-[#1E293B] hover:bg-slate-800 text-slate-200 border-slate-700'
-          }`}>
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <span>{data.current_date ? `${data.current_date} - ${data.current_date}` : '20 Aug 2026 - 20 Aug 2026'}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
-          </button>
 
-          {/* Export Report Button */}
-          <button className={`px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-extrabold shadow-md transition-all ${
-            isLight 
-              ? 'bg-[#061536] hover:bg-[#0b224e] text-white border border-[#061536]' 
-              : 'bg-[#059669] hover:bg-emerald-700 text-white'
-          }`}>
-            <Download className="w-4 h-4" />
-            <span>Export Report</span>
-          </button>
-        </div>
       </div>
 
       {/* KPI Stats Grid - 6 Columns Row */}
