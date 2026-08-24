@@ -113,6 +113,12 @@ if (!function_exists('getSidebarStatsHandler')) {
                     ->count()
                 : 0;
 
+            $pendingTalentCount = \Illuminate\Support\Facades\Schema::hasTable('user_roles')
+                ? \App\Models\User::where(function($q) {
+                    $q->where('is_suspended', true)->orWhere('is_suspended', 1)->orWhere('approval_status', 'pending');
+                })->whereHas('roles', fn($r) => $r->whereIn('role_type', ['job_seeker', 'talent', 'jobseeker']))->count()
+                : 0;
+
             $pendingEmployersCount = \Illuminate\Support\Facades\Schema::hasTable('user_roles')
                 ? \App\Models\User::where(function($q) {
                     $q->where('is_suspended', true)->orWhere('is_suspended', 1)->orWhere('approval_status', 'pending');
@@ -125,13 +131,14 @@ if (!function_exists('getSidebarStatsHandler')) {
                 'success' => true,
                 'counts' => [
                     'users'             => $totalUsers,
-                    'talent'            => $talentCount,
+                    'talent'            => $pendingTalentCount,
                     'employers'         => $pendingEmployersCount,
                     'chefs'             => $pendingChefsCount,
                     'jobs'              => $pendingJobsCount,
                     'community'         => $communityCount,
                     'training'          => $pendingTrainingCount,
                     'applications'      => $totalApplications,
+                    'pending_talent'    => $pendingTalentCount,
                     'pending_employers' => $pendingEmployersCount,
                     'pending_jobs'      => $pendingJobsCount,
                     'pending_chefs'     => $pendingChefsCount,
