@@ -151,7 +151,7 @@ export default function Layout({ children }) {
   ];
 
   const secondaryNavItems = [
-    { name: 'Jobs', path: '/admin/jobs', icon: null, countKey: 'jobs' },
+    { name: 'Jobs', path: '/admin/jobs', icon: null, countKey: 'pending_jobs' },
     { name: 'Community Feed', path: '/admin/community', icon: null, countKey: 'community' },
     { name: 'Training & Overseas', path: '/admin/training', icon: null, countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: null, countKey: 'applications' },
