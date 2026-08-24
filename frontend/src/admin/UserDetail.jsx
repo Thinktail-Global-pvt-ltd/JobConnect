@@ -355,7 +355,10 @@ export default function UserDetail() {
                   <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-[#153e69]" /> Applied Job Applications
                   </h3>
-                  <Link to="/admin/applications" className="text-xs font-bold text-[#153e69] hover:underline">
+                  <Link 
+                    to={`/admin/applications?userId=${user.id}&userName=${encodeURIComponent(fullName)}`} 
+                    className="text-xs font-bold text-[#153e69] hover:underline flex items-center gap-1"
+                  >
                     View All Applications &rarr;
                   </Link>
                 </div>

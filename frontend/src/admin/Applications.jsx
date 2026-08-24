@@ -1,17 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { mockApi, resolveImageUrl } from '../services/api';
 import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star, ExternalLink } from 'lucide-react';
 
 export default function Applications() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const userIdFilter = searchParams.get('userId') || searchParams.get('user_id') || location.state?.userId || null;
+  const userNameFilter = searchParams.get('userName') || location.state?.userName || null;
+
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('jobs'); // 'jobs' (Grouped view default) or 'all_apps' (Flat list)
+  const [viewMode, setViewMode] = useState(userIdFilter ? 'all_apps' : 'jobs'); // 'jobs' (Grouped view default) or 'all_apps' (Flat list)
   const [selectedJob, setSelectedJob] = useState(null); // When set, shows applications for this job
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [appCategory, setAppCategory] = useState('all'); // 'all', 'job', 'training'
+
+  useEffect(() => {
+    if (userIdFilter && viewMode !== 'all_apps') {
+      setViewMode('all_apps');
+    }
+  }, [userIdFilter]);
 
   const handleNavigateToCandidateProfile = (applicant, app) => {
     const candidateObj = applicant || app?.applicant || {};
@@ -260,13 +272,22 @@ export default function Applications() {
 
   const groupedJobsList = Object.values(groupedJobsMap);
 
-  // Filter Jobs Grouped list by search query & appCategory
+  // Filter Jobs Grouped list by search query, appCategory & userIdFilter
   const filteredJobsList = groupedJobsList.filter(j => {
     const q = search.toLowerCase();
     const matchSearch =
       j.title.toLowerCase().includes(q) ||
       j.company.toLowerCase().includes(q) ||
       j.location.toLowerCase().includes(q);
+
+    if (userIdFilter) {
+      const hasUserApp = j.applications.some(a => {
+        const applicant = a.applicant || {};
+        const uid = String(a.applicant_id || a.user_id || a.created_by || applicant.id || applicant.user_id || '');
+        return uid === String(userIdFilter);
+      });
+      if (!hasUserApp) return false;
+    }
 
     if (appCategory === 'job') return !j.is_training && matchSearch;
     if (appCategory === 'training') return j.is_training && matchSearch;
@@ -283,6 +304,14 @@ export default function Applications() {
       } else if (appCategory === 'training') {
         source = source.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training);
       }
+    }
+
+    if (userIdFilter) {
+      source = source.filter(a => {
+        const applicant = a.applicant || {};
+        const uid = String(a.applicant_id || a.user_id || a.created_by || applicant.id || applicant.user_id || '');
+        return uid === String(userIdFilter);
+      });
     }
 
     return source.filter(a => {
@@ -422,6 +451,28 @@ export default function Applications() {
                 <GraduationCap className="inline w-3 h-3 mr-1" /> Training ({apps.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training).length})
               </button>
             </div>
+          </div>
+        )}
+
+        {/* User Filter Active Banner */}
+        {userIdFilter && (
+          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between gap-3 text-xs font-bold text-blue-800">
+            <div className="flex items-center gap-2">
+              <span className="text-base">👤</span>
+              <span>Showing Applications Submitted by: <strong className="text-blue-950 font-extrabold">{userNameFilter || `User #${userIdFilter}`}</strong></span>
+            </div>
+            <button 
+              onClick={() => {
+                searchParams.delete('userId');
+                searchParams.delete('userName');
+                searchParams.delete('user_id');
+                setSearchParams(searchParams);
+                navigate('/admin/applications', { replace: true });
+              }}
+              className="text-rose-600 hover:text-rose-800 font-extrabold text-xs cursor-pointer flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-rose-200 shadow-2xs transition-colors"
+            >
+              Clear User Filter ✕
+            </button>
           </div>
         )}
 
