@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Filter, Eye, EyeOff, Check, X, UserPlus, RefreshCw, Smartphone, List, Signal, Wifi, Battery, MapPin, Building2, Calendar, Star, ArrowUpRight, Award, CheckCircle2 } from 'lucide-react';
+import { Filter, Eye, EyeOff, Check, X, UserPlus, RefreshCw, Smartphone, Phone, List, Signal, Wifi, Battery, MapPin, Building2, Calendar, Star, ArrowUpRight, Award, CheckCircle2 } from 'lucide-react';
 import { mockApi, resolveImageUrl } from '../services/api';
 
 export default function Chefs() {
@@ -260,6 +260,7 @@ export default function Chefs() {
                   <thead>
                     <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                       <th className="py-2.5 px-3">Chef Name</th>
+                      <th className="py-2.5 px-3">Mobile Number</th>
                       <th className="py-2.5 px-3">Experience</th>
                       <th className="py-2.5 px-3">Cuisine Specialties</th>
                       <th className="py-4 px-6 text-center">Calendly</th>
@@ -271,6 +272,7 @@ export default function Chefs() {
                     {chefs.map((chef) => {
                       const name = chef.full_name || chef.name || 'Unnamed Chef';
                       const email = chef.email || '';
+                      const mobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;
                       const experience = chef.experience_range || chef.experience || '0 Years';
                       const specialties = chef.cuisine_specialty || chef.specialties || 'Multi-Cuisine';
                       const status = chef.approval_status || chef.status || 'pending';
@@ -298,6 +300,20 @@ export default function Chefs() {
                                 <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">{email}</span>
                               </div>
                             </div>
+                          </td>
+
+                          <td className="py-2.5 px-3">
+                            {mobile ? (
+                              <a 
+                                href={`tel:${mobile}`}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-800 bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors font-mono"
+                              >
+                                <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                <span>{mobile}</span>
+                              </a>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 font-semibold font-mono">Not Provided</span>
+                            )}
                           </td>
 
                           <td className="py-4 px-6 text-slate-800 font-black">

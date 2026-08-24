@@ -220,10 +220,10 @@ Route::match(['get', 'post'], '/backend/api/admin/jobs/create', function(\Illumi
     return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
 });
 Route::match(['get', 'post'], '/api/employer/chefs', function() {
-    return (new \App\Http\Controllers\ChefProfileController)->employerFeed();
+    return (new \App\Http\Controllers\Api\ChefProfileController)->employerFeed();
 });
 Route::match(['get', 'post'], '/backend/api/employer/chefs', function() {
-    return (new \App\Http\Controllers\ChefProfileController)->employerFeed();
+    return (new \App\Http\Controllers\Api\ChefProfileController)->employerFeed();
 });
 
 // Backend API Prefix Route Group (enables /backend/api/... endpoints directly)
@@ -1207,7 +1207,7 @@ Route::match(['get', 'post'], '/api/admin/chefs/create', [\App\Http\Controllers\
 Route::match(['get', 'post'], '/api/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'approve']);
 Route::match(['get', 'post'], '/api/admin/chefs/{chef}/unpublish', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'unpublish']);
 Route::match(['get', 'post'], '/api/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
-Route::match(['get', 'post'], '/api/employer/chefs', [\App\Http\Controllers\ChefProfileController::class, 'employerFeed']);
+Route::match(['get', 'post'], '/api/employer/chefs', [\App\Http\Controllers\Api\ChefProfileController::class, 'employerFeed']);
 
 // Universal Upload Image Streaming Routes (Fixes Apache/Nginx 404 & Mixed Content)
 Route::get('/backend/uploads/{file}', function ($file) {

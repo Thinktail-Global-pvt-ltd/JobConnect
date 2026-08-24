@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserSocialController;
 use App\Http\Controllers\Api\ChefProfileViewController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\EmployerController;
 use Illuminate\Support\Facades\Route;
 
 /*
