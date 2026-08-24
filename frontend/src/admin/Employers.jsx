@@ -122,7 +122,7 @@ export default function Employers() {
     }));
   };
 
-  const activePartnersCount = employers.filter(e => e.status === 'Active').length;
+  const nonActiveEmployersCount = employers.filter(e => String(e.status || '').toLowerCase() !== 'active').length;
   const totalPages = Math.max(1, Math.ceil(filteredEmployers.length / pageSize));
   const paginatedEmployers = filteredEmployers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const rangeStart = filteredEmployers.length ? (currentPage - 1) * pageSize + 1 : 0;
@@ -167,8 +167,8 @@ export default function Employers() {
 
           <div className="flex items-center gap-12 mt-6">
             <div>
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Active Partners</span>
-              <span className="font-outfit font-bold text-[28px] text-slate-900 mt-0.5 block">{activePartnersCount}</span>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Action Required / Pending</span>
+              <span className="font-outfit font-bold text-[28px] text-slate-900 mt-0.5 block">{nonActiveEmployersCount}</span>
             </div>
             <div>
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Employers</span>
