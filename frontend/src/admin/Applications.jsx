@@ -597,16 +597,16 @@ export default function Applications() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                      <th className="py-2.5 px-3">Applicant Candidate</th>
-                      <th className="py-4 px-6 text-center">Match %</th>
-                      {!selectedJob && <th className="py-2.5 px-3">Applied Post & Type</th>}
-                      <th className="py-2.5 px-3">Contact / Mobile</th>
-                      <th className="py-2.5 px-3">Date Submitted</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-4 px-6 text-center">Actions</th>
+                      <th className="py-3 px-4">Applicant Candidate</th>
+                      <th className="py-3 px-4 text-center">Match %</th>
+                      {!selectedJob && <th className="py-3 px-4">Applied Post & Type</th>}
+                      <th className="py-3 px-4">Contact / Mobile</th>
+                      <th className="py-3 px-4">Date Submitted</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#d7dce2] text-slate-700 text-xs font-semibold">
+                  <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
                     {currentDisplayApps.map(a => {
                       const match = calculateMatchPercentage(a);
                       const isTrainingApp = a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training;
@@ -617,52 +617,53 @@ export default function Applications() {
                           {/* Applicant details */}
                           <td 
                             onClick={() => handleNavigateToCandidateProfile(a.applicant, a)}
-                            className="py-4.5 px-6 flex items-center gap-3 cursor-pointer group/cand"
+                            className="py-3.5 px-4 flex items-center gap-3 cursor-pointer group/cand"
                             title="Click to view candidate's complete profile page"
                           >
                             {resolveImageUrl(a.applicant?.profile_photo_path || a.applicant?.profile_photo || a.applicant?.avatar) ? (
                               <img 
                                 src={resolveImageUrl(a.applicant?.profile_photo_path || a.applicant?.profile_photo || a.applicant?.avatar)} 
                                 alt={a.applicant?.full_name} 
-                                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-500 shadow-sm shrink-0" 
+                                className="w-10 h-10 rounded-xl object-cover border border-emerald-500 shadow-sm shrink-0" 
                                 onError={(e) => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'; }}
                               />
                             ) : null}
                             <div 
-                              className={`w-9 h-9 rounded-full flex items-center justify-center font-bold font-outfit text-xs border border-[#d7dce2] shadow-sm shrink-0 ${getAvatarColor(a.applicant?.full_name)}`}
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold font-outfit text-xs border border-purple-200 bg-purple-50 text-purple-700 shadow-xs shrink-0`}
                               style={{ display: resolveImageUrl(a.applicant?.profile_photo_path || a.applicant?.profile_photo || a.applicant?.avatar) ? 'none' : 'flex' }}
                             >
-                              {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}
+                              {a.applicant?.full_name ? a.applicant.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'C#'}
                             </div>
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <span className="font-extrabold text-slate-900 group-hover/cand:text-[#153e69] transition-colors text-[13px] block leading-tight">{a.applicant?.full_name || 'Anonymous Applicant'}</span>
+                                <span className="font-extrabold text-[#153e69] group-hover/cand:text-[#0f2d4e] transition-colors text-sm block leading-tight">{a.applicant?.full_name || 'Candidate #' + a.id}</span>
                                 {isTrainingApp && (
                                   <span className="bg-purple-50 text-purple-700 border border-purple-200 text-[9px] font-black px-1.5 py-0.5 rounded shrink-0">
                                     <GraduationCap className="inline w-3 h-3 mr-1" /> Training
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
+                              <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">{a.applicant?.email || 'N/A'}</span>
                             </div>
                           </td>
 
                           {/* Match Percentage Badge */}
-                          <td className="py-4.5 px-6 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black shadow-2xs border ${
+                          <td className="py-3.5 px-4 text-center">
+                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black shadow-2xs border ${
                               match.score >= 80 
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                 : match.score >= 60 
                                   ? 'bg-amber-50 text-amber-700 border-amber-200' 
-                                  : 'bg-slate-50 text-slate-700 border-slate-200'
+                                  : 'bg-blue-50 text-blue-700 border-blue-200'
                             }`}>
-                              <span><Target className="inline w-3 h-3 mr-1" /> {match.score}%</span>
+                              <Target className="w-3.5 h-3.5" />
+                              <span>{match.score}%</span>
                             </span>
                           </td>
 
                           {/* Job/Training post detail (If in Flat List mode) */}
                           {!selectedJob && (
-                            <td className="py-2.5 px-3">
+                            <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2">
                                 {isTrainingApp ? (
                                   <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
@@ -680,51 +681,56 @@ export default function Applications() {
                           )}
 
                         {/* Contact info */}
-                        <td className="py-4.5 px-6 text-slate-700 font-bold">
+                        <td className="py-3.5 px-4 text-slate-800 font-bold text-xs">
                           {a.applicant?.mobile_number || 'N/A'}
                         </td>
 
                         {/* Date Submitted */}
-                        <td className="py-4.5 px-6 text-slate-400 font-bold">
+                        <td className="py-3.5 px-4 text-slate-400 font-bold text-xs">
                           {new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-2.5 px-3">
+                        <td className="py-3.5 px-4">
                           {a.status === 'shortlisted' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                               Shortlisted
                             </span>
                           ) : a.status === 'contacted' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
                               Contacted
                             </span>
                           ) : a.status === 'hired' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
+                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
                               Hired
                             </span>
                           ) : a.status === 'rejected' ? (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
                               Rejected
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
                               New
                             </span>
                           )}
                         </td>
 
-                        {/* Actions links (View Complete Profile Page & Call Candidate) */}
-                        <td className="py-4.5 px-6 text-center">
+                        {/* Actions link matching Screenshot 2 View Applications button */}
+                        <td className="py-3.5 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
-                            <button onClick={() => handleNavigateToCandidateProfile(a.applicant, a)}
-                                    className="w-8 h-8 rounded-lg bg-[#153e69] hover:bg-[#12345d] text-white flex items-center justify-center border border-blue-900 transition-colors cursor-pointer shadow-xs" title="View Candidate's Complete Profile Page">
-                              <Eye className="w-4 h-4" />
+                            <button 
+                              onClick={() => handleNavigateToCandidateProfile(a.applicant, a)}
+                              className="bg-[#153e69] hover:bg-[#0f2d4e] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm inline-flex items-center gap-1.5 cursor-pointer"
+                              title="View Candidate's Complete Profile Page"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>View Profile</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
                             </button>
                             
                             <a href={a.applicant?.mobile_number ? `tel:${a.applicant.mobile_number}` : '#'} 
                                onClick={() => handleUpdateStatus(a.id, 'contacted')}
-                               className="w-8 h-8 rounded-lg bg-white hover:bg-blue-50 text-blue-700 flex items-center justify-center border border-[#d7dce2] transition-colors cursor-pointer" title="Call Candidate">
+                               className="p-1.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-500 hover:text-emerald-700 border border-[#cfd5dc] transition-colors cursor-pointer" title="Call Candidate">
                               <Phone className="w-3.5 h-3.5" />
                             </a>
                           </div>
