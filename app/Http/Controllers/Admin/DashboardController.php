@@ -26,24 +26,43 @@ class DashboardController extends Controller
 
         $referralsCount = JobPost::where('is_referral', true)->count();
 
+        $pendingJobsCount = JobPost::where(function($q) {
+            $q->where('status', 'pending')
+              ->orWhere('status', 'Pending')
+              ->orWhereNull('status')
+              ->orWhereNotIn('status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
+        })->count();
+
+        $pendingChefsCount = ChefProfile::where(function($q) {
+            $q->where('approval_status', 'pending')
+              ->orWhere('approval_status', 'Pending')
+              ->orWhereNull('approval_status')
+              ->orWhereNotIn('approval_status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
+        })->count();
+
         $stats = [
             'users_count' => User::count(),
+            'users_total' => User::count(),
             'users_active' => User::active()->count(),
             'users_suspended' => User::where('is_suspended', true)->count(),
             
             'jobs_total' => JobPost::count(),
             'jobs_approved' => JobPost::approved()->count(),
-            'jobs_pending' => JobPost::pending()->count(),
+            'jobs_pending' => $pendingJobsCount,
+            'pending_jobs' => $pendingJobsCount,
             
             'chefs_total' => ChefProfile::count(),
             'chefs_approved' => ChefProfile::approved()->count(),
-            'chefs_pending' => ChefProfile::pending()->count(),
+            'chefs_pending' => $pendingChefsCount,
+            'pending_chefs' => $pendingChefsCount,
             
             'employers_count' => $employersCount,
             'referrals_count' => $referralsCount,
             
             'training_opportunities' => TrainingOpportunity::count(),
             'applications_count' => JobApplication::count(),
+            'pending_apps' => JobApplication::whereIn('status', ['new', 'pending'])->count(),
+            'pending_training' => TrainingOpportunity::whereIn('status', ['draft', 'pending'])->count(),
         ];
 
         // Fetch recent pending job posts for quick action dashboard overview

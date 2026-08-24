@@ -449,7 +449,7 @@ export default function Dashboard() {
                     <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
                       <Briefcase className="w-5 h-5" />
                     </div>
-                    <span className="text-xl font-black text-rose-500 min-w-[24px]">{stats.pending_jobs ?? 2}</span>
+                    <span className="text-xl font-black text-rose-500 min-w-[24px]">{stats.pending_jobs ?? stats.jobs_pending ?? 0}</span>
                     <div className="min-w-0">
                       <span className={`text-xs font-black block ${textPrimaryClass}`}>
                         Jobs Awaiting Approval
@@ -475,7 +475,7 @@ export default function Dashboard() {
                     <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
                       <ChefHat className="w-5 h-5" />
                     </div>
-                    <span className="text-xl font-black text-orange-500 min-w-[24px]">{stats.pending_chefs ?? 5}</span>
+                    <span className="text-xl font-black text-orange-500 min-w-[24px]">{stats.pending_chefs ?? stats.chefs_pending ?? 0}</span>
                     <div className="min-w-0">
                       <span className={`text-xs font-black block ${textPrimaryClass}`}>
                         Chef Profiles Awaiting Approval
@@ -501,7 +501,7 @@ export default function Dashboard() {
                     <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0">
                       <GraduationCap className="w-5 h-5" />
                     </div>
-                    <span className="text-xl font-black text-purple-500 min-w-[24px]">{stats.pending_training ?? 1}</span>
+                    <span className="text-xl font-black text-purple-500 min-w-[24px]">{stats.pending_training ?? stats.training_pending ?? 0}</span>
                     <div className="min-w-0">
                       <span className={`text-xs font-black block ${textPrimaryClass}`}>
                         Training & Overseas Drafts
@@ -527,7 +527,7 @@ export default function Dashboard() {
                     <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
                       <FileText className="w-5 h-5" />
                     </div>
-                    <span className="text-xl font-black text-emerald-500 min-w-[24px]">{stats.pending_apps ?? 8}</span>
+                    <span className="text-xl font-black text-emerald-500 min-w-[24px]">{stats.pending_apps ?? stats.applications_pending ?? 0}</span>
                     <div className="min-w-0">
                       <span className={`text-xs font-black block ${textPrimaryClass}`}>
                         Applications Requiring Action
