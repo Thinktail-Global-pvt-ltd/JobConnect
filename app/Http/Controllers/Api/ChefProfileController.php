@@ -223,4 +223,13 @@ class ChefProfileController extends Controller
             ], 200);
         }
     }
+
+    /**
+     * Get list of approved chefs for Employer Feed.
+     */
+    public function employerFeed(Request $request)
+    {
+        $moderator = new \App\Http\Controllers\Admin\ChefModeratorController();
+        return $moderator->apiIndex($request);
+    }
 }
