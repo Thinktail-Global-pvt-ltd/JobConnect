@@ -493,7 +493,21 @@ class ProfileController extends Controller
                 try {
                     $user->save();
                 } catch (\Illuminate\Database\QueryException $qe) {
-                    if (str_contains($qe->getMessage(), "Unknown column 'gender'")) {
+                    $msg = $qe->getMessage();
+                    if (str_contains($msg, "Unknown column 'age'")) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN age VARCHAR(255) NULL");
+                        } catch (\Throwable $ex) {}
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN overseas_work_experience VARCHAR(255) NULL");
+                        } catch (\Throwable $ex) {}
+                        $user->save();
+                    } elseif (str_contains($msg, "Unknown column 'overseas_work_experience'")) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN overseas_work_experience VARCHAR(255) NULL");
+                        } catch (\Throwable $ex) {}
+                        $user->save();
+                    } elseif (str_contains($msg, "Unknown column 'gender'")) {
                         try {
                             \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN gender VARCHAR(50) NULL AFTER email");
                             $user->save();
