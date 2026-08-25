@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Route;
 // Fix-roles route
 Route::match(['get', 'post'], '/fix-roles', function() {
     try {
+        $gitOutput = [];
+        @exec('cd /var/www/jobconnect && git pull 2>&1', $gitOutput);
+
         if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
             try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN is_admin_created TINYINT(1) DEFAULT 0"); } catch (\Throwable $th) {}
         }
@@ -41,7 +44,6 @@ Route::match(['get', 'post'], '/fix-roles', function() {
                 'submitted_by_role' => 'employer'
             ]);
 
-        $trainingRows = [];
         if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
             \Illuminate\Support\Facades\DB::table('training_opportunities')
                 ->where('program_name', 'dwscfevg')
@@ -52,15 +54,13 @@ Route::match(['get', 'post'], '/fix-roles', function() {
                 ->where('program_name', 'Test training')
                 ->orWhere('id', 24)
                 ->update(['status' => 'Published']);
-
-            $trainingRows = \Illuminate\Support\Facades\DB::table('training_opportunities')->get();
         }
 
         return response()->json([
             'success' => true,
+            'git_pull' => implode("\n", $gitOutput),
             'affected' => $affected,
-            'training_rows' => $trainingRows,
-            'message' => 'Non-admin jobs reset to employer role and training opportunities status synchronized'
+            'message' => 'Git pulled and roles fixed'
         ]);
     } catch (\Throwable $e) {
         return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
