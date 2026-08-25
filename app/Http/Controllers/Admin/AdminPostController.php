@@ -71,9 +71,11 @@ class AdminPostController extends Controller
             }
         } catch (\Throwable $e) {}
 
-        // 3. Training Opportunities
+        // 3. Training Opportunities (ONLY Published/Active status)
         try {
-            $trainings = \App\Models\TrainingOpportunity::latest()->get();
+            $trainings = \App\Models\TrainingOpportunity::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['published', 'active'])
+                ->latest()
+                ->get();
             foreach ($trainings as $train) {
                 $feedItems->push([
                     'id'         => 'train_' . $train->id,

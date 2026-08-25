@@ -188,7 +188,8 @@ class FeedController extends Controller
                 return $p;
             });
 
-        $trainingOpportunities = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')
+        $trainingOpportunities = \App\Models\TrainingOpportunity::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['published', 'active'])
+            ->orderByDesc('is_pinned')
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($t) use ($appliedTrainingMap, $savedTrainingMap) {

@@ -41,10 +41,22 @@ Route::match(['get', 'post'], '/fix-roles', function() {
                 'submitted_by_role' => 'employer'
             ]);
 
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+            \Illuminate\Support\Facades\DB::table('training_opportunities')
+                ->where('program_name', 'dwscfevg')
+                ->orWhere('id', 23)
+                ->update(['status' => 'Draft']);
+
+            \Illuminate\Support\Facades\DB::table('training_opportunities')
+                ->where('program_name', 'Test training')
+                ->orWhere('id', 24)
+                ->update(['status' => 'Published']);
+        }
+
         return response()->json([
             'success' => true,
             'affected' => $affected,
-            'message' => 'Non-admin jobs reset to employer role'
+            'message' => 'Non-admin jobs reset to employer role and training opportunities status synchronized'
         ]);
     } catch (\Throwable $e) {
         return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -385,8 +397,8 @@ Route::get('/admin/training-opportunities', function() {
                 }
             }
 
-            $rawStatus = $hasStatus ? ($t->status ?? 'Published') : 'Published';
-            $statusVal = ucfirst(strtolower($rawStatus ?: 'Published'));
+            $rawStatus = $hasStatus ? ($t->status ?: 'Draft') : 'Draft';
+            $statusVal = ucfirst(strtolower($rawStatus ?: 'Draft'));
             $isPinnedVal = $hasIsPinned ? (bool)($t->is_pinned ?? false) : false;
 
             return [
@@ -668,8 +680,10 @@ Route::get('/admin/community-posts', function() {
         ]);
     }
 
-    // 3. Fetch Admin Training & Overseas Opportunities
-    $trainings = \App\Models\TrainingOpportunity::latest()->get();
+    // 3. Fetch Admin Training & Overseas Opportunities (ONLY Published/Active status)
+    $trainings = \App\Models\TrainingOpportunity::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['published', 'active'])
+        ->latest()
+        ->get();
     foreach ($trainings as $train) {
         $feedItems->push([
             'id'         => 'train_' . $train->id,
