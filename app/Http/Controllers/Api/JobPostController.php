@@ -235,9 +235,26 @@ class JobPostController extends Controller
                 return null;
             }
 
+            $rawStatus = strtolower(trim($app->status ?: 'new'));
+            $isViewed = (bool)($app->is_viewed || $rawStatus === 'viewed');
+            $appStatus = $rawStatus;
+            if ($isViewed && in_array($rawStatus, ['new', 'pending', 'applied'])) {
+                $appStatus = 'viewed';
+            } elseif (in_array($rawStatus, ['new', 'pending', 'applied'])) {
+                $appStatus = 'new';
+            }
+
             return [
                 'application_id'        => $app->id,
-                'application_status'    => $app->status ?? 'new',
+                'application_status'    => $appStatus,
+                'apply_status'          => $appStatus,
+                'applicant_status'      => $appStatus,
+                'job_application_status'=> $appStatus,
+                'status_label'          => ucfirst($appStatus),
+                'status_text'           => ucfirst($appStatus),
+                'is_viewed'             => $isViewed,
+                'viewed'                => $isViewed,
+                'viewed_at'             => $app->viewed_at ? \Carbon\Carbon::parse($app->viewed_at)->toIso8601String() : null,
                 'preferred_call_time'   => $app->preferred_call_time,
                 'applied_at'            => $app->created_at ? $app->created_at->toDateTimeString() : null,
                 'applied_at_formatted'  => $app->created_at ? $app->created_at->format('j M Y, h:i A') : null,
@@ -647,13 +664,30 @@ class JobPostController extends Controller
                 ];
             }
 
+            $rawStatus = strtolower(trim($app->status ?: 'new'));
+            $isViewed = (bool)($app->is_viewed || $rawStatus === 'viewed');
+            $appStatus = $rawStatus;
+            if ($isViewed && in_array($rawStatus, ['new', 'pending', 'applied'])) {
+                $appStatus = 'viewed';
+            } elseif (in_array($rawStatus, ['new', 'pending', 'applied'])) {
+                $appStatus = 'new';
+            }
+
             return [
                 'application_id'        => (string)$app->id,
                 'id'                    => $app->id,
                 'job_post_id'           => $job->id,
                 'job_id'                => $job->id,
-                'status'                => $app->status ?? 'new',
-                'application_status'    => $app->status ?? 'new',
+                'status'                => $appStatus,
+                'application_status'    => $appStatus,
+                'apply_status'          => $appStatus,
+                'applicant_status'      => $appStatus,
+                'job_application_status'=> $appStatus,
+                'status_label'          => ucfirst($appStatus),
+                'status_text'           => ucfirst($appStatus),
+                'is_viewed'             => $isViewed,
+                'viewed'                => $isViewed,
+                'viewed_at'             => $app->viewed_at ? \Carbon\Carbon::parse($app->viewed_at)->toIso8601String() : null,
                 'preferred_call_time'   => $app->preferred_call_time,
                 'applied_at'            => $app->created_at ? $app->created_at->toIso8601String() : null,
                 'applied_at_formatted'  => $app->created_at ? $app->created_at->format('j M Y, h:i A') : null,
