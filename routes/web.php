@@ -270,12 +270,14 @@ Route::match(['get', 'post'], '/backend/api/employer/chefs', function() {
 });
 
 Route::match(['get', 'post'], '/api/admin/community-posts', function(\Illuminate\Http\Request $request) {
+    if (function_exists('opcache_reset')) { @opcache_reset(); }
     if ($request->isMethod('post')) {
         return (new \App\Http\Controllers\Admin\AdminPostController)->store($request);
     }
     return (new \App\Http\Controllers\Admin\AdminPostController)->index($request);
 });
 Route::match(['get', 'post'], '/backend/api/admin/community-posts', function(\Illuminate\Http\Request $request) {
+    if (function_exists('opcache_reset')) { @opcache_reset(); }
     if ($request->isMethod('post')) {
         return (new \App\Http\Controllers\Admin\AdminPostController)->store($request);
     }

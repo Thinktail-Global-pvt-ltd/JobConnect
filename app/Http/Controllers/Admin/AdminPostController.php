@@ -15,6 +15,9 @@ class AdminPostController extends Controller
      */
     public function index(Request $request)
     {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
         $feedItems = collect();
 
         // 1. Job Posts
