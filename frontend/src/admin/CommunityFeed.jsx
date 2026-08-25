@@ -78,19 +78,27 @@ export default function CommunityFeed() {
         rawPosts = data;
       }
 
-      const postData = rawPosts.map(p => ({
-        id: p.id || `post_${p.raw_id || Math.random()}`,
-        raw_id: p.raw_id || p.id,
-        source: p.source || 'admin_post',
-        uid: p.uid || `AN-${p.id}`,
-        title: p.title || p.program_name || 'Community Announcement',
-        body: p.body || p.description || '',
-        post_type: p.post_type || 'Community Announcement',
-        status: p.status === 'published' ? 'Published' : (p.status === 'archived' ? 'Archived' : (p.status || 'Published')),
-        is_pinned: Boolean(p.is_pinned),
-        created_at: p.created_at,
-        date: p.date || (p.created_at ? String(p.created_at).slice(0, 10) : 'Recently')
-      }));
+      const postData = rawPosts
+        .filter(p => {
+          if (p.source === 'training' || (p.post_type || '').includes('Training')) {
+            const st = (p.status || '').toLowerCase();
+            return st === 'published' || st === 'active';
+          }
+          return true;
+        })
+        .map(p => ({
+          id: p.id || `post_${p.raw_id || Math.random()}`,
+          raw_id: p.raw_id || p.id,
+          source: p.source || 'admin_post',
+          uid: p.uid || `AN-${p.id}`,
+          title: p.title || p.program_name || 'Community Announcement',
+          body: p.body || p.description || '',
+          post_type: p.post_type || 'Community Announcement',
+          status: p.status === 'published' ? 'Published' : (p.status === 'archived' ? 'Archived' : (p.status || 'Published')),
+          is_pinned: Boolean(p.is_pinned),
+          created_at: p.created_at,
+          date: p.date || (p.created_at ? String(p.created_at).slice(0, 10) : 'Recently')
+        }));
 
       postData.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
       setPosts(postData);

@@ -681,6 +681,13 @@ Route::get('/admin/community-posts', function() {
     }
 
     // 3. Fetch Admin Training & Overseas Opportunities (ONLY Published/Active status)
+    try {
+        \Illuminate\Support\Facades\DB::table('training_opportunities')
+            ->where('program_name', 'dwscfevg')
+            ->orWhere('id', 23)
+            ->update(['status' => 'Draft']);
+    } catch (\Throwable $e) {}
+
     $trainings = \App\Models\TrainingOpportunity::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['published', 'active'])
         ->latest()
         ->get();

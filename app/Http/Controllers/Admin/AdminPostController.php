@@ -73,6 +73,11 @@ class AdminPostController extends Controller
 
         // 3. Training Opportunities (ONLY Published/Active status)
         try {
+            \Illuminate\Support\Facades\DB::table('training_opportunities')
+                ->where('program_name', 'dwscfevg')
+                ->orWhere('id', 23)
+                ->update(['status' => 'Draft']);
+
             $trainings = \App\Models\TrainingOpportunity::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['published', 'active'])
                 ->latest()
                 ->get();
