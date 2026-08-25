@@ -149,8 +149,8 @@ export default function UserDetail() {
       color: isTr ? 'bg-amber-500 border-amber-200' : (idx === 0 ? 'bg-blue-500 border-blue-200' : 'bg-purple-500 border-purple-200'),
       time: app.created_at ? new Date(app.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(app.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Recent Application',
       text: isTr 
-        ? `Applied for training – ${app.job_title || app.title || 'Training Opportunity'} at ${app.company || 'Jobrito Academy'}`
-        : `Applied for job – ${app.job_title || app.title || 'Job Position'} at ${app.company || 'Employer'}`
+        ? `Applied for training – ${app.job_title || app.title || app.job_post?.title || 'Training Opportunity'} at ${app.company || app.job_post?.company || 'Jobrito Academy'}`
+        : `Applied for job – ${app.job_title || app.title || app.job_post?.title || 'Job Position'} at ${app.company || app.job_post?.company || 'Employer'}`
     });
   });
 

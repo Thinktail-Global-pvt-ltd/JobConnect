@@ -545,26 +545,17 @@ export const mockApi = {
 
   getUserApplications: async (id) => {
     const endpoints = [
-      `/api/admin/users/${id}/applications`,
       `/backend/api/admin/users/${id}/applications`,
-      `/api/admin/users/${id}/applied-jobs`,
+      `/api/admin/users/${id}/applications`,
       `/backend/api/admin/users/${id}/applied-jobs`,
+      `/api/admin/users/${id}/applied-jobs`,
       `/backend/api/applications/history`
     ];
     for (const ep of endpoints) {
       try {
         const res = await axios.get(ep, { headers: { Accept: 'application/json' } });
-        if (res.data && (res.data.success || Array.isArray(res.data.applications))) {
-          const list = res.data.applications || res.data.data || [];
-          if (Array.isArray(list) && list.length > 0) {
-            const filtered = list.filter(a => 
-              String(a.applicant_id) === String(id) || 
-              String(a.user_id) === String(id) || 
-              String(a.created_by) === String(id)
-            );
-            if (filtered.length > 0) return { success: true, applications: filtered };
-            return { success: true, applications: list };
-          }
+        if (res.data && res.data.success && Array.isArray(res.data.applications)) {
+          return { success: true, applications: res.data.applications, user_id: res.data.user_id };
         }
       } catch (e) {}
     }
