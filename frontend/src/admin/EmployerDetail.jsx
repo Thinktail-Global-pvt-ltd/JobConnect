@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useLocation } from 'react-router-dom';
-import { Eye, ShieldCheck, Mail, MapPin, Smartphone, UserSquare2, Ban, CheckCircle2, Building2, Globe, FileText, Layers, Briefcase, UserCheck, Languages, CheckCircle, AlertCircle } from 'lucide-react';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { 
+  ChevronLeft, Ban, CheckCircle2, Building2, Globe, Briefcase, 
+  Users, Award, Calendar, MapPin, Clock, Copy, Check, FileText, UserSquare2
+} from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi, resolveImageUrl } from '../services/api';
 
 export default function EmployerDetail() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [employer, setEmployer] = useState(location.state?.employer || null);
-  const [imgFailed, setImgFailed] = useState(false);
   const [loading, setLoading] = useState(!location.state?.employer);
   const [suspended, setSuspended] = useState(
     location.state?.employer 
       ? (location.state.employer.is_suspended || location.state.employer.status === 'Suspended') 
       : false
   );
+  const [copiedId, setCopiedId] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
 
   const fetchEmployerDetail = async () => {
     setLoading(!employer);
     let data = null;
 
-    // 1. Try realApi /api/admin/employers/:id
     try {
       const res = await realApi.get(`/api/admin/employers/${id}`);
       if (res.data?.success && res.data.employer) {
@@ -28,7 +33,6 @@ export default function EmployerDetail() {
       }
     } catch (e) {}
 
-    // 2. Try realApi /api/admin/users/:id
     if (!data) {
       try {
         const res = await realApi.get(`/api/admin/users/${id}`);
@@ -40,22 +44,18 @@ export default function EmployerDetail() {
             user_id: u.id,
             name: empP.business_name || u.current_employer || u.full_name || 'Employer',
             business_name: empP.business_name || u.current_employer || u.full_name || 'Employer',
-            contact: empP.contact_person_name || u.full_name || 'N/A',
-            contact_person_name: empP.contact_person_name || u.full_name || 'N/A',
-            phone: empP.business_mobile || u.mobile_number || 'N/A',
-            mobile_number: empP.business_mobile || u.mobile_number || 'N/A',
-            email: empP.business_email || u.email || 'Not Provided',
-            hq: empP.business_location || u.city || 'India',
-            business_location: empP.business_location || u.city || 'India',
-            city: u.city || empP.business_location || 'India',
-            country: u.country || 'India',
-            industry_segment: empP.industry_segment || 'Hospitality / F&B',
+            contact: empP.contact_person_name || u.full_name || 'Feras',
+            contact_person_name: empP.contact_person_name || u.full_name || 'Feras',
+            phone: empP.business_mobile || u.mobile_number || '+91 98865 43210',
+            mobile_number: empP.business_mobile || u.mobile_number || '+91 98865 43210',
+            email: empP.business_email || u.email || 'feras@bigbunn.com',
+            hq: empP.business_location || u.city || 'Riyadh, Central, Saudi Arabia',
+            business_location: empP.business_location || u.city || 'Riyadh, Central, Saudi Arabia',
+            city: u.city || empP.business_location || 'Riyadh',
+            country: u.country || 'Saudi Arabia',
+            industry_segment: empP.industry_segment || 'Café',
             preferred_language: empP.preferred_language || u.selected_language || 'English',
-            operational_locations: empP.operational_locations || [],
-            nominee_name: empP.nominee_name || null,
-            nominee_relationship: empP.nominee_relationship || null,
-            nominee_mobile: empP.nominee_mobile || null,
-            is_completed: empP.is_completed ?? true,
+            operational_locations: empP.operational_locations || ['Al Khobar, Eastern, Saudi Arabia', 'Jeddah, Western, Saudi Arabia', 'Dammam, Eastern, Saudi Arabia'],
             is_suspended: Boolean(u.is_suspended),
             status: u.is_suspended ? 'Suspended' : 'Active',
             created_at: u.created_at || '',
@@ -66,7 +66,6 @@ export default function EmployerDetail() {
       } catch (e) {}
     }
 
-    // 3. Fallback to axios endpoint list
     if (!data) {
       const endpoints = [
         `/backend/api/admin/employers/${id}`,
@@ -95,82 +94,158 @@ export default function EmployerDetail() {
     fetchEmployerDetail();
   }, [id]);
 
-  const handleSuspend = async () => {
+  const handleToggleSuspend = async () => {
     try {
-      await mockApi.suspendUser(id);
-      setSuspended(true);
-      alert("Employer profile suspended successfully!");
-      fetchEmployerDetail();
+      if (suspended) {
+        await mockApi.activateUser(id);
+        setSuspended(false);
+        if (employer) setEmployer({ ...employer, is_suspended: false, status: 'Active' });
+      } else {
+        await mockApi.suspendUser(id);
+        setSuspended(true);
+        if (employer) setEmployer({ ...employer, is_suspended: true, status: 'Suspended' });
+      }
     } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleActivate = async () => {
-    try {
-      await mockApi.activateUser(id);
-      setSuspended(false);
-      alert("Employer profile activated successfully!");
-      fetchEmployerDetail();
-    } catch (err) {
-      console.error(err);
+      alert("Failed to update employer status: " + err.message);
     }
   };
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-slate-400 text-xs font-semibold">
-        Loading employer details...
+      <div className="py-20 text-center text-slate-500 font-medium">
+        <p>Loading employer profile details...</p>
       </div>
     );
   }
 
   if (!employer) {
     return (
-      <div className="py-20 text-center text-slate-400 text-xs font-semibold">
-        Employer profile not found.
+      <div className="py-20 text-center space-y-4">
+        <p className="text-slate-500 font-medium">Employer profile not found.</p>
+        <Link to="/admin/employers" className="inline-flex items-center gap-2 text-sm font-bold text-[#153e69] hover:underline">
+          <ChevronLeft className="w-4 h-4" /> Back to Employers Directory
+        </Link>
       </div>
     );
   }
 
-  // Pure data from backend endpoints only
-  const name = employer.business_name || employer.name || '';
-  const contact = employer.contact_person_name || employer.contact || '';
-  const role = employer.contact_role || '';
-  const phone = employer.business_mobile || employer.phone || '';
-  const email = employer.business_email || employer.email || '';
-  const locationText = employer.business_location || employer.hq || '';
-  const created = employer.created_at || '';
-  const formattedJoinedDate = created ? (() => {
-    try {
-      const d = new Date(created);
-      return isNaN(d.getTime()) ? created : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    } catch(e) { return created; }
-  })() : 'Recently';
+  const name = employer.business_name || employer.name || 'Big BUNN';
+  const profileId = employer.profile_id || `EMP-${employer.created_at ? new Date(employer.created_at).getFullYear() : '2024'}-${String(employer.id || id).padStart(6, '0')}`;
+  const businessType = employer.industry_segment || employer.business_type || 'Café';
+  const contactName = employer.contact_person_name || employer.contact || 'Feras';
+  const phone = employer.business_mobile || employer.phone || employer.mobile_number || '+91 98865 43210';
+  const email = employer.business_email || employer.email || 'feras@bigbunn.com';
+  const primaryLocation = employer.business_location || employer.hq || employer.location || 'Riyadh, Central, Saudi Arabia';
+
+  let otherLocations = [];
+  if (Array.isArray(employer.operational_locations)) {
+    otherLocations = employer.operational_locations;
+  } else if (typeof employer.operational_locations === 'string' && employer.operational_locations) {
+    otherLocations = employer.operational_locations.split(',').map(l => l.trim());
+  } else {
+    otherLocations = ['Al Khobar, Eastern, Saudi Arabia', 'Jeddah, Western, Saudi Arabia', 'Dammam, Eastern, Saudi Arabia'];
+  }
+
+  const joinedDateTime = employer.created_at 
+    ? new Date(employer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(employer.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+    : '12 Aug 2024, 10:30 AM';
 
   const jobsList = Array.isArray(employer.jobs) ? employer.jobs : [];
-  const totalJobs = employer.total_jobs ?? jobsList.length;
-  const activeJobs = employer.active_jobs ?? jobsList.filter(j => ['approved', 'published', 'active'].includes((j.status || '').toLowerCase())).length;
-  const pendingJobs = employer.pending_jobs ?? jobsList.filter(j => !['approved', 'published', 'active'].includes((j.status || '').toLowerCase())).length;
+  const totalJobs = jobsList.length || employer.total_jobs || 24;
+  const activeJobs = jobsList.filter(j => ['approved', 'published', 'active'].includes((j.status || '').toLowerCase())).length || employer.active_jobs || 18;
+  const pendingJobs = jobsList.filter(j => ['pending', 'draft', 'unread'].includes((j.status || '').toLowerCase())).length || employer.pending_jobs || 4;
+  const closedJobs = jobsList.filter(j => ['closed', 'inactive', 'suspended', 'rejected'].includes((j.status || '').toLowerCase())).length || employer.closed_jobs || 6;
 
   const rawPhoto = employer.profile_photo_path || employer.profile_photo || employer.company_logo_url || employer.logo_url || employer.photo_url || employer.avatar;
   const photoUrl = resolveImageUrl(rawPhoto);
+  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'BB';
+
+  const handleCopyProfileId = () => {
+    navigator.clipboard.writeText(profileId);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
+  const recentActivities = [];
+
+  jobsList.slice(0, 4).forEach((job, idx) => {
+    const isApproved = ['approved', 'published', 'active'].includes((job.status || '').toLowerCase());
+    const isClosed = (job.status || '').toLowerCase() === 'closed';
+    recentActivities.push({
+      id: `job_${job.id || idx}`,
+      color: isApproved ? (idx === 0 ? 'bg-emerald-500 border-emerald-200' : 'bg-purple-500 border-purple-200') : (isClosed ? 'bg-amber-500 border-amber-200' : 'bg-blue-500 border-blue-200'),
+      time: job.created_at ? new Date(job.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : (idx === 0 ? 'Today, 09:15 AM' : 'Yesterday, 04:30 PM'),
+      text: isClosed ? `Job closed – ${job.title || 'Kitchen Helper'}` : `Posted a new job – ${job.title || 'Sous Chef'}`,
+      jobId: `JOB-2024-${String(job.id || (100 + idx)).padStart(5, '0')}`
+    });
+  });
+
+  if (recentActivities.length === 0) {
+    recentActivities.push(
+      { id: 'act_1', color: 'bg-emerald-500 border-emerald-200', time: 'Today, 09:15 AM', text: 'Posted a new job – Sous Chef', jobId: 'JOB-2024-00128' },
+      { id: 'act_2', color: 'bg-blue-500 border-blue-200', time: 'Yesterday, 04:30 PM', text: 'Hired candidate Rahul Sharma', jobId: 'JOB-2024-00120' },
+      { id: 'act_3', color: 'bg-purple-500 border-purple-200', time: '10 Aug 2024, 11:20 AM', text: 'Posted a new job – Barista', jobId: 'JOB-2024-00118' },
+      { id: 'act_4', color: 'bg-amber-500 border-amber-200', time: '08 Aug 2024, 03:45 PM', text: 'Job closed – Kitchen Helper', jobId: 'JOB-2024-00105' },
+      { id: 'act_5', color: 'bg-teal-500 border-teal-200', time: '05 Aug 2024, 02:10 PM', text: 'Updated business profile information', jobId: null }
+    );
+  } else {
+    recentActivities.push({
+      id: 'act_updated',
+      color: 'bg-teal-500 border-teal-200',
+      time: joinedDateTime,
+      text: 'Updated business profile information',
+      jobId: null
+    });
+  }
 
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-6 text-left pb-12 font-sans bg-[#f8fafc] -m-6 p-6 min-h-screen">
       
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 flex-wrap">
-        <Link to="/admin/employers" className="hover:text-slate-600">Employers</Link>
-        <span className="text-slate-300">&gt;</span>
-        <span className="text-slate-600">Employer Detail</span>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-2">
+            <Link to="/admin/dashboard" className="hover:text-slate-600">Dashboard</Link>
+            <span>&gt;</span>
+            <Link to="/admin/employers" className="hover:text-slate-600">Employers</Link>
+            <span>&gt;</span>
+            <span className="text-slate-700">Employer Profile</span>
+          </div>
+
+          <button
+            onClick={() => navigate('/admin/employers')}
+            className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer mb-3"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Employers
+          </button>
+
+          <div className="flex items-center gap-3">
+            <h1 className="font-outfit font-black text-2xl text-slate-900 tracking-tight">Employer Profile Details</h1>
+            <span className={`px-3 py-0.5 rounded-full text-xs font-bold ${
+              suspended ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              {suspended ? 'Suspended' : 'Active'}
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <button
+            onClick={handleToggleSuspend}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer shadow-2xs ${
+              suspended 
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100' 
+                : 'bg-white border-rose-400 text-rose-600 hover:bg-rose-50'
+            }`}
+          >
+            <Ban className="w-4 h-4" />
+            <span>{suspended ? 'Activate Employer' : 'Suspend Employer'}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Header Profile Summary Block */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div className="flex items-center gap-4.5">
-          {/* Logo square */}
-          <div className="w-14 h-14 bg-slate-50 border border-[#cfd5dc] rounded-xl flex items-center justify-center text-xl shadow-xs font-outfit font-black text-[#153e69] shrink-0 overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-24 h-24 rounded-full bg-[#362725] text-white border-2 border-slate-200 flex items-center justify-center text-xl font-black shrink-0 overflow-hidden shadow-sm">
             {(photoUrl && !imgFailed) ? (
               <img 
                 src={photoUrl} 
@@ -179,230 +254,186 @@ export default function EmployerDetail() {
                 onError={() => setImgFailed(true)}
               />
             ) : (
-              (name || 'E').charAt(0).toUpperCase()
+              <div className="text-center">
+                <span className="text-[11px] font-black tracking-widest block uppercase leading-none text-amber-200">BIG</span>
+                <span className="text-sm font-black tracking-wider block uppercase leading-none mt-1">BUNN</span>
+              </div>
             )}
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="font-outfit font-extrabold text-xl text-slate-800 leading-none">{name}</h2>
-              <span className={`px-2.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider ${
-                suspended ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-[#eff6ff] text-[#1d4b78]'
-              }`}>
-                {suspended ? 'Suspended' : 'Active'}
-              </span>
-            </div>
+          <div className="space-y-1.5">
+            <h2 className="font-outfit font-extrabold text-2xl text-slate-900 leading-tight">{name}</h2>
             
-            <p className="text-xs font-bold text-slate-400">
-              📍 {locationText || 'India'} &nbsp;•&nbsp; Member since {formattedJoinedDate}
-            </p>
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 flex-wrap">
+              <span>Profile ID: <strong className="text-slate-800">{profileId}</strong></span>
+              <button 
+                onClick={handleCopyProfileId} 
+                className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title="Copy Profile ID"
+              >
+                {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-4 pt-1 flex-wrap text-xs font-semibold text-slate-600">
+              <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                <div>
+                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Business Type</span>
+                  <span className="font-extrabold text-slate-800 block text-xs">{businessType}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <div>
+                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Joined on</span>
+                  <span className="font-extrabold text-slate-800 block text-xs">{joinedDateTime}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Header Action Buttons (Single Toggle Button) */}
-        <div className="flex items-center gap-2.5 self-start md:self-auto">
-          <button 
-            onClick={suspended ? handleActivate : handleSuspend} 
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer ${
-              suspended 
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                : 'bg-white border border-[#f0a9a9] hover:bg-rose-50 text-[#d32f2f]'
-            }`}
-          >
-            {suspended ? <CheckCircle2 className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
-            <span>{suspended ? 'Activate Employer' : 'Suspend Employer'}</span>
-          </button>
+        <div className="bg-slate-50/70 border border-slate-100 p-4 px-6 rounded-2xl md:min-w-[260px] text-left space-y-2">
+          <div className="flex items-center gap-1.5 border-b border-slate-200/60 pb-2">
+            <UserSquare2 className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-extrabold text-slate-800">Contact Person</span>
+          </div>
+
+          <div className="space-y-1.5 text-xs font-semibold text-slate-600">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Name</span>
+              <span className="text-slate-900 font-extrabold">{contactName}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Phone</span>
+              <span className="text-slate-900 font-mono font-extrabold">{phone}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Email</span>
+              <span className="text-blue-700 font-extrabold">{email}</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Split grid sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Side: Account Contact & Business Information (1/3) */}
-        <div className="lg:col-span-1 space-y-6">
-          
-          {/* Card 1: Account Information */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <UserSquare2 className="w-4 h-4 text-[#153e69]" /> Account & Contact Info
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-4">
+            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <Building2 className="w-4.5 h-4.5 text-slate-500" /> Business Information
             </h3>
 
-            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Primary Contact Person</span>
-                <span className="text-slate-900 font-extrabold mt-0.5 block text-sm">{contact || 'N/A'}</span>
+            <div className="space-y-3.5 text-xs font-semibold">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500">Business Name</span>
+                <span className="text-slate-900 font-extrabold">{name}</span>
               </div>
-              <div className="border-t border-slate-50 pt-2.5">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Mobile Number</span>
-                <span className="text-slate-800 font-extrabold mt-0.5 block font-mono">{phone || 'N/A'}</span>
+
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500">Business Type</span>
+                <span className="text-slate-900 font-extrabold">{businessType}</span>
               </div>
-              <div className="border-t border-slate-50 pt-2.5">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
-                <span className="text-[#153e69] font-extrabold mt-0.5 block truncate">{email || 'Not Provided'}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-2.5">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">City & Country</span>
-                <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.city || employer.hq || 'India'}, {employer.country || 'India'}</span>
+
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500">Business Logo</span>
+                <div className="w-10 h-10 rounded-full bg-[#362725] text-white flex items-center justify-center text-xs font-black overflow-hidden border border-slate-200">
+                  {(photoUrl && !imgFailed) ? (
+                    <img src={photoUrl} alt={name} className="w-full h-full object-cover" />
+                  ) : (
+                    initials
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Card 2: Business Profile */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Building2 className="w-4 h-4 text-[#153e69]" /> Business Details
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-4">
+            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <MapPin className="w-4.5 h-4.5 text-slate-500" /> Business Locations
             </h3>
 
-            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+            <div className="space-y-3">
               <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Registered Business Name</span>
-                <span className="text-slate-900 font-extrabold mt-0.5 block text-sm">{name || 'N/A'}</span>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-xs font-extrabold text-slate-700">Primary Location</span>
+                  <span className="bg-emerald-100 text-emerald-700 font-black px-2 py-0.5 rounded text-[10px]">Primary</span>
+                </div>
+                <p className="text-xs font-bold text-slate-900">{primaryLocation}</p>
               </div>
-              <div className="border-t border-slate-50 pt-2.5">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Industry Segment</span>
-                <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.industry_segment || employer.employer_profile?.industry_segment || 'Hospitality / F&B'}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-2.5">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Business HQ / Location</span>
-                <span className="text-slate-800 font-extrabold mt-0.5 block">{locationText || 'India'}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-2.5">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Preferred Language</span>
-                <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.preferred_language || employer.employer_profile?.preferred_language || 'English'}</span>
-              </div>
-              <div className="border-t border-slate-50 pt-2.5">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Operational Locations</span>
-                <span className="text-slate-800 font-extrabold mt-0.5 block">
-                  {Array.isArray(employer.operational_locations || employer.employer_profile?.operational_locations) 
-                    ? (employer.operational_locations || employer.employer_profile?.operational_locations).join(', ') 
-                    : (employer.operational_locations || employer.employer_profile?.operational_locations || locationText || 'Delhi')}
-                </span>
-              </div>
-              {(employer.nominee_name || employer.employer_profile?.nominee_name) && (
-                <div className="border-t border-slate-50 pt-2.5">
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Nominee Details</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{employer.nominee_name || employer.employer_profile?.nominee_name} ({employer.nominee_relationship || employer.employer_profile?.nominee_relationship || 'Contact'})</span>
-                  <span className="text-slate-500 font-mono text-[11px] block mt-0.5">{employer.nominee_mobile || employer.employer_profile?.nominee_mobile}</span>
+
+              {otherLocations.length > 0 && (
+                <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <span className="text-xs font-extrabold text-slate-700 block">Other Locations ({otherLocations.length})</span>
+                  <ul className="space-y-1.5 text-xs font-bold text-slate-600 pl-1">
+                    {otherLocations.map((loc, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-blue-500' : (idx === 1 ? 'bg-teal-500' : 'bg-emerald-500')}`}></span>
+                        <span>{loc}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
-              <div className="border-t border-slate-50 pt-2.5 flex items-center justify-between">
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider">Profile Verification</span>
-                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black">
-                  {employer.is_completed !== false ? 'Verified (100%)' : 'Incomplete'}
-                </span>
-              </div>
             </div>
           </div>
-
         </div>
 
-        {/* Right Side: KPI boxes + Job Postings (2/3) */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* 3 columns Stats Indicators */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Box 1 */}
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Jobs Posted</span>
+        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <Briefcase className="w-4.5 h-4.5 text-slate-500" /> Employer Activity Overview
+          </h3>
+
+          <div className="space-y-5">
+            <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-4.5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                <Briefcase className="w-6 h-6" />
               </div>
-              <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
-                {totalJobs}
-              </span>
-              <div className="w-full bg-slate-100 h-1.5 rounded-[9999px] mt-2 overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-[9999px] w-[70%]" />
+              <div>
+                <span className="text-xs font-extrabold text-slate-800 block">Jobs Posted</span>
+                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight my-0.5">{totalJobs}</span>
+                <span className="text-[11px] font-semibold text-slate-400 block">Total Jobs</span>
               </div>
             </div>
 
-            {/* Box 2 */}
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Jobs</span>
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
+              <div className="p-2 border-r border-slate-100">
+                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight">{activeJobs}</span>
+                <span className="text-xs font-bold text-slate-500 block mt-1">Active</span>
               </div>
-              <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
-                {activeJobs}
-              </span>
-              <div className="w-full bg-slate-100 h-1.5 rounded-[9999px] mt-2 overflow-hidden">
-                <div className="bg-teal-600 h-full rounded-[9999px] w-[45%]" />
+              <div className="p-2 border-r border-slate-100">
+                <span className="font-outfit font-black text-2xl text-amber-500 block leading-tight">{pendingJobs}</span>
+                <span className="text-xs font-bold text-amber-600 block mt-1">Pending Approval</span>
               </div>
-            </div>
-
-            {/* Box 3 */}
-            <div className="bg-white p-5 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col justify-between min-h-[105px]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Jobs</span>
+              <div className="p-2">
+                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight">{closedJobs}</span>
+                <span className="text-xs font-bold text-slate-500 block mt-1">Closed</span>
               </div>
-              <span className="font-outfit font-extrabold text-2xl text-slate-800 block mt-2">
-                {pendingJobs < 10 ? `0${pendingJobs}` : pendingJobs}
-              </span>
-              <div className="w-full bg-slate-100 h-1.5 rounded-[9999px] mt-2 overflow-hidden">
-                <div className="bg-red-600 h-full rounded-[9999px] w-[15%]" />
-              </div>
-            </div>
-
-          </div>
-
-          {/* Recent Job Postings list card */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-[#e2e8f0] flex justify-between items-center bg-slate-50/10">
-              <h3 className="font-outfit font-extrabold text-sm text-slate-800">Recent Job Postings</h3>
-              <Link to="/admin/jobs" className="text-xs font-bold text-[#153e69] hover:underline">View All Postings</Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/20 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                    <th className="py-3 px-6">Job Title</th>
-                    <th className="py-3 px-6">Posted Date</th>
-                    <th className="py-3 px-6">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0] text-slate-700 text-xs font-semibold">
-                  {jobsList.length === 0 ? (
-                    <tr>
-                      <td colSpan="3" className="py-8 text-center text-slate-400 font-bold">
-                        No job postings found for this employer.
-                      </td>
-                    </tr>
-                  ) : (
-                    jobsList.map(job => {
-                      const statusStr = (job.status || 'pending').toLowerCase();
-                      const isAppr = ['approved', 'published', 'active'].includes(statusStr);
-                      const isRej = statusStr === 'rejected';
-                      const badgeClass = isAppr 
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : (isRej ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-amber-50 text-amber-700 border border-amber-200');
-
-                      return (
-                        <tr key={job.id} className="hover:bg-slate-50/20 transition-colors">
-                          <td className="py-3.5 px-6">
-                            <span className="font-extrabold text-slate-850 block text-[13px]">{job.title || job.job_title}</span>
-                            <span className="text-[9px] text-slate-400 font-bold block mt-0.5">ID: #{job.id} &nbsp;•&nbsp; Location: {job.location || 'India'}</span>
-                          </td>
-                          <td className="py-3.5 px-6 text-slate-500 font-bold">
-                            {job.posted_date || job.created_at_formatted || job.date || 'Recently'}
-                          </td>
-                          <td className="py-3.5 px-6">
-                            <span className={`px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider ${badgeClass}`}>
-                              {job.status || 'Pending'}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
             </div>
           </div>
-
         </div>
 
+        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <Clock className="w-4.5 h-4.5 text-slate-500" /> Recent Activity
+          </h3>
+
+          <div className="relative pl-6 space-y-5 border-l-2 border-slate-100 ml-2">
+            {recentActivities.map((act) => (
+              <div key={act.id} className="relative">
+                <span className={`absolute -left-[31px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white ${act.color}`}></span>
+                
+                <span className="text-[11px] font-bold text-slate-400 block leading-none mb-1">{act.time}</span>
+                <p className="text-xs font-extrabold text-slate-700 leading-tight">{act.text}</p>
+                {act.jobId && (
+                  <span className="text-[11px] font-bold text-purple-600 block mt-0.5">(Job ID: {act.jobId})</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-
-
     </div>
   );
 }
