@@ -706,19 +706,13 @@ export default function Jobs() {
                         ...prev,
                         country: c,
                         category: isOverseas ? 'overseas' : 'india',
-                        salary_currency: c === 'Saudi Arabia' ? 'SAR' : (c === 'United Arab Emirates' ? 'AED' : (c === 'India' ? 'INR' : 'USD'))
+                        salary_currency: c.includes('Saudi') || c.includes('KSA') ? 'SAR' : 'INR'
                       }));
                     }}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
                     <option value="India">India</option>
-                    <option value="Saudi Arabia">Saudi Arabia</option>
-                    <option value="United Arab Emirates">UAE / Dubai</option>
-                    <option value="Qatar">Qatar</option>
-                    <option value="Oman">Oman</option>
-                    <option value="Kuwait">Kuwait</option>
-                    <option value="Bahrain">Bahrain</option>
-                    <option value="Overseas">Overseas (Other)</option>
+                    <option value="Saudi Arabia">Saudi Arabia (KSA)</option>
                   </select>
                 </div>
 
@@ -743,7 +737,6 @@ export default function Jobs() {
                   >
                     <option value="india">India Jobs</option>
                     <option value="overseas">Overseas Jobs</option>
-                    <option value="community">Referral / Community Job</option>
                   </select>
                 </div>
               </div>
@@ -922,16 +915,6 @@ export default function Jobs() {
                       className="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
                     />
                     <span>Pin Listing</span>
-                  </label>
-
-                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_referral}
-                      onChange={(e) => setFormData(prev => ({ ...prev, is_referral: e.target.checked }))}
-                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span>Referral Job</span>
                   </label>
                 </div>
               </div>

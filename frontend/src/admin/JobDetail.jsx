@@ -693,8 +693,7 @@ export default function JobDetail() {
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
                     <option value="india">India Jobs</option>
-                    <option value="overseas">Overseas / KSA / Dubai</option>
-                    <option value="community">Community / Referral Jobs</option>
+                    <option value="overseas">Overseas / KSA Jobs</option>
                   </select>
                 </div>
 
@@ -865,7 +864,7 @@ export default function JobDetail() {
               </div>
 
               {/* Field 8: Checkboxes */}
-              <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100/80 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100/80 grid grid-cols-3 gap-3">
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
                   <input
                     type="checkbox"
@@ -894,16 +893,6 @@ export default function JobDetail() {
                     className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                   />
                   <span>Pin Listing</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={editForm.is_referral}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, is_referral: e.target.checked }))}
-                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>Referral Job</span>
                 </label>
               </div>
 
