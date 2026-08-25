@@ -345,19 +345,27 @@ class WebProfileController extends Controller
                 $logoPath = $user->employerProfile ? $user->employerProfile->company_logo_path : null;
             }
 
-            // Update or create the profile
+            // Auto-ensure employer_profiles DB table columns are NULLable
+            try {
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE employer_profiles MODIFY industry_segment VARCHAR(255) NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE employer_profiles MODIFY business_location VARCHAR(255) NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE employer_profiles MODIFY preferred_language VARCHAR(50) NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE employer_profiles MODIFY operational_locations JSON NULL");
+            } catch (\Throwable $th) {}
+
+            // Update or create the profile with safe fallbacks
             $user->employerProfile()->updateOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'business_name' => $request->business_name,
-                    'industry_segment' => $request->industry_segment,
-                    'business_location' => $request->business_location,
-                    'contact_person_name' => $request->contact_person_name,
-                    'business_mobile' => $request->business_mobile,
+                    'business_name' => $request->business_name ?? '',
+                    'industry_segment' => $request->industry_segment ?? '',
+                    'business_location' => $request->business_location ?? '',
+                    'contact_person_name' => $request->contact_person_name ?? '',
+                    'business_mobile' => $request->business_mobile ?? '',
                     'business_email' => $request->business_email,
-                    'preferred_language' => $request->preferred_language,
+                    'preferred_language' => $request->preferred_language ?? 'en',
                     'company_logo_path' => $logoPath,
-                    'operational_locations' => $request->operational_locations,
+                    'operational_locations' => $request->operational_locations ?? [],
                     'nominee_name' => $request->nominee_name,
                     'nominee_relationship' => $request->nominee_relationship,
                     'nominee_mobile' => $request->nominee_mobile,
