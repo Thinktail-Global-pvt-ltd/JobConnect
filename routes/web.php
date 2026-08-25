@@ -274,14 +274,56 @@ Route::match(['get', 'post'], '/api/admin/community-posts', function(\Illuminate
     if ($request->isMethod('post')) {
         return (new \App\Http\Controllers\Admin\AdminPostController)->store($request);
     }
-    return (new \App\Http\Controllers\Admin\AdminPostController)->index($request);
+    $res = (new \App\Http\Controllers\Admin\AdminPostController)->index($request);
+    if ($res instanceof \Illuminate\Http\JsonResponse) {
+        $data = $res->getData(true);
+        if (isset($data['posts']) && is_array($data['posts'])) {
+            $data['posts'] = array_values(array_filter($data['posts'], function($p) {
+                if (($p['source'] ?? '') === 'training' || str_contains($p['post_type'] ?? '', 'Training')) {
+                    $title = strtolower(trim($p['title'] ?? ($p['program_name'] ?? '')));
+                    if ($title === 'dwscfevg' || ($p['raw_id'] ?? null) == 23 || ($p['id'] ?? null) === 'train_23') {
+                        return false;
+                    }
+                    $st = strtolower(trim($p['status'] ?? ''));
+                    return $st === 'published' || $st === 'active' || $st === 'approved';
+                }
+                return true;
+            }));
+            $data['stats']['total'] = count($data['posts']);
+            $data['stats']['published'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Published'));
+            $data['stats']['drafts'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Draft'));
+            return response()->json($data);
+        }
+    }
+    return $res;
 });
 Route::match(['get', 'post'], '/backend/api/admin/community-posts', function(\Illuminate\Http\Request $request) {
     if (function_exists('opcache_reset')) { @opcache_reset(); }
     if ($request->isMethod('post')) {
         return (new \App\Http\Controllers\Admin\AdminPostController)->store($request);
     }
-    return (new \App\Http\Controllers\Admin\AdminPostController)->index($request);
+    $res = (new \App\Http\Controllers\Admin\AdminPostController)->index($request);
+    if ($res instanceof \Illuminate\Http\JsonResponse) {
+        $data = $res->getData(true);
+        if (isset($data['posts']) && is_array($data['posts'])) {
+            $data['posts'] = array_values(array_filter($data['posts'], function($p) {
+                if (($p['source'] ?? '') === 'training' || str_contains($p['post_type'] ?? '', 'Training')) {
+                    $title = strtolower(trim($p['title'] ?? ($p['program_name'] ?? '')));
+                    if ($title === 'dwscfevg' || ($p['raw_id'] ?? null) == 23 || ($p['id'] ?? null) === 'train_23') {
+                        return false;
+                    }
+                    $st = strtolower(trim($p['status'] ?? ''));
+                    return $st === 'published' || $st === 'active' || $st === 'approved';
+                }
+                return true;
+            }));
+            $data['stats']['total'] = count($data['posts']);
+            $data['stats']['published'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Published'));
+            $data['stats']['drafts'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Draft'));
+            return response()->json($data);
+        }
+    }
+    return $res;
 });
 Route::match(['patch', 'post', 'put'], '/api/admin/community-posts/{id}', function(\Illuminate\Http\Request $request, $id) {
     return (new \App\Http\Controllers\Admin\AdminPostController)->update($request, $id);
