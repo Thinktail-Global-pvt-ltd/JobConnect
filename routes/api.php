@@ -535,11 +535,11 @@ function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
         }
 
-        $programName = mb_substr($rawProgramName, 0, 200);
-        $providerName = !empty($rawProviderName) && strlen($rawProviderName) <= 150 ? $rawProviderName : 'Jobrito Academy';
-        $location = mb_substr($rawLocation, 0, 200);
-        $duration = mb_substr($rawDuration, 0, 100);
-        $contactInfo = mb_substr($contactInfo, 0, 150);
+        $programName = mb_substr((string)$rawProgramName, 0, 200);
+        $providerName = !empty($rawProviderName) && strlen((string)$rawProviderName) <= 150 ? (string)$rawProviderName : 'Jobrito Academy';
+        $location = mb_substr((string)$rawLocation, 0, 200);
+        $duration = mb_substr((string)$rawDuration, 0, 100);
+        $contactInfo = mb_substr((string)$contactInfo, 0, 150);
 
         $descParts = array_filter([$rawProviderName, $employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
         $description = !empty($descParts) ? implode("\n\n", $descParts) : ($request->input('description') ?? 'Training opportunity');
