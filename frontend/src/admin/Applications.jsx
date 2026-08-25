@@ -422,25 +422,7 @@ export default function Applications() {
         
         {/* Top View Toggle Tabs */}
         {!selectedJob && (
-          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#d7dce2] px-6 pt-4 bg-white gap-4">
-            <div className="flex items-center gap-6">
-              <button 
-                onClick={() => setViewMode('jobs')} 
-                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'jobs' ? 'text-[#153e69] border-b-2 border-[#153e69]' : 'text-slate-400 hover:text-slate-700'}`}
-              >
-                <Briefcase className="w-4 h-4" />
-                <span>Grouped by Listings ({groupedJobsList.length})</span>
-              </button>
-
-              <button 
-                onClick={() => setViewMode('all_apps')} 
-                className={`text-xs font-extrabold pb-3.5 transition-all relative flex items-center gap-2 ${viewMode === 'all_apps' ? 'text-[#153e69] border-b-2 border-[#153e69]' : 'text-slate-400 hover:text-slate-700'}`}
-              >
-                <Users className="w-4 h-4" />
-                <span>All Applications ({apps.length})</span>
-              </button>
-            </div>
-
+          <div className="flex flex-col md:flex-row md:items-center justify-end border-b border-[#d7dce2] px-6 pt-4 bg-white gap-4">
             {/* Category Filter Pills (All / Admin / Jobs / Training) */}
             <div className="flex items-center gap-2 pb-3.5">
               <button 
