@@ -26,19 +26,13 @@ if (function_exists('exec')) {
     }
 }
 
-Route::match(['get', 'post'], '/debug-error', function() {
-    try {
-        $p = \App\Models\JobPost::count();
-        $t = \Illuminate\Support\Facades\DB::table('training_opportunities')->count();
-        return response()->json(['success' => true, 'jobs_count' => $p, 'training_count' => $t]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'trace' => $e->getTraceAsString()
-        ], 500);
+Route::match(['get', 'post'], '/view-log', function() {
+    $logPath = storage_path('logs/laravel.log');
+    if (file_exists($logPath)) {
+        $lines = file($logPath);
+        return response()->json(['success' => true, 'log' => array_slice($lines, -60)]);
     }
+    return response()->json(['success' => false, 'message' => 'Log file not found']);
 });
 
 Route::match(['get', 'post'], '/api/get-token/user/{id}', function($id) {

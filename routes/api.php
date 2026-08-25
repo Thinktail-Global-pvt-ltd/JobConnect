@@ -17,7 +17,14 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Fix-roles route
+Route::match(['get', 'post'], '/view-log', function() {
+    $logPath = storage_path('logs/laravel.log');
+    if (file_exists($logPath)) {
+        $lines = file($logPath);
+        return response()->json(['success' => true, 'log' => array_slice($lines, -60)]);
+    }
+    return response()->json(['success' => false, 'message' => 'Log file not found']);
+});
 Route::match(['get', 'post'], '/fix-roles', function() {
     try {
         $gitOutput = [];
