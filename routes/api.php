@@ -41,6 +41,7 @@ Route::match(['get', 'post'], '/fix-roles', function() {
                 'submitted_by_role' => 'employer'
             ]);
 
+        $trainingRows = [];
         if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
             \Illuminate\Support\Facades\DB::table('training_opportunities')
                 ->where('program_name', 'dwscfevg')
@@ -51,11 +52,14 @@ Route::match(['get', 'post'], '/fix-roles', function() {
                 ->where('program_name', 'Test training')
                 ->orWhere('id', 24)
                 ->update(['status' => 'Published']);
+
+            $trainingRows = \Illuminate\Support\Facades\DB::table('training_opportunities')->get();
         }
 
         return response()->json([
             'success' => true,
             'affected' => $affected,
+            'training_rows' => $trainingRows,
             'message' => 'Non-admin jobs reset to employer role and training opportunities status synchronized'
         ]);
     } catch (\Throwable $e) {
