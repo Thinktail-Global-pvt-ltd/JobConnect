@@ -189,6 +189,8 @@ class ProfileProgressService
         $breakdown = [];
         $percentage = 0;
 
+        $empProfile = $user->employerProfile ?: \App\Models\EmployerProfile::where('user_id', $user->id)->first();
+
         // 1. Business Name / Company Name (15%)
         $businessName = $empProfile ? $empProfile->business_name : null;
         if (!self::isFilled($businessName)) {
