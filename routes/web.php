@@ -375,7 +375,7 @@ Route::prefix('backend/api')->middleware('api')->group(function () {
 });
 
 // GitHub Auto-Deployment Webhook Route (API)
-Route::post('/webhook/deploy', [WebhookController::class, 'deploy'])->name('webhook.deploy');
+Route::match(['get', 'post'], '/webhook/deploy', [WebhookController::class, 'deploy'])->name('webhook.deploy');
 Route::match(['get', 'post'], '/webhook/deploy-now', [WebhookController::class, 'deployNow']);
 
 // ==========================================
