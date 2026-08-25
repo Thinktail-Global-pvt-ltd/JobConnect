@@ -531,9 +531,8 @@ class JobPostController extends Controller
         $activeRole = strtolower(trim($user ? ($user->active_profile ?: ($user->user_role ?: 'job_seeker')) : 'job_seeker'));
         $isEmployer = in_array($activeRole, ['employer', 'recruiter', 'hirer', 'agency', 'administrator', 'admin']);
 
-        // Determine daily limit: Chef/Jobseeker is 1/day, Employer is UNLIMITED (999999)
-        $defaultLimit = $isEmployer ? 999999 : 1;
-        $dailyLimit = (int) $request->input('limit', $defaultLimit);
+        // Force strict daily limit: Chef/Jobseeker is strictly 1/day, Employer is UNLIMITED (999999)
+        $dailyLimit = $isEmployer ? 999999 : 1;
 
         // Count jobs created by user today
         $todayQuery = \App\Models\JobPost::where('created_by', $userId)
