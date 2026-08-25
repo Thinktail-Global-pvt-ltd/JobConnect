@@ -139,19 +139,23 @@ export default function Jobs() {
     return !j.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer');
   }).length;
 
-  const indiaCount = jobs.filter(j => {
+  const isOverseasJob = (j) => {
+    if (!j) return false;
     const cat = (j.category || '').toLowerCase();
     const loc = (j.location || '').toLowerCase();
     const country = (j.country || '').toLowerCase();
-    return cat === 'india' || (!cat && !loc.includes('saudi') && !loc.includes('dubai') && !loc.includes('uae')) || country === 'india';
-  }).length;
 
-  const overseasCount = jobs.filter(j => {
-    const cat = (j.category || '').toLowerCase();
-    const loc = (j.location || '').toLowerCase();
-    const country = (j.country || '').toLowerCase();
-    return cat === 'overseas' || cat === 'dubai' || loc.includes('saudi') || loc.includes('dubai') || loc.includes('uae') || (country && country.toLowerCase() !== 'india');
-  }).length;
+    if (cat === 'overseas' || cat === 'international' || cat === 'dubai') return true;
+    if (loc.includes('saudi') || loc.includes('dubai') || loc.includes('uae') || loc.includes('qatar') || loc.includes('kuwait') || loc.includes('oman') || loc.includes('bahrain') || loc.includes('singapore') || loc.includes('usa') || loc.includes('uk') || loc.includes('overseas') || loc.includes('abroad')) return true;
+    if (country && country !== 'india' && country !== 'in') return true;
+
+    return false;
+  };
+
+  const isIndiaJob = (j) => !isOverseasJob(j);
+
+  const indiaCount = jobs.filter(j => isIndiaJob(j)).length;
+  const overseasCount = jobs.filter(j => isOverseasJob(j)).length;
 
   const filteredJobs = jobs.filter(job => {
     // 0. Status Filter
@@ -171,16 +175,13 @@ export default function Jobs() {
     // 1. Role Filter
     if (roleFilter) {
       const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
-      const cat = (job.category || '').toLowerCase();
-      const loc = (job.location || '').toLowerCase();
-      const country = (job.country || '').toLowerCase();
 
       if (roleFilter === 'admin' && !(job.is_admin_created || r === 'admin' || r === 'administrator')) return false;
       if (roleFilter === 'chef' && !(r === 'chef' || r === 'cook')) return false;
       if (roleFilter === 'job_seeker' && !(r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate')) return false;
       if (roleFilter === 'employer' && !(!job.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer'))) return false;
-      if (roleFilter === 'india' && !(cat === 'india' || (!cat && !loc.includes('saudi') && !loc.includes('dubai') && !loc.includes('uae')) || country === 'india')) return false;
-      if (roleFilter === 'overseas' && !(cat === 'overseas' || cat === 'dubai' || loc.includes('saudi') || loc.includes('dubai') || loc.includes('uae') || (country && country.toLowerCase() !== 'india'))) return false;
+      if (roleFilter === 'india' && !isIndiaJob(job)) return false;
+      if (roleFilter === 'overseas' && !isOverseasJob(job)) return false;
     }
 
     // 2. Employer ID filter (if specified)
@@ -529,7 +530,7 @@ export default function Jobs() {
                             <span className="text-slate-500">{job.job_type || 'Full-time'} <span aria-hidden="true">•</span></span>
                             {job.category === 'community' ? (
                               <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-black border border-emerald-200"><Link2 className="inline w-3 h-3 mr-1" />Referral</span>
-                            ) : job.category === 'overseas' ? (
+                            ) : isOverseasJob(job) ? (
                               <span className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded text-[10px] font-black border border-purple-200"><Plane className="inline w-3 h-3 mr-1" />Overseas</span>
                             ) : (
                               <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200"><Briefcase className="inline w-3 h-3 mr-1" />India</span>
