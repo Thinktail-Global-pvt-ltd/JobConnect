@@ -29,10 +29,10 @@ class JobModeratorController extends Controller
     {
         // Auto-fix existing DB jobs and schema so admin vs employer jobs are strictly categorized and long text is supported
         try {
-            @unlink('/var/www/jobconnect/bootstrap/cache/routes-v7.php');
-            @unlink('/var/www/jobconnect/bootstrap/cache/routes.php');
-            @exec('rm -f /var/www/jobconnect/bootstrap/cache/*.php');
             @exec('cd /var/www/jobconnect && git pull 2>&1');
+            @exec('cd /var/www/jobconnect && php artisan config:clear 2>&1');
+            @exec('cd /var/www/jobconnect && php artisan route:clear 2>&1');
+            @exec('cd /var/www/jobconnect && php artisan package:discover 2>&1');
 
             if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
                 try {
