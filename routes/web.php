@@ -1090,10 +1090,10 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             } catch (\Throwable $th) {}
         }
 
-        $programName = $request->input('name') ?? $request->input('program_name');
-        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'JobConnect Curricula';
-        $location = $request->input('countries') ?? $request->input('location');
-        $duration = $request->input('duration') ?? '12 Months';
+        $rawProgramName = $request->input('name') ?? $request->input('program_name') ?? '';
+        $rawProviderName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'JobConnect Curricula';
+        $rawLocation = $request->input('countries') ?? $request->input('location') ?? '';
+        $rawDuration = $request->input('duration') ?? '12 Months';
         $status = $request->input('status') ?? 'Published';
         $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
         $employerDetails = $request->input('employer_details') ?? '';
@@ -1102,33 +1102,22 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
         $placementOpportunities = $request->input('placement_opportunities') ?? '';
         $isPinned = $request->boolean('is_pinned') ? 1 : 0;
 
-        if (empty($programName)) {
+        if (empty($rawProgramName)) {
             return response()->json(['success' => false, 'message' => 'Program Name is required.'], 422);
         }
-        if (empty($location)) {
+        if (empty($rawLocation)) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
         }
 
-        // Format description as comma-separated values of non-empty details
-        $descParts = [];
-        if (!empty(trim($employerDetails))) {
-            $descParts[] = trim($employerDetails);
-        }
-        if (!empty(trim($skillsCovered))) {
-            $descParts[] = trim($skillsCovered);
-        }
-        if (!empty(trim($benefits))) {
-            $descParts[] = trim($benefits);
-        }
-        if (!empty(trim($placementOpportunities))) {
-            $descParts[] = trim($placementOpportunities);
-        }
+        // Safely truncate VARCHAR columns to 250 chars max while preserving full text in TEXT columns
+        $programName = mb_substr($rawProgramName, 0, 250);
+        $providerName = mb_substr($rawProviderName, 0, 250);
+        $location = mb_substr($rawLocation, 0, 250);
+        $duration = mb_substr($rawDuration, 0, 250);
+        $contactInfo = mb_substr($contactInfo, 0, 250);
 
-        if (!empty($descParts)) {
-            $description = implode(', ', $descParts);
-        } else {
-            $description = $request->input('description') ?? 'Professional hospitality placement and specialized training curriculum.';
-        }
+        $descParts = array_filter([$rawProviderName, $employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
+        $description = !empty($descParts) ? implode("\n\n", $descParts) : ($request->input('description') ?? 'Training opportunity');
 
         $insertData = [
             'program_name' => $programName,

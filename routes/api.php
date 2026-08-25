@@ -516,10 +516,10 @@ function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             } catch (\Throwable $th) {}
         }
 
-        $programName = $request->input('name') ?? $request->input('program_name') ?? '';
-        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'Jobrito Training Academy';
-        $location = $request->input('countries') ?? $request->input('location') ?? '';
-        $duration = $request->input('duration') ?? '12 Months';
+        $rawProgramName = $request->input('name') ?? $request->input('program_name') ?? '';
+        $rawProviderName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'Jobrito Training Academy';
+        $rawLocation = $request->input('countries') ?? $request->input('location') ?? '';
+        $rawDuration = $request->input('duration') ?? '12 Months';
         $status = $request->input('status') ?? 'Published';
         $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
         $employerDetails = $request->input('employer_details') ?? '';
@@ -528,15 +528,22 @@ function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
         $placementOpportunities = $request->input('placement_opportunities') ?? '';
         $isPinned = $request->boolean('is_pinned') ? 1 : 0;
 
-        if (empty($programName)) {
+        if (empty($rawProgramName)) {
             return response()->json(['success' => false, 'message' => 'Program Name is required.'], 422);
         }
-        if (empty($location)) {
+        if (empty($rawLocation)) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
         }
 
-        $descParts = array_filter([$employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
-        $description = !empty($descParts) ? implode(', ', $descParts) : ($request->input('description') ?? 'Training opportunity');
+        // Safely truncate VARCHAR columns to 250 chars max while preserving full text in TEXT columns
+        $programName = mb_substr($rawProgramName, 0, 250);
+        $providerName = mb_substr($rawProviderName, 0, 250);
+        $location = mb_substr($rawLocation, 0, 250);
+        $duration = mb_substr($rawDuration, 0, 250);
+        $contactInfo = mb_substr($contactInfo, 0, 250);
+
+        $descParts = array_filter([$rawProviderName, $employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
+        $description = !empty($descParts) ? implode("\n\n", $descParts) : ($request->input('description') ?? 'Training opportunity');
 
         $insertData = [
             'program_name' => $programName,
