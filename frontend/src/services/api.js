@@ -300,37 +300,10 @@ const mockEndpoints = {
       String(a.created_by) === String(id)
     ).map(a => ({
       ...a,
-      job_title: a.job_title || a.title || (jobs.find(j => String(j.id) === String(a.job_post_id))?.title) || 'Sous Chef',
+      job_title: a.job_title || a.title || (jobs.find(j => String(j.id) === String(a.job_post_id))?.title) || 'Job Application',
       company: a.company || (jobs.find(j => String(j.id) === String(a.job_post_id))?.company) || 'Hospitality Employer',
       job_post: jobs.find(j => String(j.id) === String(a.job_post_id))
     }));
-
-    if (userApps.length === 0) {
-      const sampleJob1 = jobs[0] || { id: '152', title: 'Sous Chef / Line Cook', company: 'Tosta Hub' };
-      const sampleJob2 = jobs[1] || { id: '153', title: 'Senior Barista & Hospitality', company: 'Raddison Blu' };
-      userApps = [
-        {
-          id: `app-${id}-1`,
-          applicant_id: String(id),
-          user_id: String(id),
-          job_post_id: String(sampleJob1.id || '152'),
-          job_title: sampleJob1.title || 'Sous Chef',
-          company: sampleJob1.company || 'Tosta Hub',
-          status: 'Applied',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: `app-${id}-2`,
-          applicant_id: String(id),
-          user_id: String(id),
-          job_post_id: String(sampleJob2.id || '153'),
-          job_title: sampleJob2.title || 'Senior Barista',
-          company: sampleJob2.company || 'Hospitality Partner',
-          status: 'In Review',
-          created_at: new Date(Date.now() - 86400000).toISOString()
-        }
-      ];
-    }
 
     return { success: true, applications: userApps };
   },

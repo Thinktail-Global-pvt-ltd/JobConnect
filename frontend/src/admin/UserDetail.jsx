@@ -56,12 +56,15 @@ export default function UserDetail() {
     }
 
     try {
-      const [jobsRes, appsRes] = await Promise.all([
-        mockApi.getUserJobs(id).catch(() => ({ jobs: [] })),
-        mockApi.getUserApplications(id).catch(() => ({ applications: [] }))
-      ]);
+      const realAppsRes = await axios.get(`/backend/api/admin/users/${id}/applications`, { headers: { Accept: 'application/json' } }).catch(() => null);
+      if (realAppsRes && realAppsRes.data && Array.isArray(realAppsRes.data.applications)) {
+        setAppliedJobs(realAppsRes.data.applications);
+      } else {
+        const appsRes = await mockApi.getUserApplications(id).catch(() => ({ applications: [] }));
+        setAppliedJobs(appsRes.applications || []);
+      }
+      const jobsRes = await mockApi.getUserJobs(id).catch(() => ({ jobs: [] }));
       setPostedJobs(jobsRes.jobs || []);
-      setAppliedJobs(appsRes.applications || []);
     } catch (err) {}
 
     setLoading(false);

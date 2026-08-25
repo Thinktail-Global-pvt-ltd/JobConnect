@@ -1365,6 +1365,35 @@ Route::get('/admin/test-apply-options', function() {
     ]);
 });
 
+Route::get('/admin/users/{id}/applications', function($id) {
+    try {
+        $user = \App\Models\User::find($id);
+        if (!$user) {
+            return response()->json(['success' => true, 'applications' => []]);
+        }
+        $apps = \App\Models\JobApplication::where('applicant_id', $user->id)
+            ->orWhere('user_id', $user->id)
+            ->with('jobPost')
+            ->latest()
+            ->get();
+            
+        return response()->json([
+            'success' => true,
+            'applications' => $apps->map(function($a) {
+                return [
+                    'id' => $a->id,
+                    'status' => $a->status ?? 'Applied',
+                    'job_title' => optional($a->jobPost)->title ?? 'Job Position',
+                    'company' => optional($a->jobPost)->company ?? 'Company',
+                    'created_at' => $a->created_at ? $a->created_at->toIso8601String() : null
+                ];
+            })
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => true, 'applications' => []]);
+    }
+});
+
 Route::post('/admin/applications/test-apply', function(\Illuminate\Http\Request $request) {
     try {
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
