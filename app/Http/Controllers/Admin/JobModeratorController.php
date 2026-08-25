@@ -27,6 +27,27 @@ class JobModeratorController extends Controller
      */
     public function index(Request $request)
     {
+        // Auto-fix DB jobs where non-admin users/employers were incorrectly flagged as is_admin_created
+        try {
+            JobPost::where('is_admin_created', true)
+                ->where(function($q) {
+                    $q->where('submitted_by_role', '!=', 'admin')
+                      ->orWhereNull('submitted_by_role')
+                      ->orWhereHas('creator', function($userQuery) {
+                          $userQuery->where('active_profile', '!=', 'admin')
+                                    ->where('user_role', '!=', 'admin');
+                      });
+                })
+                ->whereHas('creator', function($userQuery) {
+                    $userQuery->where('active_profile', '!=', 'admin')
+                              ->where('user_role', '!=', 'admin');
+                })
+                ->update([
+                    'is_admin_created' => false,
+                    'submitted_by_role' => 'employer'
+                ]);
+        } catch (\Throwable $e) {}
+
         $query = JobPost::with('creator');
 
         // Optional filter by status
@@ -326,6 +347,8 @@ class JobModeratorController extends Controller
             $description   = $request->input('description') ?: "Job Opportunity for {$title} in {$location}. Apply now on Jobrito.";
             $openPositions = intval($request->input('open_positions') ?: ($request->input('openings') ?: ($request->input('vacancies') ?: 1)));
 
+            $isAdminCreatedFlag = filter_var($request->input('is_admin_created', false), FILTER_VALIDATE_BOOLEAN) || filter_var($request->input('created_by_admin', false), FILTER_VALIDATE_BOOLEAN) || strtolower($request->input('submitted_by_role', '')) === 'admin';
+
             $job = JobPost::create([
                 'created_by'                => $userId,
                 'title'                     => $title,
@@ -348,8 +371,8 @@ class JobModeratorController extends Controller
                 'status'                    => $request->input('status', 'pending'),
                 'is_pinned'                 => filter_var($request->input('is_pinned', false), FILTER_VALIDATE_BOOLEAN),
                 'is_referral'               => filter_var($request->input('is_referral', false), FILTER_VALIDATE_BOOLEAN),
-                'is_admin_created'          => true,
-                'submitted_by_role'         => 'admin',
+                'is_admin_created'          => $isAdminCreatedFlag,
+                'submitted_by_role'         => $isAdminCreatedFlag ? 'admin' : ($request->input('submitted_by_role') ?: ($adminUser ? ($adminUser->active_profile ?: 'employer') : 'employer')),
                 'country'                   => $request->input('country') ?: (str_contains(strtolower($location), 'saudi') ? 'Saudi Arabia' : 'India'),
                 'visa_assistance'           => filter_var($request->input('visa_assistance', false), FILTER_VALIDATE_BOOLEAN),
                 'accommodation_available'   => filter_var($request->input('accommodation_available', false), FILTER_VALIDATE_BOOLEAN),
