@@ -1103,17 +1103,19 @@ export const mockApi = {
   createTrainingProgram: async (formData) => {
     let errorResp = null;
     const payload = {
-      program_name: formData.name || formData.program_name,
-      provider_name: formData.curriculum || formData.provider_name || 'Hospitality Curricula',
-      location: formData.countries || formData.location,
-      duration: formData.duration || '12 Months',
+      program_name: formData.name || formData.program_name || '',
+      curriculum: formData.curriculum || formData.provider_name || '',
+      provider_name: formData.curriculum || formData.provider_name || '',
+      location: formData.countries || formData.location || '',
+      countries: formData.countries || formData.location || '',
+      duration: formData.duration || '',
       employer_details: formData.employer_details || formData.employer || '',
       skills_covered: formData.skills_covered || formData.skills || '',
       benefits: formData.benefits || formData.training_benefits || '',
       placement_opportunities: formData.placement_opportunities || formData.placements || '',
       status: formData.status || 'Published',
-      description: formData.description || 'Professional hospitality placement and specialized training curriculum.',
-      contact_information: formData.contact_information || 'admissions@jobrito.com',
+      description: formData.description || formData.curriculum || '',
+      contact_information: formData.contact_information || '',
       is_pinned: Boolean(formData.is_pinned)
     };
 

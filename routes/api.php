@@ -330,15 +330,15 @@ Route::get('/admin/training-opportunities', function() {
 
             return [
                 'id' => $t->id,
-                'name' => $t->program_name ?? 'Training Program',
-                'title' => $t->program_name ?? 'Training Program',
-                'curriculum' => $t->provider_name ?? 'Hospitality Curricula',
-                'provider_name' => $t->provider_name ?? 'Hospitality Curricula',
+                'name' => $t->program_name ?? '',
+                'title' => $t->program_name ?? '',
+                'curriculum' => $t->provider_name ?? '',
+                'provider_name' => $t->provider_name ?? '',
                 'description' => $t->description ?? '',
                 'contact_information' => $t->contact_information ?? '',
                 'countries' => array_map('trim', explode(',', $loc)),
                 'location' => $loc,
-                'duration' => $t->duration ?? '12 Months',
+                'duration' => $t->duration ?? '',
                 'employer_details' => $t->employer_details ?? '',
                 'skills_covered' => $t->skills_covered ?? '',
                 'benefits' => $t->benefits ?? '',
@@ -384,13 +384,13 @@ Route::match(['get', 'post'], '/api/admin/training-opportunities/create', functi
 if (!function_exists('createTrainingOpportunityRecord')) {
 function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
     try {
-        $programName = $request->input('name') ?? $request->input('program_name');
-        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'JobConnect Curricula';
-        $location = $request->input('countries') ?? $request->input('location');
-        $duration = $request->input('duration') ?? '12 Months';
+        $programName = $request->input('name') ?? $request->input('program_name') ?? '';
+        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? '';
+        $location = $request->input('countries') ?? $request->input('location') ?? '';
+        $duration = $request->input('duration') ?? '';
         $status = $request->input('status') ?? 'Published';
-        $description = $request->input('description') ?? 'Professional hospitality placement and specialized training curriculum.';
-        $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
+        $description = $request->input('description') ?? $request->input('curriculum') ?? '';
+        $contactInfo = $request->input('contact_information') ?? '';
         $employerDetails = $request->input('employer_details') ?? '';
         $skillsCovered = $request->input('skills_covered') ?? '';
         $benefits = $request->input('benefits') ?? $request->input('training_benefits') ?? '';
