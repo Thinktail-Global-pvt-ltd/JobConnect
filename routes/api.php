@@ -124,6 +124,9 @@ Route::middleware('auth:sanctum')->group(function () {
 // Public Feed & Approved Jobs Routes (Approved Jobs Only)
 Route::match(['get', 'post'], '/jobs/my-jobs', [JobPostController::class, 'myJobs']);
 Route::match(['get', 'post'], '/jobs/myjobs', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/chefs/{chef}/view', [ChefProfileViewController::class, 'recordView']);
+Route::match(['get', 'post'], '/chefs/view', [ChefProfileViewController::class, 'recordView']);
+Route::match(['get', 'post'], '/chef/view-profile', [ChefProfileViewController::class, 'recordView']);
 Route::match(['get', 'post'], '/employer/applications/{id}/view', [EmployerController::class, 'recordApplicantView']);
 Route::match(['get', 'post'], '/applications/{id}/view', [EmployerController::class, 'recordApplicantView']);
 Route::match(['get', 'post'], '/employer/dashboard', [EmployerController::class, 'index']);
