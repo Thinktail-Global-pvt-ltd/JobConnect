@@ -118,15 +118,48 @@ class WebhookController extends Controller
             'success' => true,
             'message' => 'Deployment executed successfully.',
             'log' => $outputLog,
-        ]);
+        ], 200);
     }
 
-    /**
-     * Write a log entry to the custom log file.
-     */
+    public function deployNow(Request $request)
+    {
+        $this->logMessage('================== MANUAL DEPLOYMENT TRIGGERED ==================');
+
+        $commands = [
+            'cd /var/www/jobconnect && git pull 2>&1',
+            'cd /var/www/jobconnect/frontend && npm run build 2>&1',
+            'cd /var/www/jobconnect && cp -r frontend/dist/assets/* public/assets/ 2>&1',
+            'rm -f /var/www/jobconnect/public/index.html 2>&1',
+            'cd /var/www/jobconnect && php artisan config:clear 2>&1',
+            'cd /var/www/jobconnect && php artisan route:clear 2>&1',
+            'cd /var/www/jobconnect && php artisan config:cache 2>&1',
+            'cd /var/www/jobconnect && php artisan route:cache 2>&1',
+        ];
+
+        $outputLog = [];
+        foreach ($commands as $command) {
+            $this->logMessage('Executing command: ' . $command);
+            $output = [];
+            $returnVar = 0;
+            exec($command, $output, $returnVar);
+            $this->logMessage('Exit Code: ' . $returnVar);
+            $this->logMessage('Output: ' . implode("\n", $output));
+            $outputLog[$command] = [
+                'exit_code' => $returnVar,
+                'output' => implode("\n", $output),
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Deployment executed successfully.',
+            'log' => $outputLog,
+        ], 200);
+    }
+
     protected function logMessage(string $message): void
     {
-        $logEntry = '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL;
-        file_put_contents($this->logPath, $logEntry, FILE_APPEND);
+        $formatted = '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL;
+        file_put_contents($this->logPath, $formatted, FILE_APPEND);
     }
 }
