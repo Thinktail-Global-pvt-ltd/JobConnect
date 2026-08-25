@@ -153,6 +153,7 @@ export default function Layout({ children }) {
   const secondaryNavItems = [
     { name: 'Jobs', path: '/admin/jobs', icon: null, countKey: 'pending_jobs' },
     { name: 'Community Feed', path: '/admin/community', icon: null, countKey: 'community' },
+    { name: 'Training & Placement', path: '/admin/training', icon: null, countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: null, countKey: 'applications' },
   ];
 
@@ -169,7 +170,7 @@ export default function Layout({ children }) {
     const icons = {
       Dashboard: LayoutDashboard, Users: UsersRound, 'Talent / Jobseeker': UsersRound,
       Employer: Building2, Chef: Utensils, Jobs: BriefcaseBusiness, Referrals: Share2,
-      'Community Feed': Radio, 'Training & Overseas': GraduationCap, Applications: FileText,
+      'Community Feed': Radio, 'Training & Overseas': GraduationCap, 'Training & Placement': GraduationCap, Training: GraduationCap, Applications: FileText,
       Enquiries: CircleHelp, Banners: Image, Settings: Settings2, 'Notifications & Logs': Bell,
     };
     const Icon = icons[name] || LayoutDashboard;

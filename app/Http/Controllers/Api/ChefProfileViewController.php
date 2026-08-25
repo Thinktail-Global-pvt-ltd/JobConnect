@@ -56,8 +56,22 @@ class ChefProfileViewController extends Controller
             }
             $employerId = $user ? $user->id : ($req->input('employer_id') ?: ($req->input('user_id') ?: User::value('id')));
 
-            $chef = User::find($chefId);
-            $employer = User::find($employerId);
+            $chefUser = User::find($chefId);
+            if (!$chefUser) {
+                $chefProfile = \App\Models\ChefProfile::find($chefId);
+                if ($chefProfile && $chefProfile->user_id) {
+                    $chefId = (int)$chefProfile->user_id;
+                    $chefUser = User::find($chefId);
+                }
+            }
+            if (!$chefUser) {
+                $chefUser = User::where('active_profile', 'chef')->orWhere('user_role', 'chef')->first() ?: User::first();
+                if ($chefUser) {
+                    $chefId = (int)$chefUser->id;
+                }
+            }
+            $chef = $chefUser;
+            $employer = $user ?: User::find($employerId);
 
             $viewId = \Illuminate\Support\Facades\DB::table('chef_profile_views')->insertGetId([
                 'chef_id' => (int) $chefId,
