@@ -545,17 +545,17 @@ function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
         $description = !empty($descParts) ? implode("\n\n", $descParts) : ($request->input('description') ?? 'Training opportunity');
 
         $insertData = [
-            'program_name' => $programName,
-            'provider_name' => $providerName,
+            'program_name' => mb_substr($programName, 0, 150),
+            'provider_name' => mb_substr($providerName, 0, 150),
             'description' => $description,
-            'contact_information' => $contactInfo,
-            'location' => $location,
-            'duration' => $duration,
+            'contact_information' => mb_substr($contactInfo, 0, 150),
+            'location' => mb_substr($location, 0, 150),
+            'duration' => mb_substr($duration, 0, 100),
             'employer_details' => $employerDetails,
             'skills_covered' => $skillsCovered,
             'benefits' => $benefits,
             'placement_opportunities' => $placementOpportunities,
-            'status' => $status,
+            'status' => mb_substr($status, 0, 50),
             'is_pinned' => $isPinned,
             'created_at' => now(),
             'updated_at' => now(),
