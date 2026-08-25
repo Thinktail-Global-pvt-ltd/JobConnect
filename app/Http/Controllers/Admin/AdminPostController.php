@@ -93,15 +93,16 @@ class AdminPostController extends Controller
                     });
 
                 foreach ($trainings as $train) {
+                    $trainStatus = !empty($train->status) ? ucfirst(strtolower($train->status)) : 'Published';
                     $feedItems->push([
                         'id'         => 'train_' . $train->id,
                         'raw_id'     => $train->id,
                         'source'     => 'training',
                         'uid'        => 'TO-' . sprintf('%04d', $train->id),
-                        'title'      => $train->program_name ?? 'Training Program',
+                        'title'      => $train->program_name ?? ($train->title ?? 'Training Program'),
                         'body'       => ($train->provider_name ?? 'Jobrito') . ' • ' . ($train->location ?? 'Overseas'),
                         'post_type'  => 'Training & Overseas',
-                        'status'     => 'Published',
+                        'status'     => $trainStatus,
                         'is_pinned'  => (bool)($train->is_pinned ?? false),
                         'created_at' => isset($train->created_at) ? \Carbon\Carbon::parse($train->created_at)->toIso8601String() : null,
                         'timestamp'  => isset($train->created_at) ? \Carbon\Carbon::parse($train->created_at)->timestamp : 0,
