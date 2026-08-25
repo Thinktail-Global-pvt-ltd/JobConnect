@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
-import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, AlertOctagon, Zap, Building2, MapPin, Plane, Link2, UserCheck } from 'lucide-react';
+import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, AlertOctagon, Zap, Building2, MapPin, Plane, Link2, UserCheck, ShieldCheck } from 'lucide-react';
 
 export default function Jobs() {
   const location = useLocation();
@@ -116,6 +116,11 @@ export default function Jobs() {
     loadJobs();
   }, [status, category]);
 
+  const adminCount = jobs.filter(j => {
+    const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
+    return Boolean(j.is_admin_created) || r === 'admin' || r === 'administrator';
+  }).length;
+
   const chefCount = jobs.filter(j => {
     const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
     return r === 'chef' || r === 'cook';
@@ -128,7 +133,7 @@ export default function Jobs() {
 
   const employerCount = jobs.filter(j => {
     const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
-    return r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer' || r === 'administrator' || r === 'admin';
+    return !j.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer');
   }).length;
 
   const filteredJobs = jobs.filter(job => {
@@ -149,9 +154,10 @@ export default function Jobs() {
     // 1. Role Filter
     if (roleFilter) {
       const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
+      if (roleFilter === 'admin' && !(job.is_admin_created || r === 'admin' || r === 'administrator')) return false;
       if (roleFilter === 'chef' && !(r === 'chef' || r === 'cook')) return false;
       if (roleFilter === 'job_seeker' && !(r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate')) return false;
-      if (roleFilter === 'employer' && !(r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer' || r === 'administrator' || r === 'admin')) return false;
+      if (roleFilter === 'employer' && !(!job.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer'))) return false;
     }
 
     // 2. Employer ID filter (if specified)
@@ -233,6 +239,8 @@ export default function Jobs() {
       vacancies: Number(formData.open_positions) || 1,
       salary_min: formData.salary_min ? Number(formData.salary_min) : null,
       salary_max: formData.salary_max ? Number(formData.salary_max) : null,
+      is_admin_created: true,
+      submitted_by_role: 'admin',
     };
 
     try {
@@ -346,6 +354,22 @@ export default function Jobs() {
             <span>All Roles</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === '' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
               {jobs.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setRoleFilter('admin'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              roleFilter === 'admin' 
+                ? 'bg-amber-600 text-white shadow-xs' 
+                : 'bg-white border border-amber-200 text-amber-800 hover:bg-amber-50'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Admin</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'admin' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 border border-amber-200'}`}>
+              {adminCount}
             </span>
           </button>
 
@@ -483,7 +507,7 @@ export default function Jobs() {
                         )}
                         <div>
                           <span className="font-bold text-slate-900 text-[12px] block leading-tight">{job.title}</span>
-                          <span className="text-[9px] font-semibold mt-0.5 block flex items-center gap-1">
+                          <span className="text-[9px] font-semibold mt-0.5 flex items-center gap-1 flex-wrap">
                             <span className="text-slate-500">{job.job_type || 'Full-time'} <span aria-hidden="true">•</span></span>
                             {job.category === 'community' ? (
                               <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-black border border-emerald-200"><Link2 className="inline w-3 h-3 mr-1" />Referral</span>
@@ -491,6 +515,11 @@ export default function Jobs() {
                               <span className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded text-[10px] font-black border border-purple-200"><Plane className="inline w-3 h-3 mr-1" />Overseas</span>
                             ) : (
                               <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200"><Briefcase className="inline w-3 h-3 mr-1" />India</span>
+                            )}
+                            {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin' || (job.creator?.user_role || job.creator?.active_profile || '').toLowerCase() === 'admin') && (
+                              <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-black border border-amber-300 flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Created by Admin
+                              </span>
                             )}
                           </span>
                         </div>
@@ -505,11 +534,15 @@ export default function Jobs() {
                           <span className="text-slate-800 font-bold block">
                             {job.business_name || job.company_name || job.company || (job.creator ? (job.creator.business_name || job.creator.company_name || job.creator.full_name) : 'Hospitality Employer')}
                           </span>
-                          {job.creator && job.creator.full_name && (job.business_name || job.company_name || job.company) && (
+                          {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin') ? (
+                            <span className="text-[10px] font-extrabold text-amber-700 block flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Admin Posted
+                            </span>
+                          ) : job.creator && job.creator.full_name && (job.business_name || job.company_name || job.company) ? (
                             <span className="text-[10px] font-semibold text-slate-500 block">
                               By: {job.creator.full_name}
                             </span>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </td>

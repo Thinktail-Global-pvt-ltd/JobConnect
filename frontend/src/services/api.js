@@ -418,8 +418,10 @@ const mockEndpoints = {
       status: jobData.status || 'approved',
       is_pinned: Boolean(jobData.is_pinned),
       is_referral: Boolean(jobData.is_referral),
+      is_admin_created: jobData.is_admin_created !== undefined ? Boolean(jobData.is_admin_created) : true,
+      submitted_by_role: jobData.submitted_by_role || 'admin',
       created_at: new Date().toISOString(),
-      creator: { full_name: jobData.contact_person || jobData.company, mobile_number: jobData.contact_info || 'N/A' }
+      creator: { full_name: jobData.contact_person || jobData.company, mobile_number: jobData.contact_info || 'N/A', user_role: 'admin', active_profile: 'admin' }
     };
     mockDb.setJobs([newJob, ...jobs]);
     return { success: true, job: newJob };

@@ -27,7 +27,8 @@ class JobPost extends Model
         'status', // pending, approved, rejected
         'is_pinned',
         'is_referral',          // true if submitted as a referral
-        'submitted_by_role',    // jobseeker, chef, employer, agency
+        'is_admin_created',     // true if created directly via admin panel
+        'submitted_by_role',    // jobseeker, chef, employer, agency, admin
         'country',
         'visa_assistance',
         'accommodation_available',
@@ -44,6 +45,7 @@ class JobPost extends Model
     protected $casts = [
         'is_pinned'               => 'boolean',
         'is_referral'             => 'boolean',
+        'is_admin_created'        => 'boolean',
         'visa_assistance'         => 'boolean',
         'accommodation_available' => 'boolean',
         'requirements'            => 'array',

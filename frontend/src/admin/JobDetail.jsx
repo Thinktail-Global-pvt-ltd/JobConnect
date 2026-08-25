@@ -293,6 +293,12 @@ export default function JobDetail() {
               <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200"><Briefcase className="inline w-3 h-3 mr-1" />India Job</span>
             )}
 
+            {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin') && (
+              <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-black border border-amber-300 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Created by Admin
+              </span>
+            )}
+
             <span className="text-[10px] font-bold text-slate-400">
               Submitted by: {job.contact_person || job.company || 'Employer'}
             </span>

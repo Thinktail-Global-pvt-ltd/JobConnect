@@ -224,7 +224,8 @@ class JobModeratorController extends Controller
             'visa_assistance',
             'accommodation_available',
             'is_pinned',
-            'is_referral'
+            'is_referral',
+            'is_admin_created'
         ]);
 
         if ($request->filled('salary')) {
@@ -347,7 +348,8 @@ class JobModeratorController extends Controller
                 'status'                    => $request->input('status', 'pending'),
                 'is_pinned'                 => filter_var($request->input('is_pinned', false), FILTER_VALIDATE_BOOLEAN),
                 'is_referral'               => filter_var($request->input('is_referral', false), FILTER_VALIDATE_BOOLEAN),
-                'submitted_by_role'         => 'employer',
+                'is_admin_created'          => true,
+                'submitted_by_role'         => 'admin',
                 'country'                   => $request->input('country') ?: (str_contains(strtolower($location), 'saudi') ? 'Saudi Arabia' : 'India'),
                 'visa_assistance'           => filter_var($request->input('visa_assistance', false), FILTER_VALIDATE_BOOLEAN),
                 'accommodation_available'   => filter_var($request->input('accommodation_available', false), FILTER_VALIDATE_BOOLEAN),
