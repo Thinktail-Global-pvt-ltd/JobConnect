@@ -72,10 +72,30 @@ class ChefModeratorController extends Controller
     public function apiIndex(Request $request)
     {
         try {
+            $authUser = request()->user();
+            if (!$authUser && request()->bearerToken()) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken(request()->bearerToken());
+                if ($tokenObj) {
+                    $authUser = $tokenObj->tokenable;
+                }
+            }
+
+            $viewedChefUserIds = [];
+            if ($authUser && \Illuminate\Support\Facades\Schema::hasTable('chef_profile_views')) {
+                $views = \Illuminate\Support\Facades\DB::table('chef_profile_views')
+                    ->where('employer_id', $authUser->id)
+                    ->get();
+                $viewedChefUserIds = $views->pluck('chef_id')->filter()->map(fn($v) => (int)$v)->toArray();
+            }
+
             $profiles = $this->syncAndGetChefProfiles();
 
-            $allChefs = $profiles->map(function ($chef) {
+            $allChefs = $profiles->map(function ($chef) use ($viewedChefUserIds) {
                 $user = $chef->user ?: User::with('socials')->find($chef->user_id);
+
+                $chefUserId = (int)($chef ? $chef->user_id : 0);
+                $chefProfileId = (int)($chef ? $chef->id : 0);
+                $isViewed = in_array($chefUserId, $viewedChefUserIds) || in_array($chefProfileId, $viewedChefUserIds);
 
                 $availability = [];
                 if ($chef->availability_info) {
@@ -134,6 +154,8 @@ class ChefModeratorController extends Controller
                 return [
                     'id' => $chef->id,
                     'user_id' => $chef->user_id,
+                    'is_viewed' => (bool)$isViewed,
+                    'viewed' => (bool)$isViewed,
                     'full_name' => $fullName,
                     'name' => $fullName,
                     'email' => $email,
