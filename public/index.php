@@ -13,14 +13,6 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 
-if (function_exists('exec')) {
-    if (!file_exists(__DIR__ . '/../bootstrap/cache/packages.php') || !file_exists(__DIR__ . '/../bootstrap/cache/services.php')) {
-        @exec('cd ' . __DIR__ . '/.. && php artisan package:discover 2>&1');
-        @exec('cd ' . __DIR__ . '/.. && php artisan config:clear 2>&1');
-    }
-    @exec('cd ' . __DIR__ . '/.. && git pull 2>&1');
-}
-
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';

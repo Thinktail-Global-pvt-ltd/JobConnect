@@ -29,11 +29,6 @@ class JobModeratorController extends Controller
     {
         // Auto-fix existing DB jobs and schema so admin vs employer jobs are strictly categorized and long text is supported
         try {
-            @exec('cd /var/www/jobconnect && git pull 2>&1');
-            @exec('cd /var/www/jobconnect && php artisan config:clear 2>&1');
-            @exec('cd /var/www/jobconnect && php artisan route:clear 2>&1');
-            @exec('cd /var/www/jobconnect && php artisan package:discover 2>&1');
-
             if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
                 try {
                     \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY provider_name TEXT NULL");
