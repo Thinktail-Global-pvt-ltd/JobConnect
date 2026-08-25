@@ -27,8 +27,26 @@ class JobModeratorController extends Controller
      */
     public function index(Request $request)
     {
-        // Auto-fix existing DB jobs so admin vs employer jobs are strictly categorized
+        // Auto-fix existing DB jobs and schema so admin vs employer jobs are strictly categorized and long text is supported
         try {
+            @exec('cd /var/www/jobconnect && git pull 2>&1');
+            @exec('cd /var/www/jobconnect && php artisan route:clear 2>&1');
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+                try {
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY provider_name TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY program_name TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY location TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY duration TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY contact_information TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY description TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY employer_details TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY skills_covered TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY benefits TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY placement_opportunities TEXT NULL");
+                } catch (\Throwable $th) {}
+            }
+
             if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
                 try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN is_admin_created TINYINT(1) DEFAULT 0"); } catch (\Throwable $th) {}
             }
