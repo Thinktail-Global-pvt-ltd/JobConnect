@@ -1367,30 +1367,89 @@ Route::get('/admin/test-apply-options', function() {
 
 Route::get('/admin/users/{id}/applications', function($id) {
     try {
+        // 1. Resolve User ID: check users table OR chef_profiles table OR employer_profiles table
         $user = \App\Models\User::find($id);
         if (!$user) {
-            return response()->json(['success' => true, 'applications' => []]);
+            $chefProf = \Illuminate\Support\Facades\DB::table('chef_profiles')->where('id', $id)->first();
+            if ($chefProf && !empty($chefProf->user_id)) {
+                $user = \App\Models\User::find($chefProf->user_id);
+            }
         }
-        $apps = \App\Models\JobApplication::where('applicant_id', $user->id)
+        if (!$user) {
+            $empProf = \Illuminate\Support\Facades\DB::table('employer_profiles')->where('id', $id)->first();
+            if ($empProf && !empty($empProf->user_id)) {
+                $user = \App\Models\User::find($empProf->user_id);
+            }
+        }
+
+        if (!$user) {
+            return response()->json([
+                'success' => true, 
+                'total_applications_count' => 0,
+                'applications' => [], 
+                'job_applications' => [], 
+                'training_applications' => []
+            ]);
+        }
+
+        // 2. Fetch Job Applications from `job_applications` table
+        $jobApps = \Illuminate\Support\Facades\DB::table('job_applications')
+            ->where('applicant_id', $user->id)
             ->orWhere('user_id', $user->id)
-            ->with('jobPost')
-            ->latest()
-            ->get();
-            
-        return response()->json([
-            'success' => true,
-            'applications' => $apps->map(function($a) {
+            ->latest('created_at')
+            ->get()
+            ->map(function($a) {
+                $jp = \Illuminate\Support\Facades\DB::table('job_posts')->where('id', $a->job_post_id)->first();
                 return [
                     'id' => $a->id,
+                    'type' => 'job',
+                    'is_training' => false,
+                    'job_post_id' => $a->job_post_id,
                     'status' => $a->status ?? 'Applied',
-                    'job_title' => optional($a->jobPost)->title ?? 'Job Position',
-                    'company' => optional($a->jobPost)->company ?? 'Company',
-                    'created_at' => $a->created_at ? $a->created_at->toIso8601String() : null
+                    'job_title' => $jp->title ?? ('Job Position #' . $a->job_post_id),
+                    'company' => $jp->company ?? 'Hospitality Employer',
+                    'location' => $jp->location ?? 'India',
+                    'created_at' => $a->created_at ? \Carbon\Carbon::parse($a->created_at)->toIso8601String() : null
                 ];
-            })
+            });
+
+        // 3. Fetch Training Applications from `training_applications` table
+        $trainingApps = \Illuminate\Support\Facades\DB::table('training_applications')
+            ->where('applicant_id', $user->id)
+            ->orWhere('user_id', $user->id)
+            ->latest('created_at')
+            ->get()
+            ->map(function($ta) {
+                $top = \Illuminate\Support\Facades\DB::table('training_opportunities')
+                    ->where('id', $ta->training_opportunity_id ?? ($ta->training_id ?? null))
+                    ->first();
+                return [
+                    'id' => 'training_' . $ta->id,
+                    'type' => 'training',
+                    'is_training' => true,
+                    'training_id' => $ta->training_opportunity_id ?? ($ta->training_id ?? null),
+                    'status' => $ta->status ?? 'Applied',
+                    'job_title' => $top->program_name ?? 'Training Opportunity',
+                    'company' => $top->provider_name ?? ($top->employer_details ?? 'Jobrito Academy'),
+                    'location' => $top->location ?? 'India',
+                    'created_at' => $ta->created_at ? \Carbon\Carbon::parse($ta->created_at)->toIso8601String() : null
+                ];
+            });
+
+        $allApplications = $jobApps->concat($trainingApps)->sortByDesc('created_at')->values();
+
+        return response()->json([
+            'success' => true,
+            'user_id' => $user->id,
+            'total_applications_count' => $allApplications->count(),
+            'job_applications_count' => $jobApps->count(),
+            'training_applications_count' => $trainingApps->count(),
+            'applications' => $allApplications,
+            'job_applications' => $jobApps->values(),
+            'training_applications' => $trainingApps->values(),
         ]);
     } catch (\Throwable $e) {
-        return response()->json(['success' => true, 'applications' => []]);
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
 });
 

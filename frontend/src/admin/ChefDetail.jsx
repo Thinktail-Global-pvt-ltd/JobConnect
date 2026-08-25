@@ -54,14 +54,15 @@ export default function ChefDetail() {
     }
 
     try {
-      const realAppsRes = await axios.get(`/backend/api/admin/users/${id}/applications`, { headers: { Accept: 'application/json' } }).catch(() => null);
+      const targetUserId = chef?.user_id || chef?.id || id;
+      const realAppsRes = await axios.get(`/backend/api/admin/users/${targetUserId}/applications`, { headers: { Accept: 'application/json' } }).catch(() => null);
       if (realAppsRes && realAppsRes.data && Array.isArray(realAppsRes.data.applications)) {
         setAppliedJobs(realAppsRes.data.applications);
       } else {
-        const appsRes = await mockApi.getUserApplications(id).catch(() => ({ applications: [] }));
+        const appsRes = await mockApi.getUserApplications(targetUserId).catch(() => ({ applications: [] }));
         setAppliedJobs(appsRes.applications || []);
       }
-      const jobsRes = await mockApi.getUserJobs(id).catch(() => ({ jobs: [] }));
+      const jobsRes = await mockApi.getUserJobs(targetUserId).catch(() => ({ jobs: [] }));
       setPostedJobs(jobsRes.jobs || []);
     } catch (err) {}
 
@@ -147,11 +148,14 @@ export default function ChefDetail() {
   const recentActivities = [];
 
   appliedJobs.forEach((app, idx) => {
+    const isTr = app.is_training || app.type === 'training';
     recentActivities.push({
       id: `app_${app.id || idx}`,
-      color: idx === 0 ? 'bg-blue-500 border-blue-200' : 'bg-purple-500 border-purple-200',
+      color: isTr ? 'bg-amber-500 border-amber-200' : (idx === 0 ? 'bg-blue-500 border-blue-200' : 'bg-purple-500 border-purple-200'),
       time: app.created_at ? new Date(app.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(app.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Recent Application',
-      text: `Applied for job – ${app.job_title || app.title || jobRole} at ${app.company || 'Employer'}`
+      text: isTr 
+        ? `Applied for training – ${app.job_title || app.title || 'Training Opportunity'} at ${app.company || 'Jobrito Academy'}`
+        : `Applied for job – ${app.job_title || app.title || jobRole} at ${app.company || 'Employer'}`
     });
   });
 
