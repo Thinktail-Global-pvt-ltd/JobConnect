@@ -11,20 +11,25 @@ export default function Applications() {
 
   const userIdFilter = searchParams.get('userId') || searchParams.get('user_id') || location.state?.userId || null;
   const userNameFilter = searchParams.get('userName') || location.state?.userName || null;
+  const trainingIdFilter = searchParams.get('training_id') || searchParams.get('trainingId') || searchParams.get('training') || location.state?.trainingId || null;
+  const jobIdFilter = searchParams.get('job_id') || searchParams.get('jobId') || location.state?.jobId || null;
 
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState(userIdFilter ? 'all_apps' : 'jobs'); // 'jobs' (Grouped view default) or 'all_apps' (Flat list)
+  const [viewMode, setViewMode] = useState((userIdFilter || trainingIdFilter || jobIdFilter) ? 'all_apps' : 'jobs'); // 'jobs' (Grouped view default) or 'all_apps' (Flat list)
   const [selectedJob, setSelectedJob] = useState(null); // When set, shows applications for this job
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [appCategory, setAppCategory] = useState('all'); // 'all', 'job', 'training'
+  const [appCategory, setAppCategory] = useState(trainingIdFilter ? 'training' : 'all'); // 'all', 'job', 'training'
 
   useEffect(() => {
-    if (userIdFilter && viewMode !== 'all_apps') {
+    if ((userIdFilter || trainingIdFilter || jobIdFilter) && viewMode !== 'all_apps') {
       setViewMode('all_apps');
     }
-  }, [userIdFilter]);
+    if (trainingIdFilter && appCategory !== 'training') {
+      setAppCategory('training');
+    }
+  }, [userIdFilter, trainingIdFilter, jobIdFilter]);
 
   const handleNavigateToCandidateProfile = (applicant, app) => {
     const candidateObj = applicant || app?.applicant || {};
@@ -307,9 +312,23 @@ export default function Applications() {
     if (!selectedJob) {
       if (appCategory === 'job') {
         source = source.filter(a => !a.is_training && a.type !== 'training' && a.application_type !== 'training' && !a.job_post?.is_training);
-      } else if (appCategory === 'training') {
+      } else if (appCategory === 'training' || trainingIdFilter) {
         source = source.filter(a => a.is_training || a.type === 'training' || a.application_type === 'training' || a.job_post?.is_training);
       }
+    }
+
+    if (trainingIdFilter) {
+      source = source.filter(a => {
+        const tid = String(a.training_id || a.job_post_id || a.job_post?.id || a.id || '').replace('training_', '');
+        return String(tid) === String(trainingIdFilter);
+      });
+    }
+
+    if (jobIdFilter) {
+      source = source.filter(a => {
+        const jid = String(a.job_post_id || a.job_post?.id || a.id || '');
+        return String(jid) === String(jobIdFilter);
+      });
     }
 
     if (userIdFilter) {
