@@ -33,10 +33,7 @@ class JobModeratorController extends Controller
                 $q->where('is_admin_created', true)
                   ->orWhere('submitted_by_role', 'admin');
             })
-            ->whereHas('creator', function($q) {
-                $q->where('active_profile', '!=', 'admin')
-                  ->where('mobile_number', '!=', '9999999999');
-            })
+            ->where('created_by', '!=', 1)
             ->update([
                 'is_admin_created' => false,
                 'submitted_by_role' => 'employer'
