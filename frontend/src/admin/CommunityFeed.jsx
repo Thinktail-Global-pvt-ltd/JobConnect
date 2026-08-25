@@ -26,8 +26,11 @@ export default function CommunityFeed() {
     is_pinned: false
   });
 
+  const [actionAlert, setActionAlert] = useState(null);
+
   const triggerAlert = (msg) => {
-    alert(msg);
+    setActionAlert(msg);
+    setTimeout(() => setActionAlert(null), 4000);
   };
 
   // Load unified admin stream
