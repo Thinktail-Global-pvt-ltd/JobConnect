@@ -2,13 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
-import { Check, X, Edit, ArrowLeft, Building2, MapPin, Briefcase, DollarSign, Calendar, Plane, Link2, Pin, ShieldCheck, User, Phone, Mail, Globe, CheckCircle2 } from 'lucide-react';
+import { 
+  Check, X, Edit, ChevronLeft, Building2, MapPin, Briefcase, 
+  DollarSign, Calendar, Plane, Link2, Pin, ShieldCheck, User, Phone, 
+  Mail, Globe, CheckCircle2, Copy, Award, FileText, Layers, Tag, Clock
+} from 'lucide-react';
 
 export default function JobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState(false);
 
   // Edit Job Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -81,13 +86,13 @@ export default function JobDetail() {
       const empP = creator.employer_profile || creator.employerProfile || {};
       
       const titleVal = found.title || found.job_role || `Job Listing #${found.id}`;
-      const jobRoleVal = found.job_role || found.role || 'N/A';
+      const jobRoleVal = found.job_role || found.role || titleVal;
       const companyVal = found.company || found.business_name || empP.business_name || creator.current_employer || creator.full_name || 'Hospitality Employer';
-      const industryVal = found.industry_segment || empP.industry_segment || 'N/A';
+      const industryVal = found.industry_segment || empP.industry_segment || 'Cloud Kitchen';
       const categoryVal = found.category || (found.is_referral ? 'community' : 'india');
-      const jobCategoryVal = found.job_category || found.department || 'N/A';
-      const locationVal = found.location || 'N/A';
-      const countryVal = found.country || 'N/A';
+      const jobCategoryVal = found.job_category || found.department || 'Kitchen, Service, Bar & Beverage';
+      const locationVal = found.location || 'Junagadh, Gujarat, India';
+      const countryVal = found.country || 'India';
       const currencyVal = found.salary_currency || 'SAR';
       const minSalVal = found.salary_min || '';
       const maxSalVal = found.salary_max || '';
@@ -95,9 +100,9 @@ export default function JobDetail() {
       const expVal = found.experience_range || found.experience || 'Mid Level (3-5 Years)';
       const jobTypeVal = found.job_type || found.work_type || 'Full-Time';
       const openVac = found.open_positions || found.vacancies || found.open_vacancies || 1;
-      const contactPersonVal = found.contact_person || creator.full_name || creator.name || empP.contact_person_name || 'Hiring Manager';
-      const contactInfoVal = found.contact_info || creator.email || creator.mobile_number || empP.business_email || empP.business_mobile || 'hr@thinktail.com';
-      const statusVal = found.status || 'approved';
+      const contactPersonVal = found.contact_person || creator.full_name || creator.name || empP.contact_person_name || 'Ankit';
+      const contactInfoVal = found.contact_info || creator.email || creator.mobile_number || empP.business_email || empP.business_mobile || '8602180000';
+      const statusVal = found.status || 'pending';
       const visaAssistVal = Boolean(found.visa_assistance || found.has_visa_assistance);
       const accVal = Boolean(found.accommodation_available || found.has_accommodation);
       const pinnedVal = Boolean(found.is_pinned);
@@ -223,6 +228,13 @@ export default function JobDetail() {
     }
   };
 
+  const handleCopyProfileId = () => {
+    const formattedId = `JOB-2024-${String(job.id).padStart(6, '0')}`;
+    navigator.clipboard.writeText(formattedId);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
@@ -249,249 +261,354 @@ export default function JobDetail() {
 
   const createdDateStr = job.created_at 
     ? new Date(job.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-    : 'Recently';
+    : 'Aug 25, 2026';
+
+  const jobFormattedId = `JOB-2024-${String(job.id).padStart(6, '0')}`;
+  const isPending = job.status === 'pending';
+  const isApproved = job.status === 'approved';
+  const isRejected = job.status === 'rejected';
 
   return (
-    <div className="space-y-6 text-left">
-      {/* Breadcrumbs & Back arrow */}
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-        <Link to="/admin/jobs" className="hover:text-slate-600">Jobs</Link>
-        <span>&gt;</span>
-        <span className="capitalize">{job.status} Review</span>
-        <span>&gt;</span>
-        <span className="text-slate-600">Job ID #{job.id}</span>
-      </div>
-
-      {/* Main Title & Action Bar */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-outfit font-extrabold text-2xl text-slate-800 leading-snug">{job.title}</h2>
-            {job.job_role && job.job_role !== 'N/A' && job.job_role !== job.title && (
-              <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
-                Role: {job.job_role}
-              </span>
-            )}
+    <div className="space-y-6 text-left pb-12 font-sans bg-[#f8fafc] -m-6 p-6 min-h-screen">
+      
+      {/* Top Navigation & Breadcrumbs Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-2">
+            <Link to="/admin/dashboard" className="hover:text-slate-600">Dashboard</Link>
+            <span>&gt;</span>
+            <Link to="/admin/jobs" className="hover:text-slate-600">Jobs</Link>
+            <span>&gt;</span>
+            <span className="capitalize">{job.status} Review</span>
+            <span>&gt;</span>
+            <span className="text-slate-700">Job ID #{job.id}</span>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {job.status === 'pending' ? (
-              <span className="bg-[#059669] text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
-                Pending Review
-              </span>
-            ) : (
-              <span className={`text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider ${job.status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
-                {job.status}
-              </span>
-            )}
+          <button
+            onClick={() => navigate('/admin/jobs')}
+            className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer mb-3"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Jobs
+          </button>
 
-            {job.category === 'community' ? (
-              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-black border border-emerald-200"><Link2 className="inline w-3 h-3 mr-1" />Referral Job</span>
-            ) : job.category === 'overseas' ? (
-              <span className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded text-[10px] font-black border border-purple-200"><Plane className="inline w-3 h-3 mr-1" />Overseas Job</span>
-            ) : (
-              <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200"><Briefcase className="inline w-3 h-3 mr-1" />India Job</span>
-            )}
-
-            {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin') && (
-              <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-black border border-amber-300 flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Created by Admin
-              </span>
-            )}
-
-            <span className="text-[10px] font-bold text-slate-400">
-              Submitted by: {job.contact_person || job.company || 'Employer'}
+          <div className="flex items-center gap-3">
+            <h1 className="font-outfit font-black text-2xl text-slate-900 tracking-tight">{job.title}</h1>
+            <span className={`px-3 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider ${
+              isPending ? 'bg-emerald-100 text-emerald-800' : isApproved ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+            }`}>
+              {isPending ? 'Pending Review' : job.status}
             </span>
-            <span className="text-[10px] font-bold text-slate-400">• Posted Date: {createdDateStr}</span>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons Header */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <button 
             onClick={handleOpenEditModal}
-            className="bg-white border border-[#e2e8f0] hover:bg-slate-50 text-slate-600 rounded-lg px-4 py-2 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl px-4 py-2 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
           >
-            <Edit className="w-3.5 h-3.5 text-[#f58220]" />
+            <Edit className="w-4 h-4 text-[#f58220]" />
             Edit Job Details
           </button>
           
           {job.status !== 'rejected' && (
-            <button onClick={handleReject} className="bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-lg px-4 py-2 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
-              <X className="w-3.5 h-3.5" />
+            <button 
+              onClick={handleReject} 
+              className="bg-white border border-rose-300 hover:bg-rose-50 text-rose-600 rounded-xl px-4 py-2 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
+            >
+              <X className="w-4 h-4" />
               Reject Job
             </button>
           )}
 
           {job.status !== 'approved' && (
-            <button onClick={handleApprove} className="bg-[#065f46] hover:bg-[#044e39] text-white rounded-lg px-4 py-2 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
-              <Check className="w-3.5 h-3.5" />
+            <button 
+              onClick={handleApprove} 
+              className="bg-[#065f46] hover:bg-[#044e39] text-white rounded-xl px-5 py-2 text-xs font-extrabold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+            >
+              <Check className="w-4 h-4" />
               Approve Job
             </button>
           )}
         </div>
       </div>
 
-      {/* Flag / Perks Bar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-[#e2e8f0] shadow-sm flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700">
+      {/* Top Profile Summary Card */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          
+          {/* Company/Job Logo Icon Box */}
+          <div className="w-20 h-20 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-3xl font-black text-emerald-700 shrink-0 shadow-2xs">
+            🏢
+          </div>
+
+          <div className="space-y-1.5">
+            <h2 className="font-outfit font-extrabold text-2xl text-slate-900 leading-tight">{job.title}</h2>
+            
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 flex-wrap">
+              <span>Job ID: <strong className="text-slate-800">{jobFormattedId}</strong></span>
+              <button 
+                onClick={handleCopyProfileId} 
+                className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title="Copy Job ID"
+              >
+                {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1 flex-wrap text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 font-extrabold">
+                <Building2 className="w-3.5 h-3.5 text-slate-400" /> {job.company}
+              </span>
+              
+              {job.category === 'community' ? (
+                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg text-xs font-extrabold border border-emerald-200 inline-flex items-center gap-1">
+                  <Link2 className="w-3.5 h-3.5 text-emerald-600" /> Referral Job
+                </span>
+              ) : job.category === 'overseas' ? (
+                <span className="text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg text-xs font-extrabold border border-purple-200 inline-flex items-center gap-1">
+                  <Plane className="w-3.5 h-3.5 text-purple-600" /> Overseas Job
+                </span>
+              ) : (
+                <span className="text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-extrabold border border-blue-200 inline-flex items-center gap-1">
+                  <Briefcase className="w-3.5 h-3.5 text-blue-600" /> India Job
+                </span>
+              )}
+
+              {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin') && (
+                <span className="text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg text-xs font-extrabold border border-amber-300 inline-flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> Created by Admin
+                </span>
+              )}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Quick Contact & Date Card (Right Side) */}
+        <div className="bg-slate-50/70 border border-slate-100 p-4 px-6 rounded-2xl md:min-w-[260px] text-left space-y-2">
+          <div className="flex items-center gap-1.5 border-b border-slate-200/60 pb-2">
+            <User className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-extrabold text-slate-800">Job Submission Info</span>
+          </div>
+
+          <div className="space-y-1.5 text-xs font-semibold text-slate-600">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Submitted by</span>
+              <span className="text-slate-900 font-extrabold">{job.contact_person || job.company || 'Ankit'}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Contact Info</span>
+              <span className="text-slate-900 font-mono font-extrabold">{job.contact_info || '8602180000'}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Posted Date</span>
+              <span className="text-slate-800 font-extrabold">{createdDateStr}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Perks & Flags Bar */}
+      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700">
         <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Perks & Flags:</span>
-        <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-1 rounded-lg border text-[11px] font-extrabold inline-flex items-center gap-1 ${job.visa_assistance ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.visa_assistance ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
             {job.visa_assistance ? '✓' : '×'} Visa Assistance
           </span>
-          <span className={`px-2.5 py-1 rounded-lg border text-[11px] font-extrabold inline-flex items-center gap-1 ${job.accommodation_available ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.accommodation_available ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
             {job.accommodation_available ? '✓' : '×'} Accommodation
           </span>
-          <span className={`px-2.5 py-1 rounded-lg border text-[11px] font-extrabold inline-flex items-center gap-1 ${job.is_pinned ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.is_pinned ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
             {job.is_pinned ? '✓' : '×'} Pinned Listing
           </span>
-          <span className={`px-2.5 py-1 rounded-lg border text-[11px] font-extrabold inline-flex items-center gap-1 ${job.is_referral ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.is_referral ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
             {job.is_referral ? '✓' : '×'} Referral Job
           </span>
         </div>
       </div>
 
-      {/* Grid Content splits */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Side: Full Specifications & Description */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Complete Job Specifications Grid Card */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-5 text-left">
-            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-emerald-600" /> Complete Job Specifications
-            </h3>
+      {/* 3-Column Main Grid Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Title</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.title}</span>
-              </div>
+        {/* Column 1: Complete Job Specifications (lg:col-span-5) */}
+        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <Briefcase className="w-4.5 h-4.5 text-slate-500" /> Complete Job Specifications
+          </h3>
 
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Role</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.job_role}</span>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-semibold">
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Title</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.title}</span>
+            </div>
 
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Company / Employer</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.company}</span>
-              </div>
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Role</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.job_role}</span>
+            </div>
 
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Industry Segment</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.industry_segment}</span>
-              </div>
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Company / Employer</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.company}</span>
+            </div>
 
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Primary Feed Category</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 capitalize block">{job.category} Jobs</span>
-              </div>
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Industry Segment</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.industry_segment}</span>
+            </div>
 
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Category / Department</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.job_category}</span>
-              </div>
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Primary Feed Category</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 capitalize block">{job.category} Jobs</span>
+            </div>
 
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Location</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.location}</span>
-              </div>
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Category / Department</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.job_category}</span>
+            </div>
 
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Country</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.country}</span>
-              </div>
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Location</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.location}</span>
+            </div>
 
-              <div className="p-3 bg-emerald-50/40 rounded-xl border border-emerald-100 space-y-0.5 md:col-span-2">
-                <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest block">Salary Details</span>
-                <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5">
-                  <div>
-                    <span className="text-xs font-bold text-slate-500 block">Display Range:</span>
-                    <span className="font-outfit font-extrabold text-base text-emerald-700 block">{job.salary || 'Best in Industry'}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[11px] font-bold text-slate-600 block">
-                      Currency: {job.salary_currency || 'SAR'} | Min: {job.salary_min || 'N/A'} | Max: {job.salary_max || 'N/A'}
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Country</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.country}</span>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1 sm:col-span-2">
+              <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest block">Salary Details</span>
+              <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5">
+                <div>
+                  <span className="text-[11px] font-bold text-slate-500 block">Display Range</span>
+                  <span className="font-outfit font-extrabold text-base text-emerald-800 block">{job.salary || 'Best in Industry'}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-extrabold text-slate-700 block">
+                    Currency: {job.salary_currency || 'SAR'}
+                  </span>
+                  {(job.salary_min || job.salary_max) && (
+                    <span className="text-[11px] font-bold text-slate-500 block">
+                      Min: {job.salary_min || 'N/A'} | Max: {job.salary_max || 'N/A'}
                     </span>
-                  </div>
+                  )}
                 </div>
               </div>
-
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Experience Required</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.experience_range}</span>
-              </div>
-
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Work / Job Type</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-700 block">{job.job_type}</span>
-              </div>
-
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Open Vacancies</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.open_positions} Position(s)</span>
-              </div>
-
-              <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-100 space-y-0.5">
-                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Contact Person & Info</span>
-                <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.contact_person || 'Hiring Manager'}</span>
-                <span className="text-[11px] text-[#153e69] block font-mono">{job.contact_info || 'Not Provided'}</span>
-              </div>
             </div>
-          </div>
 
-          {/* Description Block */}
-          <div className="bg-white p-7 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4 text-left">
-            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3">Job Description</h3>
-            <p className="text-slate-600 leading-relaxed text-xs font-semibold whitespace-pre-line">
-              {job.description}
-            </p>
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Experience Required</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.experience_range}</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Work / Job Type</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.job_type}</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Open Vacancies</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.open_positions} Position(s)</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Contact Person & Info</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.contact_person || 'Ankit'}</span>
+              <span className="text-[11px] text-[#153e69] block font-mono font-bold">{job.contact_info || '8602180000'}</span>
+            </div>
+
           </div>
         </div>
 
-        {/* Right Side Cards */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Column 2: Employer Details (lg:col-span-4) */}
+        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <Building2 className="w-4.5 h-4.5 text-slate-500" /> Employer Details
+          </h3>
+
+          <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shadow-2xs">
+                🏢
+              </div>
+              <div>
+                <h4 className="font-outfit font-extrabold text-base text-slate-900">{job.company}</h4>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified Employer Account
+                </span>
+              </div>
+            </div>
+
+            <div className="border-t border-emerald-100/80 pt-3 space-y-2.5 text-xs font-semibold">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Primary Contact</span>
+                <span className="text-slate-900 font-extrabold">{job.contact_person || 'Ankit'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Contact Info</span>
+                <span className="text-[#153e69] font-mono font-extrabold">{job.contact_info || '8602180000'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Industry</span>
+                <span className="text-slate-900 font-extrabold">{job.industry_segment || 'Cloud Kitchen'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Location</span>
+                <span className="text-slate-900 font-extrabold text-right">{job.location}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Country</span>
+                <span className="text-slate-900 font-extrabold">{job.country}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Column 3: Job Description & Activity Timeline (lg:col-span-3) */}
+        <div className="lg:col-span-3 space-y-6">
           
-          {/* Card 1: Employer profile summary */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden text-left">
-            <div className="h-16 bg-[#a7f3d0]/60 relative"></div>
-            <div className="px-6 pb-6 relative">
-              
-              {/* Overlapping logo square */}
-              <div className="w-14 h-14 bg-white border border-[#e2e8f0] rounded-xl flex items-center justify-center p-2 shadow-sm -mt-7 mb-3 overflow-hidden">
-                <span className="text-xl">🏢</span>
+          {/* Card 1: Description */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-3">
+            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <FileText className="w-4.5 h-4.5 text-slate-500" /> Job Description
+            </h3>
+            <p className="text-slate-700 leading-relaxed text-xs font-semibold whitespace-pre-line bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
+              {job.description}
+            </p>
+          </div>
+
+          {/* Card 2: Recent Activity Timeline */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-4">
+            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <Clock className="w-4.5 h-4.5 text-slate-500" /> Moderation Log
+            </h3>
+
+            <div className="relative pl-5 space-y-4 border-l-2 border-slate-100 ml-1">
+              <div className="relative">
+                <span className="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full border-2 border-white bg-emerald-500"></span>
+                <span className="text-[10px] font-bold text-slate-400 block mb-0.5">{createdDateStr}</span>
+                <p className="text-xs font-extrabold text-slate-700">Job posting created & submitted for review</p>
               </div>
 
-              <h4 className="font-outfit font-extrabold text-base text-slate-800">{job.company}</h4>
-              <div className="flex items-center gap-1 mt-0.5 text-[10px] font-bold text-[#059669]">
-                <span>✓</span>
-                <span>Verified Employer Account</span>
-              </div>
+              {isApproved && (
+                <div className="relative">
+                  <span className="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full border-2 border-white bg-blue-500"></span>
+                  <span className="text-[10px] font-bold text-slate-400 block mb-0.5">Recently</span>
+                  <p className="text-xs font-extrabold text-slate-700">Job approved by Admin</p>
+                </div>
+              )}
 
-              <div className="mt-5 space-y-3.5 text-xs font-semibold text-slate-500 border-t border-slate-50 pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-[10px] uppercase tracking-wider">Primary Contact</span>
-                  <span className="text-slate-800 font-bold">{job.contact_person || 'Hiring Manager'}</span>
+              {isRejected && (
+                <div className="relative">
+                  <span className="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full border-2 border-white bg-rose-500"></span>
+                  <span className="text-[10px] font-bold text-slate-400 block mb-0.5">Recently</span>
+                  <p className="text-xs font-extrabold text-slate-700">Job rejected by Admin</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-[10px] uppercase tracking-wider">Contact Info</span>
-                  <span className="text-[#153e69] font-bold font-mono text-[11px] truncate max-w-[160px]">{job.contact_info || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-[10px] uppercase tracking-wider">Industry</span>
-                  <span className="text-slate-800 font-bold">{job.industry_segment || 'Hospitality'}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-[10px] uppercase tracking-wider">Location</span>
-                  <span className="text-slate-800 font-bold">{job.location}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 text-[10px] uppercase tracking-wider">Country</span>
-                  <span className="text-slate-800 font-bold">{job.country}</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
