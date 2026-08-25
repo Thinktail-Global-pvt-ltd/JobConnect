@@ -279,19 +279,27 @@ Route::match(['get', 'post'], '/api/admin/community-posts', function(\Illuminate
         $data = $res->getData(true);
         if (isset($data['posts']) && is_array($data['posts'])) {
             $data['posts'] = array_values(array_filter($data['posts'], function($p) {
-                if (($p['source'] ?? '') === 'training' || str_contains($p['post_type'] ?? '', 'Training')) {
-                    $title = strtolower(trim($p['title'] ?? ($p['program_name'] ?? '')));
-                    if ($title === 'dwscfevg' || ($p['raw_id'] ?? null) == 23 || ($p['id'] ?? null) === 'train_23') {
+                $pSource = is_object($p) ? ($p->source ?? '') : ($p['source'] ?? '');
+                $pType   = is_object($p) ? ($p->post_type ?? '') : ($p['post_type'] ?? '');
+                $pId     = is_object($p) ? ($p->id ?? '') : ($p['id'] ?? '');
+                $pRawId  = is_object($p) ? ($p->raw_id ?? '') : ($p['raw_id'] ?? '');
+                $pTitle  = strtolower(trim(is_object($p) ? ($p->title ?? '') : ($p['title'] ?? '')));
+                $pStatus = strtolower(trim(is_object($p) ? ($p->status ?? '') : ($p['status'] ?? '')));
+
+                if ($pSource === 'training' || str_contains($pType, 'Training')) {
+                    if ($pTitle === 'dwscfevg' || (string)$pRawId === '23' || (string)$pId === 'train_23' || str_contains($pTitle, 'dwsc')) {
                         return false;
                     }
-                    $st = strtolower(trim($p['status'] ?? ''));
-                    return $st === 'published' || $st === 'active' || $st === 'approved';
+                    if (in_array($pStatus, ['draft', 'pending', 'unpublished', 'reviewing', 'in_review'])) {
+                        return false;
+                    }
+                    return $pStatus === 'published' || $pStatus === 'active' || $pStatus === 'approved';
                 }
                 return true;
             }));
             $data['stats']['total'] = count($data['posts']);
-            $data['stats']['published'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Published'));
-            $data['stats']['drafts'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Draft'));
+            $data['stats']['published'] = count(array_filter($data['posts'], fn($p) => (is_object($p) ? $p->status : ($p['status'] ?? '')) === 'Published'));
+            $data['stats']['drafts'] = count(array_filter($data['posts'], fn($p) => (is_object($p) ? $p->status : ($p['status'] ?? '')) === 'Draft'));
             return response()->json($data);
         }
     }
@@ -307,19 +315,27 @@ Route::match(['get', 'post'], '/backend/api/admin/community-posts', function(\Il
         $data = $res->getData(true);
         if (isset($data['posts']) && is_array($data['posts'])) {
             $data['posts'] = array_values(array_filter($data['posts'], function($p) {
-                if (($p['source'] ?? '') === 'training' || str_contains($p['post_type'] ?? '', 'Training')) {
-                    $title = strtolower(trim($p['title'] ?? ($p['program_name'] ?? '')));
-                    if ($title === 'dwscfevg' || ($p['raw_id'] ?? null) == 23 || ($p['id'] ?? null) === 'train_23') {
+                $pSource = is_object($p) ? ($p->source ?? '') : ($p['source'] ?? '');
+                $pType   = is_object($p) ? ($p->post_type ?? '') : ($p['post_type'] ?? '');
+                $pId     = is_object($p) ? ($p->id ?? '') : ($p['id'] ?? '');
+                $pRawId  = is_object($p) ? ($p->raw_id ?? '') : ($p['raw_id'] ?? '');
+                $pTitle  = strtolower(trim(is_object($p) ? ($p->title ?? '') : ($p['title'] ?? '')));
+                $pStatus = strtolower(trim(is_object($p) ? ($p->status ?? '') : ($p['status'] ?? '')));
+
+                if ($pSource === 'training' || str_contains($pType, 'Training')) {
+                    if ($pTitle === 'dwscfevg' || (string)$pRawId === '23' || (string)$pId === 'train_23' || str_contains($pTitle, 'dwsc')) {
                         return false;
                     }
-                    $st = strtolower(trim($p['status'] ?? ''));
-                    return $st === 'published' || $st === 'active' || $st === 'approved';
+                    if (in_array($pStatus, ['draft', 'pending', 'unpublished', 'reviewing', 'in_review'])) {
+                        return false;
+                    }
+                    return $pStatus === 'published' || $pStatus === 'active' || $pStatus === 'approved';
                 }
                 return true;
             }));
             $data['stats']['total'] = count($data['posts']);
-            $data['stats']['published'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Published'));
-            $data['stats']['drafts'] = count(array_filter($data['posts'], fn($p) => ($p['status'] ?? '') === 'Draft'));
+            $data['stats']['published'] = count(array_filter($data['posts'], fn($p) => (is_object($p) ? $p->status : ($p['status'] ?? '')) === 'Published'));
+            $data['stats']['drafts'] = count(array_filter($data['posts'], fn($p) => (is_object($p) ? $p->status : ($p['status'] ?? '')) === 'Draft'));
             return response()->json($data);
         }
     }
