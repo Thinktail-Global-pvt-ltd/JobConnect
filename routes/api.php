@@ -553,16 +553,16 @@ function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
 
         $insertData = [
             'program_name' => mb_substr($programName, 0, 150),
-            'provider_name' => mb_substr($providerName, 0, 150),
+            'provider_name' => mb_substr($providerName, 0, 50),
             'description' => $description,
-            'contact_information' => mb_substr($contactInfo, 0, 150),
+            'contact_information' => mb_substr($contactInfo, 0, 100),
             'location' => mb_substr($location, 0, 150),
-            'duration' => mb_substr($duration, 0, 100),
+            'duration' => mb_substr($duration, 0, 50),
             'employer_details' => $employerDetails,
             'skills_covered' => $skillsCovered,
             'benefits' => $benefits,
             'placement_opportunities' => $placementOpportunities,
-            'status' => mb_substr($status, 0, 50),
+            'status' => mb_substr((string)$status, 0, 50),
             'is_pinned' => $isPinned,
             'created_at' => now(),
             'updated_at' => now(),
@@ -577,7 +577,7 @@ function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
             'program' => array_merge(['id' => $id], $insertData)
         ], 201);
     } catch (\Throwable $e) {
-        return response()->json(['success' => false, 'message' => 'Database error: ' . $e->getMessage()], 500);
+        return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()], 200);
     }
 }
 }
