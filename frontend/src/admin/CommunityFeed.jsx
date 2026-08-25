@@ -30,6 +30,7 @@ export default function CommunityFeed() {
 
   const triggerAlert = (msg) => {
     setActionAlert(msg);
+    alert(msg);
     setTimeout(() => setActionAlert(null), 4000);
   };
 
