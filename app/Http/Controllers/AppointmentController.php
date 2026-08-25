@@ -151,6 +151,23 @@ class AppointmentController extends Controller
     public function registeredChefsList()
     {
         try {
+            $authUser = request()->user();
+            if (!$authUser && request()->bearerToken()) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken(request()->bearerToken());
+                if ($tokenObj) {
+                    $authUser = $tokenObj->tokenable;
+                }
+            }
+
+            $viewedChefUserIds = [];
+            $viewedChefProfileIds = [];
+            if ($authUser && \Illuminate\Support\Facades\Schema::hasTable('chef_profile_views')) {
+                $views = \Illuminate\Support\Facades\DB::table('chef_profile_views')
+                    ->where('employer_id', $authUser->id)
+                    ->get();
+                $viewedChefUserIds = $views->pluck('chef_id')->filter()->map(fn($v) => (int)$v)->toArray();
+            }
+
             // Find all chef profiles and user records
             $chefProfiles = \App\Models\ChefProfile::with(['user', 'user.socials'])->get();
             
@@ -194,9 +211,13 @@ class AppointmentController extends Controller
                 }
             }
 
-            $mappedChefs = $allChefsMap->values()->map(function ($item) {
+            $mappedChefs = $allChefsMap->values()->map(function ($item) use ($viewedChefUserIds) {
                 $profile = $item['profile'];
                 $chef = $item['user'];
+
+                $chefUserId = (int)($chef ? $chef->id : 0);
+                $chefProfileId = (int)($profile ? $profile->id : 0);
+                $isViewed = in_array($chefUserId, $viewedChefUserIds) || in_array($chefProfileId, $viewedChefUserIds);
 
                 $availability = [];
                 if ($profile && $profile->availability_info) {
@@ -246,6 +267,8 @@ class AppointmentController extends Controller
                 return [
                     'id'                     => $profile ? $profile->id : ($chef ? $chef->id : 0),
                     'user_id'                => $chef ? $chef->id : 0,
+                    'is_viewed'              => (bool)$isViewed,
+                    'viewed'                 => (bool)$isViewed,
                     'full_name'              => $name,
                     'name'                   => $name,
                     'email'                  => $email,

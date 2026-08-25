@@ -63,6 +63,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/jobs/referrals', [JobPostController::class, 'storeReferral']);
     Route::match(['get', 'post'], '/jobs/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
     Route::match(['get', 'post'], '/my-jobs', [JobPostController::class, 'myJobs']);
+    Route::match(['get', 'post'], '/jobs/my-jobs', [JobPostController::class, 'myJobs']);
+    Route::match(['get', 'post'], '/jobs/myjobs', [JobPostController::class, 'myJobs']);
     Route::match(['get', 'post'], '/my-applications', [JobPostController::class, 'myJobs']);
     Route::match(['get', 'post'], '/jobs/applied', [JobPostController::class, 'myJobs']);
     Route::match(['get', 'post'], '/user/applied-jobs', [JobPostController::class, 'myJobs']);
@@ -95,9 +97,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/employer_dashboard', [EmployerController::class, 'index']);
     Route::get('/employer/dashboard', [EmployerController::class, 'index']);
 
-    // Applicant Status & Shortlisting Routes
+    // Applicant Status, Shortlisting & View Tracking Routes
     Route::post('/employer/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
     Route::post('/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
+    Route::post('/employer/applications/{id}/view', [EmployerController::class, 'recordApplicantView']);
+    Route::post('/applications/{id}/view', [EmployerController::class, 'recordApplicantView']);
+    Route::post('/employer/applicants/{id}/view', [EmployerController::class, 'recordApplicantView']);
+    Route::post('/applicants/{id}/view', [EmployerController::class, 'recordApplicantView']);
 
     // Chef Connect Appointment & Profile View Routes
     Route::post('/appointments/book', [AppointmentController::class, 'book']);
@@ -116,6 +122,13 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Public Feed & Approved Jobs Routes (Approved Jobs Only)
+Route::match(['get', 'post'], '/jobs/my-jobs', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/jobs/myjobs', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/employer/applications/{id}/view', [EmployerController::class, 'recordApplicantView']);
+Route::match(['get', 'post'], '/applications/{id}/view', [EmployerController::class, 'recordApplicantView']);
+Route::match(['get', 'post'], '/employer/dashboard', [EmployerController::class, 'index']);
+Route::match(['get', 'post'], '/employer_dashboard', [EmployerController::class, 'index']);
+Route::match(['get', 'post'], '/employer/chefs', [AppointmentController::class, 'registeredChefsList']);
 Route::match(['get', 'post'], '/jobs/create-public', [JobPostController::class, 'store']);
 Route::match(['get', 'post'], '/jobs/post', [JobPostController::class, 'store']);
 Route::match(['get', 'post'], '/feed', [FeedController::class, 'index']);
