@@ -1075,6 +1075,21 @@ Route::match(['get', 'post'], '/api/admin/training-opportunities/create', functi
 if (!function_exists('createWebTrainingOpportunityRecord')) {
 function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
     try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+            try {
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY provider_name TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY program_name TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY location TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY duration TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY contact_information TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY description TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY employer_details TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY skills_covered TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY benefits TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY placement_opportunities TEXT NULL");
+            } catch (\Throwable $th) {}
+        }
+
         $programName = $request->input('name') ?? $request->input('program_name');
         $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'JobConnect Curricula';
         $location = $request->input('countries') ?? $request->input('location');

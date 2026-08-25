@@ -23,6 +23,21 @@ Route::match(['get', 'post'], '/fix-roles', function() {
         $gitOutput = [];
         @exec('cd /var/www/jobconnect && git pull 2>&1', $gitOutput);
 
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+            try {
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY provider_name TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY program_name TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY location TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY duration TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY contact_information TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY description TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY employer_details TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY skills_covered TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY benefits TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY placement_opportunities TEXT NULL");
+            } catch (\Throwable $th) {}
+        }
+
         if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
             try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN is_admin_created TINYINT(1) DEFAULT 0"); } catch (\Throwable $th) {}
         }
@@ -486,13 +501,27 @@ Route::match(['get', 'post'], '/api/admin/training-opportunities/create', functi
 if (!function_exists('createTrainingOpportunityRecord')) {
 function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
     try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+            try {
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY provider_name TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY program_name TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY location TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY duration TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY contact_information TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY description TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY employer_details TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY skills_covered TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY benefits TEXT NULL");
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY placement_opportunities TEXT NULL");
+            } catch (\Throwable $th) {}
+        }
+
         $programName = $request->input('name') ?? $request->input('program_name') ?? '';
-        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? '';
+        $providerName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'Jobrito Training Academy';
         $location = $request->input('countries') ?? $request->input('location') ?? '';
-        $duration = $request->input('duration') ?? '';
+        $duration = $request->input('duration') ?? '12 Months';
         $status = $request->input('status') ?? 'Published';
-        $description = $request->input('description') ?? $request->input('curriculum') ?? '';
-        $contactInfo = $request->input('contact_information') ?? '';
+        $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
         $employerDetails = $request->input('employer_details') ?? '';
         $skillsCovered = $request->input('skills_covered') ?? '';
         $benefits = $request->input('benefits') ?? $request->input('training_benefits') ?? '';
@@ -505,6 +534,9 @@ function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
         if (empty($location)) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
         }
+
+        $descParts = array_filter([$employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
+        $description = !empty($descParts) ? implode(', ', $descParts) : ($request->input('description') ?? 'Training opportunity');
 
         $insertData = [
             'program_name' => $programName,
