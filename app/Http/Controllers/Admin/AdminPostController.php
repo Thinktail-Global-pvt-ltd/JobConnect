@@ -73,14 +73,14 @@ class AdminPostController extends Controller
 
         // 3. Training Opportunities (ONLY Published/Active status)
         try {
-            \Illuminate\Support\Facades\DB::table('training_opportunities')
-                ->where('program_name', 'dwscfevg')
-                ->orWhere('id', 23)
-                ->update(['status' => 'Draft']);
+            $trainings = \App\Models\TrainingOpportunity::latest()->get()->filter(function($t) {
+                if (strtolower(trim($t->program_name ?? '')) === 'dwscfevg' || $t->id == 23) {
+                    return false;
+                }
+                $st = strtolower(trim($t->status ?? ''));
+                return in_array($st, ['published', 'active', 'approved']);
+            });
 
-            $trainings = \App\Models\TrainingOpportunity::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['published', 'active'])
-                ->latest()
-                ->get();
             foreach ($trainings as $train) {
                 $feedItems->push([
                     'id'         => 'train_' . $train->id,

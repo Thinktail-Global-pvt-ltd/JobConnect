@@ -81,8 +81,12 @@ export default function CommunityFeed() {
       const postData = rawPosts
         .filter(p => {
           if (p.source === 'training' || (p.post_type || '').includes('Training')) {
-            const st = (p.status || '').toLowerCase();
-            return st === 'published' || st === 'active';
+            const title = (p.title || p.program_name || '').toLowerCase().trim();
+            if (title === 'dwscfevg' || p.raw_id == 23 || p.id == 'train_23') {
+              return false;
+            }
+            const st = (p.status || '').toLowerCase().trim();
+            return st === 'published' || st === 'active' || st === 'approved';
           }
           return true;
         })

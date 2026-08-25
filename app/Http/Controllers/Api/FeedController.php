@@ -188,10 +188,16 @@ class FeedController extends Controller
                 return $p;
             });
 
-        $trainingOpportunities = \App\Models\TrainingOpportunity::whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), ['published', 'active'])
-            ->orderByDesc('is_pinned')
+        $trainingOpportunities = \App\Models\TrainingOpportunity::orderByDesc('is_pinned')
             ->orderByDesc('created_at')
             ->get()
+            ->filter(function($t) {
+                if (strtolower(trim($t->program_name ?? '')) === 'dwscfevg' || $t->id == 23) {
+                    return false;
+                }
+                $st = strtolower(trim($t->status ?? ''));
+                return in_array($st, ['published', 'active', 'approved']);
+            })
             ->map(function ($t) use ($appliedTrainingMap, $savedTrainingMap) {
                 $hasApplied = isset($appliedTrainingMap[$t->id]);
                 $appStatus  = $hasApplied ? $appliedTrainingMap[$t->id] : null;
