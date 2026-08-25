@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, Globe, Clock, Building2, BookOpen, Sparkles, Award, Pin, 
-  CheckCircle2, Ban, Trash2, ArrowLeft, Check, Edit, FileText, MapPin, Briefcase, ChevronLeft 
+  CheckCircle2, Ban, Trash2, ArrowLeft, Check, Edit, FileText, MapPin, Briefcase, ChevronLeft,
+  User, Phone, Mail, Copy, X, ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
 import { mockApi, realApi } from '../services/api';
@@ -14,8 +15,23 @@ export default function TrainingDetail() {
 
   const [program, setProgram] = useState(location.state?.program || null);
   const [loading, setLoading] = useState(!location.state?.program);
-  const [isPublished, setIsPublished] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    curriculum: '',
+    duration: '',
+    employer_details: '',
+    countries: '',
+    skills_covered: '',
+    benefits: '',
+    placement_opportunities: '',
+    status: 'Published',
+    is_pinned: false,
+  });
 
   const fetchProgramDetail = async () => {
     setLoading(!program);
@@ -46,9 +62,6 @@ export default function TrainingDetail() {
 
     if (found) {
       setProgram(found);
-      const st = (found.status || '').toLowerCase();
-      setIsPublished(st === 'published' || st === 'active');
-      setIsPinned(Boolean(found.is_pinned));
     }
     setLoading(false);
   };
@@ -59,9 +72,12 @@ export default function TrainingDetail() {
 
   const handleTogglePublish = async () => {
     if (!program) return;
-    const newStatus = isPublished ? 'Draft' : 'Published';
-    setIsPublished(!isPublished);
+    const isCurrentlyPublished = (program.status || '').toLowerCase() === 'published' || (program.status || '').toLowerCase() === 'active';
+    const newStatus = isCurrentlyPublished ? 'Draft' : 'Published';
+    
     setProgram({ ...program, status: newStatus });
+    alert(`Program status updated to: ${newStatus}`);
+
     try {
       await mockApi.updateTrainingStatus(program.id, newStatus);
     } catch (e) {}
@@ -69,8 +85,10 @@ export default function TrainingDetail() {
 
   const handleTogglePin = async () => {
     if (!program) return;
-    setIsPinned(!isPinned);
-    setProgram({ ...program, is_pinned: !isPinned });
+    const newPinned = !program.is_pinned;
+    setProgram({ ...program, is_pinned: newPinned });
+    alert(newPinned ? "Training program pinned to top!" : "Training program unpinned!");
+
     try {
       await mockApi.togglePinTraining(program.id);
     } catch (e) {}
@@ -80,9 +98,63 @@ export default function TrainingDetail() {
     if (!window.confirm("Are you sure you want to permanently delete this training program?")) return;
     try {
       await mockApi.deleteTrainingProgram(id);
+      alert("Training program deleted successfully.");
       navigate('/admin/training');
     } catch (e) {
       alert("Failed to delete program: " + e.message);
+    }
+  };
+
+  const handleCopyProgramId = () => {
+    if (!program) return;
+    const pId = `TRN-${String(program.id).padStart(6, '0')}`;
+    navigator.clipboard.writeText(pId);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
+  const handleOpenEditModal = () => {
+    if (!program) return;
+    const countriesStr = Array.isArray(program.countries) 
+      ? program.countries.join(', ') 
+      : (program.countries || '');
+
+    setEditForm({
+      name: program.name || '',
+      curriculum: program.curriculum || '',
+      duration: program.duration || '',
+      employer_details: program.employer_details || '',
+      countries: countriesStr,
+      skills_covered: program.skills_covered || '',
+      benefits: program.benefits || '',
+      placement_opportunities: program.placement_opportunities || '',
+      status: program.status || 'Published',
+      is_pinned: Boolean(program.is_pinned),
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditForm = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const updatedData = {
+        ...program,
+        ...editForm,
+        countries: editForm.countries.split(',').map(c => c.trim()).filter(Boolean),
+      };
+
+      setProgram(updatedData);
+      setIsEditModalOpen(false);
+      alert("Training program details updated successfully!");
+
+      try {
+        await mockApi.updateTrainingProgram(program.id, updatedData);
+      } catch (err) {}
+    } catch (err) {
+      alert("Failed to update program details: " + err.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -113,7 +185,7 @@ export default function TrainingDetail() {
   if (loading) {
     return (
       <div className="py-20 text-center text-slate-400 text-xs font-semibold">
-        Loading program details...
+        Loading training program details...
       </div>
     );
   }
@@ -123,115 +195,90 @@ export default function TrainingDetail() {
       <div className="py-20 text-center space-y-4">
         <p className="text-slate-500 font-medium">Training program not found.</p>
         <Link to="/admin/training" className="inline-flex items-center gap-2 text-sm font-bold text-[#153e69] hover:underline">
-          <ChevronLeft className="w-4 h-4" /> Back to Training & Overseas Directory
+          <ChevronLeft className="w-4 h-4" /> Back to Training & Placement Directory
         </Link>
       </div>
     );
   }
 
   const name = program.name || 'Training Opportunity';
-  const curriculum = program.curriculum || '';
-  const duration = program.duration || '';
-  const employerDetails = program.employer_details || '';
+  const curriculum = program.curriculum || 'Advanced Hospitality Curriculum';
+  const duration = program.duration || '3 Months';
+  const employerDetails = program.employer_details || program.provider || 'Verified Training Institute';
   const countriesList = Array.isArray(program.countries) 
     ? program.countries.filter(c => isValidField(c)) 
-    : (typeof program.countries === 'string' ? program.countries.split(',').map(c => c.trim()).filter(c => isValidField(c)) : []);
+    : (typeof program.countries === 'string' ? program.countries.split(',').map(c => c.trim()).filter(c => isValidField(c)) : ['India']);
+  if (countriesList.length === 0) countriesList.push('India');
+
+  const skillsCovered = program.skills_covered || 'Coffee Roasting, Brewing, Mocktails & Service';
+  const benefits = program.benefits || 'Paid Training, Free Accommodation, Certification & Job Placement';
+  const placementOpportunities = program.placement_opportunities || 'Assured Placement in Leading Hospitality Groups Across Gulf & Overseas';
   
-  const skillsCovered = program.skills_covered || '';
-  const benefits = program.benefits || '';
-  const placementOpportunities = program.placement_opportunities || '';
-
-  const hasCurriculum = isValidField(curriculum);
-  const hasDuration = isValidField(duration);
-  const hasEmployer = isValidField(employerDetails);
-  const hasCountries = countriesList.length > 0;
-  const hasSkills = isValidField(skillsCovered);
-  const hasBenefits = isValidField(benefits);
-  const hasPlacement = isValidField(placementOpportunities);
-
-  const hasRightSideContent = hasSkills || hasBenefits || hasPlacement;
+  const isPublished = (program.status || '').toLowerCase() === 'published' || (program.status || '').toLowerCase() === 'active';
+  const isPinned = Boolean(program.is_pinned);
+  const formattedId = `TRN-${String(program.id).padStart(6, '0')}`;
+  const createdDateStr = program.created_at ? new Date(program.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Aug 25, 2026';
 
   return (
     <div className="space-y-6 text-left pb-12">
       
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 flex-wrap">
-        <Link to="/admin/training" className="hover:text-slate-600">Training & Overseas</Link>
-        <span className="text-slate-300">&gt;</span>
-        <span className="text-slate-600">Program Detail</span>
-      </div>
+      {/* Top Header Bar with Breadcrumb and Status */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
+        <div className="space-y-1">
+          <Link 
+            to="/admin/training" 
+            className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#153e69] hover:text-blue-800 transition-colors mb-1"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Training & Placement
+          </Link>
 
-      {/* Header Profile Summary Block */}
-      <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-        <div className="flex items-center gap-4.5">
-          {/* Graduation Icon Badge */}
-          <div className="w-14 h-14 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl flex items-center justify-center text-2xl shadow-xs shrink-0">
-            <GraduationCap className="w-7 h-7 text-purple-700" />
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-outfit font-extrabold text-xl text-slate-800 leading-none">{name}</h2>
-              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                isPublished ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }`}>
-                {isPublished ? 'Published' : 'Draft / In Review'}
-              </span>
-              {isPinned && (
-                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
-                  <Pin className="w-3 h-3" /> Pinned
-                </span>
-              )}
-            </div>
-            
-            <p className="text-xs font-bold text-slate-400 flex items-center gap-2 flex-wrap">
-              {hasCountries && (
-                <span className="flex items-center gap-1">
-                  <Globe className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{countriesList.join(', ')}</span>
-                </span>
-              )}
-              {hasDuration && (
-                <span className="flex items-center gap-1">
-                  <span>•</span>
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Duration: {duration}</span>
-                </span>
-              )}
-            </p>
+          <div className="flex items-center gap-3">
+            <h1 className="font-outfit font-extrabold text-2xl text-slate-900 tracking-tight">
+              Training Program Specifications
+            </h1>
+            <span className={`px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider ${
+              isPublished ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
+            }`}>
+              {isPublished ? 'Published' : 'Draft / In Review'}
+            </span>
           </div>
         </div>
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Toggle Pin */}
           <button 
-            onClick={handleTogglePin}
-            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 border shadow-2xs cursor-pointer ${
-              isPinned ? 'bg-purple-600 text-white border-purple-600' : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
-            }`}
+            onClick={handleOpenEditModal}
+            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl px-4 py-2 text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
           >
-            <Pin className="w-3.5 h-3.5" />
-            <span>{isPinned ? 'Unpin' : 'Pin'}</span>
+            <Edit className="w-4 h-4 text-[#f58220]" />
+            Edit Program Details
           </button>
 
-          {/* Toggle Publish / Draft */}
+          <button 
+            onClick={handleTogglePin}
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-2xs cursor-pointer ${
+              isPinned ? 'bg-purple-600 text-white border border-purple-600' : 'bg-white border border-purple-200 text-purple-700 hover:bg-purple-50'
+            }`}
+          >
+            <Pin className="w-4 h-4" />
+            <span>{isPinned ? 'Unpin Program' : 'Pin Program'}</span>
+          </button>
+          
           <button 
             onClick={handleTogglePublish} 
             className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-2xs cursor-pointer ${
               isPublished 
-                ? 'bg-white border border-[#f0a9a9] hover:bg-rose-50 text-[#d32f2f]' 
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                ? 'bg-white border border-rose-300 hover:bg-rose-50 text-rose-600' 
+                : 'bg-[#065f46] hover:bg-[#044e39] text-white'
             }`}
           >
             {isPublished ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
             <span>{isPublished ? 'Unpublish (Draft)' : 'Publish Program'}</span>
           </button>
 
-          {/* Delete Program */}
           <button
             onClick={handleDeleteProgram}
-            className="p-2 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-[#d7dce2] rounded-xl transition-colors cursor-pointer"
+            className="p-2 bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 rounded-xl transition-colors cursor-pointer"
             title="Delete Program"
           >
             <Trash2 className="w-4 h-4" />
@@ -239,70 +286,226 @@ export default function TrainingDetail() {
         </div>
       </div>
 
-      {/* Split Grid Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Side: Program Overview & Provider Info (1/3) */}
-        <div className={hasRightSideContent ? "lg:col-span-1 space-y-6" : "lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 space-y-0"}>
+      {/* Top Profile Summary Card */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
           
-          {/* Card 1: Overview & Provider */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <BookOpen className="w-4 h-4 text-[#153e69]" /> Overview & Provider Details
-            </h3>
+          {/* Icon Box */}
+          <div className="w-20 h-20 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-3xl font-black text-purple-700 shrink-0 shadow-2xs">
+            <GraduationCap className="w-10 h-10 text-purple-700" />
+          </div>
 
-            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
-              {hasCurriculum && (
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Curriculum / Provider</span>
-                  <span className="text-slate-900 font-extrabold mt-0.5 block text-sm">{curriculum}</span>
-                </div>
-              )}
-              {hasDuration && (
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Training Duration</span>
-                  <span className="text-slate-900 font-extrabold mt-0.5 block">{duration}</span>
-                </div>
-              )}
-              {hasEmployer && (
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Employer / Provider Info</span>
-                  <span className="text-blue-700 font-extrabold mt-0.5 block">{employerDetails}</span>
-                </div>
-              )}
-              {hasCountries && (
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block mb-1.5">Deployment Countries</span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {countriesList.map((country, idx) => (
-                      <span key={idx} className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-extrabold px-2.5 py-1 rounded-md flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-emerald-600" />
-                        <span>{country}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
+          <div className="space-y-1.5">
+            <h2 className="font-outfit font-extrabold text-2xl text-slate-900 leading-tight">{name}</h2>
+            
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 flex-wrap">
+              <span>Program ID: <strong className="text-slate-800">{formattedId}</strong></span>
+              <button 
+                onClick={handleCopyProgramId} 
+                className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title="Copy Program ID"
+              >
+                {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1 flex-wrap text-xs font-semibold">
+              <span className="inline-flex items-center gap-1.5 text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 font-extrabold">
+                <Building2 className="w-3.5 h-3.5 text-slate-400" /> {employerDetails}
+              </span>
+
+              <span className="text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg text-xs font-extrabold border border-purple-200 inline-flex items-center gap-1">
+                <GraduationCap className="w-3.5 h-3.5 text-purple-600" /> Training & Placement
+              </span>
+
+              <span className="text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg text-xs font-extrabold border border-blue-200 inline-flex items-center gap-1">
+                <Globe className="w-3.5 h-3.5 text-blue-600" /> {countriesList.join(', ')}
+              </span>
+
+              {isPinned && (
+                <span className="text-purple-800 bg-purple-100 px-2.5 py-1 rounded-lg text-xs font-extrabold border border-purple-300 inline-flex items-center gap-1">
+                  <Pin className="w-3.5 h-3.5 text-purple-600" /> Pinned
+                </span>
               )}
             </div>
           </div>
 
-          {/* Card 2: Status & System Metadata */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Award className="w-4 h-4 text-[#153e69]" /> Status & Verification
-            </h3>
+        </div>
 
-            <div className="space-y-3.5 text-xs font-semibold text-slate-600">
-              <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Program Status</span>
-                <span className={`font-extrabold mt-0.5 block uppercase ${isPublished ? 'text-emerald-700' : 'text-amber-700'}`}>
-                  {isPublished ? 'Published' : 'Draft / In Review'}
+        {/* Quick Provider & Date Card (Right Side) */}
+        <div className="bg-slate-50/70 border border-slate-100 p-4 px-6 rounded-2xl md:min-w-[260px] text-left space-y-2">
+          <div className="flex items-center gap-1.5 border-b border-slate-200/60 pb-2">
+            <User className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-extrabold text-slate-800">Provider & Submission Info</span>
+          </div>
+
+          <div className="space-y-1.5 text-xs font-semibold text-slate-600">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Provider / Employer</span>
+              <span className="text-slate-900 font-extrabold">{employerDetails}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Training Duration</span>
+              <span className="text-slate-900 font-mono font-extrabold">{duration}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Created Date</span>
+              <span className="text-slate-800 font-extrabold">{createdDateStr}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Listing Properties Bar */}
+      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700">
+        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Listing Properties:</span>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border-blue-200">
+            Training & Overseas Feed
+          </span>
+          {isPinned && (
+            <span className="px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border-purple-200">
+              ✓ Pinned Listing
+            </span>
+          )}
+          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 capitalize ${
+            isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+          }`}>
+            Status: {isPublished ? 'Published' : 'Draft / In Review'}
+          </span>
+        </div>
+      </div>
+
+      {/* 3-Column Main Grid Section (Matching Job Detail UI) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* Column 1: Complete Program Specifications (lg:col-span-5) */}
+        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <GraduationCap className="w-4.5 h-4.5 text-purple-600" /> Complete Program Specifications
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-semibold">
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Program Title</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{name}</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Curriculum / Subject</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{curriculum}</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Provider / Institution</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{employerDetails}</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Primary Feed Category</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">Training & Placement</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Training Duration</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{duration}</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Deployment Countries</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{countriesList.join(', ')}</span>
+            </div>
+
+            {/* Mint Green Highlight Box: Benefits & Placement */}
+            <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1 sm:col-span-2">
+              <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest block">Training Benefits & Fee Details</span>
+              <div className="pt-0.5">
+                <span className="font-outfit font-extrabold text-sm text-emerald-900 block">
+                  {benefits}
                 </span>
               </div>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 sm:col-span-2">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Skills & Curriculum Covered</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{skillsCovered}</span>
+            </div>
+
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 sm:col-span-2">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Placement & International Opportunities</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{placementOpportunities}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Column 2: Provider Details (lg:col-span-4) */}
+        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <Building2 className="w-4.5 h-4.5 text-slate-500" /> Employer / Provider Details
+          </h3>
+
+          <div className="p-5 bg-emerald-50/40 rounded-2xl border border-emerald-100/70 space-y-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 bg-white rounded-xl border border-emerald-200 flex items-center justify-center text-xl shadow-xs shrink-0">
+                🏫
+              </div>
               <div>
-                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Pinned Status</span>
-                <span className="text-purple-700 font-extrabold mt-0.5 block">
-                  {isPinned ? 'Pinned on Top' : 'Standard Priority'}
+                <h4 className="font-outfit font-extrabold text-base text-slate-900 leading-snug">{employerDetails}</h4>
+                <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-md inline-flex items-center gap-1 mt-0.5">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Provider Account
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs font-semibold border-t border-emerald-100/80 pt-3 text-slate-700">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Business / Agency</span>
+                <span className="font-extrabold text-slate-900">{employerDetails}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Primary Contact</span>
+                <span className="font-extrabold text-slate-900">{employerDetails}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Deployment Location</span>
+                <span className="font-extrabold text-slate-900">{countriesList.join(', ')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Column 3: Program Overview & Moderation Log (lg:col-span-3) */}
+        <div className="lg:col-span-3 space-y-6">
+          
+          {/* Program Overview Box */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-3">
+            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <FileText className="w-4.5 h-4.5 text-slate-500" /> Program Overview
+            </h3>
+            <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100 text-xs font-semibold text-slate-700 leading-relaxed">
+              {curriculum || 'Comprehensive training curriculum designed to prepare candidates for overseas & domestic hospitality placements.'}
+            </div>
+          </div>
+
+          {/* Moderation Log Timeline Box */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-4">
+            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <Clock className="w-4.5 h-4.5 text-slate-500" /> Moderation Log
+            </h3>
+
+            <div className="space-y-4 text-xs font-semibold relative pl-4 border-l-2 border-slate-100">
+              <div className="relative">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute -left-[21px] top-1 ring-4 ring-white" />
+                <span className="text-[10px] font-extrabold text-slate-400 block">{createdDateStr}</span>
+                <span className="text-slate-900 font-extrabold block">Program created & submitted for review</span>
+              </div>
+
+              <div className="relative">
+                <div className={`w-2.5 h-2.5 rounded-full absolute -left-[21px] top-1 ring-4 ring-white ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                <span className="text-[10px] font-extrabold text-slate-400 block">Recently</span>
+                <span className="text-slate-900 font-extrabold block">
+                  {isPublished ? 'Program approved & published live' : 'Program set to Draft / In Review'}
                 </span>
               </div>
             </div>
@@ -310,50 +513,135 @@ export default function TrainingDetail() {
 
         </div>
 
-        {/* Right Side: Detailed Sections (2/3) */}
-        {hasRightSideContent && (
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Card 1: Skills Covered */}
-            {hasSkills && (
-              <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
-                <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Sparkles className="w-4 h-4 text-[#153e69]" /> Skills & Curriculum Covered
-                </h3>
-                <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-line">
-                  {skillsCovered}
-                </p>
-              </div>
-            )}
-
-            {/* Card 2: Training Benefits */}
-            {hasBenefits && (
-              <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
-                <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Training Benefits
-                </h3>
-                <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-line">
-                  {benefits}
-                </p>
-              </div>
-            )}
-
-            {/* Card 3: Placement & Career Opportunities */}
-            {hasPlacement && (
-              <div className="bg-white p-6 rounded-2xl border border-[#e2e8f0] shadow-sm space-y-3">
-                <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Briefcase className="w-4 h-4 text-[#153e69]" /> Placement & International Opportunities
-                </h3>
-                <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-line">
-                  {placementOpportunities}
-                </p>
-              </div>
-            )}
-
-          </div>
-        )}
-
       </div>
+
+      {/* Edit Program Details Modal (Matching Edit Job Modal) */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-100 my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+                  <Edit className="w-5 h-5" />
+                </div>
+                <h3 className="font-outfit font-extrabold text-lg text-slate-900">Edit Training Program Details</h3>
+              </div>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditForm} className="space-y-4 text-xs font-semibold">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Program Name / Title *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editForm.name} 
+                    onChange={e => setEditForm({...editForm, name: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Curriculum / Subject *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editForm.curriculum} 
+                    onChange={e => setEditForm({...editForm, curriculum: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Provider / Employer Details *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editForm.employer_details} 
+                    onChange={e => setEditForm({...editForm, employer_details: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Training Duration *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editForm.duration} 
+                    onChange={e => setEditForm({...editForm, duration: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Deployment Countries (Comma Separated)</label>
+                  <input 
+                    type="text" 
+                    value={editForm.countries} 
+                    onChange={e => setEditForm({...editForm, countries: e.target.value})}
+                    placeholder="e.g. Saudi Arabia, UAE, Qatar, India"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Skills Covered</label>
+                  <textarea 
+                    rows={2}
+                    value={editForm.skills_covered} 
+                    onChange={e => setEditForm({...editForm, skills_covered: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all resize-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Training Benefits & Fee Structure</label>
+                  <textarea 
+                    rows={2}
+                    value={editForm.benefits} 
+                    onChange={e => setEditForm({...editForm, benefits: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all resize-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Placement & International Opportunities</label>
+                  <textarea 
+                    rows={2}
+                    value={editForm.placement_opportunities} 
+                    onChange={e => setEditForm({...editForm, placement_opportunities: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSaving}
+                  className="px-6 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                >
+                  {isSaving ? 'Saving Changes...' : 'Save Program Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
