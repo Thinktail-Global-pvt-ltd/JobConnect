@@ -27,25 +27,20 @@ class JobModeratorController extends Controller
      */
     public function index(Request $request)
     {
-        // Auto-fix DB jobs where non-admin users/employers were incorrectly flagged as is_admin_created
+        // Auto-fix existing DB jobs where non-admin employers (like Nisha / Sheriff's Kitchen) had hardcoded admin role
         try {
-            JobPost::where('is_admin_created', true)
-                ->where(function($q) {
-                    $q->where('submitted_by_role', '!=', 'admin')
-                      ->orWhereNull('submitted_by_role')
-                      ->orWhereHas('creator', function($userQuery) {
-                          $userQuery->where('active_profile', '!=', 'admin')
-                                    ->where('user_role', '!=', 'admin');
-                      });
-                })
-                ->whereHas('creator', function($userQuery) {
-                    $userQuery->where('active_profile', '!=', 'admin')
-                              ->where('user_role', '!=', 'admin');
-                })
-                ->update([
-                    'is_admin_created' => false,
-                    'submitted_by_role' => 'employer'
-                ]);
+            JobPost::where(function($q) {
+                $q->where('is_admin_created', true)
+                  ->orWhere('submitted_by_role', 'admin');
+            })
+            ->whereHas('creator', function($q) {
+                $q->where('active_profile', '!=', 'admin')
+                  ->where('mobile_number', '!=', '9999999999');
+            })
+            ->update([
+                'is_admin_created' => false,
+                'submitted_by_role' => 'employer'
+            ]);
         } catch (\Throwable $e) {}
 
         $query = JobPost::with('creator');
