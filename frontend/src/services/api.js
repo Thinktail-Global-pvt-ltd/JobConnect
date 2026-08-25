@@ -1111,7 +1111,7 @@ export const mockApi = {
       provider_name: safeProvider,
       location: (formData.countries || formData.location || '').substring(0, 150),
       countries: (formData.countries || formData.location || '').substring(0, 150),
-      duration: (formData.duration || '').substring(0, 50),
+      duration: (formData.duration || '').substring(0, 30),
       employer_details: formData.employer_details || formData.employer || '',
       skills_covered: formData.skills_covered || formData.skills || '',
       benefits: formData.benefits || formData.training_benefits || '',

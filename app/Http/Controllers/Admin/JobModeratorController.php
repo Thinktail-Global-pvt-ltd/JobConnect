@@ -41,6 +41,8 @@ class JobModeratorController extends Controller
                     \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY skills_covered TEXT NULL");
                     \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY benefits TEXT NULL");
                     \Illuminate\Support\Facades\DB::statement("ALTER TABLE training_opportunities MODIFY placement_opportunities TEXT NULL");
+                    \Illuminate\Support\Facades\DB::statement("UPDATE training_opportunities SET duration = SUBSTRING_INDEX(duration, '\n', 1) WHERE duration LIKE '%\n%'");
+                    \Illuminate\Support\Facades\DB::statement("UPDATE training_opportunities SET duration = SUBSTRING(duration, 1, 30) WHERE LENGTH(duration) > 30");
                 } catch (\Throwable $th) {}
             }
 

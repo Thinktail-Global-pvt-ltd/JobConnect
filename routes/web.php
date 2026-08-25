@@ -1172,11 +1172,13 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
         }
 
-        $programName = mb_substr((string)$rawProgramName, 0, 200);
-        $providerName = !empty($rawProviderName) && strlen((string)$rawProviderName) <= 150 ? (string)$rawProviderName : 'Jobrito Academy';
-        $location = mb_substr((string)$rawLocation, 0, 200);
-        $duration = mb_substr((string)$rawDuration, 0, 100);
-        $contactInfo = mb_substr((string)$contactInfo, 0, 150);
+        $programName = mb_substr((string)$rawProgramName, 0, 150);
+        $providerName = !empty($rawProviderName) && strlen((string)$rawProviderName) <= 50 ? (string)$rawProviderName : 'Jobrito Academy';
+        $location = mb_substr((string)$rawLocation, 0, 150);
+        // Truncate duration to first line and max 30 chars
+        $rawDurationClean = explode("\n", trim((string)$rawDuration))[0];
+        $duration = mb_substr(trim($rawDurationClean), 0, 30);
+        $contactInfo = mb_substr((string)$contactInfo, 0, 100);
 
         $descParts = array_filter([$rawProviderName, $employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
         $description = !empty($descParts) ? implode("\n\n", $descParts) : ($request->input('description') ?? 'Training opportunity');
@@ -1187,7 +1189,7 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             'description' => $description,
             'contact_information' => mb_substr($contactInfo, 0, 100),
             'location' => mb_substr($location, 0, 150),
-            'duration' => mb_substr($duration, 0, 50),
+            'duration' => mb_substr($duration, 0, 30),
             'employer_details' => $employerDetails,
             'skills_covered' => $skillsCovered,
             'benefits' => $benefits,

@@ -587,12 +587,14 @@ export default function TrainingDetail() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Training Duration *</label>
+                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Training Duration (Max 30 chars)</label>
                   <input 
                     type="text" 
                     required
+                    maxLength={30}
+                    placeholder="e.g. 6 Months"
                     value={editForm.duration} 
-                    onChange={e => setEditForm({...editForm, duration: e.target.value})}
+                    onChange={e => setEditForm({...editForm, duration: e.target.value.substring(0, 30)})}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
                   />
                 </div>
