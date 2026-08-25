@@ -227,16 +227,26 @@ class EmployerController extends Controller
                                 : (json_decode($chefProfile->availability_info, true) ?: []);
                         }
 
+                        $opExpertise = $chefProfile->operational_expertise ?? ($chefProfile->operational_experties ?? null);
+                        if (!$opExpertise && $applicant) {
+                            $opExpertise = $applicant->operational_expertise ?? ($applicant->operational_experties ?? null);
+                        }
+
                         $chefData = [
                             'id' => $chefProfile->id,
                             'user_id' => $chefProfile->user_id,
                             'cuisine_specialty' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
                             'specialties' => $chefProfile->cuisine_specialty ?: 'Multi-Cuisine',
+                            'operational_expertise' => $opExpertise,
+                            'operational_experties' => $opExpertise,
+                            'optational_expertices' => $opExpertise,
                             'bio' => $chefProfile->bio ?: '',
                             'calendly_link' => $chefProfile->calendly_link ?: '',
                             'approval_status' => $chefProfile->approval_status ?: 'approved',
                             'availability_info' => $availability,
                         ];
+                    } else {
+                        $opExpertise = $applicant ? ($applicant->operational_expertise ?? ($applicant->operational_experties ?? null)) : null;
                     }
 
                     $othersList = [];
@@ -330,6 +340,9 @@ class EmployerController extends Controller
                         'bio' => $chefProfile ? $chefProfile->bio : null,
                         'cuisine_specialty' => $chefProfile ? $chefProfile->cuisine_specialty : null,
                         'specialties' => $chefProfile ? $chefProfile->cuisine_specialty : null,
+                        'operational_expertise' => $opExpertise,
+                        'operational_experties' => $opExpertise,
+                        'optational_expertices' => $opExpertise,
                         'calendly_link' => $chefProfile ? $chefProfile->calendly_link : null,
                         'chef_profile' => $chefData,
                         'chef_profile_details' => $chefData,
@@ -361,6 +374,9 @@ class EmployerController extends Controller
                             'active_role' => $applicant->active_role ?? 'job_seeker',
                             'user_role' => $applicant->user_role ?? 'job_seeker',
                             'skills' => $skills,
+                            'operational_expertise' => $opExpertise,
+                            'operational_experties' => $opExpertise,
+                            'optational_expertices' => $opExpertise,
                             'chef_profile' => $chefData,
                             'socials' => $socialsData,
                         ] : null
