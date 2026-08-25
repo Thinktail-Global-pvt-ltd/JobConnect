@@ -269,6 +269,31 @@ Route::match(['get', 'post'], '/backend/api/employer/chefs', function() {
     return (new \App\Http\Controllers\Api\ChefProfileController)->employerFeed();
 });
 
+Route::match(['get', 'post'], '/api/admin/community-posts', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('post')) {
+        return (new \App\Http\Controllers\Admin\AdminPostController)->store($request);
+    }
+    return (new \App\Http\Controllers\Admin\AdminPostController)->index($request);
+});
+Route::match(['get', 'post'], '/backend/api/admin/community-posts', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('post')) {
+        return (new \App\Http\Controllers\Admin\AdminPostController)->store($request);
+    }
+    return (new \App\Http\Controllers\Admin\AdminPostController)->index($request);
+});
+Route::match(['patch', 'post', 'put'], '/api/admin/community-posts/{id}', function(\Illuminate\Http\Request $request, $id) {
+    return (new \App\Http\Controllers\Admin\AdminPostController)->update($request, $id);
+});
+Route::match(['patch', 'post', 'put'], '/backend/api/admin/community-posts/{id}', function(\Illuminate\Http\Request $request, $id) {
+    return (new \App\Http\Controllers\Admin\AdminPostController)->update($request, $id);
+});
+Route::match(['patch', 'post', 'put'], '/api/admin/community-posts/{id}/status', function(\Illuminate\Http\Request $request, $id) {
+    return (new \App\Http\Controllers\Admin\AdminPostController)->update($request, $id);
+});
+Route::match(['patch', 'post', 'put'], '/backend/api/admin/community-posts/{id}/status', function(\Illuminate\Http\Request $request, $id) {
+    return (new \App\Http\Controllers\Admin\AdminPostController)->update($request, $id);
+});
+
 // Backend API Prefix Route Group (enables /backend/api/... endpoints directly)
 Route::prefix('backend/api')->middleware('api')->group(function () {
     require __DIR__ . '/api.php';

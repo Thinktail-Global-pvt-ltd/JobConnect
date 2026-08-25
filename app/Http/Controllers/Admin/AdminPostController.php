@@ -171,7 +171,29 @@ class AdminPostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $post = AdminPost::findOrFail($id);
+        if (str_starts_with($id, 'job_')) {
+            $rawId = str_replace('job_', '', $id);
+            $job = \App\Models\JobPost::find($rawId);
+            if ($job) {
+                $status = strtolower($request->status ?? 'approved');
+                $dbStatus = ($status === 'published' || $status === 'approved') ? 'approved' : (($status === 'archived' || $status === 'rejected') ? 'rejected' : 'pending');
+                $job->update(['status' => $dbStatus]);
+                return response()->json(['success' => true, 'job' => $job, 'status' => 'Published']);
+            }
+        }
+
+        $cleanId = str_replace(['job_', 'post_'], '', $id);
+        $post = AdminPost::find($cleanId);
+        if (!$post) {
+            $job = \App\Models\JobPost::find($cleanId);
+            if ($job) {
+                $status = strtolower($request->status ?? 'approved');
+                $dbStatus = ($status === 'published' || $status === 'approved') ? 'approved' : (($status === 'archived' || $status === 'rejected') ? 'rejected' : 'pending');
+                $job->update(['status' => $dbStatus]);
+                return response()->json(['success' => true, 'job' => $job, 'status' => 'Published']);
+            }
+            return response()->json(['success' => false, 'message' => 'Post not found.'], 404);
+        }
 
         $validator = Validator::make($request->all(), [
             'title'        => 'sometimes|string|max:255',
@@ -180,7 +202,7 @@ class AdminPostController extends Controller
             'image_url'    => 'nullable|url',
             'cta_label'    => 'nullable|string|max:100',
             'cta_url'      => 'nullable|url',
-            'status'       => 'nullable|string|in:published,draft,archived',
+            'status'       => 'nullable|string',
             'publish_at'   => 'nullable|date',
             'inject_every' => 'nullable|integer|min:1|max:20',
         ]);

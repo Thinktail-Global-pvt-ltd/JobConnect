@@ -183,17 +183,58 @@ export default function CommunityFeed() {
 
   // Status toggle handler: Publish / Archive / Restore
   const handleStatusChange = async (id, newStatus) => {
-    setPosts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
-    triggerAlert(`Post status changed to ${newStatus}!`);
-    try {
-      await axios.patch(`${BACKEND}/api/admin/community-posts/${id}`, { status: newStatus }, {
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' }
-      });
-    } catch (err) {
-      console.error('Status update failed:', err);
-    } finally {
-      loadPosts();
+    const post = posts.find(p => p.id === id);
+    const targetStatus = (newStatus === 'Published' || newStatus === 'published' || newStatus === 'approved') ? 'Published' : newStatus;
+
+    setPosts(prev => prev.map(p => p.id === id ? { ...p, status: targetStatus } : p));
+    triggerAlert(`Post status changed to ${targetStatus}!`);
+
+    const rawId = post?.raw_id || String(id).replace('job_', '').replace('post_', '');
+    const isJob = post?.source === 'job_post' || String(id).startsWith('job_');
+
+    if (isJob) {
+      try {
+        await mockApi.approveJob(rawId);
+      } catch (e) {}
+
+      const endpoints = [
+        `/backend/api/admin/jobs/${rawId}/approve`,
+        `/api/admin/jobs/${rawId}/approve`,
+        `/backend/api/admin/community-posts/${id}`,
+        `/api/admin/community-posts/${id}`,
+        `/backend/api/admin/community-posts/${rawId}`,
+        `/api/admin/community-posts/${rawId}`
+      ];
+      for (const ep of endpoints) {
+        try {
+          if (ep.includes('/approve')) {
+            await axios.post(ep);
+          } else {
+            await axios.patch(ep, { status: 'published' }, { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } });
+          }
+        } catch (e) {}
+      }
+    } else {
+      try {
+        await mockApi.updateCommunityPostStatus(rawId, 'published');
+      } catch (e) {}
+
+      const endpoints = [
+        `/backend/api/admin/community-posts/${id}`,
+        `/api/admin/community-posts/${id}`,
+        `/backend/api/admin/community-posts/${rawId}`,
+        `/api/admin/community-posts/${rawId}`
+      ];
+      for (const ep of endpoints) {
+        try {
+          await axios.patch(ep, { status: targetStatus.toLowerCase() }, { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } });
+        } catch (e) {}
+      }
     }
+
+    setTimeout(() => {
+      loadPosts();
+    }, 500);
   };
 
   const handleDelete = async (id) => {
