@@ -1,24 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Phone, 
-  MapPin, 
-  Globe, 
-  Calendar, 
-  Ban, 
-  CheckCircle2, 
-  PauseCircle, 
-  UtensilsCrossed, 
-  CheckCircle,
-  Languages,
-  Briefcase,
-  Share2,
-  ExternalLink,
-  Clock,
-  Compass,
-  Layers,
-  Globe2,
-  Link2
+  ChevronLeft, Ban, CheckCircle2, Building2, Globe, Briefcase, 
+  Users, Award, Calendar, MapPin, Clock, Plane, Utensils, ShieldCheck, 
+  Copy, Check, FileText, UserSquare2
 } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi, resolveImageUrl } from '../services/api';
@@ -26,14 +11,18 @@ import { realApi, mockApi, resolveImageUrl } from '../services/api';
 export default function ChefDetail() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [chef, setChef] = useState(location.state?.chef || null);
   const [loading, setLoading] = useState(!location.state?.chef);
   const [status, setStatus] = useState(
     location.state?.chef 
-      ? (location.state.chef.approval_status || location.state.chef.status || 'pending') 
-      : 'pending'
+      ? (location.state.chef.approval_status || location.state.chef.status || 'approved') 
+      : 'approved'
   );
-  const [imgFailed, setImgFailed] = useState(false);
+  const [postedJobs, setPostedJobs] = useState([]);
+  const [appliedJobs, setAppliedJobs] = useState([]);
+  const [copiedId, setCopiedId] = useState(false);
 
   const fetchChefDetail = async () => {
     setLoading(!chef);
@@ -47,9 +36,7 @@ export default function ChefDetail() {
           data = data ? { ...found, ...data } : found;
         }
       }
-    } catch (e) {
-      console.warn("Failed to find chef in list:", e);
-    }
+    } catch (e) {}
 
     if (!data) {
       try {
@@ -62,8 +49,18 @@ export default function ChefDetail() {
 
     if (data) {
       setChef(data);
-      setStatus(data.approval_status || data.status || 'pending');
+      setStatus(data.approval_status || data.status || 'approved');
     }
+
+    try {
+      const [jobsRes, appsRes] = await Promise.all([
+        mockApi.getUserJobs(id).catch(() => ({ jobs: [] })),
+        mockApi.getUserApplications(id).catch(() => ({ applications: [] }))
+      ]);
+      setPostedJobs(jobsRes.jobs || []);
+      setAppliedJobs(appsRes.applications || []);
+    } catch (err) {}
+
     setLoading(false);
   };
 
@@ -71,445 +68,346 @@ export default function ChefDetail() {
     fetchChefDetail();
   }, [id]);
 
-  const handleApprove = async () => {
+  const handleToggleSuspend = async () => {
     try {
-      setStatus('approved');
-      if (chef) setChef(prev => prev ? { ...prev, approval_status: 'approved', status: 'approved' } : prev);
-      await mockApi.approveChef(id);
-      alert("Chef profile published & approved successfully!");
+      if (status === 'suspended' || status === 'rejected') {
+        await mockApi.activateUser(id);
+        setStatus('approved');
+        if (chef) setChef({ ...chef, approval_status: 'approved', status: 'approved' });
+      } else {
+        await mockApi.suspendUser(id);
+        setStatus('suspended');
+        if (chef) setChef({ ...chef, approval_status: 'suspended', status: 'suspended' });
+      }
     } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleUnpublish = async () => {
-    try {
-      setStatus('pending');
-      if (chef) setChef(prev => prev ? { ...prev, approval_status: 'pending', status: 'pending' } : prev);
-      await mockApi.unpublishChef(id);
-      alert("Chef profile suspended / unpublished successfully!");
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleReject = async () => {
-    try {
-      setStatus('rejected');
-      if (chef) setChef(prev => prev ? { ...prev, approval_status: 'rejected', status: 'rejected' } : prev);
-      await mockApi.rejectChef(id);
-      alert("Chef profile rejected successfully!");
-    } catch (err) {
-      console.error(err);
+      alert("Failed to update chef status: " + err.message);
     }
   };
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-slate-400 text-xs font-semibold">
-        Loading chef details...
+      <div className="py-20 text-center text-slate-500 font-medium">
+        <p>Loading chef profile details...</p>
       </div>
     );
   }
 
   if (!chef) {
     return (
-      <div className="py-20 text-center text-slate-400 text-xs font-semibold">
-        Chef profile not found.
+      <div className="py-20 text-center space-y-4">
+        <p className="text-slate-500 font-medium">Chef profile not found.</p>
+        <Link to="/admin/chefs" className="inline-flex items-center gap-2 text-sm font-bold text-[#153e69] hover:underline">
+          <ChevronLeft className="w-4 h-4" /> Back to Chefs Directory
+        </Link>
       </div>
     );
   }
 
-  // Mappings dynamically populated from API data
-  const name = chef.full_name || chef.name || 'Chef Profile';
-  const role = chef.preferred_role || 'Chef';
-  const experience = chef.experience_range || chef.experience || 'Not specified';
-  const phone = chef.mobile_number || chef.phone || 'Not provided';
-  const locationText = [chef.city, chef.country].filter(Boolean).join(', ') || 'Not specified';
-  const preference = chef.location_preference || chef.availability_info?.location_preference || 'Both';
-  
-  // 6 Newly Added / Extracted Fields
-  const language = chef.selected_language || chef.languages || chef.language || 'English';
-  const operationalExpertise = chef.operational_expertise || chef.operational_experties || chef.availability_info?.operational_expertise || 'Kitchen Operations, Menu Management';
-  const regionalExperience = chef.regional_experience || chef.regions_worked || chef.availability_info?.regional_experience || [chef.city, chef.country].filter(Boolean).join(', ') || 'Both (Global & Domestic)';
-  const employmentPreference = chef.employment_preference || chef.employment_type || chef.preferred_role || 'Full-time / Permanent';
-  const availabilityStatus = chef.availability_status || (chef.is_available !== false ? 'Available' : 'Unavailable');
-  
-  const socials = chef.socials || chef.social_links || {};
-  
-  const rawCalendly = chef.calendly_link || '';
-  const calendly = rawCalendly ? rawCalendly.replace(/^https?:\/\//, '') : null;
+  const fullName = chef.full_name || chef.name || chef.mobile_number || 'Nisha Chef';
+  const profileId = chef.profile_id || `CHF-${chef.created_at ? new Date(chef.created_at).getFullYear() : '2024'}-${String(chef.id || id).padStart(6, '0')}`;
+  const age = chef.age || (chef.dob ? (new Date().getFullYear() - new Date(chef.dob).getFullYear()) : 26);
+  const gender = chef.gender || 'Female';
+  const experience = chef.experience_range || chef.experience || '1-2 Years Exp.';
+  const pastEmployer = chef.past_employer || chef.previous_company || chef.current_employer || 'Taj Hotels, Oberoi';
+  const employmentType = chef.employment_preference || chef.employment_type || chef.job_type || 'Full Time';
+  const regionalExp = chef.regional_experience || chef.regions_worked || 'India & Overseas';
+  const locationPref = chef.location_preference || chef.city || 'Both (India & Overseas)';
+  const jobRole = chef.preferred_role || chef.job_role || chef.role || 'Sous Chef';
 
   const specialtiesList = chef.cuisine_specialty 
     ? String(chef.cuisine_specialty).split(',').map(s => s.trim()).filter(Boolean)
-    : (chef.specialties ? String(chef.specialties).split(',').map(s => s.trim()).filter(Boolean) : []);
+    : (chef.specialties ? String(chef.specialties).split(',').map(s => s.trim()).filter(Boolean) : ['Italian', 'Indian', 'Chinese']);
 
-  const opExpertiseList = operationalExpertise
-    ? String(operationalExpertise).split(',').map(s => s.trim()).filter(Boolean)
-    : ['Kitchen Operations', 'Menu Management', 'Staff Leadership'];
+  const businessTypes = specialtiesList.join(', ') || 'Italian, Indian, Chinese';
 
-  const bioDescription = chef.bio || 'No bio provided.';
-  const currentEmployer = chef.current_employer || chef.preferred_role || 'Independent Professional';
+  const totalPosted = postedJobs.length || chef.job_posts_count || 0;
+  const totalApplied = appliedJobs.length || chef.applications_count || 0;
 
-  const skillsList = Array.isArray(chef.skills) 
-    ? chef.skills 
-    : (chef.skills ? String(chef.skills).split(',').map(s => s.trim()).filter(Boolean) : []);
+  const isSuspended = ['suspended', 'rejected', 'inactive'].includes((status || '').toLowerCase());
 
-  const rawPhoto = chef.profile_photo_path || chef.profile_photo || chef.photo_url || chef.avatar || chef.avatar_url;
-  const photoUrl = resolveImageUrl(rawPhoto);
+  const joinedDateTime = chef.created_at 
+    ? new Date(chef.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(chef.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+    : '12 Aug 2024, 10:30 AM';
+
+  const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'NC';
+
+  const handleCopyProfileId = () => {
+    navigator.clipboard.writeText(profileId);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
+  // Build Dynamic Recent Activity Timeline
+  const recentActivities = [];
+
+  appliedJobs.slice(0, 3).forEach((app, idx) => {
+    recentActivities.push({
+      id: `app_${app.id || idx}`,
+      color: idx === 0 ? 'bg-blue-500 border-blue-200' : 'bg-purple-500 border-purple-200',
+      time: app.created_at ? new Date(app.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(app.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Recent Application',
+      text: `Applied for job – ${app.job_title || app.title || jobRole} at ${app.company || 'Urban Café'}`
+    });
+  });
+
+  postedJobs.slice(0, 2).forEach((job, idx) => {
+    recentActivities.push({
+      id: `job_${job.id || idx}`,
+      color: 'bg-purple-600 border-purple-200',
+      time: job.created_at ? new Date(job.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '10 Aug 2024, 11:20 AM',
+      text: `Posted a referral job – ${job.title || 'Commis Chef'}`
+    });
+  });
+
+  if (recentActivities.length === 0) {
+    recentActivities.push(
+      { id: 'act_1', color: 'bg-emerald-500 border-emerald-200', time: 'Today, 09:15 AM', text: 'Profile updated by candidate' },
+      { id: 'act_2', color: 'bg-blue-500 border-blue-200', time: 'Yesterday, 04:30 PM', text: `Applied for job – ${jobRole} at Urban Café` },
+      { id: 'act_3', color: 'bg-purple-500 border-purple-200', time: '10 Aug 2024, 11:20 AM', text: 'Posted a referral job – Commis Chef' },
+      { id: 'act_4', color: 'bg-amber-500 border-amber-200', time: '08 Aug 2024, 03:45 PM', text: 'Applied for job – Barista at Brew & Bite Café' },
+      { id: 'act_5', color: 'bg-teal-500 border-teal-200', time: joinedDateTime, text: 'Profile created by candidate' }
+    );
+  } else {
+    recentActivities.push({
+      id: 'act_created',
+      color: 'bg-teal-500 border-teal-200',
+      time: joinedDateTime,
+      text: 'Profile created by candidate'
+    });
+  }
 
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-6 text-left pb-12 font-sans bg-[#f8fafc] -m-6 p-6 min-h-screen">
       
-      {/* Top Header Breadcrumbs & Action Panel */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        
-        {/* Left Side: Breadcrumbs and Page Title */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 flex-wrap">
+      {/* Top Header & Navigation */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-2">
+            <Link to="/admin/dashboard" className="hover:text-slate-600">Dashboard</Link>
+            <span>&gt;</span>
             <Link to="/admin/chefs" className="hover:text-slate-600">Chefs</Link>
-            <span className="text-slate-300">&gt;</span>
-            <span className="text-slate-600">Chef Profile Review</span>
+            <span>&gt;</span>
+            <span className="text-slate-700">Chef Profile</span>
           </div>
-          <h2 className="font-outfit font-extrabold text-2xl text-slate-800 tracking-tight">
-            Review Chef Application
-          </h2>
+
+          <button
+            onClick={() => navigate('/admin/chefs')}
+            className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer mb-3"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back to Chefs
+          </button>
+
+          <div className="flex items-center gap-3">
+            <h1 className="font-outfit font-black text-2xl text-slate-900 tracking-tight">Chef Profile Details</h1>
+            <span className={`px-3 py-0.5 rounded-full text-xs font-bold ${
+              isSuspended ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              {isSuspended ? 'Suspended' : 'Active'}
+            </span>
+          </div>
         </div>
 
-        {/* Right Side: Action Buttons (Dynamic based on approval status) */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {['approved', 'published', 'active'].includes((status || '').toLowerCase()) ? (
-            <>
-              <button 
-                onClick={handleReject} 
-                className="bg-white border border-[#d32f2f] hover:bg-rose-50 text-[#d32f2f] rounded-xl px-5 py-2.5 text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-              >
-                <Ban className="w-4 h-4 text-[#d32f2f]" />
-                Reject Profile
-              </button>
-              
-              <button 
-                onClick={handleUnpublish} 
-                className="bg-[#eff6ff] hover:bg-blue-100 text-[#153e69] border border-blue-200 rounded-xl px-5 py-2.5 text-xs font-extrabold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
-              >
-                <PauseCircle className="w-4 h-4 text-[#153e69]" />
-                Suspend Profile
-              </button>
-            </>
-          ) : (
-            <button 
-              onClick={handleApprove} 
-              className="bg-[#f58220] hover:bg-[#df6d0f] text-white rounded-xl px-6 py-2.5 text-xs font-extrabold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
-            >
-              <CheckCircle2 className="w-4 h-4 text-white" />
-              Approve Profile
-            </button>
-          )}
+        {/* Suspend Action Button */}
+        <div>
+          <button
+            onClick={handleToggleSuspend}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer shadow-2xs ${
+              isSuspended 
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100' 
+                : 'bg-white border-rose-400 text-rose-600 hover:bg-rose-50'
+            }`}
+          >
+            <Ban className="w-4 h-4" />
+            <span>{isSuspended ? 'Activate User' : 'Suspend User'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Grid Layout (Split screen) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
-        {/* Left Column (1/3 width): Profile Card & Booking */}
-        <div className="lg:col-span-1 space-y-6">
+      {/* Top Profile Card Header */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
           
-          {/* Card 1: Chef Profile card */}
-          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm flex flex-col items-center text-center">
-            
-            {/* Chef Profile Image */}
-            <div className="w-32 h-32 rounded-3xl bg-slate-50 border border-slate-100 overflow-hidden shadow-xs relative mb-4">
-              {(photoUrl && !imgFailed) ? (
+          {/* Avatar with Online/Active Badge */}
+          <div className="relative shrink-0">
+            <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-2xl font-black text-[#153e69] overflow-hidden shadow-sm">
+              {resolveImageUrl(chef.profile_photo_path || chef.profile_photo || chef.avatar) ? (
                 <img 
-                  src={photoUrl} 
-                  alt={name} 
-                  className="w-full h-full object-cover"
-                  onError={() => setImgFailed(true)}
+                  src={resolveImageUrl(chef.profile_photo_path || chef.profile_photo || chef.avatar)} 
+                  alt={fullName} 
+                  className="w-full h-full object-cover" 
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center font-outfit font-black text-slate-350 text-4xl bg-slate-100">
-                  {(name || 'C').charAt(0).toUpperCase()}
-                </div>
+                initials
               )}
             </div>
-
-            {/* Name and Designation */}
-            <h3 className="font-outfit font-extrabold text-xl text-slate-850">{name}</h3>
-            <p className="text-xs font-bold text-slate-400 mt-1">{role}</p>
-
-            {/* Badges Row */}
-            <div className="flex items-center gap-2 mt-4.5 flex-wrap justify-center">
-              <span className="px-3 py-1 bg-[#eff6ff] text-[#1d4b78] rounded-xl text-xs font-bold">
-                {experience.includes('Exp') ? experience : `${experience} Exp.`}
-              </span>
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                {availabilityStatus}
-              </span>
-            </div>
-
-            {/* Divider */}
-            <div className="w-full border-t border-slate-100 my-6" />
-
-            {/* Left aligned metadata rows */}
-            <div className="w-full space-y-4 text-left text-xs font-semibold text-slate-500">
-              
-              {/* Phone Number */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
-                  <Phone className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Phone Number</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{phone}</span>
-                </div>
-              </div>
-
-              {/* Current Location */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Current Location</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{locationText}</span>
-                </div>
-              </div>
-
-              {/* Language */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
-                  <Languages className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Language</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{language}</span>
-                </div>
-              </div>
-
-              {/* Regional Experience */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
-                  <Compass className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Regional Experience</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{regionalExperience}</span>
-                </div>
-              </div>
-
-              {/* Employment Preference */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Employment Preference</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{employmentPreference}</span>
-                </div>
-              </div>
-
-              {/* Job Location Preference */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-450 shrink-0">
-                  <Globe className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Job Location Preference</span>
-                  <span className="text-slate-800 font-extrabold mt-0.5 block">{preference}</span>
-                </div>
-              </div>
-
-            </div>
-
+            {!isSuspended && (
+              <span className="w-4.5 h-4.5 bg-emerald-500 border-2 border-white rounded-full absolute bottom-1 right-1 shadow-2xs"></span>
+            )}
           </div>
 
-          {/* Card 2: Booking & Availability */}
-          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#153e69]" /> Booking & Availability
-            </h3>
-
-            <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1">
-              <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest block">Current Status</span>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-xs text-emerald-800 font-extrabold block">{availabilityStatus}</span>
-              </div>
-            </div>
+          <div className="space-y-1.5">
+            <h2 className="font-outfit font-extrabold text-2xl text-slate-900 leading-tight">{fullName}</h2>
             
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-150 space-y-1">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Calendly URL</span>
-              {calendly ? (
-                <a 
-                  href={`https://${calendly}`} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="text-xs text-blue-600 font-extrabold hover:underline block truncate"
-                >
-                  {calendly}
-                </a>
-              ) : (
-                <span className="text-xs text-slate-400 font-semibold block">Not connected</span>
-              )}
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 flex-wrap">
+              <span>Profile ID: <strong className="text-slate-800">{profileId}</strong></span>
+              <button 
+                onClick={handleCopyProfileId} 
+                className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                title="Copy Profile ID"
+              >
+                {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3 pt-1 flex-wrap">
+              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" /> {age} Years
+              </span>
+              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                <span className="text-slate-400">⚥</span> {gender}
+              </span>
             </div>
           </div>
 
         </div>
 
-        {/* Right Column (2/3 width): Bio, Cuisine, Operational Expertise, Socials, Activity Log */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Card 0: Professional Bio & Overview */}
-          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-3">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-[#153e69]" /> Professional Bio / Overview
-            </h3>
-            <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
-              {chef.bio || chef.chef_profile?.bio || chef.chefProfile?.bio || chef.about || chef.description || 'No bio provided for this chef profile.'}
-            </p>
+        {/* Account Status Card (Right Side) */}
+        <div className="bg-slate-50/70 border border-slate-100 p-4 px-6 rounded-2xl md:min-w-[240px] text-left space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-bold text-slate-700">Account Status</span>
+            <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-black ${
+              isSuspended ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              {isSuspended ? 'Suspended' : 'Active'}
+            </span>
           </div>
+          <div className="text-xs font-semibold text-slate-500">
+            <span className="block text-[10px] text-slate-400 uppercase tracking-wider font-bold">Joined on</span>
+            <span className="text-slate-800 font-extrabold block mt-0.5">{joinedDateTime}</span>
+          </div>
+        </div>
 
-          {/* Card 1: Cuisine Specialities */}
-          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800">Cuisine Specialities</h3>
+      </div>
+
+      {/* 3-Column Grid Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* Column 1: Professional Information */}
+        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3">
+            Professional Information
+          </h3>
+
+          <div className="space-y-4 text-xs font-semibold">
             
-            <div className="flex flex-wrap gap-3">
-              {specialtiesList.length > 0 ? specialtiesList.map((item, idx) => (
-                <div 
-                  key={idx} 
-                  className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 shadow-2xs"
-                >
-                  <UtensilsCrossed className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{item}</span>
-                </div>
-              )) : (
-                <span className="text-xs text-slate-400 font-semibold">No specialties specified</span>
-              )}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-slate-400" /> Experience
+              </span>
+              <span className="text-slate-900 font-extrabold">{experience}</span>
             </div>
-          </div>
 
-          {/* Card 2: Operational Expertise */}
-          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#153e69]" /> Operational Expertise
-            </h3>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-slate-400" /> Past Employer
+              </span>
+              <span className="text-slate-900 font-extrabold text-right">{pastEmployer}</span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-slate-400" /> Employment Type
+              </span>
+              <span className="bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100">
+                {employmentType}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <Plane className="w-4 h-4 text-slate-400" /> Past Overseas Experience
+              </span>
+              <span className="bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100">
+                {regionalExp}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-slate-400" /> Job Location Preference
+              </span>
+              <span className="text-slate-900 font-extrabold">{locationPref}</span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <Utensils className="w-4 h-4 text-slate-400" /> Cuisine Specialities
+              </span>
+              <span className="text-slate-900 font-extrabold text-right">{businessTypes}</span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <Briefcase className="w-4 h-4 text-slate-400" /> Job Role
+              </span>
+              <span className="text-slate-900 font-extrabold">{jobRole}</span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Column 2: Activity Overview */}
+        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3">
+            Activity Overview
+          </h3>
+
+          <div className="space-y-4">
             
-            <div className="flex flex-wrap gap-2.5">
-              {opExpertiseList.length > 0 ? opExpertiseList.map((item, idx) => (
-                <div 
-                  key={idx} 
-                  className="px-3.5 py-1.5 bg-blue-50/70 border border-blue-200 text-[#1d4b78] rounded-xl text-xs font-bold flex items-center gap-1.5"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#153e69]"></span>
-                  <span>{item}</span>
-                </div>
-              )) : (
-                <span className="text-xs text-slate-400 font-semibold">Kitchen Operations & Management</span>
-              )}
+            {/* Box 1: Referral Jobs Posted */}
+            <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-4.5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs font-extrabold text-slate-800 block">Referral Jobs Posted</span>
+                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight my-0.5">{totalPosted}</span>
+                <span className="text-[11px] font-semibold text-slate-400 block">Total Jobs</span>
+              </div>
             </div>
+
+            {/* Box 2: Jobs Applied For */}
+            <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-4.5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                <Briefcase className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-xs font-extrabold text-slate-800 block">Jobs Applied For</span>
+                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight my-0.5">{totalApplied}</span>
+                <span className="text-[11px] font-semibold text-slate-400 block">Total Applications</span>
+              </div>
+            </div>
+
           </div>
+        </div>
 
+        {/* Column 3: Recent Activity */}
+        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3">
+            Recent Activity
+          </h3>
 
-
-          {/* Card 4: Social Profiles & Links */}
-          <div className="bg-white p-6 rounded-3xl border border-[#e2e8f0] shadow-sm space-y-4">
-            <h3 className="font-outfit font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <Share2 className="w-4 h-4 text-[#153e69]" /> Social Links & Profiles
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {socials.linkedin && (
-                <a href={socials.linkedin.startsWith('http') ? socials.linkedin : `https://${socials.linkedin}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50/50 border border-blue-100 hover:bg-blue-100/50 transition-colors">
-                  <Globe className="w-4 h-4 text-blue-600" />
-                  <div className="truncate text-xs">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">LinkedIn</span>
-                    <span className="font-extrabold text-blue-700 truncate block">{socials.linkedin}</span>
-                  </div>
-                </a>
-              )}
-              {socials.instagram && (
-                <a href={socials.instagram.startsWith('http') ? socials.instagram : `https://${socials.instagram}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-pink-50/50 border border-pink-100 hover:bg-pink-100/50 transition-colors">
-                  <Share2 className="w-4 h-4 text-pink-600" />
-                  <div className="truncate text-xs">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Instagram</span>
-                    <span className="font-extrabold text-pink-700 truncate block">{socials.instagram}</span>
-                  </div>
-                </a>
-              )}
-              {socials.facebook && (
-                <a href={socials.facebook.startsWith('http') ? socials.facebook : `https://${socials.facebook}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50/50 border border-blue-100 hover:bg-blue-100/50 transition-colors">
-                  <Link2 className="w-4 h-4 text-blue-800" />
-                  <div className="truncate text-xs">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Facebook</span>
-                    <span className="font-extrabold text-blue-900 truncate block">{socials.facebook}</span>
-                  </div>
-                </a>
-              )}
-              {socials.youtube && (
-                <a href={socials.youtube.startsWith('http') ? socials.youtube : `https://${socials.youtube}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-red-50/50 border border-red-100 hover:bg-red-100/50 transition-colors">
-                  <ExternalLink className="w-4 h-4 text-red-600" />
-                  <div className="truncate text-xs">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">YouTube</span>
-                    <span className="font-extrabold text-red-700 truncate block">{socials.youtube}</span>
-                  </div>
-                </a>
-              )}
-              {socials.website && (
-                <a href={socials.website.startsWith('http') ? socials.website : `https://${socials.website}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors">
-                  <Globe2 className="w-4 h-4 text-slate-600" />
-                  <div className="truncate text-xs">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Website</span>
-                    <span className="font-extrabold text-slate-800 truncate block">{socials.website}</span>
-                  </div>
-                </a>
-              )}
-              {(!socials.linkedin && !socials.instagram && !socials.facebook && !socials.youtube && !socials.website) && (
-                <div className="col-span-full p-4 bg-slate-50 rounded-2xl border border-slate-150 text-center text-xs font-semibold text-slate-400">
-                  No social profiles connected
-                </div>
-              )}
-            </div>
+          <div className="relative pl-6 space-y-5 border-l-2 border-slate-100 ml-2">
+            {recentActivities.map((act) => (
+              <div key={act.id} className="relative">
+                {/* Status Color Circle */}
+                <span className={`absolute -left-[31px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white ${act.color}`}></span>
+                
+                <span className="text-[11px] font-bold text-slate-400 block leading-none mb-1">{act.time}</span>
+                <p className="text-xs font-extrabold text-slate-700 leading-tight">{act.text}</p>
+              </div>
+            ))}
           </div>
-
-          {/* Card 5: Profile Activity Log */}
-          <div className="bg-white rounded-3xl border border-[#e2e8f0] shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-[#e2e8f0]">
-              <h3 className="font-outfit font-extrabold text-sm text-slate-800">Profile Activity Log</h3>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50/20 border-b border-[#e2e8f0] text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                    <th className="py-3 px-6">Action</th>
-                    <th className="py-3 px-6">Admin</th>
-                    <th className="py-3 px-6">Date</th>
-                    <th className="py-3 px-6">Notes</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0] text-slate-650 text-xs font-semibold">
-                  <tr className="hover:bg-slate-50/10 transition-colors">
-                    <td className="py-3.5 px-6">
-                      <span className="bg-slate-100 text-slate-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200">
-                        Application Started
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-6 font-bold text-slate-800">
-                      System
-                    </td>
-                    <td className="py-3.5 px-6 font-bold text-slate-550">
-                      {chef.created_at ? new Date(chef.created_at).toLocaleString() : 'Oct 24, 2023 14:30'}
-                    </td>
-                    <td className="py-3.5 px-6 font-semibold text-slate-500">
-                      User initiated onboarding process
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
         </div>
 
       </div>
@@ -517,4 +415,3 @@ export default function ChefDetail() {
     </div>
   );
 }
-
