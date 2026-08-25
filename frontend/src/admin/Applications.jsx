@@ -710,12 +710,12 @@ export default function Applications() {
 
                           {/* Match Percentage Badge */}
                           <td className="py-3.5 px-4 text-center">
-                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black shadow-2xs border ${
+                            <span className={`inline-flex items-center gap-1 text-xs font-bold ${
                               match.score >= 80 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                ? 'text-emerald-600' 
                                 : match.score >= 60 
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200' 
-                                  : 'bg-blue-50 text-blue-700 border-blue-200'
+                                  ? 'text-amber-600' 
+                                  : 'text-blue-600'
                             }`}>
                               <Target className="w-3.5 h-3.5" />
                               <span>{match.score}%</span>
