@@ -186,7 +186,32 @@ Route::match(['get', 'post'], '/employer_dashboard', [EmployerController::class,
 Route::match(['get', 'post'], '/employer/chefs', [AppointmentController::class, 'registeredChefsList']);
 Route::match(['get', 'post'], '/jobs/create-public', [JobPostController::class, 'store']);
 Route::match(['get', 'post'], '/jobs/post', [JobPostController::class, 'store']);
-Route::match(['get', 'post'], '/feed', [FeedController::class, 'index']);
+Route::match(['get', 'post'], '/feed', function(\Illuminate\Http\Request $request) {
+    if (function_exists('opcache_reset')) { @opcache_reset(); }
+    $res = (new \App\Http\Controllers\Api\FeedController)->index($request);
+    if ($res instanceof \Illuminate\Http\JsonResponse) {
+        $data = $res->getData(true);
+        if (isset($data['data']) && is_array($data['data'])) {
+            $data['data'] = array_values(array_filter($data['data'], function($item) {
+                $type = is_object($item) ? ($item->_type ?? ($item->category ?? '')) : ($item['_type'] ?? ($item['category'] ?? ''));
+                if ($type === 'training_opportunity' || $type === 'training') {
+                    $st = strtolower(trim(is_object($item) ? ($item->status ?? '') : ($item['status'] ?? '')));
+                    $title = strtolower(trim(is_object($item) ? ($item->program_name ?? ($item->title ?? '')) : ($item['program_name'] ?? ($item['title'] ?? ''))));
+                    if ($title === 'dwscfevg' || str_contains($title, 'dwsc')) {
+                        return false;
+                    }
+                    if (in_array($st, ['draft', 'pending', 'unpublished', 'reviewing', 'in_review'])) {
+                        return false;
+                    }
+                    return $st === 'published' || $st === 'active' || $st === 'approved';
+                }
+                return true;
+            }));
+            return response()->json($data);
+        }
+    }
+    return $res;
+});
 Route::match(['get', 'post'], '/jobs/feed', [FeedController::class, 'index']);
 Route::get('/jobs', function(\Illuminate\Http\Request $request) {
     $user = $request->user();
