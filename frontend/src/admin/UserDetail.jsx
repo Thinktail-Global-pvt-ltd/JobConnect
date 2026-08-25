@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  ChevronLeft, Ban, CheckCircle2, Building2, Globe, Briefcase, 
+  ChevronLeft, ChevronRight, Ban, CheckCircle2, Building2, Globe, Briefcase, 
   Users, Award, Calendar, MapPin, Clock, Plane, Utensils, ShieldCheck, 
   Copy, Check, FileText, UserSquare2, Layers, BriefcaseBusiness
 } from 'lucide-react';
