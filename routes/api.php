@@ -1365,6 +1365,111 @@ Route::get('/admin/test-apply-options', function() {
     ]);
 });
 
+if (!function_exists('handleGetMergedApplications')) {
+function handleGetMergedApplications(\Illuminate\Http\Request $request) {
+    try {
+        // 1. Fetch Job Applications from `job_applications`
+        $jobApps = \Illuminate\Support\Facades\DB::table('job_applications')
+            ->latest('created_at')
+            ->get()
+            ->map(function($a) {
+                $applicant = \App\Models\User::find($a->applicant_id ?? $a->user_id);
+                $jp = \Illuminate\Support\Facades\DB::table('job_posts')->where('id', $a->job_post_id)->first();
+                return [
+                    'id' => $a->id,
+                    'application_id' => $a->id,
+                    'applicant_id' => $a->applicant_id ?? $a->user_id,
+                    'job_post_id' => $a->job_post_id,
+                    'status' => $a->status ?? 'applied',
+                    'type' => 'job',
+                    'is_training' => false,
+                    'created_at' => $a->created_at ? \Carbon\Carbon::parse($a->created_at)->toIso8601String() : null,
+                    'applicant' => [
+                        'id' => optional($applicant)->id,
+                        'user_id' => optional($applicant)->id,
+                        'full_name' => optional($applicant)->full_name ?? 'Candidate',
+                        'mobile_number' => optional($applicant)->mobile_number ?? '',
+                        'email' => optional($applicant)->email ?? '',
+                        'city' => optional($applicant)->city ?? 'India',
+                        'active_profile' => optional($applicant)->active_profile ?? 'job_seeker'
+                    ],
+                    'job_post' => [
+                        'id' => optional($jp)->id,
+                        'title' => optional($jp)->title ?? 'Job Position',
+                        'company' => optional($jp)->company ?? 'Employer',
+                        'location' => optional($jp)->location ?? 'India',
+                        'category' => optional($jp)->category ?? 'india',
+                        'is_admin_created' => (bool)(optional($jp)->is_admin_created ?? false),
+                        'submitted_by_role' => optional($jp)->submitted_by_role ?? (optional($jp)->posted_by_role ?? 'employer'),
+                    ]
+                ];
+            });
+
+        // 2. Fetch Training Applications from `training_applications`
+        $trainingApps = \Illuminate\Support\Facades\DB::table('training_applications')
+            ->latest('created_at')
+            ->get()
+            ->map(function($ta) {
+                $applicant = \App\Models\User::find($ta->applicant_id ?? $ta->user_id);
+                $trainingId = $ta->training_id ?? ($ta->training_opportunity_id ?? $ta->job_post_id);
+                $top = \Illuminate\Support\Facades\DB::table('training_opportunities')->where('id', $trainingId)->first();
+                return [
+                    'id' => 'training_' . $ta->id,
+                    'application_id' => 'training_' . $ta->id,
+                    'applicant_id' => $ta->applicant_id ?? $ta->user_id,
+                    'training_id' => $trainingId,
+                    'job_post_id' => 'training_' . $trainingId,
+                    'status' => $ta->status ?? 'applied',
+                    'type' => 'training',
+                    'is_training' => true,
+                    'created_at' => $ta->created_at ? \Carbon\Carbon::parse($ta->created_at)->toIso8601String() : null,
+                    'applicant' => [
+                        'id' => optional($applicant)->id,
+                        'user_id' => optional($applicant)->id,
+                        'full_name' => optional($applicant)->full_name ?? 'Candidate',
+                        'mobile_number' => optional($applicant)->mobile_number ?? '',
+                        'email' => optional($applicant)->email ?? '',
+                        'city' => optional($applicant)->city ?? 'India',
+                        'active_profile' => optional($applicant)->active_profile ?? 'job_seeker'
+                    ],
+                    'job_post' => [
+                        'id' => 'training_' . $trainingId,
+                        'real_id' => $trainingId,
+                        'title' => optional($top)->program_name ?? 'Training Opportunity',
+                        'company' => optional($top)->provider_name ?? (optional($top)->employer_details ?? 'Jobrito Academy'),
+                        'location' => optional($top)->location ?? 'India',
+                        'category' => 'training',
+                        'is_training' => true,
+                        'is_admin_created' => false,
+                        'submitted_by_role' => 'admin',
+                    ]
+                ];
+            });
+
+        // 3. Merge both datasets into single array sorted by date
+        $merged = $jobApps->concat($trainingApps)->sortByDesc('created_at')->values();
+
+        return response()->json([
+            'success' => true,
+            'total' => $merged->count(),
+            'job_applications_count' => $jobApps->count(),
+            'training_applications_count' => $trainingApps->count(),
+            'applications' => $merged
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+}
+
+Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
+    return handleGetMergedApplications($request);
+});
+
+Route::get('/api/admin/applications', function(\Illuminate\Http\Request $request) {
+    return handleGetMergedApplications($request);
+});
+
 Route::get('/admin/users/{id}/applications', function($id) {
     try {
         // 1. Resolve User ID: check users table OR chef_profiles table OR employer_profiles table
@@ -1420,14 +1525,15 @@ Route::get('/admin/users/{id}/applications', function($id) {
             ->latest('created_at')
             ->get()
             ->map(function($ta) {
+                $trainingId = $ta->training_id ?? ($ta->training_opportunity_id ?? $ta->job_post_id);
                 $top = \Illuminate\Support\Facades\DB::table('training_opportunities')
-                    ->where('id', $ta->training_opportunity_id ?? ($ta->training_id ?? null))
+                    ->where('id', $trainingId)
                     ->first();
                 return [
                     'id' => 'training_' . $ta->id,
                     'type' => 'training',
                     'is_training' => true,
-                    'training_id' => $ta->training_opportunity_id ?? ($ta->training_id ?? null),
+                    'training_id' => $trainingId,
                     'status' => $ta->status ?? 'Applied',
                     'job_title' => $top->program_name ?? 'Training Opportunity',
                     'company' => $top->provider_name ?? ($top->employer_details ?? 'Jobrito Academy'),
