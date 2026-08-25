@@ -402,13 +402,30 @@ class ProfileController extends Controller
                 if ($request->has('gender') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
                     $user->gender = $request->input('gender');
                 }
-                if ($request->has('age') || $request->has('user_age')) {
-                    $user->age = $request->input('age') ?? $request->input('user_age');
+                $ageVal = $request->input('age') ?? $request->input('user_age') ?? $request->input('candidate_age');
+                if ($ageVal !== null && $ageVal !== '') {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'age')) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN age VARCHAR(255) NULL");
+                        } catch (\Throwable $e) {}
+                    }
+                    $user->age = $ageVal;
                 }
-                if ($request->has('overseas_work_experience') || $request->has('overseas_experience') || $request->has('has_overseas_experience')) {
-                    $overseasVal = $request->input('overseas_work_experience') ?? $request->input('overseas_experience') ?? $request->input('has_overseas_experience');
+
+                $overseasVal = $request->input('overseas_work_experience') ?? $request->input('overseas_experience') ?? $request->input('has_overseas_experience') ?? $request->input('overseas_exp');
+                if ($overseasVal !== null && $overseasVal !== '') {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'overseas_work_experience')) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN overseas_work_experience VARCHAR(255) NULL");
+                        } catch (\Throwable $e) {}
+                    }
                     $user->overseas_work_experience = $overseasVal;
-                    if ($user->chefProfile && \Illuminate\Support\Facades\Schema::hasColumn('chef_profiles', 'overseas_work_experience')) {
+                    if ($user->chefProfile) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('chef_profiles', 'overseas_work_experience')) {
+                            try {
+                                \Illuminate\Support\Facades\DB::statement("ALTER TABLE chef_profiles ADD COLUMN overseas_work_experience VARCHAR(255) NULL");
+                            } catch (\Throwable $e) {}
+                        }
                         $user->chefProfile->overseas_work_experience = $overseasVal;
                         $user->chefProfile->save();
                     }
