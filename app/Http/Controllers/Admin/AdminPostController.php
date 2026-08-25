@@ -78,12 +78,14 @@ class AdminPostController extends Controller
                     ->orderBy('id', 'desc')
                     ->get()
                     ->filter(function($t) {
-                        $tId = (string)($t->id ?? '');
-                        $pName = strtolower(trim($t->program_name ?? ($t->name ?? ($t->title ?? ''))));
-                        if ($tId === '23' || str_contains($pName, 'dwscfevg') || str_contains($pName, 'dwsc')) {
+                        $jsonStr = strtolower(json_encode($t));
+                        if (str_contains($jsonStr, 'dwscfevg') || str_contains($jsonStr, 'dwsc')) {
                             return false;
                         }
                         $st = strtolower(trim($t->status ?? ($t->approval_status ?? '')));
+                        if (in_array($st, ['draft', 'pending', 'unpublished', 'reviewing', 'in_review', 'in review'])) {
+                            return false;
+                        }
                         return $st === 'published' || $st === 'active' || $st === 'approved';
                     });
 
