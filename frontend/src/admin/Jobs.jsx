@@ -5,6 +5,7 @@ import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
 import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, AlertOctagon, Zap, Building2, MapPin, Plane, Link2, UserCheck, ShieldCheck } from 'lucide-react';
 import { showStatusAlert } from '../utils/sweetalert';
+import { JOB_ROLES } from '../constants/jobRoles';
 
 export default function Jobs() {
   const location = useLocation();
@@ -760,26 +761,11 @@ export default function Jobs() {
                   }}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                 >
-                  <option value="Executive Chef">Executive Chef</option>
-                  <option value="Head Chef">Head Chef</option>
-                  <option value="Sous Chef">Sous Chef</option>
-                  <option value="Chef de Partie">Chef de Partie</option>
-                  <option value="Commis Chef">Commis Chef</option>
-                  <option value="Pastry Chef">Pastry Chef</option>
-                  <option value="Bakery Chef">Bakery Chef</option>
-                  <option value="Pizza Chef">Pizza Chef</option>
-                  <option value="Grill Chef">Grill Chef</option>
-                  <option value="Indian Chef">Indian Chef</option>
-                  <option value="Arabic Chef">Arabic Chef</option>
-                  <option value="Barista">Barista</option>
-                  <option value="Waiter / Server">Waiter / Server</option>
-                  <option value="Restaurant Manager">Restaurant Manager</option>
-                  <option value="Front Desk Officer">Front Desk Officer</option>
-                  <option value="Housekeeping Attendant">Housekeeping Attendant</option>
-                  <option value="Kitchen Helper">Kitchen Helper</option>
-                  <option value="Fast Food Cook">Fast Food Cook</option>
-                  <option value="General Manager">General Manager</option>
-                  <option value="Other">Custom Job Role...</option>
+                  {JOB_ROLES.map(role => (
+                    <option key={role} value={role}>
+                      {role === 'Other' ? 'Custom Job Role...' : role}
+                    </option>
+                  ))}
                 </select>
               </div>
 
