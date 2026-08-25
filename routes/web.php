@@ -40,6 +40,8 @@ Route::match(['get', 'post'], '/debug-error', function() {
         ], 500);
     }
 });
+
+Route::match(['get', 'post'], '/api/get-token/user/{id}', function($id) {
     $u = \App\Models\User::find($id) ?: \App\Models\User::where('active_profile', 'employer')->orWhere('active_role', 'employer')->orWhere('user_role', 'employer')->first();
     if (!$u) return response()->json(['success' => false, 'message' => 'Employer User not found']);
     $token = $u->createToken('API_Test_Token')->plainTextToken;

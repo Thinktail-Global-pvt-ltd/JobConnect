@@ -767,7 +767,6 @@ Route::match(['get', 'post'], '/api/admin/community-posts', function(\Illuminate
     }
     return $res;
 });
-});
 
 Route::post('/admin/community-posts', function(\Illuminate\Http\Request $request) {
     $validated = $request->validate([
