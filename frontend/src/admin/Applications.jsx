@@ -251,6 +251,7 @@ export default function Applications() {
   // Group applications by job_post_id or training_id
   const groupedJobsMap = apps.reduce((acc, app) => {
     const isTraining = app.is_training || app.type === 'training' || app.application_type === 'training' || app.job_post?.is_training || app.job_post?.category === 'training';
+    const isAdminCreated = Boolean(app.job_post?.is_admin_created) || Boolean(app.is_admin_created) || (app.job_post?.submitted_by_role || app.submitted_by_role || '').toLowerCase() === 'admin';
     const jobId = app.job_post_id || app.job_post?.id || (isTraining ? `training_${app.training_id || app.id}` : 'unknown');
     if (!acc[jobId]) {
       acc[jobId] = {
@@ -261,6 +262,8 @@ export default function Applications() {
         location: app.job_post?.location || 'India',
         category: app.job_post?.category || (isTraining ? 'training' : 'india'),
         is_training: isTraining,
+        is_admin_created: isAdminCreated,
+        submitted_by_role: app.job_post?.submitted_by_role || app.submitted_by_role || (isAdminCreated ? 'admin' : ''),
         type_label: isTraining ? 'Training Opportunity' : 'Job Listing',
         applications: [],
         latestDate: app.created_at,
@@ -289,6 +292,7 @@ export default function Applications() {
       if (!hasUserApp) return false;
     }
 
+    if (appCategory === 'admin') return (j.is_admin_created || (j.submitted_by_role || '').toLowerCase() === 'admin') && matchSearch;
     if (appCategory === 'job') return !j.is_training && matchSearch;
     if (appCategory === 'training') return j.is_training && matchSearch;
     return matchSearch;
@@ -435,13 +439,20 @@ export default function Applications() {
               </button>
             </div>
 
-            {/* Category Filter Pills (All / Jobs / Training) */}
+            {/* Category Filter Pills (All / Admin / Jobs / Training) */}
             <div className="flex items-center gap-2 pb-3.5">
               <button 
                 onClick={() => setAppCategory('all')} 
                 className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer ${appCategory === 'all' ? 'bg-[#153e69] text-white shadow-sm' : 'bg-white text-slate-600 hover:text-[#153e69] border border-[#d7dce2]'}`}
               >
                 All ({apps.length})
+              </button>
+              <button 
+                onClick={() => setAppCategory('admin')} 
+                className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${appCategory === 'admin' ? 'bg-amber-600 text-white shadow-sm' : 'bg-white text-amber-800 hover:bg-amber-50 border border-amber-200'}`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600 inline" />
+                <span>Created by Admin ({groupedJobsList.filter(j => j.is_admin_created || (j.submitted_by_role || '').toLowerCase() === 'admin').length})</span>
               </button>
               <button 
                 onClick={() => setAppCategory('job')} 
@@ -626,13 +637,17 @@ export default function Applications() {
 
                           {/* Action Button */}
                           <td className="py-4.5 px-6 text-center">
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
-                              className="px-3 py-1.5 rounded-md bg-[#153e69] hover:bg-[#12345d] text-white font-bold text-[11px] transition-all flex items-center gap-1 mx-auto cursor-pointer"
-                            >
-                              <span>View Applications ({job.applications.length})</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
+                            {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin' || appCategory === 'admin') ? (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
+                                className="px-3 py-1.5 rounded-md bg-[#153e69] hover:bg-[#12345d] text-white font-bold text-[11px] transition-all flex items-center gap-1 mx-auto cursor-pointer"
+                              >
+                                <span>View Applications ({job.applications.length})</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 font-bold italic">—</span>
+                            )}
                           </td>
                         </tr>
                       );
