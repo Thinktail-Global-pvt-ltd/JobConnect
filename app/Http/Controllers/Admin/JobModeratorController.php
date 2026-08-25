@@ -29,15 +29,13 @@ class JobModeratorController extends Controller
     {
         // Auto-fix existing DB jobs where non-admin employers (like Nisha / Sheriff's Kitchen) had hardcoded admin role
         try {
-            JobPost::where(function($q) {
-                $q->where('is_admin_created', true)
-                  ->orWhere('submitted_by_role', 'admin');
-            })
-            ->where('created_by', '!=', 1)
-            ->update([
-                'is_admin_created' => false,
-                'submitted_by_role' => 'employer'
-            ]);
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
+                try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN is_admin_created TINYINT(1) DEFAULT 0"); } catch (\Throwable $th) {}
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
+                try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN submitted_by_role VARCHAR(255) NULL"); } catch (\Throwable $th) {}
+            }
+            \Illuminate\Support\Facades\DB::statement("UPDATE job_posts SET is_admin_created = 0, submitted_by_role = 'employer' WHERE created_by != 1 OR created_by IS NULL");
         } catch (\Throwable $e) {}
 
         $query = JobPost::with('creator');
