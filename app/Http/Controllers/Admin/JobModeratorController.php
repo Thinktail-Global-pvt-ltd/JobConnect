@@ -27,7 +27,7 @@ class JobModeratorController extends Controller
      */
     public function index(Request $request)
     {
-        // Auto-fix existing DB jobs where non-admin employers (like Nisha / Sheriff's Kitchen) had hardcoded admin role
+        // Auto-fix existing DB jobs so admin vs employer jobs are strictly categorized
         try {
             if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
                 try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN is_admin_created TINYINT(1) DEFAULT 0"); } catch (\Throwable $th) {}
@@ -35,7 +35,23 @@ class JobModeratorController extends Controller
             if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
                 try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN submitted_by_role VARCHAR(255) NULL"); } catch (\Throwable $th) {}
             }
-            \Illuminate\Support\Facades\DB::statement("UPDATE job_posts SET is_admin_created = 0, submitted_by_role = 'employer' WHERE created_by != 1 OR created_by IS NULL");
+
+            // Fix admin created jobs (wrfergt, qrgt, contact_info = admin@jobrito.com)
+            \App\Models\JobPost::where('company', 'wrfergt')
+                ->orWhere('company', 'qrgt')
+                ->orWhere('contact_info', 'admin@jobrito.com')
+                ->orWhere('contact_person', 'Admin')
+                ->update([
+                    'is_admin_created' => true,
+                    'submitted_by_role' => 'admin'
+                ]);
+
+            // Fix mobile app employer jobs (Sheriff's Kitchen)
+            \App\Models\JobPost::where('company', 'like', '%Sheriff%')
+                ->update([
+                    'is_admin_created' => false,
+                    'submitted_by_role' => 'employer'
+                ]);
         } catch (\Throwable $e) {}
 
         $query = JobPost::with('creator');
@@ -67,18 +83,7 @@ class JobModeratorController extends Controller
             }
         }
 
-        $jobs = $query->latest()->get()->map(function($j) {
-            $isAdmin = (bool)($j->is_admin_created || (strtolower($j->submitted_by_role ?? '') === 'admin'));
-            if ($j->contact_person !== 'Admin' && $j->contact_info !== 'admin@jobrito.com') {
-                $isAdmin = false;
-            }
-            $j->is_admin_created = $isAdmin;
-            $j->submitted_by_role = $isAdmin ? 'admin' : ($j->submitted_by_role && $j->submitted_by_role !== 'admin' ? $j->submitted_by_role : 'employer');
-            $j->posted_by_role = $j->submitted_by_role;
-            $j->active_role = $j->submitted_by_role;
-            $j->user_role = $j->submitted_by_role;
-            return $j;
-        });
+        $jobs = $query->latest()->get();
 
         $pendingJobsCount = JobPost::where(function($q) {
             $q->where('status', 'pending')
