@@ -181,8 +181,8 @@ class EmployerController extends Controller
 
                 $jobApps = $job->applications;
                 $jobTotal = $jobApps->count();
-                $jobNew = $jobApps->filter(fn($a) => in_array(strtolower($a->status), ['new', 'pending']) && !$a->is_viewed)->count();
                 $jobViewed = $jobApps->filter(fn($a) => (bool)$a->is_viewed || strtolower($a->status) === 'viewed')->count();
+                $jobNew = $jobApps->filter(fn($a) => !(bool)$a->is_viewed && strtolower($a->status) !== 'viewed' && in_array(strtolower($a->status), ['new', 'pending', 'applied', '']))->count();
                 $jobShortlisted = $jobApps->filter(fn($a) => strtolower($a->status) === 'shortlisted')->count();
                 $jobContacted = $jobApps->filter(fn($a) => strtolower($a->status) === 'contacted')->count();
                 $jobRejected = $jobApps->filter(fn($a) => strtolower($a->status) === 'rejected')->count();
@@ -276,7 +276,14 @@ class EmployerController extends Controller
                         $chefData['avatar_url'] = $photoUrl;
                     }
 
-                    $isAppViewed = (bool)($app->is_viewed || strtolower($app->status) === 'viewed');
+                    $rawAppStatus = strtolower(trim($app->status ?: 'new'));
+                    $isAppViewed = (bool)($app->is_viewed || $rawAppStatus === 'viewed');
+                    $formattedStatus = $rawAppStatus;
+                    if ($isAppViewed) {
+                        $formattedStatus = 'viewed';
+                    } elseif (in_array($rawAppStatus, ['new', 'pending', 'applied'])) {
+                        $formattedStatus = 'new';
+                    }
 
                     return [
                         'id' => $app->id,
@@ -292,7 +299,7 @@ class EmployerController extends Controller
                         'city' => $city,
                         'job_location' => $applicant ? ($applicant->city ?: null) : null,
                         'preference' => $applicant ? ($applicant->preferred_role ?: null) : null,
-                        'status' => strtolower($app->status ?: 'new'), // new, viewed, contacted, shortlisted, hired, rejected
+                        'status' => $formattedStatus, // new | viewed | shortlisted | contacted | rejected
                         'is_viewed' => $isAppViewed,
                         'viewed' => $isAppViewed,
                         'viewed_at' => $app->viewed_at ? \Carbon\Carbon::parse($app->viewed_at)->toIso8601String() : null,
