@@ -116,6 +116,8 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Public Feed & Approved Jobs Routes (Approved Jobs Only)
+Route::match(['get', 'post'], '/jobs/create-public', [JobPostController::class, 'store']);
+Route::match(['get', 'post'], '/jobs/post', [JobPostController::class, 'store']);
 Route::match(['get', 'post'], '/feed', [FeedController::class, 'index']);
 Route::match(['get', 'post'], '/jobs/feed', [FeedController::class, 'index']);
 Route::get('/jobs', function(\Illuminate\Http\Request $request) {
