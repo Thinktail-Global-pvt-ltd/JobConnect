@@ -7,7 +7,6 @@ import {
   DollarSign, Calendar, Plane, Link2, Pin, ShieldCheck, User, Phone, 
   Mail, Globe, CheckCircle2, Copy, Award, FileText, Layers, Tag, Clock
 } from 'lucide-react';
-import { showStatusAlert } from '../utils/sweetalert';
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -155,7 +154,7 @@ export default function JobDetail() {
     try {
       await mockApi.approveJob(id);
       setJob(prev => prev ? { ...prev, status: 'approved' } : prev);
-      showStatusAlert('Job Approved!', 'The job listing status has been changed to Approved.', 'success');
+      alert('Job listing approved successfully.');
     } catch (e) {
       console.error(e);
     }
@@ -165,7 +164,7 @@ export default function JobDetail() {
     try {
       await mockApi.rejectJob(id);
       setJob(prev => prev ? { ...prev, status: 'rejected' } : prev);
-      showStatusAlert('Job Rejected!', 'The job listing status has been changed to Rejected.', 'error');
+      alert('Job listing status set to rejected.');
     } catch (e) {
       console.error(e);
     }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { mockApi, resolveImageUrl } from '../services/api';
 import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star, ExternalLink, ShieldCheck } from 'lucide-react';
-import { showStatusAlert } from '../utils/sweetalert';
+
 
 export default function Applications() {
   const navigate = useNavigate();
@@ -240,7 +240,7 @@ export default function Applications() {
     if (selectedApp && (selectedApp.id === id || selectedApp.application_id === id)) {
       setSelectedApp(prev => ({ ...prev, status }));
     }
-    showStatusAlert('Application Status Updated!', `Status changed to ${status}.`, 'success');
+    alert(`Application status changed to ${status}.`);
     try {
       await mockApi.updateApplicationStatus(id, status);
     } catch (err) {

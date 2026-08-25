@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Filter, Eye, EyeOff, Check, X, UserPlus, RefreshCw, Smartphone, Phone, List, Signal, Wifi, Battery, MapPin, Building2, Calendar, Star, ArrowUpRight, Award, CheckCircle2 } from 'lucide-react';
 import { mockApi, resolveImageUrl } from '../services/api';
-import { showStatusAlert } from '../utils/sweetalert';
+
 
 export default function Chefs() {
   const location = useLocation();
@@ -103,7 +103,7 @@ export default function Chefs() {
 
   const handleApprove = async (id) => {
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
-    showStatusAlert('Chef Approved!', 'Chef profile status changed to Approved.', 'success');
+    alert('Chef profile approved successfully.');
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/approve`,
@@ -125,7 +125,7 @@ export default function Chefs() {
 
   const handleUnpublish = async (id) => {
     setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
-    showStatusAlert('Chef Profile Suspended!', 'Chef profile status changed to Suspended / Unpublished.', 'warning');
+    alert('Chef profile status set to Suspended / Unpublished.');
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/unpublish`,

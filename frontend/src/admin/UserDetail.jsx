@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { realApi, mockApi, resolveImageUrl } from '../services/api';
-import { showStatusAlert } from '../utils/sweetalert';
 
 export default function UserDetail() {
   const { id } = useParams();
@@ -78,15 +77,15 @@ export default function UserDetail() {
         await mockApi.activateUser(id);
         setSuspended(false);
         if (user) setUser({ ...user, is_suspended: false, status: 'Active' });
-        showStatusAlert('User Activated!', 'Talent user account status changed to Active.', 'success');
+        alert('Talent user account status changed to Active.');
       } else {
         await mockApi.suspendUser(id);
         setSuspended(true);
         if (user) setUser({ ...user, is_suspended: true, status: 'Suspended' });
-        showStatusAlert('User Suspended!', 'Talent user account status changed to Suspended.', 'warning');
+        alert('Talent user account status changed to Suspended.');
       }
     } catch (err) {
-      showStatusAlert('Error', 'Failed to update user status: ' + err.message, 'error');
+      alert('Failed to update user status: ' + err.message);
     }
   };
 

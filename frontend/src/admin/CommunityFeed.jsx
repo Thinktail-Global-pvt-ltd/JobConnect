@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Megaphone, FileText, FileEdit, Trash2, RotateCcw, CheckCircle2, Bookmark, Eye, EyeOff, Pin, Plus, CalendarClock, Clock3, Briefcase, GraduationCap, Award, Radio, X, Search } from 'lucide-react';
 import axios from 'axios';
 import { mockApi } from '../services/api';
-import { showStatusAlert, showConfirmAlert } from '../utils/sweetalert';
 
 const BACKEND = 'http://178.16.138.159/backend';
 
@@ -27,8 +26,8 @@ export default function CommunityFeed() {
     is_pinned: false
   });
 
-  const triggerAlert = (msg, title = 'Status Changed!', icon = 'success') => {
-    showStatusAlert(title, msg, icon);
+  const triggerAlert = (msg) => {
+    alert(msg);
   };
 
   // Load unified admin stream
@@ -237,10 +236,9 @@ export default function CommunityFeed() {
   };
 
   const handleDelete = async (id) => {
-    const confirmRes = await showConfirmAlert("Delete Entry?", "Are you sure you want to delete this stream entry?", "Yes, Delete Entry");
-    if (confirmRes.isConfirmed) {
+    if (window.confirm("Are you sure you want to delete this stream entry?")) {
       setPosts(prev => prev.filter(p => p.id !== id));
-      showStatusAlert('Entry Deleted', 'Stream entry deleted successfully.', 'success');
+      alert('Stream entry deleted.');
 
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [

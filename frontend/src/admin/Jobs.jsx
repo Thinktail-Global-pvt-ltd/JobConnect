@@ -4,7 +4,6 @@ import axios from 'axios';
 import { realApi, mockApi } from '../services/api';
 import { Link } from 'react-router-dom';
 import { Eye, Check, X, Filter, Briefcase, Clock, CheckCircle2, Pin, Plus, AlertOctagon, Zap, Building2, MapPin, Plane, Link2, UserCheck, ShieldCheck } from 'lucide-react';
-import { showStatusAlert } from '../utils/sweetalert';
 import { JOB_ROLES } from '../constants/jobRoles';
 
 export default function Jobs() {
@@ -213,7 +212,7 @@ export default function Jobs() {
 
   const handleApprove = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'approved' } : j));
-    showStatusAlert('Job Approved!', 'The job listing status has been changed to Approved.', 'success');
+    alert('Job listing approved successfully.');
     try {
       await axios.post(`/backend/api/admin/jobs/${id}/approve`);
     } catch (err) {
@@ -223,7 +222,7 @@ export default function Jobs() {
 
   const handleReject = async (id) => {
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, status: 'rejected' } : j));
-    showStatusAlert('Job Rejected!', 'The job listing status has been changed to Rejected.', 'error');
+    alert('Job listing status set to rejected.');
     try {
       await axios.post(`/backend/api/admin/jobs/${id}/reject`);
     } catch (err) {
@@ -235,7 +234,7 @@ export default function Jobs() {
     const job = jobs.find(j => j.id === id);
     const newPinnedState = !job?.is_pinned;
     setJobs(prev => prev.map(j => (j.id === id) ? { ...j, is_pinned: newPinnedState } : j));
-    showStatusAlert(newPinnedState ? 'Listing Pinned!' : 'Listing Unpinned', newPinnedState ? 'Job listing is now pinned to the top.' : 'Job listing unpinned from top.', 'info');
+    alert(newPinnedState ? 'Job listing pinned to top.' : 'Job listing unpinned.');
     try {
       await mockApi.togglePinJob(id);
     } catch (err) {

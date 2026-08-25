@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight, MapPin, FileText, Smartphone } from 'lucide-react';
 import axios from 'axios';
 import { realApi, resolveImageUrl } from '../services/api';
-import { showStatusAlert } from '../utils/sweetalert';
+
 
 export default function Employers() {
   const [employers, setEmployers] = useState([]);
@@ -106,7 +106,7 @@ export default function Employers() {
       } catch (err) {}
     }
 
-    showStatusAlert('Employer Created!', `Employer account for "${newEmployer.name}" created successfully.`, 'success');
+    alert(`Employer account for "${newEmployer.name}" created successfully.`);
     setNewEmployer({ name: '', contact: '', phone: '', email: '', hq: '' });
     setIsModalOpen(false);
     fetchEmployers();
@@ -122,7 +122,7 @@ export default function Employers() {
       }
       return emp;
     }));
-    showStatusAlert(nextStatus === 'Active' ? 'Employer Activated!' : 'Employer Suspended!', `Employer status changed to ${nextStatus}.`, nextStatus === 'Active' ? 'success' : 'warning');
+    alert(`Employer status changed to ${nextStatus}.`);
   };
 
   const activePartnersCount = employers.filter(e => e.status === 'Active').length;

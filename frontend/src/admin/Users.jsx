@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { mockApi, realApi, resolveImageUrl } from '../services/api';
 import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X, Eye, Smartphone, MapPin, Star } from 'lucide-react';
-import { showStatusAlert } from '../utils/sweetalert';
+
 
 export default function Users() {
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ export default function Users() {
       } catch (err) {}
     }
 
-    showStatusAlert('User Created', `Talent user "${newUser.full_name}" registered successfully!`, 'success');
+    alert(`Talent user "${newUser.full_name}" registered successfully!`);
     setNewUser({ full_name: '', mobile_number: '', email: '', city: '', experience: '', preferred_role: '' });
     setIsAddModalOpen(false);
     loadUsers();
@@ -102,13 +102,13 @@ export default function Users() {
 
   const handleSuspend = async (id) => {
     await mockApi.suspendUser(id);
-    showStatusAlert('User Suspended', 'Talent user status changed to Suspended.', 'warning');
+    alert('Talent user status changed to Suspended.');
     loadUsers();
   };
 
   const handleActivate = async (id) => {
     await mockApi.activateUser(id);
-    showStatusAlert('User Activated', 'Talent user status changed to Active.', 'success');
+    alert('Talent user status changed to Active.');
     loadUsers();
   };
 
