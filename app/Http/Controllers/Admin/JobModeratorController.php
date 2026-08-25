@@ -67,7 +67,18 @@ class JobModeratorController extends Controller
             }
         }
 
-        $jobs = $query->latest()->get();
+        $jobs = $query->latest()->get()->map(function($j) {
+            $isAdmin = (bool)($j->is_admin_created || (strtolower($j->submitted_by_role ?? '') === 'admin'));
+            if ($j->contact_person !== 'Admin' && $j->contact_info !== 'admin@jobrito.com') {
+                $isAdmin = false;
+            }
+            $j->is_admin_created = $isAdmin;
+            $j->submitted_by_role = $isAdmin ? 'admin' : ($j->submitted_by_role && $j->submitted_by_role !== 'admin' ? $j->submitted_by_role : 'employer');
+            $j->posted_by_role = $j->submitted_by_role;
+            $j->active_role = $j->submitted_by_role;
+            $j->user_role = $j->submitted_by_role;
+            return $j;
+        });
 
         $pendingJobsCount = JobPost::where(function($q) {
             $q->where('status', 'pending')

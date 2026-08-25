@@ -63,10 +63,13 @@ class JobPost extends Model
 
     public function getPostedByRoleAttribute(): string
     {
-        if (!empty($this->submitted_by_role)) {
-            return $this->submitted_by_role;
+        if (!empty($this->attributes['submitted_by_role'])) {
+            return $this->attributes['submitted_by_role'];
         }
-        if ($this->creator) {
+        if (!empty($this->is_admin_created)) {
+            return 'admin';
+        }
+        if ($this->creator && !empty($this->creator->active_profile) && $this->creator->active_profile !== 'admin') {
             return $this->creator->active_profile;
         }
         return 'employer';
