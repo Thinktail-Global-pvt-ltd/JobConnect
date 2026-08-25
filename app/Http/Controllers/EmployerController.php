@@ -598,6 +598,15 @@ class EmployerController extends Controller
                 ], 404);
             }
 
+            $user = Auth::user();
+            if (!$user && $request->bearerToken()) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($request->bearerToken());
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+            $employerId = $user ? $user->id : ($application->employer_id ?: ($request->input('employer_id') ?: null));
+
             $currentStatus = strtolower(trim($application->status ?: 'new'));
             $newStatus = $currentStatus;
             if (in_array($currentStatus, ['new', 'pending', 'applied'])) {
@@ -610,6 +619,26 @@ class EmployerController extends Controller
                 'viewed_at' => $now,
                 'status'    => $newStatus,
             ]);
+
+            // Synchronize with chef_profile_views table so GET /api/employer/chefs also marks this chef as viewed!
+            if ($employerId && $application->applicant_id && \Illuminate\Support\Facades\Schema::hasTable('chef_profile_views')) {
+                try {
+                    $alreadyViewed = \Illuminate\Support\Facades\DB::table('chef_profile_views')
+                        ->where('employer_id', $employerId)
+                        ->where('chef_id', $application->applicant_id)
+                        ->exists();
+
+                    if (!$alreadyViewed) {
+                        \Illuminate\Support\Facades\DB::table('chef_profile_views')->insert([
+                            'chef_id'     => (int)$application->applicant_id,
+                            'employer_id' => (int)$employerId,
+                            'viewed_at'   => $now->toDateTimeString(),
+                            'created_at'  => $now->toDateTimeString(),
+                            'updated_at'  => $now->toDateTimeString(),
+                        ]);
+                    }
+                } catch (\Throwable $th) {}
+            }
 
             return response()->json([
                 'success' => true,

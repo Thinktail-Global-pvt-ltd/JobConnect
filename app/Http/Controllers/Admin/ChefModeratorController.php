@@ -81,11 +81,27 @@ class ChefModeratorController extends Controller
             }
 
             $viewedChefUserIds = [];
-            if ($authUser && \Illuminate\Support\Facades\Schema::hasTable('chef_profile_views')) {
-                $views = \Illuminate\Support\Facades\DB::table('chef_profile_views')
-                    ->where('employer_id', $authUser->id)
-                    ->get();
-                $viewedChefUserIds = $views->pluck('chef_id')->filter()->map(fn($v) => (int)$v)->toArray();
+            if ($authUser) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('chef_profile_views')) {
+                    $views = \Illuminate\Support\Facades\DB::table('chef_profile_views')
+                        ->where('employer_id', $authUser->id)
+                        ->get();
+                    $viewedChefUserIds = $views->pluck('chef_id')->filter()->map(fn($v) => (int)$v)->toArray();
+                }
+
+                if (\Illuminate\Support\Facades\Schema::hasTable('job_applications')) {
+                    $appViewedUserIds = \Illuminate\Support\Facades\DB::table('job_applications')
+                        ->where('employer_id', $authUser->id)
+                        ->where(function($q) {
+                            $q->where('is_viewed', true)->orWhere('status', 'viewed');
+                        })
+                        ->pluck('applicant_id')
+                        ->filter()
+                        ->map(fn($v) => (int)$v)
+                        ->toArray();
+
+                    $viewedChefUserIds = array_unique(array_merge($viewedChefUserIds, $appViewedUserIds));
+                }
             }
 
             $profiles = $this->syncAndGetChefProfiles();
