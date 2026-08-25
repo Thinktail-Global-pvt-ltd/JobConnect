@@ -1102,20 +1102,23 @@ export const mockApi = {
 
   createTrainingProgram: async (formData) => {
     let errorResp = null;
+    const rawCurriculum = (formData.curriculum || formData.provider_name || '').trim();
+    const safeProvider = rawCurriculum.length > 50 ? rawCurriculum.substring(0, 50) : (rawCurriculum || 'Jobrito Academy');
+
     const payload = {
-      program_name: formData.name || formData.program_name || '',
-      curriculum: formData.curriculum || formData.provider_name || '',
-      provider_name: formData.curriculum || formData.provider_name || '',
-      location: formData.countries || formData.location || '',
-      countries: formData.countries || formData.location || '',
-      duration: formData.duration || '',
+      program_name: (formData.name || formData.program_name || '').substring(0, 150),
+      curriculum: rawCurriculum,
+      provider_name: safeProvider,
+      location: (formData.countries || formData.location || '').substring(0, 150),
+      countries: (formData.countries || formData.location || '').substring(0, 150),
+      duration: (formData.duration || '').substring(0, 50),
       employer_details: formData.employer_details || formData.employer || '',
       skills_covered: formData.skills_covered || formData.skills || '',
       benefits: formData.benefits || formData.training_benefits || '',
       placement_opportunities: formData.placement_opportunities || formData.placements || '',
       status: formData.status || 'Published',
-      description: formData.description || formData.curriculum || '',
-      contact_information: formData.contact_information || '',
+      description: rawCurriculum || formData.description || '',
+      contact_information: 'admissions@jobrito.com',
       is_pinned: Boolean(formData.is_pinned)
     };
 

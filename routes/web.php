@@ -1079,6 +1079,50 @@ Route::match(['get', 'post'], '/api/admin/training-opportunities', function() {
     return getWebTrainingOpportunities();
 });
 
+Route::match(['get', 'post'], '/backend/api/admin/training-opportunities', function() {
+    return getWebTrainingOpportunities();
+});
+
+if (!function_exists('getWebTrainingOpportunities')) {
+    function getWebTrainingOpportunities() {
+        try {
+            $programs = \Illuminate\Support\Facades\DB::table('training_opportunities')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function($p) {
+                    $loc = $p->location ?? 'India';
+                    $countries = array_values(array_filter(array_map('trim', explode(',', $loc))));
+                    return [
+                        'id' => $p->id,
+                        'name' => $p->program_name ?? 'Training Opportunity',
+                        'curriculum' => $p->provider_name ?? 'Jobrito Academy',
+                        'countries' => !empty($countries) ? $countries : ['India'],
+                        'duration' => $p->duration ?? '12 Months',
+                        'employer_details' => $p->employer_details ?? '',
+                        'skills_covered' => $p->skills_covered ?? '',
+                        'benefits' => $p->benefits ?? '',
+                        'placement_opportunities' => $p->placement_opportunities ?? '',
+                        'status' => $p->status ?? 'Published',
+                        'is_pinned' => (bool)($p->is_pinned ?? false),
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'programs' => $programs,
+                'stats' => [
+                    'total' => $programs->count(),
+                    'active' => $programs->filter(fn($p) => $p['status'] === 'Published' || $p['status'] === 'Active')->count(),
+                    'pending' => $programs->filter(fn($p) => $p['status'] === 'Draft' || $p['status'] === 'Reviewing')->count(),
+                    'pinned' => $programs->filter(fn($p) => $p['is_pinned'])->count(),
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+}
+
 Route::match(['get', 'post'], '/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
     return createWebTrainingOpportunityRecord($request);
 });
