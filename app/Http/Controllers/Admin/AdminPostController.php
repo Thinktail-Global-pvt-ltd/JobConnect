@@ -78,12 +78,13 @@ class AdminPostController extends Controller
                     ->orderBy('id', 'desc')
                     ->get()
                     ->filter(function($t) {
-                        $pName = strtolower(trim($t->program_name ?? ($t->title ?? '')));
-                        if ($pName === 'dwscfevg' || (int)$t->id === 23) {
+                        $tId = (string)($t->id ?? '');
+                        $pName = strtolower(trim($t->program_name ?? ($t->name ?? ($t->title ?? ''))));
+                        if ($tId === '23' || str_contains($pName, 'dwscfevg') || str_contains($pName, 'dwsc')) {
                             return false;
                         }
-                        $st = strtolower(trim($t->status ?? ''));
-                        return in_array($st, ['published', 'active', 'approved']);
+                        $st = strtolower(trim($t->status ?? ($t->approval_status ?? '')));
+                        return $st === 'published' || $st === 'active' || $st === 'approved';
                     });
 
                 foreach ($trainings as $train) {
