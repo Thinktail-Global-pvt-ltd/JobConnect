@@ -23,26 +23,19 @@ export default function Jobs() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [formData, setFormData] = useState({
-    title: '',
-    job_role: '',
+    title: 'Sous Chef',
+    job_role: 'Sous Chef',
     company: '',
     category: 'india',
-    job_category: 'Kitchen, Service, Bar & Beverage, Café',
-    industry_segment: 'Café',
     location: '',
-    country: 'Saudi Arabia',
-    salary: '',
+    country: 'India',
     salary_min: '',
     salary_max: '',
-    salary_currency: 'SAR',
-    experience_range: 'Mid Level (3-5 Years)',
-    job_type: 'Full-Time',
+    salary_currency: 'INR',
+    experience_range: 'Mid-Level (3-5 Years)',
+    job_type: 'Full-time',
     open_positions: 1,
-    contact_person: '',
-    contact_info: '',
     description: '',
-    visa_assistance: false,
-    accommodation_available: false,
     status: 'approved',
     is_pinned: false,
     is_referral: false,
@@ -247,16 +240,25 @@ export default function Jobs() {
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.company || !formData.description || !formData.contact_info) return;
+    if (!formData.title || !formData.company || !formData.description) return;
     setSubmitting(true);
 
-    const computedSalary = formData.salary || (formData.salary_min && formData.salary_max 
+    const computedSalary = (formData.salary_min && formData.salary_max) 
       ? `${formData.salary_currency} ${formData.salary_min} - ${formData.salary_max}` 
-      : (formData.salary_min ? `${formData.salary_currency} ${formData.salary_min}` : 'Best in Industry'));
+      : (formData.salary_min ? `${formData.salary_currency} ${formData.salary_min}` : 'Best in Industry');
+
+    const finalLocation = formData.location 
+      ? (formData.location.includes(formData.country) ? formData.location : `${formData.location}, ${formData.country}`) 
+      : formData.country;
 
     const payload = {
       ...formData,
       job_role: formData.job_role || formData.title,
+      title: formData.title || formData.job_role,
+      company: formData.company,
+      location: finalLocation,
+      contact_info: 'admin@jobrito.com',
+      contact_person: 'Admin',
       salary: computedSalary,
       open_positions: Number(formData.open_positions) || 1,
       openings: Number(formData.open_positions) || 1,
@@ -271,26 +273,19 @@ export default function Jobs() {
       await mockApi.createJob(payload);
       setIsModalOpen(false);
       setFormData({
-        title: '',
-        job_role: '',
+        title: 'Sous Chef',
+        job_role: 'Sous Chef',
         company: '',
         category: 'india',
-        job_category: 'Kitchen, Service, Bar & Beverage, Café',
-        industry_segment: 'Café',
         location: '',
-        country: 'Saudi Arabia',
-        salary: '',
+        country: 'India',
         salary_min: '',
         salary_max: '',
-        salary_currency: 'SAR',
-        experience_range: 'Mid Level (3-5 Years)',
-        job_type: 'Full-Time',
+        salary_currency: 'INR',
+        experience_range: 'Mid-Level (3-5 Years)',
+        job_type: 'Full-time',
         open_positions: 1,
-        contact_person: '',
-        contact_info: '',
         description: '',
-        visa_assistance: false,
-        accommodation_available: false,
         status: 'approved',
         is_pinned: false,
         is_referral: false,
@@ -664,14 +659,14 @@ export default function Jobs() {
           <div className="bg-white border border-[#e2e8f0] rounded-3xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl text-left">
             
             {/* Header */}
-            <div className="px-6 py-4.5 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/60">
               <div className="flex items-center gap-2.5">
                 <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
                   <Briefcase className="w-4 h-4" />
                 </span>
                 <div>
                   <h3 className="font-outfit font-extrabold text-slate-800 text-base">Add New Job Listing</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold">Enter complete job details matching jobs/save API schema</p>
+                  <p className="text-[11px] text-slate-400 font-semibold">Post job details to Jobrito Admin & Live Feed</p>
                 </div>
               </div>
               <button
@@ -685,113 +680,130 @@ export default function Jobs() {
 
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[82vh] overflow-y-auto">
               
-              {/* Section 1: Basic Title & Role */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Title *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Sous Chef"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Role</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Sous Chef / Line Cook"
-                    value={formData.job_role}
-                    onChange={(e) => setFormData(prev => ({ ...prev, job_role: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
+              {/* Business / Agency Name */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Business / Agency Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. The Grand Bistro"
+                  value={formData.company}
+                  onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
               </div>
 
-              {/* Section 2: Company & Industry Segment */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Country, City/Region & Primary Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Company / Employer *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Thinktail Global Private Limited"
-                    value={formData.company}
-                    onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Industry Segment</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Café, Fine Dining, Hotel, QSR"
-                    value={formData.industry_segment}
-                    onChange={(e) => setFormData(prev => ({ ...prev, industry_segment: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
-              </div>
-
-              {/* Section 3: Categories */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Primary Feed Category *</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Select Country *</label>
                   <select
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                    value={formData.country}
+                    onChange={(e) => {
+                      const c = e.target.value;
+                      const isOverseas = c !== 'India';
+                      setFormData(prev => ({
+                        ...prev,
+                        country: c,
+                        category: isOverseas ? 'overseas' : 'india',
+                        salary_currency: c === 'Saudi Arabia' ? 'SAR' : (c === 'United Arab Emirates' ? 'AED' : (c === 'India' ? 'INR' : 'USD'))
+                      }));
+                    }}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
-                    <option value="india">India Jobs</option>
-                    <option value="overseas">Overseas / KSA / Dubai</option>
-                    <option value="community">Community / Referral Jobs</option>
+                    <option value="India">India</option>
+                    <option value="Saudi Arabia">Saudi Arabia</option>
+                    <option value="United Arab Emirates">UAE / Dubai</option>
+                    <option value="Qatar">Qatar</option>
+                    <option value="Oman">Oman</option>
+                    <option value="Kuwait">Kuwait</option>
+                    <option value="Bahrain">Bahrain</option>
+                    <option value="Overseas">Overseas (Other)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Category / Department</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">City / Region *</label>
                   <input
                     type="text"
-                    placeholder="e.g. Kitchen, Service, Bar & Beverage, Café"
-                    value={formData.job_category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, job_category: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
-              </div>
-
-              {/* Section 4: Location & Country */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Location</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Riyadh, Central, Saudi Arabia"
+                    required
+                    placeholder="e.g. Mumbai / Riyadh"
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Country</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Saudi Arabia, India, UAE"
-                    value={formData.country}
-                    onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Primary Feed *</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="india">India Jobs</option>
+                    <option value="overseas">Overseas Jobs</option>
+                    <option value="community">Referral / Community Job</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Section 5: Salary Breakdown */}
-              <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-2.5">
-                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Salary Details</span>
+              {/* Job Role Selection */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Job Role *</label>
+                <select
+                  value={formData.job_role}
+                  onChange={(e) => {
+                    const selectedRole = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      job_role: selectedRole,
+                      title: selectedRole !== 'Other' ? selectedRole : prev.title
+                    }));
+                  }}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                >
+                  <option value="Executive Chef">Executive Chef</option>
+                  <option value="Head Chef">Head Chef</option>
+                  <option value="Sous Chef">Sous Chef</option>
+                  <option value="Chef de Partie">Chef de Partie</option>
+                  <option value="Commis Chef">Commis Chef</option>
+                  <option value="Pastry Chef">Pastry Chef</option>
+                  <option value="Bakery Chef">Bakery Chef</option>
+                  <option value="Pizza Chef">Pizza Chef</option>
+                  <option value="Grill Chef">Grill Chef</option>
+                  <option value="Indian Chef">Indian Chef</option>
+                  <option value="Arabic Chef">Arabic Chef</option>
+                  <option value="Barista">Barista</option>
+                  <option value="Waiter / Server">Waiter / Server</option>
+                  <option value="Restaurant Manager">Restaurant Manager</option>
+                  <option value="Front Desk Officer">Front Desk Officer</option>
+                  <option value="Housekeeping Attendant">Housekeeping Attendant</option>
+                  <option value="Kitchen Helper">Kitchen Helper</option>
+                  <option value="Fast Food Cook">Fast Food Cook</option>
+                  <option value="General Manager">General Manager</option>
+                  <option value="Other">Custom Job Role...</option>
+                </select>
+              </div>
+
+              {/* Custom Job Title input if role is 'Other' */}
+              {formData.job_role === 'Other' && (
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Custom Job Title *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter custom job title"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+              )}
+
+              {/* Salary Range */}
+              <div className="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-100 space-y-2">
+                <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">Salary Range</span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Currency</label>
@@ -800,8 +812,8 @@ export default function Jobs() {
                       onChange={(e) => setFormData(prev => ({ ...prev, salary_currency: e.target.value }))}
                       className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                     >
+                      <option value="INR">INR (₹)</option>
                       <option value="SAR">SAR (Saudi Riyal)</option>
-                      <option value="INR">INR (Indian Rupee)</option>
                       <option value="AED">AED (UAE Dirham)</option>
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
@@ -812,7 +824,7 @@ export default function Jobs() {
                     <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Min Salary</label>
                     <input
                       type="number"
-                      placeholder="e.g. 50000"
+                      placeholder="Min"
                       value={formData.salary_min}
                       onChange={(e) => setFormData(prev => ({ ...prev, salary_min: e.target.value }))}
                       className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
@@ -823,37 +835,37 @@ export default function Jobs() {
                     <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Max Salary</label>
                     <input
                       type="number"
-                      placeholder="e.g. 80000"
+                      placeholder="Max"
                       value={formData.salary_max}
                       onChange={(e) => setFormData(prev => ({ ...prev, salary_max: e.target.value }))}
                       className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                     />
                   </div>
                 </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Salary Range Display Text</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. SAR 50000 - 80000"
-                    value={formData.salary}
-                    onChange={(e) => setFormData(prev => ({ ...prev, salary: e.target.value }))}
-                    className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
               </div>
 
-              {/* Section 6: Experience Range, Job Type, Vacancies */}
+              {/* Open Positions, Experience Required, Job Type */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Experience Range</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Open Positions</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.open_positions}
+                    onChange={(e) => setFormData(prev => ({ ...prev, open_positions: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Experience Required</label>
                   <select
                     value={formData.experience_range}
                     onChange={(e) => setFormData(prev => ({ ...prev, experience_range: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
                     <option value="Entry Level (0-2 Years)">Entry Level (0-2 Years)</option>
-                    <option value="Mid Level (3-5 Years)">Mid Level (3-5 Years)</option>
+                    <option value="Mid-Level (3-5 Years)">Mid-Level (3-5 Years)</option>
                     <option value="Senior Level (5+ Years)">Senior Level (5+ Years)</option>
                     <option value="Executive Level (8+ Years)">Executive Level (8+ Years)</option>
                   </select>
@@ -866,120 +878,62 @@ export default function Jobs() {
                     onChange={(e) => setFormData(prev => ({ ...prev, job_type: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                   >
-                    <option value="Full-Time">Full-Time</option>
-                    <option value="Part-Time">Part-Time</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
                     <option value="Contract">Contract</option>
-                    <option value="Permanent">Permanent</option>
-                    <option value="Freelance">Freelance</option>
                     <option value="Internship">Internship</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Open Vacancies</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.open_positions}
-                    onChange={(e) => setFormData(prev => ({ ...prev, open_positions: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
               </div>
 
-              {/* Section 7: Contact Information & Initial Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Person</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Hiring Manager"
-                    value={formData.contact_person}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contact_person: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Info *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. hr@thinktail.com"
-                    value={formData.contact_info}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contact_info: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Initial Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
-                  >
-                    <option value="approved">Approved (Live)</option>
-                    <option value="pending">Pending Review</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Section 8: Perks & Flags (Checkboxes) */}
-              <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100/80 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={formData.visa_assistance}
-                    onChange={(e) => setFormData(prev => ({ ...prev, visa_assistance: e.target.checked }))}
-                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>Visa Assistance</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={formData.accommodation_available}
-                    onChange={(e) => setFormData(prev => ({ ...prev, accommodation_available: e.target.checked }))}
-                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>Accommodation</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_pinned}
-                    onChange={(e) => setFormData(prev => ({ ...prev, is_pinned: e.target.checked }))}
-                    className="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span>Pin Listing</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_referral}
-                    onChange={(e) => setFormData(prev => ({ ...prev, is_referral: e.target.checked }))}
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span>Referral Job</span>
-                </label>
-              </div>
-
-              {/* Section 9: Job Description */}
+              {/* Job Description */}
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Job Description *</label>
                 <textarea
-                  rows="4"
+                  rows="3"
                   required
-                  placeholder="We are looking for an experienced Sous Chef to join our team..."
+                  placeholder="Add details to complete your job posting..."
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] resize-none"
                 />
+              </div>
+
+              {/* Status & Options */}
+              <div className="flex items-center justify-between gap-4 p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <label className="text-xs font-bold text-slate-700">Initial Status:</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="bg-white border border-[#e2e8f0] rounded-lg px-2.5 py-1 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="approved">Approved (Live)</option>
+                    <option value="pending">Pending Review</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_pinned}
+                      onChange={(e) => setFormData(prev => ({ ...prev, is_pinned: e.target.checked }))}
+                      className="w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>Pin Listing</span>
+                  </label>
+
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_referral}
+                      onChange={(e) => setFormData(prev => ({ ...prev, is_referral: e.target.checked }))}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>Referral Job</span>
+                  </label>
+                </div>
               </div>
 
               {/* Submit Buttons */}
@@ -987,7 +941,7 @@ export default function Jobs() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
