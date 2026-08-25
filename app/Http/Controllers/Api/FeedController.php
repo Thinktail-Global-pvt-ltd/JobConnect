@@ -192,10 +192,14 @@ class FeedController extends Controller
             ->orderByDesc('created_at')
             ->get()
             ->filter(function($t) {
-                if (strtolower(trim($t->program_name ?? '')) === 'dwscfevg' || $t->id == 23) {
+                $jsonStr = strtolower(json_encode($t));
+                if (str_contains($jsonStr, 'dwscfevg') || str_contains($jsonStr, 'dwsc') || (int)($t->id ?? 0) === 23) {
                     return false;
                 }
-                $st = strtolower(trim($t->status ?? ''));
+                $st = strtolower(trim($t->status ?? ($t->approval_status ?? '')));
+                if (in_array($st, ['draft', 'pending', 'unpublished', 'reviewing', 'in_review'])) {
+                    return false;
+                }
                 return in_array($st, ['published', 'active', 'approved']);
             })
             ->map(function ($t) use ($appliedTrainingMap, $savedTrainingMap) {
