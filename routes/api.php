@@ -297,7 +297,31 @@ Route::match(['get', 'post'], '/admin/jobs/add', [\App\Http\Controllers\Admin\Jo
 Route::post('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
 Route::post('/admin/jobs/{job}/approve', [\App\Http\Controllers\Admin\JobModeratorController::class, 'approve']);
 Route::post('/admin/jobs/{job}/reject', [\App\Http\Controllers\Admin\JobModeratorController::class, 'reject']);
-Route::post('/admin/jobs/{job}/toggle-pin', [\App\Http\Controllers\Admin\JobModeratorController::class, 'togglePin']);
+Route::get('/admin/jobs/fix-roles', function() {
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
+            try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN is_admin_created TINYINT(1) DEFAULT 0"); } catch (\Throwable $th) {}
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
+            try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN submitted_by_role VARCHAR(255) NULL"); } catch (\Throwable $th) {}
+        }
+
+        $affected = \Illuminate\Support\Facades\DB::table('job_posts')
+            ->where('contact_person', '!=', 'Admin')
+            ->where('contact_info', '!=', 'admin@jobrito.com')
+            ->update([
+                'is_admin_created' => 0,
+                'submitted_by_role' => 'employer'
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'affected' => $affected
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+});
 
 Route::get('/admin/referrals', [\App\Http\Controllers\Admin\ReferralController::class, 'index']);
 Route::post('/admin/referrals/{id}/approve', [\App\Http\Controllers\Admin\ReferralController::class, 'approve']);
