@@ -26,7 +26,20 @@ if (function_exists('exec')) {
     }
 }
 
-Route::match(['get', 'post'], '/api/get-token/user/{id}', function($id) {
+Route::match(['get', 'post'], '/debug-error', function() {
+    try {
+        $p = \App\Models\JobPost::count();
+        $t = \Illuminate\Support\Facades\DB::table('training_opportunities')->count();
+        return response()->json(['success' => true, 'jobs_count' => $p, 'training_count' => $t]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
     $u = \App\Models\User::find($id) ?: \App\Models\User::where('active_profile', 'employer')->orWhere('active_role', 'employer')->orWhere('user_role', 'employer')->first();
     if (!$u) return response()->json(['success' => false, 'message' => 'Employer User not found']);
     $token = $u->createToken('API_Test_Token')->plainTextToken;
