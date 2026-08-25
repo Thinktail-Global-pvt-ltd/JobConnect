@@ -138,46 +138,45 @@ export default function UserDetail() {
     setTimeout(() => setCopiedId(false), 2000);
   };
 
-  // Build Dynamic Recent Activity Timeline
+  // Build Dynamic Recent Activity Timeline from REAL events only
   const recentActivities = [];
 
-  // Add job applications to timeline
-  appliedJobs.slice(0, 3).forEach((app, idx) => {
+  appliedJobs.forEach((app, idx) => {
     recentActivities.push({
       id: `app_${app.id || idx}`,
       color: idx === 0 ? 'bg-blue-500 border-blue-200' : 'bg-purple-500 border-purple-200',
       time: app.created_at ? new Date(app.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(app.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Recent Application',
-      text: `Applied for job – ${app.job_title || app.title || 'Sous Chef'} at ${app.company || 'Urban Café'}`
+      text: `Applied for job – ${app.job_title || app.title || 'Job Position'} at ${app.company || 'Employer'}`
     });
   });
 
-  // Add posted referral jobs to timeline
-  postedJobs.slice(0, 2).forEach((job, idx) => {
+  postedJobs.forEach((job, idx) => {
     recentActivities.push({
       id: `job_${job.id || idx}`,
       color: 'bg-purple-600 border-purple-200',
-      time: job.created_at ? new Date(job.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '10 Aug 2024, 11:20 AM',
-      text: `Posted a referral job – ${job.title || 'Commis Chef'}`
+      time: job.created_at ? new Date(job.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently',
+      text: `Posted a referral job – ${job.title || 'Job Listing'}`
     });
   });
 
-  // Fallback defaults matching screenshot if empty
-  if (recentActivities.length === 0) {
-    recentActivities.push(
-      { id: 'act_1', color: 'bg-emerald-500 border-emerald-200', time: 'Today, 09:15 AM', text: 'Profile updated by candidate' },
-      { id: 'act_2', color: 'bg-blue-500 border-blue-200', time: 'Yesterday, 04:30 PM', text: `Applied for job – ${jobRole} at Urban Café` },
-      { id: 'act_3', color: 'bg-purple-500 border-purple-200', time: '10 Aug 2024, 11:20 AM', text: 'Posted a referral job – Commis Chef' },
-      { id: 'act_4', color: 'bg-amber-500 border-amber-200', time: '08 Aug 2024, 03:45 PM', text: 'Applied for job – Barista at Brew & Bite Café' },
-      { id: 'act_5', color: 'bg-teal-500 border-teal-200', time: joinedDateTime, text: 'Profile created by candidate' }
-    );
-  } else {
-    recentActivities.push({
-      id: 'act_created',
-      color: 'bg-teal-500 border-teal-200',
-      time: joinedDateTime,
-      text: 'Profile created by candidate'
-    });
+  if (user?.updated_at && user.updated_at !== user.created_at) {
+    const updatedDate = new Date(user.updated_at);
+    if (!isNaN(updatedDate.getTime())) {
+      recentActivities.push({
+        id: 'act_updated',
+        color: 'bg-emerald-500 border-emerald-200',
+        time: updatedDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + updatedDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        text: 'Profile details updated by candidate'
+      });
+    }
   }
+
+  recentActivities.push({
+    id: 'act_created',
+    color: 'bg-teal-500 border-teal-200',
+    time: joinedDateTime,
+    text: 'Profile created by candidate'
+  });
 
   return (
     <div className="space-y-6 text-left pb-12 font-sans bg-[#f8fafc] -m-6 p-6 min-h-screen">
