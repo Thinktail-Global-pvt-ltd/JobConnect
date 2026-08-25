@@ -20,6 +20,8 @@ class User extends Authenticatable
         'full_name',
         'email',
         'gender',
+        'age',
+        'overseas_work_experience',
         'profile_photo_path',
         'country',
         'city',

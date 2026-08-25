@@ -35,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile', [ProfileController::class, 'updatePersonal']);
     Route::put('/profile', [ProfileController::class, 'updatePersonal']);
     Route::post('/profile/update', [ProfileController::class, 'updatePersonal']);
+    Route::match(['get', 'post', 'put'], '/user/profile', [ProfileController::class, 'updatePersonal']);
+    Route::match(['get', 'post', 'put'], '/user/profile/update', [ProfileController::class, 'updatePersonal']);
     Route::match(['post', 'put'], '/employer/profile', [ProfileController::class, 'updateEmployerProfile']);
     Route::match(['post', 'put'], '/employer/onboarding', [ProfileController::class, 'updateEmployerProfile']);
     Route::match(['post', 'put'], '/employer/onboarding/save', [ProfileController::class, 'updateEmployerProfile']);
@@ -726,6 +728,7 @@ Route::post('/whatsapp/send-message', [\App\Http\Controllers\Api\WhatsAppControl
 // Public Personal Profile Routes
 Route::get('/profile/personal', [ProfileController::class, 'showPersonal']);
 Route::post('/profile/personal', [ProfileController::class, 'updatePersonal']);
+Route::match(['get', 'post', 'put'], '/user/profile', [ProfileController::class, 'updatePersonal']);
 
 // Chef Profile View Tracking Routes
 Route::post('/chefs/{chef_id}/view', [ChefProfileViewController::class, 'recordView']);

@@ -14,6 +14,7 @@ class ChefProfile extends Model
         'calendly_link',
         'availability_info',
         'approval_status', // pending, approved, rejected
+        'overseas_work_experience',
     ];
 
     /**

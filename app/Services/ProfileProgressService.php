@@ -151,6 +151,13 @@ class ProfileProgressService
         $hasPhoto = self::isFilled($user->profile_photo_path);
         $breakdown['profile_photo'] = $hasPhoto ? 6 : 0;
 
+        // 16. Age
+        $breakdown['age'] = self::isFilled($user->age) ? 6 : 0;
+
+        // 17. Overseas Work Experience
+        $overseasExp = $user->overseas_work_experience ?: ($chefProfile ? $chefProfile->overseas_work_experience : ($availInfo['overseas_work_experience'] ?? null));
+        $breakdown['overseas_work_experience'] = self::isFilled($overseasExp) ? 6 : 0;
+
         $filledCount = 0;
         foreach ($breakdown as $key => $val) {
             if ($val > 0) {
@@ -159,7 +166,7 @@ class ProfileProgressService
         }
 
         // Exact percentage out of 100%
-        $percentage = round(($filledCount / 15) * 100);
+        $percentage = round(($filledCount / 17) * 100);
 
         $missing = array_keys(array_filter($breakdown, function($val) {
             return $val === 0;
@@ -181,8 +188,6 @@ class ProfileProgressService
     {
         $breakdown = [];
         $percentage = 0;
-
-        $empProfile = $user->employerProfile ?: \App\Models\EmployerProfile::where('user_id', $user->id)->first();
 
         // 1. Business Name / Company Name (15%)
         $businessName = $empProfile ? $empProfile->business_name : null;
@@ -306,44 +311,61 @@ class ProfileProgressService
         $breakdown = [];
         $percentage = 0;
 
-        // 1. Name (20%)
+        // 1. Name (15%)
         if (self::isFilled($user->full_name)) {
-            $percentage += 20;
-            $breakdown['full_name'] = 20;
+            $percentage += 15;
+            $breakdown['full_name'] = 15;
         } else {
             $breakdown['full_name'] = 0;
         }
 
-        // 2. Mobile (20%)
-        if (self::isFilled($user->mobile_number)) {
-            $percentage += 20;
-            $breakdown['mobile_number'] = 20;
+        // 2. Mobile / Email (15%)
+        if (self::isFilled($user->mobile_number) || self::isFilled($user->email)) {
+            $percentage += 15;
+            $breakdown['contact'] = 15;
         } else {
-            $breakdown['mobile_number'] = 0;
+            $breakdown['contact'] = 0;
         }
 
-        // 3. City / Location (20%)
+        // 3. City / Location (15%)
         if (self::isFilled($user->city) || self::isFilled($user->country)) {
-            $percentage += 20;
-            $breakdown['city'] = 20;
+            $percentage += 15;
+            $breakdown['city'] = 15;
         } else {
             $breakdown['city'] = 0;
         }
 
-        // 4. Experience Range (20%)
+        // 4. Experience Range (15%)
         if (self::isFilled($user->experience_range) || self::isFilled($user->experience_years)) {
-            $percentage += 20;
-            $breakdown['experience'] = 20;
+            $percentage += 15;
+            $breakdown['experience'] = 15;
         } else {
             $breakdown['experience'] = 0;
         }
 
-        // 5. Preferred Role (20%)
+        // 5. Preferred Role (15%)
         if (self::isFilled($user->preferred_role)) {
-            $percentage += 20;
-            $breakdown['preferred_role'] = 20;
+            $percentage += 15;
+            $breakdown['preferred_role'] = 15;
         } else {
             $breakdown['preferred_role'] = 0;
+        }
+
+        // 6. Age (13%)
+        if (self::isFilled($user->age)) {
+            $percentage += 13;
+            $breakdown['age'] = 13;
+        } else {
+            $breakdown['age'] = 0;
+        }
+
+        // 7. Overseas Work Experience (12%)
+        $overseasExp = $user->overseas_work_experience ?: ($user->chefProfile ? $user->chefProfile->overseas_work_experience : null);
+        if (self::isFilled($overseasExp)) {
+            $percentage += 12;
+            $breakdown['overseas_work_experience'] = 12;
+        } else {
+            $breakdown['overseas_work_experience'] = 0;
         }
 
         $missing = array_keys(array_filter($breakdown, function($val) {

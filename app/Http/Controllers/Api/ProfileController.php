@@ -130,6 +130,8 @@ class ProfileController extends Controller
                 'name' => $user->full_name ?: null,
                 'email' => $user->email ?: null,
                 'gender' => $user->gender ?: null,
+                'age' => $user->age ?: null,
+                'overseas_work_experience' => $user->overseas_work_experience ?: null,
                 'mobile_number' => $user->mobile_number ?: null,
                 'country' => $user->country ?: null,
                 'city' => $user->city ?: null,
@@ -280,6 +282,8 @@ class ProfileController extends Controller
                 'country' => $user ? $user->country : null,
                 'city' => $user ? $user->city : null,
                 'gender' => $user ? $user->gender : null,
+                'age' => $user ? $user->age : null,
+                'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
                 'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'experience_years' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'current_employer' => $user ? $user->current_employer : null,
@@ -392,9 +396,22 @@ class ProfileController extends Controller
                 }
                 if ($request->has('city')) {
                     $user->city = $request->input('city');
+                } elseif ($request->has('location_preference')) {
+                    $user->city = $request->input('location_preference');
                 }
                 if ($request->has('gender') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
                     $user->gender = $request->input('gender');
+                }
+                if ($request->has('age') || $request->has('user_age')) {
+                    $user->age = $request->input('age') ?? $request->input('user_age');
+                }
+                if ($request->has('overseas_work_experience') || $request->has('overseas_experience') || $request->has('has_overseas_experience')) {
+                    $overseasVal = $request->input('overseas_work_experience') ?? $request->input('overseas_experience') ?? $request->input('has_overseas_experience');
+                    $user->overseas_work_experience = $overseasVal;
+                    if ($user->chefProfile && \Illuminate\Support\Facades\Schema::hasColumn('chef_profiles', 'overseas_work_experience')) {
+                        $user->chefProfile->overseas_work_experience = $overseasVal;
+                        $user->chefProfile->save();
+                    }
                 }
                 if ($request->has('experience_range')) {
                     $user->experience_range = $request->input('experience_range');
@@ -408,6 +425,8 @@ class ProfileController extends Controller
                 }
                 if ($request->has('preferred_role')) {
                     $user->preferred_role = $request->input('preferred_role');
+                } elseif ($request->has('job_type')) {
+                    $user->preferred_role = $request->input('job_type');
                 } elseif ($request->has('position')) {
                     $user->preferred_role = $request->input('position');
                 } elseif ($request->has('job_title')) {
