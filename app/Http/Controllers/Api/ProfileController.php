@@ -603,12 +603,16 @@ class ProfileController extends Controller
                 $skillsFormatted = is_array($user->skills) ? implode(', ', $user->skills) : $user->skills;
             }
 
+            $completenessScore = $user ? \App\Services\ProfileProgressService::calculate($user) : 0;
+
             $updatedData = [
                 'full_name' => $user ? $user->full_name : null,
                 'email' => $user ? $user->email : null,
                 'country' => $user ? $user->country : null,
                 'city' => $user ? $user->city : null,
                 'gender' => $user ? $user->gender : null,
+                'age' => $user ? $user->age : null,
+                'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
                 'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'current_employer' => $user ? $user->current_employer : null,
                 'job_type' => $user ? $user->preferred_role : null,
@@ -616,6 +620,8 @@ class ProfileController extends Controller
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'skills' => $skillsFormatted,
                 'profile_photo_path' => $this->getUserPhoto($user),
+                'completeness' => $completenessScore,
+                'profile_completeness' => $completenessScore,
             ];
 
             return response()->json([
