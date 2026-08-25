@@ -1500,7 +1500,6 @@ Route::get('/admin/users/{id}/applications', function($id) {
         // 2. Fetch Job Applications from `job_applications` table
         $jobApps = \Illuminate\Support\Facades\DB::table('job_applications')
             ->where('applicant_id', $user->id)
-            ->orWhere('user_id', $user->id)
             ->latest('created_at')
             ->get()
             ->map(function($a) {
@@ -1521,7 +1520,6 @@ Route::get('/admin/users/{id}/applications', function($id) {
         // 3. Fetch Training Applications from `training_applications` table
         $trainingApps = \Illuminate\Support\Facades\DB::table('training_applications')
             ->where('applicant_id', $user->id)
-            ->orWhere('user_id', $user->id)
             ->latest('created_at')
             ->get()
             ->map(function($ta) {
