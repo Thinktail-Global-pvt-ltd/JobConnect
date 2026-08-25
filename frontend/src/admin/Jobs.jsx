@@ -139,6 +139,20 @@ export default function Jobs() {
     return !j.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer');
   }).length;
 
+  const indiaCount = jobs.filter(j => {
+    const cat = (j.category || '').toLowerCase();
+    const loc = (j.location || '').toLowerCase();
+    const country = (j.country || '').toLowerCase();
+    return cat === 'india' || (!cat && !loc.includes('saudi') && !loc.includes('dubai') && !loc.includes('uae')) || country === 'india';
+  }).length;
+
+  const overseasCount = jobs.filter(j => {
+    const cat = (j.category || '').toLowerCase();
+    const loc = (j.location || '').toLowerCase();
+    const country = (j.country || '').toLowerCase();
+    return cat === 'overseas' || cat === 'dubai' || loc.includes('saudi') || loc.includes('dubai') || loc.includes('uae') || (country && country.toLowerCase() !== 'india');
+  }).length;
+
   const filteredJobs = jobs.filter(job => {
     // 0. Status Filter
     if (status) {
@@ -157,10 +171,16 @@ export default function Jobs() {
     // 1. Role Filter
     if (roleFilter) {
       const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
+      const cat = (job.category || '').toLowerCase();
+      const loc = (job.location || '').toLowerCase();
+      const country = (job.country || '').toLowerCase();
+
       if (roleFilter === 'admin' && !(job.is_admin_created || r === 'admin' || r === 'administrator')) return false;
       if (roleFilter === 'chef' && !(r === 'chef' || r === 'cook')) return false;
       if (roleFilter === 'job_seeker' && !(r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate')) return false;
       if (roleFilter === 'employer' && !(!job.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer'))) return false;
+      if (roleFilter === 'india' && !(cat === 'india' || (!cat && !loc.includes('saudi') && !loc.includes('dubai') && !loc.includes('uae')) || country === 'india')) return false;
+      if (roleFilter === 'overseas' && !(cat === 'overseas' || cat === 'dubai' || loc.includes('saudi') || loc.includes('dubai') || loc.includes('uae') || (country && country.toLowerCase() !== 'india'))) return false;
     }
 
     // 2. Employer ID filter (if specified)
@@ -400,7 +420,7 @@ export default function Jobs() {
                 : 'bg-white border border-blue-200 text-blue-800 hover:bg-blue-50'
             }`}
           >
-            <span>Jobseeker</span>
+            <span>Talent</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'job_seeker' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800 border border-blue-200'}`}>
               {jobseekerCount}
             </span>
@@ -418,6 +438,38 @@ export default function Jobs() {
             <span>Employer</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'employer' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
               {employerCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setRoleFilter('india'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              roleFilter === 'india' 
+                ? 'bg-sky-700 text-white shadow-xs' 
+                : 'bg-white border border-sky-200 text-sky-800 hover:bg-sky-50'
+            }`}
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            <span>India Jobs</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'india' ? 'bg-white/20 text-white' : 'bg-sky-100 text-sky-800 border border-sky-200'}`}>
+              {indiaCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setRoleFilter('overseas'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              roleFilter === 'overseas' 
+                ? 'bg-purple-700 text-white shadow-xs' 
+                : 'bg-white border border-purple-200 text-purple-800 hover:bg-purple-50'
+            }`}
+          >
+            <Plane className="w-3.5 h-3.5" />
+            <span>Overseas</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${roleFilter === 'overseas' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800 border border-purple-200'}`}>
+              {overseasCount}
             </span>
           </button>
         </div>
