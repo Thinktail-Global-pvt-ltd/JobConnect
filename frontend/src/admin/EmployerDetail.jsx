@@ -322,35 +322,6 @@ export default function EmployerDetail() {
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-4">
             <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Building2 className="w-4.5 h-4.5 text-slate-500" /> Business Information
-            </h3>
-
-            <div className="space-y-3.5 text-xs font-semibold">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Business Name</span>
-                <span className="text-slate-900 font-extrabold">{name}</span>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Business Type</span>
-                <span className="text-slate-900 font-extrabold">{businessType}</span>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Business Logo</span>
-                <div className="w-10 h-10 rounded-full bg-[#362725] text-white flex items-center justify-center text-xs font-black overflow-hidden border border-slate-200">
-                  {(photoUrl && !imgFailed) ? (
-                    <img src={photoUrl} alt={name} className="w-full h-full object-cover" />
-                  ) : (
-                    initials
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-4">
-            <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
               <MapPin className="w-4.5 h-4.5 text-slate-500" /> Business Locations
             </h3>
 
