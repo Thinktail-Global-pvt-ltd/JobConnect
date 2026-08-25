@@ -73,29 +73,35 @@ class AdminPostController extends Controller
 
         // 3. Training Opportunities (ONLY Published/Active status)
         try {
-            $trainings = \App\Models\TrainingOpportunity::latest()->get()->filter(function($t) {
-                if (strtolower(trim($t->program_name ?? '')) === 'dwscfevg' || $t->id == 23) {
-                    return false;
-                }
-                $st = strtolower(trim($t->status ?? ''));
-                return in_array($st, ['published', 'active', 'approved']);
-            });
+            if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+                $trainings = \Illuminate\Support\Facades\DB::table('training_opportunities')
+                    ->orderBy('id', 'desc')
+                    ->get()
+                    ->filter(function($t) {
+                        $pName = strtolower(trim($t->program_name ?? ($t->title ?? '')));
+                        if ($pName === 'dwscfevg' || (int)$t->id === 23) {
+                            return false;
+                        }
+                        $st = strtolower(trim($t->status ?? ''));
+                        return in_array($st, ['published', 'active', 'approved']);
+                    });
 
-            foreach ($trainings as $train) {
-                $feedItems->push([
-                    'id'         => 'train_' . $train->id,
-                    'raw_id'     => $train->id,
-                    'source'     => 'training',
-                    'uid'        => 'TO-' . sprintf('%04d', $train->id),
-                    'title'      => $train->program_name ?? 'Training Program',
-                    'body'       => ($train->provider_name ?? 'Jobrito') . ' • ' . ($train->location ?? 'Overseas'),
-                    'post_type'  => 'Training & Overseas',
-                    'status'     => 'Published',
-                    'is_pinned'  => (bool)$train->is_pinned,
-                    'created_at' => $train->created_at ? $train->created_at->toIso8601String() : null,
-                    'timestamp'  => $train->created_at ? $train->created_at->timestamp : 0,
-                    'date'       => $train->created_at ? $train->created_at->format('M d, Y') : 'Recently',
-                ]);
+                foreach ($trainings as $train) {
+                    $feedItems->push([
+                        'id'         => 'train_' . $train->id,
+                        'raw_id'     => $train->id,
+                        'source'     => 'training',
+                        'uid'        => 'TO-' . sprintf('%04d', $train->id),
+                        'title'      => $train->program_name ?? 'Training Program',
+                        'body'       => ($train->provider_name ?? 'Jobrito') . ' • ' . ($train->location ?? 'Overseas'),
+                        'post_type'  => 'Training & Overseas',
+                        'status'     => 'Published',
+                        'is_pinned'  => (bool)($train->is_pinned ?? false),
+                        'created_at' => isset($train->created_at) ? \Carbon\Carbon::parse($train->created_at)->toIso8601String() : null,
+                        'timestamp'  => isset($train->created_at) ? \Carbon\Carbon::parse($train->created_at)->timestamp : 0,
+                        'date'       => isset($train->created_at) ? \Carbon\Carbon::parse($train->created_at)->format('M d, Y') : 'Recently',
+                    ]);
+                }
             }
         } catch (\Throwable $e) {}
 
