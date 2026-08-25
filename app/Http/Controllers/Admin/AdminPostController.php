@@ -79,21 +79,24 @@ class AdminPostController extends Controller
             if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
                 $trainings = \Illuminate\Support\Facades\DB::table('training_opportunities')
                     ->orderBy('id', 'desc')
-                    ->get()
-                    ->filter(function($t) {
-                        $jsonStr = strtolower(json_encode($t));
-                        if (str_contains($jsonStr, 'dwscfevg') || str_contains($jsonStr, 'dwsc')) {
-                            return false;
-                        }
-                        $st = strtolower(trim($t->status ?? ($t->approval_status ?? '')));
-                        if (in_array($st, ['draft', 'pending', 'unpublished', 'reviewing', 'in_review', 'in review'])) {
-                            return false;
-                        }
-                        return $st === 'published' || $st === 'active' || $st === 'approved';
-                    });
+                    ->get();
 
                 foreach ($trainings as $train) {
-                    $trainStatus = !empty($train->status) ? ucfirst(strtolower($train->status)) : 'Published';
+                    $tId = (string)($train->id ?? '');
+                    $pName = strtolower(trim($train->program_name ?? ($train->name ?? ($train->title ?? ''))));
+                    $st = strtolower(trim($train->status ?? ($train->approval_status ?? '')));
+
+                    // Strictly skip draft, pending, or dwscfevg programs
+                    if ($tId === '23' || str_contains($pName, 'dwscfevg') || str_contains($pName, 'dwsc')) {
+                        continue;
+                    }
+                    if (empty($st) || in_array($st, ['draft', 'pending', 'unpublished', 'reviewing', 'in_review', 'in review'])) {
+                        continue;
+                    }
+                    if (!in_array($st, ['published', 'active', 'approved'])) {
+                        continue;
+                    }
+
                     $feedItems->push([
                         'id'         => 'train_' . $train->id,
                         'raw_id'     => $train->id,
@@ -102,7 +105,7 @@ class AdminPostController extends Controller
                         'title'      => $train->program_name ?? ($train->title ?? 'Training Program'),
                         'body'       => ($train->provider_name ?? 'Jobrito') . ' • ' . ($train->location ?? 'Overseas'),
                         'post_type'  => 'Training & Overseas',
-                        'status'     => $trainStatus,
+                        'status'     => 'Published',
                         'is_pinned'  => (bool)($train->is_pinned ?? false),
                         'created_at' => isset($train->created_at) ? \Carbon\Carbon::parse($train->created_at)->toIso8601String() : null,
                         'timestamp'  => isset($train->created_at) ? \Carbon\Carbon::parse($train->created_at)->timestamp : 0,
