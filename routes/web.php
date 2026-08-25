@@ -1092,12 +1092,15 @@ if (!function_exists('getWebTrainingOpportunities')) {
                 ->map(function($p) {
                     $loc = $p->location ?? 'India';
                     $countries = array_values(array_filter(array_map('trim', explode(',', $loc))));
+                    $durationRaw = explode("\n", trim((string)($p->duration ?? '12 Months')))[0];
+                    $durationClean = mb_substr(trim($durationRaw), 0, 30);
+
                     return [
                         'id' => $p->id,
                         'name' => $p->program_name ?? 'Training Opportunity',
                         'curriculum' => $p->provider_name ?? 'Jobrito Academy',
                         'countries' => !empty($countries) ? $countries : ['India'],
-                        'duration' => $p->duration ?? '12 Months',
+                        'duration' => $durationClean ?: '12 Months',
                         'employer_details' => $p->employer_details ?? '',
                         'skills_covered' => $p->skills_covered ?? '',
                         'benefits' => $p->benefits ?? '',

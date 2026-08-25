@@ -462,7 +462,7 @@ Route::get('/admin/training-opportunities', function() {
                 'contact_information' => $t->contact_information ?? '',
                 'countries' => array_map('trim', explode(',', $loc)),
                 'location' => $loc,
-                'duration' => $t->duration ?? '',
+                'duration' => mb_substr(trim(explode("\n", trim((string)($t->duration ?? '')))[0]), 0, 30),
                 'employer_details' => $t->employer_details ?? '',
                 'skills_covered' => $t->skills_covered ?? '',
                 'benefits' => $t->benefits ?? '',
