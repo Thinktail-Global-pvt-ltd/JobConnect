@@ -374,9 +374,6 @@ export default function CommunityFeed() {
               <button onClick={() => setTab('drafts')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'drafts' ? 'bg-[#e5e7eb] text-slate-900' : 'text-slate-700 hover:bg-[#e5e7eb]'}`}>
                 Drafts / Unpublished ({stats.drafts})
               </button>
-              <button onClick={() => setTab('archived')} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${tab === 'archived' ? 'bg-[#e5e7eb] text-slate-900' : 'text-slate-700 hover:bg-[#e5e7eb]'}`}>
-                Archived ({stats.archived})
-              </button>
             </div>
             <button onClick={loadPosts} className="text-[10px] font-bold text-[#8aa0b9] hover:text-[#1d4b78] flex items-center gap-1 transition-colors cursor-pointer">
               <RotateCcw className="w-3 h-3" /> Refresh
@@ -474,29 +471,9 @@ export default function CommunityFeed() {
                             <Pin className="w-4 h-4" />
                           </button>
 
-                          {post.status === 'Published' && (
-                            <button
-                              onClick={() => handleStatusChange(post.id, 'Archived')}
-                              className="p-1.5 rounded-lg bg-[#f1f4f7] hover:bg-[#fee2e2] text-[#8aa0b9] hover:text-[#c5221f] transition-colors"
-                              title="Archive"
-                            >
-                              <Bookmark className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
-                          {post.status === 'Archived' && (
-                            <button
-                              onClick={() => handleStatusChange(post.id, 'Draft')}
-                              className="p-1.5 rounded-lg bg-[#f1f4f7] hover:bg-[#e2e8f0] text-[#6d849f] transition-colors"
-                              title="Restore to Draft"
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-
                           <button
                             onClick={() => handleDelete(post.id)}
-                            className="p-1.5 rounded-lg bg-[#f1f4f7] hover:bg-[#fee2e2] text-[#8aa0b9] hover:text-[#c5221f] transition-colors"
+                            className="p-1.5 rounded-lg bg-[#f1f4f7] hover:bg-[#fee2e2] text-[#8aa0b9] hover:text-[#c5221f] transition-colors cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
