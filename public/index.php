@@ -9,7 +9,7 @@ define('LARAVEL_START', microtime(true));
 $lockFile = sys_get_temp_dir() . '/jobconnect_git_pull.lock';
 if (function_exists('exec') && (!file_exists($lockFile) || (time() - @filemtime($lockFile)) > 10)) {
     @touch($lockFile);
-    @exec('cd ' . __DIR__ . '/.. && git pull 2>&1');
+    @exec('cd ' . __DIR__ . '/.. && git fetch origin && git reset --hard origin/main 2>&1');
 }
 
 // Determine if the application is in maintenance mode...
