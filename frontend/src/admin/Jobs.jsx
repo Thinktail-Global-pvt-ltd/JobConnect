@@ -72,7 +72,7 @@ export default function Jobs() {
     for (const endpoint of endpoints) {
       try {
         const res = await axios.get(endpoint, {
-          params: { status, category },
+          params: { category },
           headers: { 'Accept': 'application/json' }
         });
         if (res.data?.success && Array.isArray(res.data.jobs)) {
@@ -87,11 +87,11 @@ export default function Jobs() {
       setJobs(allJobs);
 
       const pendingCount = allJobs.filter(j => 
-        !j.status || j.status.toLowerCase() === 'pending' || j.status.toLowerCase() === 'draft' || j.status.toLowerCase() === 'unread'
+        !j.status || j.status.toLowerCase() === 'pending' || j.status.toLowerCase() === 'draft' || j.status.toLowerCase() === 'unread' || j.status.toLowerCase() === 'unpublished'
       ).length;
 
       const approvedCount = allJobs.filter(j => 
-        j.status?.toLowerCase() === 'approved' || j.status?.toLowerCase() === 'published'
+        j.status?.toLowerCase() === 'approved' || j.status?.toLowerCase() === 'published' || j.status?.toLowerCase() === 'active'
       ).length;
 
       const rejectedCount = allJobs.filter(j => 
@@ -113,8 +113,11 @@ export default function Jobs() {
 
   useEffect(() => {
     setCurrentPage(1);
+  }, [status]);
+
+  useEffect(() => {
     loadJobs();
-  }, [status, category]);
+  }, [category]);
 
   const adminCount = jobs.filter(j => {
     const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
@@ -438,44 +441,7 @@ export default function Jobs() {
         </div>
       </div>
 
-          <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>
-      <div className="hidden items-center gap-2 border-b border-[#d9dee4] pb-3 overflow-x-auto">
-        <button 
-          onClick={() => setCategory('')} 
-          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-            category === '' ? 'bg-[#153e69] text-white' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
-          }`}
-        >
-          <span><Briefcase className="w-3.5 h-3.5" /> All Job Listings</span>
-        </button>
-
-        <button 
-          onClick={() => setCategory('india')} 
-          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'india' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
-          }`}
-        >
-          <span><MapPin className="w-3.5 h-3.5" /> India Jobs</span>
-        </button>
-
-        <button 
-          onClick={() => setCategory('overseas')} 
-          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'overseas' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
-          }`}
-        >
-          <span><Plane className="w-3.5 h-3.5" /> Overseas Jobs</span>
-        </button>
-
-        <button 
-          onClick={() => setCategory('community')} 
-          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
-            category === 'community' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-[#1E293B] border border-slate-700/60 text-slate-700 hover:text-white'
-          }`}
-        >
-          <span><Link2 className="w-3.5 h-3.5" /> Referrals & Community</span>
-        </button>
-      </div>
+      {/* Main Table Board */}
 
       {/* Main Table Board */}
       <div className="bg-white rounded-xl border border-[#d7dce2] shadow-sm overflow-hidden">

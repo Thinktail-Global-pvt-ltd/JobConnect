@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { mockApi, resolveImageUrl } from '../services/api';
-import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star, ExternalLink } from 'lucide-react';
+import { Search, Eye, Check, ChevronLeft, ChevronRight, Plus, Send, User, Building2, ArrowLeft, Users, Briefcase, Calendar, MapPin, ChevronRight as ArrowRight, GraduationCap, Target, Mail, Wrench, Clock, FileText, X, Phone, Smartphone, Star, ExternalLink, ShieldCheck } from 'lucide-react';
 
 export default function Applications() {
   const navigate = useNavigate();
@@ -373,6 +373,11 @@ export default function Applications() {
                   <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                     {selectedJob.applications.length} Applicant{selectedJob.applications.length > 1 ? 's' : ''}
                   </span>
+                  {(selectedJob.is_admin_created || (selectedJob.submitted_by_role || '').toLowerCase() === 'admin') && (
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 inline-flex items-center gap-1">
+                      <ShieldCheck className="inline w-3 h-3 text-amber-600" /> Created by Admin
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs font-semibold text-slate-500 mt-0.5 flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-slate-400" />
@@ -558,6 +563,11 @@ export default function Applications() {
                               <div>
                                 <span className="font-extrabold text-slate-900 text-[13px] group-hover:text-[#153e69] transition-colors block">
                                   {job.title}
+                                  {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin') && (
+                                    <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-black border border-amber-300 inline-flex items-center gap-1 ml-2">
+                                      <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Created by Admin
+                                    </span>
+                                  )}
                                 </span>
                                 <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
                                   {job.company}

@@ -25,6 +25,12 @@ export default function CommunityFeed() {
     status: 'published',
     is_pinned: false
   });
+  const [actionAlert, setActionAlert] = useState(null);
+
+  const triggerAlert = (msg) => {
+    setActionAlert(msg);
+    setTimeout(() => setActionAlert(null), 4000);
+  };
 
   // Load unified admin stream
   const loadPosts = async () => {
@@ -116,6 +122,7 @@ export default function CommunityFeed() {
       ...prev,
       pinned: nextPinned ? prev.pinned + 1 : Math.max(0, prev.pinned - 1)
     }));
+    triggerAlert(nextPinned ? 'Stream post pinned to top feed!' : 'Stream post unpinned.');
 
     try {
       await mockApi.togglePinCommunityPost(id, nextPinned);
@@ -151,6 +158,7 @@ export default function CommunityFeed() {
     });
 
     setIsModalOpen(false);
+    triggerAlert('New community feed post created successfully!');
 
     try {
       await axios.post(`${BACKEND}/api/admin/community-posts`, formData, {
@@ -173,9 +181,10 @@ export default function CommunityFeed() {
     }
   };
 
-  // Status toggle handler: Publish / Unpublish / Archive / Restore
+  // Status toggle handler: Publish / Archive / Restore
   const handleStatusChange = async (id, newStatus) => {
     setPosts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+    triggerAlert(`Post status changed to ${newStatus}!`);
     try {
       await axios.patch(`${BACKEND}/api/admin/community-posts/${id}`, { status: newStatus }, {
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' }
@@ -190,6 +199,7 @@ export default function CommunityFeed() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this stream entry?")) {
       setPosts(prev => prev.filter(p => p.id !== id));
+      triggerAlert('Stream entry deleted.');
 
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
@@ -286,6 +296,16 @@ export default function CommunityFeed() {
           <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
         </div>
       </div>
+
+      {actionAlert && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl px-4 py-3 flex items-center justify-between shadow-xs transition-all">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{actionAlert}</span>
+          </div>
+          <button onClick={() => setActionAlert(null)} className="text-emerald-600 hover:text-emerald-800 font-extrabold text-sm cursor-pointer">✕</button>
+        </div>
+      )}
 
       {error && (
         <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl px-4 py-3">
@@ -390,16 +410,7 @@ export default function CommunityFeed() {
 
                       <td className="py-4 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          {post.status === 'Published' ? (
-                            <button
-                              onClick={() => handleStatusChange(post.id, 'Draft')}
-                              className="px-3 py-1 bg-[#f59e0b] hover:bg-[#d97706] text-white text-[10px] font-extrabold rounded-md transition-all shadow-sm flex items-center gap-1 cursor-pointer"
-                              title="Unpublish item from live feed"
-                            >
-                              <EyeOff className="w-3 h-3" />
-                              <span>Unpublish</span>
-                            </button>
-                          ) : (
+                          {post.status !== 'Published' && (
                             <button
                               onClick={() => handleStatusChange(post.id, 'Published')}
                               className="px-3 py-1 bg-[#1d4b78] hover:bg-[#163b61] text-white text-[10px] font-extrabold rounded-md transition-all shadow-sm flex items-center gap-1 cursor-pointer font-bold"
