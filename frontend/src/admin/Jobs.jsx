@@ -807,9 +807,6 @@ export default function Jobs() {
                     >
                       <option value="INR">INR (₹)</option>
                       <option value="SAR">SAR (Saudi Riyal)</option>
-                      <option value="AED">AED (UAE Dirham)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
                     </select>
                   </div>
 

@@ -742,11 +742,8 @@ export default function JobDetail() {
                       onChange={(e) => setEditForm(prev => ({ ...prev, salary_currency: e.target.value }))}
                       className="w-full bg-white border border-[#e2e8f0] rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
                     >
+                      <option value="INR">INR (₹)</option>
                       <option value="SAR">SAR (Saudi Riyal)</option>
-                      <option value="INR">INR (Indian Rupee)</option>
-                      <option value="AED">AED (UAE Dirham)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
                     </select>
                   </div>
 
