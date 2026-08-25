@@ -201,18 +201,17 @@ export default function TrainingDetail() {
     );
   }
 
-  const name = program.name || 'Training Opportunity';
-  const curriculum = program.curriculum || 'Advanced Hospitality Curriculum';
-  const duration = program.duration || '3 Months';
-  const employerDetails = program.employer_details || program.provider || 'Verified Training Institute';
+  const name = program.name || program.title || `Training Program #${program.id}`;
+  const curriculum = program.curriculum || '';
+  const duration = program.duration || '';
+  const employerDetails = program.employer_details || program.provider || program.company || '';
   const countriesList = Array.isArray(program.countries) 
     ? program.countries.filter(c => isValidField(c)) 
-    : (typeof program.countries === 'string' ? program.countries.split(',').map(c => c.trim()).filter(c => isValidField(c)) : ['India']);
-  if (countriesList.length === 0) countriesList.push('India');
+    : (typeof program.countries === 'string' ? program.countries.split(',').map(c => c.trim()).filter(c => isValidField(c)) : []);
 
-  const skillsCovered = program.skills_covered || 'Coffee Roasting, Brewing, Mocktails & Service';
-  const benefits = program.benefits || 'Paid Training, Free Accommodation, Certification & Job Placement';
-  const placementOpportunities = program.placement_opportunities || 'Assured Placement in Leading Hospitality Groups Across Gulf & Overseas';
+  const skillsCovered = program.skills_covered || '';
+  const benefits = program.benefits || '';
+  const placementOpportunities = program.placement_opportunities || '';
   
   const isPublished = (program.status || '').toLowerCase() === 'published' || (program.status || '').toLowerCase() === 'active';
   const isPinned = Boolean(program.is_pinned);
@@ -484,7 +483,7 @@ export default function TrainingDetail() {
               <FileText className="w-4.5 h-4.5 text-slate-500" /> Program Overview
             </h3>
             <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100 text-xs font-semibold text-slate-700 leading-relaxed">
-              {curriculum || 'Comprehensive training curriculum designed to prepare candidates for overseas & domestic hospitality placements.'}
+              {curriculum || program.description || 'No detailed overview provided.'}
             </div>
           </div>
 
