@@ -55,13 +55,35 @@ export default function ChefDetail() {
 
     try {
       const targetUserId = data?.user_id || data?.id || chef?.user_id || chef?.id || id;
+      let fetchedApps = [];
+
       const realAppsRes = await axios.get(`/backend/api/admin/users/${targetUserId}/applications`, { headers: { Accept: 'application/json' } }).catch(() => null);
       if (realAppsRes && realAppsRes.data && Array.isArray(realAppsRes.data.applications)) {
-        setAppliedJobs(realAppsRes.data.applications);
+        fetchedApps = realAppsRes.data.applications;
       } else {
         const appsRes = await mockApi.getUserApplications(targetUserId).catch(() => ({ applications: [] }));
-        setAppliedJobs(appsRes.applications || []);
+        fetchedApps = appsRes.applications || [];
       }
+
+      // Also check mockApi.getApplications() to guarantee training applications are included
+      const allAppsRes = await mockApi.getApplications().catch(() => ({ applications: [] }));
+      if (allAppsRes && Array.isArray(allAppsRes.applications)) {
+        const userFiltered = allAppsRes.applications.filter(a => {
+          const applicant = a.applicant || {};
+          const uid = String(a.applicant_id || a.user_id || a.created_by || applicant.id || applicant.user_id || '');
+          return uid === String(targetUserId) || uid === String(id) || uid === String(data?.user_id) || uid === String(data?.id);
+        });
+
+        // Merge any training application that might not be in fetchedApps
+        userFiltered.forEach(extra => {
+          if (!fetchedApps.some(existing => String(existing.id) === String(extra.id) || String(existing.id) === String(extra.application_id))) {
+            fetchedApps.push(extra);
+          }
+        });
+      }
+
+      setAppliedJobs(fetchedApps);
+
       const jobsRes = await mockApi.getUserJobs(targetUserId).catch(() => ({ jobs: [] }));
       setPostedJobs(jobsRes.jobs || []);
     } catch (err) {}

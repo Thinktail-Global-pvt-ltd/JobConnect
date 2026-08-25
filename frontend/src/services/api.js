@@ -554,11 +554,26 @@ export const mockApi = {
     for (const ep of endpoints) {
       try {
         const res = await axios.get(ep, { headers: { Accept: 'application/json' } });
-        if (res.data && res.data.success && Array.isArray(res.data.applications)) {
+        if (res.data && res.data.success && Array.isArray(res.data.applications) && res.data.applications.length > 0) {
           return { success: true, applications: res.data.applications, user_id: res.data.user_id };
         }
       } catch (e) {}
     }
+
+    try {
+      const allAppsRes = await mockApi.getApplications();
+      if (allAppsRes && Array.isArray(allAppsRes.applications)) {
+        const userApps = allAppsRes.applications.filter(a => {
+          const applicant = a.applicant || {};
+          const uid = String(a.applicant_id || a.user_id || a.created_by || applicant.id || applicant.user_id || '');
+          return uid === String(id);
+        });
+        if (userApps.length > 0) {
+          return { success: true, applications: userApps };
+        }
+      }
+    } catch (e) {}
+
     return mockEndpoints.getUserApplications(id);
   },
 
