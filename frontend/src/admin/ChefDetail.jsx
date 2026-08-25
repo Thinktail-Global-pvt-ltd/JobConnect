@@ -389,14 +389,28 @@ export default function ChefDetail() {
             </div>
 
             {/* Box 2: Jobs Applied For */}
-            <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-4.5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                <Briefcase className="w-6 h-6" />
+            <div 
+              onClick={() => {
+                const uid = chef?.user_id || chef?.id || id;
+                const candName = name || chef?.full_name || 'Chef';
+                navigate(`/admin/applications?userId=${uid}&userName=${encodeURIComponent(candName)}`, { state: { userId: uid, userName: candName } });
+              }}
+              className="bg-blue-50/60 border border-blue-100 hover:border-blue-300 hover:bg-blue-50 transition-all rounded-2xl p-4.5 flex items-center justify-between gap-4 cursor-pointer group shadow-2xs"
+              title="Click to view all applications submitted by this candidate"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 group-hover:bg-blue-600 group-hover:text-white text-blue-700 flex items-center justify-center shrink-0 transition-colors">
+                  <Briefcase className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-extrabold text-slate-800 group-hover:text-blue-950 block">Jobs Applied For</span>
+                  <span className="font-outfit font-black text-2xl text-slate-900 group-hover:text-blue-950 block leading-tight my-0.5">{totalApplied}</span>
+                  <span className="text-[11px] font-semibold text-slate-400 block">Total Applications</span>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-extrabold text-slate-800 block">Jobs Applied For</span>
-                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight my-0.5">{totalApplied}</span>
-                <span className="text-[11px] font-semibold text-slate-400 block">Total Applications</span>
+              <div className="flex items-center text-xs font-black text-blue-600 group-hover:text-blue-800 bg-white px-3 py-1.5 rounded-xl border border-blue-200 shadow-2xs gap-1.5 transition-all shrink-0">
+                <span>View Applications</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
 
