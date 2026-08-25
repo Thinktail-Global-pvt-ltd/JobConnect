@@ -56,7 +56,7 @@ export default function UserDetail() {
     }
 
     try {
-      const targetUserId = user?.user_id || user?.id || id;
+      const targetUserId = userData?.user_id || userData?.id || user?.user_id || user?.id || id;
       const realAppsRes = await axios.get(`/backend/api/admin/users/${targetUserId}/applications`, { headers: { Accept: 'application/json' } }).catch(() => null);
       if (realAppsRes && realAppsRes.data && Array.isArray(realAppsRes.data.applications)) {
         setAppliedJobs(realAppsRes.data.applications);

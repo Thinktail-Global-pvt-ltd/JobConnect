@@ -54,7 +54,7 @@ export default function ChefDetail() {
     }
 
     try {
-      const targetUserId = chef?.user_id || chef?.id || id;
+      const targetUserId = data?.user_id || data?.id || chef?.user_id || chef?.id || id;
       const realAppsRes = await axios.get(`/backend/api/admin/users/${targetUserId}/applications`, { headers: { Accept: 'application/json' } }).catch(() => null);
       if (realAppsRes && realAppsRes.data && Array.isArray(realAppsRes.data.applications)) {
         setAppliedJobs(realAppsRes.data.applications);
