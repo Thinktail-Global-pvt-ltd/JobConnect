@@ -113,24 +113,29 @@ export default function Jobs() {
     loadJobs();
   }, [category]);
 
-  const adminCount = jobs.filter(j => {
-    const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
-    return Boolean(j.is_admin_created) || r === 'admin' || r === 'administrator';
-  }).length;
+  const isAdminCreatedJob = (j) => {
+    if (!j) return false;
+    return Boolean(j.is_admin_created) || (j.submitted_by_role || '').toLowerCase() === 'admin';
+  };
+
+  const adminCount = jobs.filter(j => isAdminCreatedJob(j)).length;
 
   const chefCount = jobs.filter(j => {
+    if (isAdminCreatedJob(j)) return false;
     const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
     return r === 'chef' || r === 'cook';
   }).length;
 
   const jobseekerCount = jobs.filter(j => {
+    if (isAdminCreatedJob(j)) return false;
     const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
     return r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate';
   }).length;
 
   const employerCount = jobs.filter(j => {
+    if (isAdminCreatedJob(j)) return false;
     const r = (j.posted_by_role || j.submitted_by_role || j.creator?.active_profile || j.creator?.user_role || '').toLowerCase();
-    return !j.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer');
+    return r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer' || !r;
   }).length;
 
   const isOverseasJob = (j) => {
@@ -168,12 +173,13 @@ export default function Jobs() {
 
     // 1. Role Filter
     if (roleFilter) {
+      const isAdm = isAdminCreatedJob(job);
       const r = (job.posted_by_role || job.submitted_by_role || job.creator?.active_profile || job.creator?.user_role || '').toLowerCase();
 
-      if (roleFilter === 'admin' && !(job.is_admin_created || r === 'admin' || r === 'administrator')) return false;
-      if (roleFilter === 'chef' && !(r === 'chef' || r === 'cook')) return false;
-      if (roleFilter === 'job_seeker' && !(r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate')) return false;
-      if (roleFilter === 'employer' && !(!job.is_admin_created && r !== 'admin' && r !== 'administrator' && (r === 'employer' || r === 'agency' || r === 'recruiter' || r === 'hirer'))) return false;
+      if (roleFilter === 'admin' && !isAdm) return false;
+      if (roleFilter === 'chef' && (isAdm || !(r === 'chef' || r === 'cook'))) return false;
+      if (roleFilter === 'job_seeker' && (isAdm || !(r === 'jobseeker' || r === 'job_seeker' || r === 'talent' || r === 'candidate'))) return false;
+      if (roleFilter === 'employer' && (isAdm || ['chef', 'cook', 'jobseeker', 'job_seeker', 'talent', 'candidate'].includes(r))) return false;
       if (roleFilter === 'india' && !isIndiaJob(job)) return false;
       if (roleFilter === 'overseas' && !isOverseasJob(job)) return false;
     }
@@ -534,7 +540,7 @@ export default function Jobs() {
                             ) : (
                               <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] font-black border border-blue-200"><Briefcase className="inline w-3 h-3 mr-1" />India</span>
                             )}
-                            {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin' || (job.creator?.user_role || job.creator?.active_profile || '').toLowerCase() === 'admin') && (
+                            {isAdminCreatedJob(job) && (
                               <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-black border border-amber-300 flex items-center gap-1">
                                 <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Created by Admin
                               </span>
@@ -552,15 +558,15 @@ export default function Jobs() {
                           <span className="text-slate-800 font-bold block">
                             {job.business_name || job.company_name || job.company || (job.creator ? (job.creator.business_name || job.creator.company_name || job.creator.full_name) : 'Hospitality Employer')}
                           </span>
-                          {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin') ? (
+                          {isAdminCreatedJob(job) ? (
                             <span className="text-[10px] font-extrabold text-amber-700 block flex items-center gap-1">
                               <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Admin Posted
                             </span>
-                          ) : job.creator && job.creator.full_name && (job.business_name || job.company_name || job.company) ? (
+                          ) : (
                             <span className="text-[10px] font-semibold text-slate-500 block">
-                              By: {job.creator.full_name}
+                              {job.creator && job.creator.full_name ? `By: ${job.creator.full_name}` : 'Employer Posted'}
                             </span>
-                          ) : null}
+                          )}
                         </div>
                       </div>
                     </td>

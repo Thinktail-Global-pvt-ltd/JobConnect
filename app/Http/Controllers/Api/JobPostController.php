@@ -137,19 +137,17 @@ class JobPostController extends Controller
             ], 422);
         }
 
-        // Auto-detect submitted_by_role from the user's profile if not explicitly sent
-        $rawRole = $request->submitted_by_role ?? $user->role_type ?? null;
-
-        // Normalize: "job_seeker" → "jobseeker" for consistent DB storage
-        $submittedByRole = $rawRole
-            ? str_replace('_', '', strtolower(trim($rawRole)))
-            : null;
+        $isAdminCreated = $request->boolean('is_admin_created') || $request->boolean('created_by_admin');
+        
+        $rawRole = $isAdminCreated ? 'admin' : ($request->input('submitted_by_role') ?? ($user ? ($user->active_profile ?: 'employer') : 'employer'));
+        $submittedByRole = str_replace('_', '', strtolower(trim($rawRole)));
 
         // Default status is pending, is_pinned is false
         $jobPost = JobPost::create(array_merge($validator->validated(), [
             'created_by'        => $user->id,
             'status'            => 'pending',
             'is_pinned'         => false,
+            'is_admin_created'  => $isAdminCreated,
             'submitted_by_role' => $submittedByRole,
         ]));
 
