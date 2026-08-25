@@ -5,6 +5,7 @@ import {
   Users, Award, Calendar, MapPin, Clock, Plane, Utensils, ShieldCheck, 
   Copy, Check, FileText, UserSquare2
 } from 'lucide-react';
+import { showStatusAlert } from '../utils/sweetalert';
 import axios from 'axios';
 import { realApi, mockApi, resolveImageUrl } from '../services/api';
 
@@ -74,13 +75,15 @@ export default function ChefDetail() {
         await mockApi.activateUser(id);
         setStatus('approved');
         if (chef) setChef({ ...chef, approval_status: 'approved', status: 'approved' });
+        showStatusAlert('Chef Profile Activated!', 'Chef profile status changed to Active.', 'success');
       } else {
         await mockApi.suspendUser(id);
         setStatus('suspended');
         if (chef) setChef({ ...chef, approval_status: 'suspended', status: 'suspended' });
+        showStatusAlert('Chef Profile Suspended!', 'Chef profile status changed to Suspended.', 'warning');
       }
     } catch (err) {
-      alert("Failed to update chef status: " + err.message);
+      showStatusAlert('Error', 'Failed to update chef status: ' + err.message, 'error');
     }
   };
 

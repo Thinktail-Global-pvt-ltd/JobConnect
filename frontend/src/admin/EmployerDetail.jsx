@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, Ban, CheckCircle2, Building2, Globe, Briefcase, 
-  Users, Award, Calendar, MapPin, Clock, Copy, Check, FileText, UserSquare2
+  Users, Award, Calendar, MapPin, Clock, Plane, Utensils, ShieldCheck, 
+  Copy, Check, FileText, UserSquare2
 } from 'lucide-react';
+import { showStatusAlert } from '../utils/sweetalert';
 import axios from 'axios';
 import { realApi, mockApi, resolveImageUrl } from '../services/api';
 
@@ -100,13 +102,15 @@ export default function EmployerDetail() {
         await mockApi.activateUser(id);
         setSuspended(false);
         if (employer) setEmployer({ ...employer, is_suspended: false, status: 'Active' });
+        showStatusAlert('Employer Activated!', 'Employer profile status changed to Active.', 'success');
       } else {
         await mockApi.suspendUser(id);
         setSuspended(true);
         if (employer) setEmployer({ ...employer, is_suspended: true, status: 'Suspended' });
+        showStatusAlert('Employer Suspended!', 'Employer profile status changed to Suspended.', 'warning');
       }
     } catch (err) {
-      alert("Failed to update employer status: " + err.message);
+      showStatusAlert('Error', 'Failed to update employer status: ' + err.message, 'error');
     }
   };
 

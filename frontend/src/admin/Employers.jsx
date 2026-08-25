@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight, MapPin, FileText, Smartphone } from 'lucide-react';
 import axios from 'axios';
 import { realApi, resolveImageUrl } from '../services/api';
+import { showStatusAlert } from '../utils/sweetalert';
 
 export default function Employers() {
   const [employers, setEmployers] = useState([]);
@@ -105,7 +106,7 @@ export default function Employers() {
       } catch (err) {}
     }
 
-    alert(`Employer account for "${newEmployer.name}" has been created successfully in DB (users, user_roles, employer_profiles)!`);
+    showStatusAlert('Employer Created!', `Employer account for "${newEmployer.name}" created successfully.`, 'success');
     setNewEmployer({ name: '', contact: '', phone: '', email: '', hq: '' });
     setIsModalOpen(false);
     fetchEmployers();
@@ -113,13 +114,15 @@ export default function Employers() {
 
   // Toggle Suspend / Activate
   const toggleSuspend = (id) => {
+    let nextStatus = 'Active';
     setEmployers(employers.map(emp => {
       if (emp.id === id) {
-        const nextStatus = emp.status === 'Active' ? 'Suspended' : 'Active';
+        nextStatus = emp.status === 'Active' ? 'Suspended' : 'Active';
         return { ...emp, status: nextStatus };
       }
       return emp;
     }));
+    showStatusAlert(nextStatus === 'Active' ? 'Employer Activated!' : 'Employer Suspended!', `Employer status changed to ${nextStatus}.`, nextStatus === 'Active' ? 'success' : 'warning');
   };
 
   const activePartnersCount = employers.filter(e => e.status === 'Active').length;
