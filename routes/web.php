@@ -1072,6 +1072,10 @@ Route::match(['get', 'post'], '/api/admin/training-opportunities/create', functi
     return createWebTrainingOpportunityRecord($request);
 });
 
+Route::match(['get', 'post'], '/backend/api/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
+    return createWebTrainingOpportunityRecord($request);
+});
+
 if (!function_exists('createWebTrainingOpportunityRecord')) {
 function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
     try {
@@ -1091,7 +1095,7 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
         }
 
         $rawProgramName = $request->input('name') ?? $request->input('program_name') ?? '';
-        $rawProviderName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'JobConnect Curricula';
+        $rawProviderName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'Jobrito Academy';
         $rawLocation = $request->input('countries') ?? $request->input('location') ?? '';
         $rawDuration = $request->input('duration') ?? '12 Months';
         $status = $request->input('status') ?? 'Published';
@@ -1109,12 +1113,11 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
         }
 
-        // Safely truncate VARCHAR columns to 250 chars max while preserving full text in TEXT columns
-        $programName = mb_substr($rawProgramName, 0, 250);
-        $providerName = mb_substr($rawProviderName, 0, 250);
-        $location = mb_substr($rawLocation, 0, 250);
-        $duration = mb_substr($rawDuration, 0, 250);
-        $contactInfo = mb_substr($contactInfo, 0, 250);
+        $programName = mb_substr($rawProgramName, 0, 200);
+        $providerName = !empty($rawProviderName) && strlen($rawProviderName) <= 150 ? $rawProviderName : 'Jobrito Academy';
+        $location = mb_substr($rawLocation, 0, 200);
+        $duration = mb_substr($rawDuration, 0, 100);
+        $contactInfo = mb_substr($contactInfo, 0, 150);
 
         $descParts = array_filter([$rawProviderName, $employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
         $description = !empty($descParts) ? implode("\n\n", $descParts) : ($request->input('description') ?? 'Training opportunity');

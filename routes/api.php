@@ -535,12 +535,11 @@ function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
             return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
         }
 
-        // Safely truncate VARCHAR columns to 250 chars max while preserving full text in TEXT columns
-        $programName = mb_substr($rawProgramName, 0, 250);
-        $providerName = mb_substr($rawProviderName, 0, 250);
-        $location = mb_substr($rawLocation, 0, 250);
-        $duration = mb_substr($rawDuration, 0, 250);
-        $contactInfo = mb_substr($contactInfo, 0, 250);
+        $programName = mb_substr($rawProgramName, 0, 200);
+        $providerName = !empty($rawProviderName) && strlen($rawProviderName) <= 150 ? $rawProviderName : 'Jobrito Academy';
+        $location = mb_substr($rawLocation, 0, 200);
+        $duration = mb_substr($rawDuration, 0, 100);
+        $contactInfo = mb_substr($contactInfo, 0, 150);
 
         $descParts = array_filter([$rawProviderName, $employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
         $description = !empty($descParts) ? implode("\n\n", $descParts) : ($request->input('description') ?? 'Training opportunity');
