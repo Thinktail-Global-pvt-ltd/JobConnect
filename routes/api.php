@@ -17,6 +17,40 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// Fix-roles route
+Route::match(['get', 'post'], '/fix-roles', function() {
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
+            try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN is_admin_created TINYINT(1) DEFAULT 0"); } catch (\Throwable $th) {}
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
+            try { \Illuminate\Support\Facades\DB::statement("ALTER TABLE job_posts ADD COLUMN submitted_by_role VARCHAR(255) NULL"); } catch (\Throwable $th) {}
+        }
+
+        $affected = \Illuminate\Support\Facades\DB::table('job_posts')
+            ->where(function($q) {
+                $q->where('contact_person', '!=', 'Admin')
+                  ->orWhereNull('contact_person');
+            })
+            ->where(function($q) {
+                $q->where('contact_info', '!=', 'admin@jobrito.com')
+                  ->orWhereNull('contact_info');
+            })
+            ->update([
+                'is_admin_created' => 0,
+                'submitted_by_role' => 'employer'
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'affected' => $affected,
+            'message' => 'Non-admin jobs reset to employer role'
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+
 // Passwordless Auth Endpoint Routes
 Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
 Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp']);
