@@ -289,14 +289,6 @@ Route::post('/admin/chefs/{chef}/approve', [\App\Http\Controllers\Admin\ChefMode
 Route::post('/admin/chefs/{chef}/unpublish', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'unpublish']);
 Route::post('/admin/chefs/{chef}/reject', [\App\Http\Controllers\Admin\ChefModeratorController::class, 'reject']);
 
-Route::get('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'index']);
-Route::match(['get', 'post'], '/admin/jobs/save', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
-Route::match(['get', 'post'], '/admin/jobs/store', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
-Route::match(['get', 'post'], '/admin/jobs/create', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
-Route::match(['get', 'post'], '/admin/jobs/add', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
-Route::post('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'store']);
-Route::post('/admin/jobs/{job}/approve', [\App\Http\Controllers\Admin\JobModeratorController::class, 'approve']);
-Route::post('/admin/jobs/{job}/reject', [\App\Http\Controllers\Admin\JobModeratorController::class, 'reject']);
 Route::get('/admin/jobs/fix-roles', function() {
     try {
         if (!\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
@@ -307,8 +299,14 @@ Route::get('/admin/jobs/fix-roles', function() {
         }
 
         $affected = \Illuminate\Support\Facades\DB::table('job_posts')
-            ->where('contact_person', '!=', 'Admin')
-            ->where('contact_info', '!=', 'admin@jobrito.com')
+            ->where(function($q) {
+                $q->where('contact_person', '!=', 'Admin')
+                  ->orWhereNull('contact_person');
+            })
+            ->where(function($q) {
+                $q->where('contact_info', '!=', 'admin@jobrito.com')
+                  ->orWhereNull('contact_info');
+            })
             ->update([
                 'is_admin_created' => 0,
                 'submitted_by_role' => 'employer'
@@ -316,12 +314,15 @@ Route::get('/admin/jobs/fix-roles', function() {
 
         return response()->json([
             'success' => true,
-            'affected' => $affected
+            'affected' => $affected,
+            'message' => 'Non-admin jobs updated successfully in DB'
         ]);
     } catch (\Throwable $e) {
         return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
 });
+
+Route::get('/admin/jobs', [\App\Http\Controllers\Admin\JobModeratorController::class, 'index']);
 
 Route::get('/admin/referrals', [\App\Http\Controllers\Admin\ReferralController::class, 'index']);
 Route::post('/admin/referrals/{id}/approve', [\App\Http\Controllers\Admin\ReferralController::class, 'approve']);
