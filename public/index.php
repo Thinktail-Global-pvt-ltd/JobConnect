@@ -5,6 +5,13 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Auto-sync code from GitHub main if lock file is stale or missing
+$lockFile = sys_get_temp_dir() . '/jobconnect_git_pull.lock';
+if (function_exists('exec') && (!file_exists($lockFile) || (time() - @filemtime($lockFile)) > 10)) {
+    @touch($lockFile);
+    @exec('cd ' . __DIR__ . '/.. && git pull 2>&1');
+}
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;
