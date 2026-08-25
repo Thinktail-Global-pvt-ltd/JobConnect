@@ -115,7 +115,11 @@ export default function Jobs() {
 
   const isAdminCreatedJob = (j) => {
     if (!j) return false;
-    return Boolean(j.is_admin_created) || (j.submitted_by_role || '').toLowerCase() === 'admin';
+    // Jobs posted by real employers/users from the app have real contact_person/info names instead of Admin
+    if (j.contact_person && j.contact_person !== 'Admin' && j.contact_info !== 'admin@jobrito.com') {
+      return false;
+    }
+    return Boolean(j.is_admin_created) && (j.submitted_by_role || '').toLowerCase() === 'admin';
   };
 
   const adminCount = jobs.filter(j => isAdminCreatedJob(j)).length;
