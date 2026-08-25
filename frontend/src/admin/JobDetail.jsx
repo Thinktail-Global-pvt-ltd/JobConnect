@@ -398,12 +398,14 @@ export default function JobDetail() {
           <div className="space-y-1.5 text-xs font-semibold text-slate-600">
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-400 text-[11px]">Submitted by</span>
-              <span className="text-slate-900 font-extrabold">{job.contact_person || job.company || 'Ankit'}</span>
+              <span className="text-slate-900 font-extrabold">{job.contact_person || job.company}</span>
             </div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-slate-400 text-[11px]">Contact Info</span>
-              <span className="text-slate-900 font-mono font-extrabold">{job.contact_info || '8602180000'}</span>
-            </div>
+            {job.contact_info && (
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400 text-[11px]">Contact Info</span>
+                <span className="text-slate-900 font-mono font-extrabold">{job.contact_info}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-400 text-[11px]">Posted Date</span>
               <span className="text-slate-800 font-extrabold">{createdDateStr}</span>
@@ -413,21 +415,20 @@ export default function JobDetail() {
 
       </div>
 
-      {/* Perks & Flags Bar */}
+      {/* Listing Properties Bar */}
       <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700">
-        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Perks & Flags:</span>
+        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Listing Properties:</span>
         <div className="flex items-center gap-2.5 flex-wrap">
-          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.visa_assistance ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-            {job.visa_assistance ? '✓' : '×'} Visa Assistance
+          <span className="px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border-blue-200">
+            {job.category === 'overseas' ? 'Overseas Feed' : 'India Feed'}
           </span>
-          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.accommodation_available ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-            {job.accommodation_available ? '✓' : '×'} Accommodation
-          </span>
-          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.is_pinned ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-            {job.is_pinned ? '✓' : '×'} Pinned Listing
-          </span>
-          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 ${job.is_referral ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-            {job.is_referral ? '✓' : '×'} Referral Job
+          {job.is_pinned && (
+            <span className="px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border-purple-200">
+              ✓ Pinned Listing
+            </span>
+          )}
+          <span className="px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border-emerald-200 capitalize">
+            Status: {job.status}
           </span>
         </div>
       </div>
@@ -449,7 +450,7 @@ export default function JobDetail() {
 
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Role</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.job_role}</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.job_role || job.title}</span>
             </div>
 
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
@@ -458,18 +459,8 @@ export default function JobDetail() {
             </div>
 
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Industry Segment</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.industry_segment}</span>
-            </div>
-
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Primary Feed Category</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 capitalize block">{job.category} Jobs</span>
-            </div>
-
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Category / Department</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.job_category}</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 capitalize block">{job.category === 'overseas' ? 'Overseas Jobs' : 'India Jobs'}</span>
             </div>
 
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
@@ -486,41 +477,34 @@ export default function JobDetail() {
               <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest block">Salary Details</span>
               <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5">
                 <div>
-                  <span className="text-[11px] font-bold text-slate-500 block">Display Range</span>
-                  <span className="font-outfit font-extrabold text-base text-emerald-800 block">{job.salary || 'Best in Industry'}</span>
+                  <span className="text-[11px] font-bold text-slate-500 block">Salary Range</span>
+                  <span className="font-outfit font-extrabold text-base text-emerald-800 block">
+                    {job.salary_min || job.salary_max 
+                      ? `${job.salary_currency || 'INR'} ${Number(job.salary_min || 0).toLocaleString()} - ${Number(job.salary_max || 0).toLocaleString()}`
+                      : (job.salary || 'Not Specified')}
+                  </span>
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-extrabold text-slate-700 block">
-                    Currency: {job.salary_currency || 'SAR'}
+                    Currency: {job.salary_currency || 'INR'}
                   </span>
-                  {(job.salary_min || job.salary_max) && (
-                    <span className="text-[11px] font-bold text-slate-500 block">
-                      Min: {job.salary_min || 'N/A'} | Max: {job.salary_max || 'N/A'}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
 
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Experience Required</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.experience_range}</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.experience_range || 'Not Specified'}</span>
             </div>
 
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Work / Job Type</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.job_type}</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{job.job_type || 'Full-time'}</span>
             </div>
 
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 sm:col-span-2">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Open Vacancies</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.open_positions} Position(s)</span>
-            </div>
-
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Contact Person & Info</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.contact_person || 'Ankit'}</span>
-              <span className="text-[11px] text-[#153e69] block font-mono font-bold">{job.contact_info || '8602180000'}</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.open_positions || 1} Position(s)</span>
             </div>
 
           </div>
@@ -547,17 +531,21 @@ export default function JobDetail() {
 
             <div className="border-t border-emerald-100/80 pt-3 space-y-2.5 text-xs font-semibold">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Primary Contact</span>
-                <span className="text-slate-900 font-extrabold">{job.contact_person || 'Ankit'}</span>
+                <span className="text-slate-500">Business / Agency</span>
+                <span className="text-slate-900 font-extrabold">{job.company}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Contact Info</span>
-                <span className="text-[#153e69] font-mono font-extrabold">{job.contact_info || '8602180000'}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Industry</span>
-                <span className="text-slate-900 font-extrabold">{job.industry_segment || 'Cloud Kitchen'}</span>
-              </div>
+              {job.contact_person && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Primary Contact</span>
+                  <span className="text-slate-900 font-extrabold">{job.contact_person}</span>
+                </div>
+              )}
+              {job.contact_info && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Contact Info</span>
+                  <span className="text-[#153e69] font-mono font-extrabold">{job.contact_info}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Location</span>
                 <span className="text-slate-900 font-extrabold text-right">{job.location}</span>
