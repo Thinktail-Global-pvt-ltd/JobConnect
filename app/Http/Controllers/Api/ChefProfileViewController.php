@@ -47,8 +47,14 @@ class ChefProfileViewController extends Controller
                 $chefId = $req->input('chef_id') ?? $req->input('user_id') ?? 4;
             }
 
-            $user = $req->user() ?: auth('sanctum')->user();
-            $employerId = $user ? $user->id : ($req->input('employer_id') ?? 1);
+            $user = $req->user();
+            if (!$user && $req->bearerToken()) {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($req->bearerToken());
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+            $employerId = $user ? $user->id : ($req->input('employer_id') ?: ($req->input('user_id') ?: User::value('id')));
 
             $chef = User::find($chefId);
             $employer = User::find($employerId);
