@@ -491,15 +491,15 @@ Route::get('/admin/training-opportunities', function() {
 });
 
 Route::match(['get', 'post'], '/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
-    return createTrainingOpportunityRecord($request);
+    return handleCreateTrainingOpportunity($request);
 });
 
 Route::match(['get', 'post'], '/api/admin/training-opportunities/create', function(\Illuminate\Http\Request $request) {
-    return createTrainingOpportunityRecord($request);
+    return handleCreateTrainingOpportunity($request);
 });
 
-if (!function_exists('createTrainingOpportunityRecord')) {
-function createTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
+if (!function_exists('handleCreateTrainingOpportunity')) {
+function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
     try {
         if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
             try {
