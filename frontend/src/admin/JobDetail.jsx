@@ -443,15 +443,17 @@ export default function JobDetail() {
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-semibold">
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+            <div className={`p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 ${(!job.job_role || job.job_role.trim().toLowerCase() === job.title.trim().toLowerCase()) ? 'sm:col-span-2' : ''}`}>
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Title</span>
               <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.title}</span>
             </div>
 
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Role</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.job_role || job.title}</span>
-            </div>
+            {job.job_role && job.job_role.trim().toLowerCase() !== job.title.trim().toLowerCase() && (
+              <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+                <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Job Role</span>
+                <span className="font-outfit font-extrabold text-sm text-slate-900 block">{job.job_role}</span>
+              </div>
+            )}
 
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Company / Employer</span>
