@@ -20,6 +20,12 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\FirebaseController;
 use Illuminate\Support\Facades\Route;
 
+if (function_exists('exec')) {
+    if (!file_exists('/var/www/jobconnect/bootstrap/cache/packages.php') || !file_exists('/var/www/jobconnect/bootstrap/cache/services.php')) {
+        @exec('cd /var/www/jobconnect && php artisan package:discover 2>&1');
+    }
+}
+
 Route::match(['get', 'post'], '/api/get-token/user/{id}', function($id) {
     $u = \App\Models\User::find($id) ?: \App\Models\User::where('active_profile', 'employer')->orWhere('active_role', 'employer')->orWhere('user_role', 'employer')->first();
     if (!$u) return response()->json(['success' => false, 'message' => 'Employer User not found']);
