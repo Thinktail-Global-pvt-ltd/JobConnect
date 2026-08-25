@@ -292,14 +292,15 @@ export default function Training() {
                   return (
                     <tr key={prog.id} className={`hover:bg-slate-50/50 transition-colors ${prog.is_pinned ? 'bg-purple-50/30' : ''}`}>
                       {/* Program Name */}
-                      <td className="py-3 px-3 max-w-xs">
-                        <div className="flex items-center gap-2">
+                      <td className="py-3 px-3 max-w-[220px]">
+                        <div className="flex items-center gap-2 overflow-hidden">
                           {prog.is_pinned && (
                             <Pin className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" title="Pinned to top feed priority" />
                           )}
                           <span 
                             onClick={() => navigate(`/admin/training/${prog.id}`, { state: { program: prog } })}
-                            className="font-extrabold text-[#153e69] hover:underline cursor-pointer text-[13px] block leading-tight"
+                            title={prog.name}
+                            className="font-extrabold text-[#153e69] hover:underline cursor-pointer text-[13px] block leading-tight truncate"
                           >
                             {prog.name}
                           </span>
@@ -307,9 +308,12 @@ export default function Training() {
                       </td>
 
                       {/* Employer Column */}
-                      <td className="py-3 px-3 whitespace-nowrap">
-                        <span className="font-extrabold text-[#153e69] text-xs block">
-                          {prog.employer_details || prog.employer || 'Test'}
+                      <td className="py-3 px-3 max-w-[260px]">
+                        <span 
+                          title={prog.employer_details || prog.employer || 'Jobrito Academy'}
+                          className="font-extrabold text-[#153e69] text-xs block truncate"
+                        >
+                          {prog.employer_details || prog.employer || 'Jobrito Academy'}
                         </span>
                       </td>
 
