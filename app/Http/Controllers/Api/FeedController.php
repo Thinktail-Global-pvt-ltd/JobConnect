@@ -233,20 +233,24 @@ class FeedController extends Controller
 
             $posterRole = $isAdminCreated ? 'admin' : ($submittedRole ?: ($job->creator ? ($job->creator->active_profile ?: ($job->creator->user_role ?: 'employer')) : 'employer'));
 
-            $job->posted_by_role = $posterRole;
-            $job->active_role = $posterRole;
-            $job->user_role = $posterRole;
+            $jobData = $job->toArray();
+            $jobData['posted_by_role'] = $posterRole;
+            $jobData['active_role']    = $posterRole;
+            $jobData['user_role']      = $posterRole;
 
-            if ($job->creator) {
-                $creatorData = $job->creator->toArray();
-                $creatorData['active_profile'] = $posterRole;
-                $creatorData['role']           = $posterRole;
-                $creatorData['active_role']    = $posterRole;
-                $creatorData['user_role']      = $posterRole;
-                $job->creator = $creatorData;
+            if (!empty($jobData['creator'])) {
+                $jobData['creator']['active_profile'] = $posterRole;
+                $jobData['creator']['role']           = $posterRole;
+                $jobData['creator']['active_role']    = $posterRole;
+                $jobData['creator']['user_role']      = $posterRole;
+
+                if ($posterRole === 'admin') {
+                    $jobData['creator']['full_name'] = 'Jobrito Admin';
+                    $jobData['creator']['name']      = 'Jobrito Admin';
+                }
             }
 
-            return $job;
+            return $jobData;
         });
 
         // ----------------------------------------------------------------
