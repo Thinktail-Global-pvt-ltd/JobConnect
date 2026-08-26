@@ -190,10 +190,10 @@ class User extends Authenticatable
      */
     public function getActiveProfileAttribute(): string
     {
-        if (!empty($this->attributes['active_profile'])) {
+        if (array_key_exists('active_profile', $this->attributes) && $this->attributes['active_profile'] !== null && $this->attributes['active_profile'] !== '') {
             return $this->attributes['active_profile'];
         }
-        if (!empty($this->attributes['role'])) {
+        if (array_key_exists('role', $this->attributes) && $this->attributes['role'] !== null && $this->attributes['role'] !== '') {
             return $this->attributes['role'];
         }
         $activeRole = $this->roles()->where('is_active', true)->first();
