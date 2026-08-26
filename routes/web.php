@@ -108,6 +108,10 @@ if (!function_exists('getSidebarStatsHandler')) {
 
             $communityCount = $jobsCount + $trainingCount + $adminPostsCount;
 
+            $totalTrainingProgramsCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
+                ? \Illuminate\Support\Facades\DB::table('training_opportunities')->count()
+                : 0;
+
             $pendingTrainingCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
                 ? \Illuminate\Support\Facades\DB::table('training_opportunities')
                     ->where(function($q) {
@@ -179,7 +183,7 @@ if (!function_exists('getSidebarStatsHandler')) {
                     'chefs'             => $pendingChefsCount,
                     'jobs'              => $pendingJobsCount,
                     'community'         => $communityCount,
-                    'training'          => $pendingTrainingCount,
+                    'training'          => $totalTrainingProgramsCount,
                     'applications'      => $totalApplications,
                     'pending_users'     => $pendingUsersCount,
                     'pending_talent'    => $pendingTalentCount,

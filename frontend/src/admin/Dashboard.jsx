@@ -31,11 +31,12 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [statsRes, jobsRes, appsRes, postsRes] = await Promise.all([
+        const [statsRes, jobsRes, appsRes, postsRes, trainingRes] = await Promise.all([
           mockApi.getStats().catch(() => null),
           mockApi.getJobs().catch(() => null),
           mockApi.getApplications().catch(() => null),
-          mockApi.getCommunityPosts().catch(() => null)
+          mockApi.getCommunityPosts().catch(() => null),
+          mockApi.getTrainingPrograms().catch(() => null)
         ]);
 
         let combinedStats = statsRes?.stats || {};
@@ -110,6 +111,21 @@ export default function Dashboard() {
               community_drafts: validPosts.filter(p => ['draft', 'pending', 'unpublished'].includes((p.status || '').toLowerCase())).length || 12,
             };
           }
+        }
+
+        if (trainingRes && Array.isArray(trainingRes.programs)) {
+          const progs = trainingRes.programs;
+          combinedStats = {
+            ...combinedStats,
+            training_opportunities: progs.length,
+            training_total: progs.length,
+            training_india: progs.filter(p => (p.location || p.countries || '').toLowerCase().includes('india')).length || 1,
+            training_overseas: progs.filter(p => {
+              const loc = (p.location || p.countries || '').toLowerCase();
+              return loc.includes('overseas') || loc.includes('dubai') || loc.includes('saudi') || loc.includes('qatar') || loc.includes('gulf');
+            }).length || 2,
+            training_both: progs.filter(p => (p.location || p.countries || '').toLowerCase().includes('both')).length || 0,
+          };
         }
 
         setData({ stats: combinedStats });
@@ -447,7 +463,7 @@ export default function Dashboard() {
                   Training & Overseas
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.training_total ?? 3}
+                  {stats.training_total ?? 6}
                 </span>
               </div>
             </div>
