@@ -139,29 +139,27 @@ class EmployerModeratorController extends Controller
         $hasCreatedByCol = \Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'created_by');
 
         $jobsQuery = \Illuminate\Support\Facades\DB::table('job_posts')
-            ->select('job_posts.*');
-
-        $jobsQuery->where(function($q) use ($user, $busNameClean, $contactClean, $fullNameClean, $hasUserIdCol, $hasEmployerIdCol, $hasCreatedByCol) {
-            if ($hasCreatedByCol) {
-                $q->orWhere('job_posts.created_by', $user->id);
-            }
-            if ($hasUserIdCol) {
-                $q->orWhere('job_posts.user_id', $user->id);
-            }
-            if ($hasEmployerIdCol) {
-                $q->orWhere('job_posts.employer_id', $user->id);
-            }
-            if (!empty($busNameClean) && strtolower($busNameClean) !== 'employer company') {
-                $q->orWhere('job_posts.company', 'LIKE', '%' . $busNameClean . '%');
-            }
-            if (!empty($fullNameClean) && strtolower($fullNameClean) !== 'employer contact') {
-                $q->orWhere('job_posts.company', 'LIKE', '%' . $fullNameClean . '%')
-                  ->orWhere('job_posts.contact_person', 'LIKE', '%' . $fullNameClean . '%');
-            }
-            if (!empty($contactClean) && strtolower($contactClean) !== 'n/a') {
-                $q->orWhere('job_posts.contact_person', 'LIKE', '%' . $contactClean . '%');
-            }
-        });
+            ->select('job_posts.*')
+            ->where(function($q) use ($user, $hasUserIdCol, $hasEmployerIdCol, $hasCreatedByCol) {
+                if ($hasCreatedByCol) {
+                    $q->orWhere('job_posts.created_by', $user->id);
+                }
+                if ($hasUserIdCol) {
+                    $q->orWhere('job_posts.user_id', $user->id);
+                }
+                if ($hasEmployerIdCol) {
+                    $q->orWhere('job_posts.employer_id', $user->id);
+                }
+            })
+            ->where(function($q) {
+                $q->whereNull('job_posts.submitted_by_role')
+                  ->orWhere('job_posts.submitted_by_role', '!=', 'admin');
+            })
+            ->where(function($q) {
+                $q->whereNull('job_posts.is_admin_created')
+                  ->orWhere('job_posts.is_admin_created', 0)
+                  ->orWhere('job_posts.is_admin_created', false);
+            });
 
         $allEmployerJobs = $jobsQuery->orderBy('job_posts.id', 'desc')->get();
 
