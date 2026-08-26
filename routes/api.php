@@ -167,7 +167,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['get', 'post'], '/jobs/daily-count', [JobPostController::class, 'getDailyPostStatus']);
     Route::match(['get', 'post'], '/jobs/post-status', [JobPostController::class, 'getDailyPostStatus']);
     Route::post('/chefs', [ChefProfileController::class, 'store']);
-    Route::post('/chef/onboarding/save', [\App\Http\Controllers\ChefOnboardingController::class, 'save']);
     Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);
 
     // Employer Dashboard Route
