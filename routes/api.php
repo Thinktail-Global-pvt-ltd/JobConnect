@@ -101,6 +101,8 @@ Route::match(['get', 'post'], '/training/{job}/apply', [\App\Http\Controllers\We
 Route::match(['get', 'post'], '/training-opportunities/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
 Route::match(['get', 'post'], '/jobs/{jobId}/mark-stats-seen', [\App\Http\Controllers\EmployerController::class, 'markStatsSeen']);
 Route::match(['get', 'post'], '/employer/jobs/{jobId}/mark-stats-seen', [\App\Http\Controllers\EmployerController::class, 'markStatsSeen']);
+Route::match(['get', 'post', 'put'], '/user/profile', [ProfileController::class, 'updatePersonal']);
+Route::match(['get', 'post', 'put'], '/user/profile/update', [ProfileController::class, 'updatePersonal']);
 
 // Secured Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
