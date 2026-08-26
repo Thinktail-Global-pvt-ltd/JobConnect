@@ -132,12 +132,6 @@ class DashboardController extends Controller
             'pending_training' => TrainingOpportunity::whereIn('status', ['draft', 'pending'])->count(),
         ];
 
-        return response()->json([
-            'success' => true,
-            'stats' => $stats
-        ]);
-    }
-
         // Fetch recent pending job posts for quick action dashboard overview
         $pendingJobs = JobPost::pending()->with('creator')->latest()->take(5)->get();
 
