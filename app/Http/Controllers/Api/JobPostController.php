@@ -360,20 +360,14 @@ class JobPostController extends Controller
         $allAppliedJobs = $appliedJobs->concat($appliedTrainingJobs);
 
         // 3. Fetch Job Posts created by this user (excluding jobs created/submitted by admin)
-        $createdQuery = JobPost::where('created_by', $user ? $user->id : 0)
-            ->where(function($q) {
+        $createdQuery = JobPost::where('created_by', $user ? $user->id : 0);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
+            $createdQuery->where(function($q) {
                 $q->whereNull('submitted_by_role')
                   ->orWhere('submitted_by_role', '!=', 'admin');
-            })
-            ->where(function($q) {
-                $q->whereNull('posted_by_role')
-                  ->orWhere('posted_by_role', '!=', 'admin');
-            })
-            ->where(function($q) {
-                $q->whereNull('is_admin_created')
-                  ->orWhere('is_admin_created', 0)
-                  ->orWhere('is_admin_created', false);
             });
+        }
 
         if ($request->has('is_referral')) {
             $createdQuery->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
@@ -384,22 +378,17 @@ class JobPostController extends Controller
 
         $createdJobs = $createdQuery->latest()->get();
 
-        $pendingCreatedJobs = JobPost::where('created_by', $user ? $user->id : 0)
-            ->where('status', 'pending')
-            ->where(function($q) {
+        $pendingQuery = JobPost::where('created_by', $user ? $user->id : 0)
+            ->where('status', 'pending');
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
+            $pendingQuery->where(function($q) {
                 $q->whereNull('submitted_by_role')
                   ->orWhere('submitted_by_role', '!=', 'admin');
-            })
-            ->where(function($q) {
-                $q->whereNull('posted_by_role')
-                  ->orWhere('posted_by_role', '!=', 'admin');
-            })
-            ->where(function($q) {
-                $q->whereNull('is_admin_created')
-                  ->orWhere('is_admin_created', 0)
-                  ->orWhere('is_admin_created', false);
-            })
-            ->latest()->get();
+            });
+        }
+
+        $pendingCreatedJobs = $pendingQuery->latest()->get();
 
         // Fetch details of users who saved any of this user's created jobs
         $createdJobIds = $createdJobs->pluck('id')->merge($pendingCreatedJobs->pluck('id'))->filter()->toArray();
