@@ -86,6 +86,19 @@ export default function EmployerDetail() {
     }
 
     if (data) {
+      const targetUserId = Number(data.user_id || data.id || id);
+      try {
+        const myJobsRes = await axios.get(`/backend/api/jobs/my-jobs?user_id=${targetUserId}`, { headers: { Accept: 'application/json' } }).catch(() => null);
+        if (myJobsRes && myJobsRes.data && myJobsRes.data.success) {
+          const createdJobsList = Array.isArray(myJobsRes.data.created_jobs) ? myJobsRes.data.created_jobs : (Array.isArray(myJobsRes.data.jobs) ? myJobsRes.data.jobs : []);
+          data = {
+            ...data,
+            jobs: createdJobsList,
+            total_jobs: createdJobsList.length
+          };
+        }
+      } catch (e) {}
+
       setEmployer(data);
       setSuspended(data.is_suspended || data.status === 'Suspended');
     }
