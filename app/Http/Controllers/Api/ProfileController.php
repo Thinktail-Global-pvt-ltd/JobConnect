@@ -315,7 +315,7 @@ class ProfileController extends Controller
                 'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'experience_years' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'current_employer' => $user ? $user->current_employer : null,
-                'job_type' => $user ? $user->preferred_role : null,
+                'job_type' => $user ? $user->job_type : null,
                 'location_preference' => $user ? $user->city : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'skills' => $skillsData,
@@ -355,6 +355,10 @@ class ProfileController extends Controller
                 if ($tokenObj) {
                     $user = $tokenObj->tokenable;
                 }
+            }
+            if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
+                $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
+                $user = User::find($uId);
             }
             if (!$user) {
                 $user = User::first();
@@ -468,10 +472,19 @@ class ProfileController extends Controller
                 if ($request->has('current_employer')) {
                     $user->current_employer = $request->input('current_employer');
                 }
+
+                if ($request->has('job_type')) {
+                    $jobTypeVal = $request->input('job_type');
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'job_type')) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN job_type VARCHAR(255) NULL");
+                        } catch (\Throwable $e) {}
+                    }
+                    $user->job_type = $jobTypeVal;
+                }
+
                 if ($request->has('preferred_role')) {
                     $user->preferred_role = $request->input('preferred_role');
-                } elseif ($request->has('job_type')) {
-                    $user->preferred_role = $request->input('job_type');
                 } elseif ($request->has('position')) {
                     $user->preferred_role = $request->input('position');
                 } elseif ($request->has('job_title')) {
@@ -539,7 +552,12 @@ class ProfileController extends Controller
                     $user->save();
                 } catch (\Illuminate\Database\QueryException $qe) {
                     $msg = $qe->getMessage();
-                    if (str_contains($msg, "Unknown column 'age'")) {
+                    if (str_contains($msg, "Unknown column 'job_type'")) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN job_type VARCHAR(255) NULL");
+                        } catch (\Throwable $ex) {}
+                        $user->save();
+                    } elseif (str_contains($msg, "Unknown column 'age'")) {
                         try {
                             \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN age VARCHAR(255) NULL");
                         } catch (\Throwable $ex) {}
@@ -660,7 +678,7 @@ class ProfileController extends Controller
                 'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
                 'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'current_employer' => $user ? $user->current_employer : null,
-                'job_type' => $user ? $user->preferred_role : null,
+                'job_type' => $user ? $user->job_type : null,
                 'location_preference' => $user ? $user->city : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'skills' => $skillsFormatted,
