@@ -192,15 +192,32 @@ export default function EmployerDetail() {
 
   const recentActivities = [];
 
-  jobsList.slice(0, 4).forEach((job, idx) => {
+  jobsList.forEach((job, idx) => {
+    const isTraining = job.is_training || job.category === 'training' || String(job.id || '').includes('training');
     const isApproved = ['approved', 'published', 'active'].includes((job.status || '').toLowerCase());
     const isClosed = (job.status || '').toLowerCase() === 'closed';
+
+    let activityText = isClosed 
+      ? `Job closed – ${job.title || 'Job Listing'}` 
+      : (isTraining 
+          ? `Applied to training program – ${job.title || job.program_name || 'Training'}` 
+          : `Posted a new job – ${job.title || 'Sous Chef'}`);
+
+    let formattedJobId = isTraining 
+      ? `TRAIN-${job.training_id || job.raw_id || '00026'}` 
+      : `JOB-2024-${String(job.id || (100 + idx)).padStart(5, '0')}`;
+
     recentActivities.push({
       id: `job_${job.id || idx}`,
-      color: isApproved ? (idx === 0 ? 'bg-emerald-500 border-emerald-200' : 'bg-purple-500 border-purple-200') : (isClosed ? 'bg-amber-500 border-amber-200' : 'bg-blue-500 border-blue-200'),
-      time: job.created_at ? new Date(job.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : (idx === 0 ? 'Today, 09:15 AM' : 'Yesterday, 04:30 PM'),
-      text: isClosed ? `Job closed – ${job.title || 'Kitchen Helper'}` : `Posted a new job – ${job.title || 'Sous Chef'}`,
-      jobId: `JOB-2024-${String(job.id || (100 + idx)).padStart(5, '0')}`
+      color: isTraining 
+        ? 'bg-indigo-500 border-indigo-200' 
+        : (isApproved 
+            ? (idx === 0 ? 'bg-emerald-500 border-emerald-200' : 'bg-purple-500 border-purple-200') 
+            : (isClosed ? 'bg-amber-500 border-amber-200' : 'bg-blue-500 border-blue-200')),
+      time: job.applied_at_formatted 
+        || (job.created_at ? new Date(job.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : (idx === 0 ? 'Today, 09:15 AM' : 'Yesterday, 04:30 PM')),
+      text: activityText,
+      jobId: formattedJobId
     });
   });
 
