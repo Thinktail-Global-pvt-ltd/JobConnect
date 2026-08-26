@@ -102,9 +102,21 @@ class EmployerController extends Controller
                 })
                 ->delete();
 
-            // Fetch job posts created by this user, eager loading applications, applicants, chef profiles, and socials
+            // Fetch job posts (excluding admin submitted jobs, without filtering strictly by created_by)
             $jobs = JobPost::with(['applications.applicant.chefProfile', 'applications.applicant.socials'])
-                ->where('created_by', $user->id)
+                ->where(function($q) {
+                    $q->whereNull('submitted_by_role')
+                      ->orWhere('submitted_by_role', '!=', 'admin');
+                })
+                ->where(function($q) {
+                    $q->whereNull('posted_by_role')
+                      ->orWhere('posted_by_role', '!=', 'admin');
+                })
+                ->where(function($q) {
+                    $q->whereNull('is_admin_created')
+                      ->orWhere('is_admin_created', 0)
+                      ->orWhere('is_admin_created', false);
+                })
                 ->orderBy('created_at', 'desc')
                 ->get();
 
