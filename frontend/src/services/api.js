@@ -442,21 +442,7 @@ export const mockApi = {
       try {
         const res = await axios.get(ep, { headers: { 'Accept': 'application/json' } });
         if (res.data && res.data.success && res.data.stats) {
-          // Cross-verify pending jobs if jobs list can be fetched
-          let statsData = res.data;
-          try {
-            const jobsRes = await mockApi.getJobs();
-            if (jobsRes && Array.isArray(jobsRes.jobs)) {
-              const livePendingJobs = jobsRes.jobs.filter(j => 
-                !j.status || j.status.toLowerCase() === 'pending' || j.status.toLowerCase() === 'draft'
-              ).length;
-              if (livePendingJobs > 0) {
-                statsData.stats.pending_jobs = livePendingJobs;
-                statsData.stats.jobs_pending = livePendingJobs;
-              }
-            }
-          } catch (e) {}
-          return statsData;
+          return res.data;
         }
       } catch (e) {}
     }

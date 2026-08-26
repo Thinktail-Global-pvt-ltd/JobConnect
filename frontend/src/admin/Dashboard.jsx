@@ -158,7 +158,7 @@ export default function Dashboard() {
                   Total Jobs
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.jobs_total ?? 24}
+                  {stats.jobs_total ?? 0}
                 </span>
               </div>
             </div>
@@ -175,8 +175,8 @@ export default function Dashboard() {
                 <tbody className={`divide-y ${isLight ? 'divide-slate-100' : 'divide-slate-800'}`}>
                   <tr>
                     <td className={`py-1 font-semibold ${textSecondaryClass}`}>Employer</td>
-                    <td className="py-1 text-center font-bold text-emerald-600">{stats.jobs_emp_active ?? 2}</td>
-                    <td className="py-1 text-center font-bold text-orange-500">{stats.jobs_emp_pending ?? 2}</td>
+                    <td className="py-1 text-center font-bold text-emerald-600">{stats.jobs_emp_active ?? 0}</td>
+                    <td className="py-1 text-center font-bold text-orange-500">{stats.jobs_emp_pending ?? 0}</td>
                   </tr>
                   <tr>
                     <td className={`py-1 font-semibold ${textSecondaryClass}`}>Chef</td>
@@ -190,8 +190,8 @@ export default function Dashboard() {
                   </tr>
                   <tr className="font-extrabold">
                     <td className={`py-1 ${textPrimaryClass}`}>Total</td>
-                    <td className="py-1 text-center text-emerald-600">{stats.jobs_active ?? (stats.jobs_approved || 2)}</td>
-                    <td className="py-1 text-center text-orange-500">{stats.jobs_pending ?? (stats.jobs_pending || 2)}</td>
+                    <td className="py-1 text-center text-emerald-600">{stats.jobs_active ?? 0}</td>
+                    <td className="py-1 text-center text-orange-500">{stats.jobs_pending ?? 0}</td>
                   </tr>
                 </tbody>
               </table>
@@ -220,7 +220,7 @@ export default function Dashboard() {
                   Job Applications
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.applications_total ?? (stats.applications_count || 10)}
+                  {stats.applications_total ?? stats.applications_count ?? 0}
                 </span>
               </div>
             </div>
@@ -231,21 +231,21 @@ export default function Dashboard() {
                   <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>New</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.applications_new ?? 3}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.applications_new ?? 0}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>Applied</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.applications_applied ?? 5}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.applications_applied ?? 0}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>Contacted Emp.</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.applications_contacted ?? 2}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.applications_contacted ?? 0}</span>
               </div>
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function Dashboard() {
                   Chef Profiles
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.chefs_total ?? 5}
+                  {stats.chefs_total ?? stats.chef_count ?? 0}
                 </span>
               </div>
             </div>
@@ -290,7 +290,7 @@ export default function Dashboard() {
                   <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>Pending Approval</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.chefs_pending ?? 5}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.chefs_pending ?? 0}</span>
               </div>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function Dashboard() {
                   Community Posts
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.community_total ?? 29}
+                  {stats.community_total ?? 0}
                 </span>
               </div>
             </div>
@@ -328,21 +328,21 @@ export default function Dashboard() {
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>Published / Active</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_active ?? 17}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_active ?? 0}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>Pinned Posts</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_pinned ?? 4}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_pinned ?? 0}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>Drafts / Unpublished</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_drafts ?? 12}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_drafts ?? 0}</span>
               </div>
             </div>
           </div>
@@ -369,7 +369,7 @@ export default function Dashboard() {
                   Training & Overseas
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.training_total ?? 6}
+                  {stats.training_total ?? stats.training_opportunities ?? 0}
                 </span>
               </div>
             </div>
@@ -380,14 +380,14 @@ export default function Dashboard() {
                   <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>India</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.training_india ?? 1}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.training_india ?? 0}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
                   <span className={`truncate ${textSecondaryClass}`}>Overseas</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.training_overseas ?? 2}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.training_overseas ?? 0}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
