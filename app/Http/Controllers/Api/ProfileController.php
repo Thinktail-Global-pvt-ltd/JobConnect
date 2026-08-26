@@ -33,14 +33,36 @@ class ProfileController extends Controller
     }
 
     /**
-     * Fetch user profile.
+     * Resolve user flexible via query param (user_id / id / mobile_number), headers, Sanctum Bearer token, or request user.
      */
-    public function show(Request $request)
+    private function resolveUser(Request $request)
     {
         $user = null;
-        try {
-            $user = $request->user();
-        } catch (\Throwable $e) {}
+
+        // 1. Priority: check query parameter or request body for user_id / id / applicant_id
+        if ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id')) {
+            $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
+            $user = User::find($uId);
+        }
+
+        // 2. Check query parameter or request body for mobile_number
+        if (!$user && ($request->filled('mobile_number') || $request->filled('mobile') || $request->filled('phone'))) {
+            $mob = $request->input('mobile_number') ?: ($request->input('mobile') ?: $request->input('phone'));
+            $user = User::where('mobile_number', $mob)->orWhere('phone', $mob)->first();
+        }
+
+        // 3. Check X-User-Id header
+        if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
+            $hId = $request->header('X-User-Id') ?: $request->header('user-id');
+            $user = User::find($hId);
+        }
+
+        // 4. Check Bearer Token or $request->user()
+        if (!$user) {
+            try {
+                $user = $request->user();
+            } catch (\Throwable $e) {}
+        }
 
         if (!$user && $request->bearerToken()) {
             $tokenStr = $request->bearerToken();
@@ -55,14 +77,8 @@ class ProfileController extends Controller
                 }
             } catch (\Throwable $e) {}
         }
-        if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
-            $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
-            $user = User::find($uId);
-        }
-        if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
-            $hId = $request->header('X-User-Id') ?: $request->header('user-id');
-            $user = User::find($hId);
-        }
+
+        // 5. Default fallback
         if (!$user) {
             try {
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
@@ -74,6 +90,16 @@ class ProfileController extends Controller
                 $user = User::first();
             }
         }
+
+        return $user;
+    }
+
+    /**
+     * Fetch user profile.
+     */
+    public function show(Request $request)
+    {
+        $user = $this->resolveUser($request);
 
         if ($user) {
             $user->load(['chefProfile', 'employerProfile', 'socials']);
@@ -374,17 +400,7 @@ class ProfileController extends Controller
     public function updatePersonal(Request $request)
     {
         try {
-            $user = $request->user();
-            if (!$user && $request->bearerToken()) {
-                $tokenStr = $request->bearerToken();
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
-                if ($tokenObj) {
-                    $user = $tokenObj->tokenable;
-                }
-            }
-            if (!$user) {
-                $user = User::first();
-            }
+            $user = $this->resolveUser($request);
 
             $photoUrl = null;
 
