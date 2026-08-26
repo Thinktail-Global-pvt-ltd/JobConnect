@@ -135,7 +135,7 @@ export default function ChefDetail() {
   const fullName = chef.full_name || chef.name || chef.mobile_number || 'Nisha Chef';
   const profileId = chef.profile_id || `CHF-${chef.created_at ? new Date(chef.created_at).getFullYear() : '2024'}-${String(chef.id || id).padStart(6, '0')}`;
   const age = chef.age || (chef.dob ? (new Date().getFullYear() - new Date(chef.dob).getFullYear()) : 26);
-  const gender = chef.gender || 'Female';
+  const gender = (chef.gender && chef.gender !== 'N/A' && chef.gender !== 'null') ? chef.gender : null;
   const experience = chef.experience_range || chef.experience || '1-2 Years Exp.';
   const pastEmployer = chef.past_employer || chef.previous_company || chef.current_employer || 'Taj Hotels, Oberoi';
   const employmentType = chef.employment_preference || chef.employment_type || chef.job_type || 'Full Time';
@@ -325,9 +325,11 @@ export default function ChefDetail() {
               <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
                 <Calendar className="w-3.5 h-3.5 text-slate-400" /> {age} Years
               </span>
-              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                <span className="text-slate-400">⚥</span> {gender}
-              </span>
+              {gender && (
+                <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                  <span className="text-slate-400">⚥</span> {gender}
+                </span>
+              )}
             </div>
           </div>
 
