@@ -31,8 +31,51 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await mockApi.getStats();
-        setData(res);
+        const [statsRes, jobsRes] = await Promise.all([
+          mockApi.getStats().catch(() => null),
+          mockApi.getJobs().catch(() => null)
+        ]);
+
+        let combinedStats = statsRes?.stats || {};
+
+        if (jobsRes && Array.isArray(jobsRes.jobs)) {
+          const allJobs = jobsRes.jobs;
+
+          const getJobRole = (j) => {
+            const r = (j.submitted_by_role || j.creator?.active_role || j.creator?.user_role || '').toLowerCase();
+            if (j.is_admin_created || r.includes('admin')) return 'admin';
+            if (r.includes('chef')) return 'chef';
+            if (r.includes('talent') || r.includes('seeker') || r.includes('candidate')) return 'talent';
+            return 'employer';
+          };
+
+          const isApproved = (j) => j.status?.toLowerCase() === 'approved' || j.status?.toLowerCase() === 'published';
+          const isPending = (j) => !j.status || ['pending', 'draft', 'unread'].includes(j.status.toLowerCase());
+
+          const empJobs = allJobs.filter(j => ['employer', 'admin'].includes(getJobRole(j)));
+          const chefJobs = allJobs.filter(j => getJobRole(j) === 'chef');
+          const talentJobs = allJobs.filter(j => getJobRole(j) === 'talent');
+
+          combinedStats = {
+            ...combinedStats,
+            jobs_total: allJobs.length,
+            jobs_active: allJobs.filter(isApproved).length,
+            jobs_approved: allJobs.filter(isApproved).length,
+            jobs_pending: allJobs.filter(isPending).length,
+            pending_jobs: allJobs.filter(isPending).length,
+
+            jobs_emp_active: empJobs.filter(isApproved).length,
+            jobs_emp_pending: empJobs.filter(isPending).length,
+
+            jobs_chef_active: chefJobs.filter(isApproved).length,
+            jobs_chef_pending: chefJobs.filter(isPending).length,
+
+            jobs_talent_active: talentJobs.filter(isApproved).length,
+            jobs_talent_pending: talentJobs.filter(isPending).length,
+          };
+        }
+
+        setData({ stats: combinedStats });
       } catch (e) {
         console.error(e);
       } finally {
@@ -151,9 +194,14 @@ export default function Dashboard() {
               }`}>
                 <Briefcase className="w-5 h-5" />
               </div>
-              <span className={`text-[11px] font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
-                Total Jobs
-              </span>
+              <div className="min-w-0">
+                <span className={`text-[11px] font-bold block ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                  Total Jobs
+                </span>
+                <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
+                  {stats.jobs_total ?? 24}
+                </span>
+              </div>
             </div>
 
             <div className="overflow-x-auto pt-1">
