@@ -344,7 +344,24 @@ class EmployerController extends Controller
                         }
                     }
 
+                    $applicantAge = $applicant ? ($applicant->age ?: ($chefProfile?->age ?: ($availability['age'] ?? null))) : null;
+                    $applicantOverseas = $applicant ? ($applicant->overseas_work_experience ?: ($chefProfile?->overseas_work_experience ?: null)) : null;
+                    $applicantJobType = $applicant ? ($applicant->job_type ?: ($chefProfile?->job_type ?: null)) : null;
+                    $locationPref = $applicant ? ($applicant->location_preference ?: ($city ?: ($availability['location_preference'] ?? null))) : null;
+                    $applicantCompleteness = $applicant ? \App\Services\ProfileProgressService::calculate($applicant) : 0;
+
+                    $chefLanguages = $chefProfile ? ($chefProfile->languages ?: ($availability['languages'] ?? [])) : ($availability['languages'] ?? []);
+                    $chefRegionalExperience = $chefProfile ? ($chefProfile->regional_experience ?: ($availability['regional_experience'] ?? [])) : ($availability['regional_experience'] ?? []);
+                    $chefEmploymentPreference = $chefProfile ? ($chefProfile->employment_preference ?: ($availability['employment_preference'] ?? [])) : ($availability['employment_preference'] ?? []);
+
                     if ($chefData) {
+                        $chefData['age'] = $applicantAge;
+                        $chefData['overseas_work_experience'] = $applicantOverseas;
+                        $chefData['job_type'] = $applicantJobType;
+                        $chefData['location_preference'] = $locationPref;
+                        $chefData['languages'] = $chefLanguages;
+                        $chefData['regional_experience'] = $chefRegionalExperience;
+                        $chefData['employment_preference'] = $chefEmploymentPreference;
                         $chefData['profile_photo_path'] = $photoUrl;
                         $chefData['profile_photo'] = $photoUrl;
                         $chefData['photo_url'] = $photoUrl;
@@ -366,14 +383,19 @@ class EmployerController extends Controller
                         'application_id' => $app->id,
                         'job_post_id' => $app->job_post_id,
                         'applicant_id' => $app->applicant_id,
+                        'user_id' => $app->applicant_id,
                         'name' => $applicant ? ($applicant->full_name ?: null) : null,
                         'full_name' => $applicant ? ($applicant->full_name ?: null) : null,
                         'email' => $applicant ? ($applicant->email ?: null) : null,
                         'mobile_number' => $applicant ? ($applicant->mobile_number ?: null) : null,
                         'gender' => $applicant ? ($applicant->gender ?: null) : null,
+                        'age' => $applicantAge,
+                        'overseas_work_experience' => $applicantOverseas,
+                        'job_type' => $applicantJobType,
                         'country' => $country,
                         'city' => $city,
-                        'job_location' => $applicant ? ($applicant->city ?: null) : null,
+                        'job_location' => $city,
+                        'location_preference' => $locationPref,
                         'preference' => $applicant ? ($applicant->preferred_role ?: null) : null,
                         'status' => $formattedStatus, // new | viewed | shortlisted | contacted | rejected
                         'is_viewed' => $isAppViewed,
@@ -399,9 +421,11 @@ class EmployerController extends Controller
                         'availability_status' => $applicant ? ($applicant->availability_status ?: null) : null,
                         'is_available' => $applicant ? (bool)$applicant->is_available : true,
                         'selected_language' => $applicant ? ($applicant->selected_language ?: null) : null,
-                        'user_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
-                        'active_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
                         'active_profile' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
+                        'active_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
+                        'user_role' => $applicant ? ($applicant->active_profile ?? 'job_seeker') : 'job_seeker',
+                        'completeness' => $applicantCompleteness,
+                        'profile_completeness' => $applicantCompleteness,
                         'skills' => $skills,
                         'bio' => $chefProfile ? $chefProfile->bio : null,
                         'cuisine_specialty' => $chefProfile ? $chefProfile->cuisine_specialty : null,
@@ -410,6 +434,9 @@ class EmployerController extends Controller
                         'operational_experties' => $opExpertise,
                         'optational_expertices' => $opExpertise,
                         'calendly_link' => $chefProfile ? $chefProfile->calendly_link : null,
+                        'languages' => $chefLanguages,
+                        'regional_experience' => $chefRegionalExperience,
+                        'employment_preference' => $chefEmploymentPreference,
                         'chef_profile' => $chefData,
                         'chef_profile_details' => $chefData,
                         'socials' => $socialsData,
@@ -420,9 +447,13 @@ class EmployerController extends Controller
                             'email' => $applicant->email,
                             'mobile_number' => $applicant->mobile_number,
                             'gender' => $applicant->gender,
+                            'age' => $applicantAge,
+                            'overseas_work_experience' => $applicantOverseas,
+                            'job_type' => $applicantJobType,
                             'country' => $country,
                             'city' => $city,
-                            'job_location' => $applicant->city,
+                            'job_location' => $city,
+                            'location_preference' => $locationPref,
                             'preference' => $applicant->preferred_role,
                             'experience_range' => $experienceRange,
                             'experience_years' => $experienceRange,
@@ -439,10 +470,19 @@ class EmployerController extends Controller
                             'active_profile' => $applicant->active_profile ?? 'job_seeker',
                             'active_role' => $applicant->active_role ?? 'job_seeker',
                             'user_role' => $applicant->user_role ?? 'job_seeker',
+                            'completeness' => $applicantCompleteness,
+                            'profile_completeness' => $applicantCompleteness,
                             'skills' => $skills,
                             'operational_expertise' => $opExpertise,
                             'operational_experties' => $opExpertise,
                             'optational_expertices' => $opExpertise,
+                            'bio' => $chefProfile ? $chefProfile->bio : null,
+                            'cuisine_specialty' => $chefProfile ? $chefProfile->cuisine_specialty : null,
+                            'specialties' => $chefProfile ? $chefProfile->cuisine_specialty : null,
+                            'calendly_link' => $chefProfile ? $chefProfile->calendly_link : null,
+                            'languages' => $chefLanguages,
+                            'regional_experience' => $chefRegionalExperience,
+                            'employment_preference' => $chefEmploymentPreference,
                             'chef_profile' => $chefData,
                             'socials' => $socialsData,
                         ] : null
