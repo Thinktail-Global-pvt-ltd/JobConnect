@@ -218,6 +218,24 @@ if (!function_exists('getSidebarStatsHandler')) {
 }
 
 // Direct 100% Public JSON API Endpoints for Admin Panels (matching sidebar-stats pattern)
+Route::match(['get', 'post'], '/api/auth/request-otp', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\AuthController)->requestOtp($request);
+});
+Route::match(['get', 'post'], '/backend/api/auth/request-otp', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\AuthController)->requestOtp($request);
+});
+Route::match(['get', 'post'], '/api/auth/verify-otp', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\AuthController)->verifyOtp($request);
+});
+Route::match(['get', 'post'], '/backend/api/auth/verify-otp', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\AuthController)->verifyOtp($request);
+});
+Route::match(['get', 'post'], '/api/verify-otp', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\AuthController)->verifyOtp($request);
+});
+Route::match(['get', 'post'], '/backend/api/verify-otp', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\AuthController)->verifyOtp($request);
+});
 Route::match(['get', 'post'], '/chef/onboarding/save', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\ChefOnboardingController)->save($request);
 });
