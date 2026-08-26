@@ -96,12 +96,26 @@ class FeedController extends Controller
         $savedTrainingMap = [];
 
         if (!$user) {
-            $recentApplicantId = \Illuminate\Support\Facades\Schema::hasTable('job_applications') 
-                ? \App\Models\JobApplication::latest()->value('applicant_id') 
-                : null;
+            $hasApplicant = \Illuminate\Support\Facades\Schema::hasColumn('job_applications', 'applicant_id');
+            $hasUser = \Illuminate\Support\Facades\Schema::hasColumn('job_applications', 'user_id');
+            $recentApplicantId = null;
+            if (\Illuminate\Support\Facades\Schema::hasTable('job_applications')) {
+                if ($hasApplicant) {
+                    $recentApplicantId = \App\Models\JobApplication::latest()->value('applicant_id');
+                }
+                if (!$recentApplicantId && $hasUser) {
+                    $recentApplicantId = \App\Models\JobApplication::latest()->value('user_id');
+                }
+            }
             if (!$recentApplicantId && \Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
-                $recentApplicantId = \App\Models\TrainingApplication::latest()->value('applicant_id') 
-                    ?: \App\Models\TrainingApplication::latest()->value('user_id');
+                $hasApplicantTrain = \Illuminate\Support\Facades\Schema::hasColumn('training_applications', 'applicant_id');
+                $hasUserTrain = \Illuminate\Support\Facades\Schema::hasColumn('training_applications', 'user_id');
+                if ($hasApplicantTrain) {
+                    $recentApplicantId = \App\Models\TrainingApplication::latest()->value('applicant_id');
+                }
+                if (!$recentApplicantId && $hasUserTrain) {
+                    $recentApplicantId = \App\Models\TrainingApplication::latest()->value('user_id');
+                }
             }
             if ($recentApplicantId) {
                 $user = \App\Models\User::find($recentApplicantId);
@@ -109,9 +123,21 @@ class FeedController extends Controller
         }
 
         if ($user) {
-            $applications = JobApplication::where('applicant_id', $user->id)
-                ->orWhere('user_id', $user->id)
-                ->get();
+            $hasUserIdInJobApps = \Illuminate\Support\Facades\Schema::hasColumn('job_applications', 'user_id');
+            $hasApplicantIdInJobApps = \Illuminate\Support\Facades\Schema::hasColumn('job_applications', 'applicant_id');
+
+            $jobAppsQuery = JobApplication::query();
+            if ($hasApplicantIdInJobApps && $hasUserIdInJobApps) {
+                $jobAppsQuery->where(function($q) use ($user) {
+                    $q->where('applicant_id', $user->id)->orWhere('user_id', $user->id);
+                });
+            } elseif ($hasApplicantIdInJobApps) {
+                $jobAppsQuery->where('applicant_id', $user->id);
+            } elseif ($hasUserIdInJobApps) {
+                $jobAppsQuery->where('user_id', $user->id);
+            }
+            $applications = $jobAppsQuery->get();
+
             foreach ($applications as $appRecord) {
                 $jId = $appRecord->job_post_id;
                 if ($jId) {
@@ -123,9 +149,21 @@ class FeedController extends Controller
             }
 
             if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
-                $trainingApps = \App\Models\TrainingApplication::where('applicant_id', $user->id)
-                    ->orWhere('user_id', $user->id)
-                    ->get();
+                $hasUserIdInTrain = \Illuminate\Support\Facades\Schema::hasColumn('training_applications', 'user_id');
+                $hasApplicantIdInTrain = \Illuminate\Support\Facades\Schema::hasColumn('training_applications', 'applicant_id');
+
+                $trainAppsQuery = \App\Models\TrainingApplication::query();
+                if ($hasApplicantIdInTrain && $hasUserIdInTrain) {
+                    $trainAppsQuery->where(function($q) use ($user) {
+                        $q->where('applicant_id', $user->id)->orWhere('user_id', $user->id);
+                    });
+                } elseif ($hasApplicantIdInTrain) {
+                    $trainAppsQuery->where('applicant_id', $user->id);
+                } elseif ($hasUserIdInTrain) {
+                    $trainAppsQuery->where('user_id', $user->id);
+                }
+                $trainingApps = $trainAppsQuery->get();
+
                 foreach ($trainingApps as $tApp) {
                     $tId = $tApp->training_id ?: $tApp->job_post_id;
                     if ($tId) {
