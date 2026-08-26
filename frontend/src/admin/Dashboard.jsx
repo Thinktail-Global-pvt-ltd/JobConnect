@@ -31,9 +31,10 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [statsRes, jobsRes] = await Promise.all([
+        const [statsRes, jobsRes, appsRes] = await Promise.all([
           mockApi.getStats().catch(() => null),
-          mockApi.getJobs().catch(() => null)
+          mockApi.getJobs().catch(() => null),
+          mockApi.getApplications().catch(() => null)
         ]);
 
         let combinedStats = statsRes?.stats || {};
@@ -72,6 +73,18 @@ export default function Dashboard() {
 
             jobs_talent_active: talentJobs.filter(isApproved).length,
             jobs_talent_pending: talentJobs.filter(isPending).length,
+          };
+        }
+
+        if (appsRes && Array.isArray(appsRes.applications)) {
+          const allApps = appsRes.applications;
+          combinedStats = {
+            ...combinedStats,
+            applications_total: allApps.length,
+            applications_count: allApps.length,
+            applications_new: allApps.filter(a => a.status === 'new' || a.status === 'unread').length,
+            applications_applied: allApps.filter(a => a.status === 'applied' || a.status === 'pending').length,
+            applications_contacted: allApps.filter(a => ['contacted', 'viewed', 'shortlisted', 'hired'].includes(a.status?.toLowerCase())).length,
           };
         }
 

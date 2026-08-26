@@ -118,15 +118,29 @@ if (!function_exists('getSidebarStatsHandler')) {
                     })->count()
                 : 0;
 
-            $totalApplications = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
+            $totalJobApps = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
                 ? \Illuminate\Support\Facades\DB::table('job_applications')->count()
                 : 0;
 
-            $pendingAppsCount = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
+            $totalTrainingApps = \Illuminate\Support\Facades\Schema::hasTable('training_applications')
+                ? \Illuminate\Support\Facades\DB::table('training_applications')->count()
+                : 0;
+
+            $totalApplications = $totalJobApps + $totalTrainingApps;
+
+            $pendingJobApps = \Illuminate\Support\Facades\Schema::hasTable('job_applications')
                 ? \Illuminate\Support\Facades\DB::table('job_applications')
                     ->whereIn('status', ['new', 'pending', 'applied'])
                     ->count()
                 : 0;
+
+            $pendingTrainingApps = \Illuminate\Support\Facades\Schema::hasTable('training_applications')
+                ? \Illuminate\Support\Facades\DB::table('training_applications')
+                    ->whereIn('status', ['new', 'pending', 'applied'])
+                    ->count()
+                : 0;
+
+            $pendingAppsCount = $pendingJobApps + $pendingTrainingApps;
 
             $pendingTalentCount = \App\Models\User::where(function($q) {
                 $q->where('is_suspended', 1)->orWhere('is_suspended', true);
