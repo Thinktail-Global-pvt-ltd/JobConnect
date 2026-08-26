@@ -341,12 +341,8 @@ class JobPostController extends Controller
         if ($request->has('is_referral')) {
             $createdQuery->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
         }
-        if ($request->filled('status') && $request->status === 'all') {
-            // status=all → show everything
-        } elseif ($request->filled('status') && $request->status !== 'all') {
+        if ($request->filled('status') && $request->status !== 'all') {
             $createdQuery->where('status', $request->status);
-        } else {
-            $createdQuery->where('status', 'approved');
         }
 
         $createdJobs = $createdQuery->latest()->get();
