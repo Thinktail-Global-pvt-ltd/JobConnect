@@ -67,18 +67,27 @@ class ChefOnboardingController extends Controller
             } catch (\Throwable $e) {}
         }
         if (!$user) {
-            $user = \App\Models\User::where('active_profile', 'chef')->first() ?: \App\Models\User::first();
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                $user = \App\Models\User::where('active_profile', 'chef')->first();
+            }
+            if (!$user) {
+                $user = \App\Models\User::first();
+            }
         }
 
         // Check Role Conflict: Block onboarding as chef if user is registered with a different role
-        $activeRole = $user->activeRole()->first();
-        $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
-        if ($existingRoleType && !in_array($existingRoleType, ['chef', 'cook'])) {
-            $displayExisting = str_replace('_', ' ', $existingRoleType);
-            return response()->json([
-                'success' => false,
-                'message' => "Role conflict error: Mobile number {$user->mobile_number} is registered as '{$displayExisting}'. You cannot onboard or switch to chef.",
-            ], 400);
+        if ($user && method_exists($user, 'activeRole')) {
+            try {
+                $activeRole = $user->activeRole()->first();
+                $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
+                if ($existingRoleType && !in_array($existingRoleType, ['chef', 'cook', 'job_seeker'])) {
+                    $displayExisting = str_replace('_', ' ', $existingRoleType);
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Role conflict error: Mobile number {$user->mobile_number} is registered as '{$displayExisting}'. You cannot onboard or switch to chef.",
+                    ], 400);
+                }
+            } catch (\Throwable $e) {}
         }
 
         // 1. Alias mapping for flexible mobile client payload keys
