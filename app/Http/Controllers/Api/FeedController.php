@@ -163,10 +163,18 @@ class FeedController extends Controller
             $job->user_role = $posterRole;
 
             if ($job->creator) {
-                $job->creator->active_profile = $posterRole;
-                $job->creator->role = $posterRole;
-                $job->creator->active_role = $posterRole;
-                $job->creator->user_role = $posterRole;
+                $job->creator->setAttribute('active_profile', $posterRole);
+                $job->creator->setAttribute('role', $posterRole);
+                $job->creator->setAttribute('active_role', $posterRole);
+                $job->creator->setAttribute('user_role', $posterRole);
+
+                $creatorArr = $job->creator->toArray();
+                $creatorArr['active_profile'] = $posterRole;
+                $creatorArr['role']           = $posterRole;
+                $creatorArr['active_role']     = $posterRole;
+                $creatorArr['user_role']       = $posterRole;
+
+                $job->setRelation('creator', (object)$creatorArr);
             }
 
             return $job;
