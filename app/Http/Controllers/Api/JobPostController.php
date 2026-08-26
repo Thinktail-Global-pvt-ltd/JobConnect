@@ -69,20 +69,25 @@ class JobPostController extends Controller
                 $userRole = strtolower(trim(str_replace('_', '', $request->input('submitted_by_role'))));
             }
 
-            $isEmployer = in_array($userRole, ['employer', 'recruiter', 'hirer', 'agency', 'administrator', 'admin']);
+            $hasEmployerProfile = $user->employerProfile || \App\Models\EmployerProfile::where('user_id', $user->id)->exists();
+            $hasChefProfile = $user->chefProfile || \App\Models\ChefProfile::where('user_id', $user->id)->exists();
 
-            // Employers have UNLIMITED job creation. Chef & Jobseeker are limited to 5 jobs per day.
+            $isEmployer = in_array($userRole, ['employer', 'recruiter', 'hirer', 'agency', 'administrator', 'admin']) || $hasEmployerProfile;
+            $isChef = in_array($userRole, ['chef', 'cook']) || $hasChefProfile;
+
+            // Limit rules: Neither chef nor employer = 1, Chef = 5, Employer = Unlimited
             if (!$isEmployer) {
-                $maxDailyAllowed = 5;
+                $maxDailyAllowed = $isChef ? 5 : 1;
 
                 $todayJobsCount = JobPost::where('created_by', $user->id)
                     ->where('created_at', '>=', \Carbon\Carbon::today())
                     ->count();
 
                 if ($todayJobsCount >= $maxDailyAllowed) {
+                    $roleName = $isChef ? 'Chef' : 'User';
                     return response()->json([
                         'success' => false,
-                        'message' => 'Daily posting limit reached: Chef and Jobseeker users can post a maximum of 5 jobs per day. Please try again tomorrow.',
+                        'message' => "Daily posting limit reached: {$roleName} users can post a maximum of {$maxDailyAllowed} job(s) per day. Please try again tomorrow.",
                         'daily_limit' => $maxDailyAllowed,
                         'posted_today' => $todayJobsCount,
                     ], 429);
@@ -567,11 +572,14 @@ class JobPostController extends Controller
 
         $userId = $user ? $user->id : 0;
         $activeRole = strtolower(trim($user ? ($user->active_profile ?: ($user->user_role ?: 'job_seeker')) : 'job_seeker'));
-        $isEmployer = in_array($activeRole, ['employer', 'recruiter', 'hirer', 'agency', 'administrator', 'admin']);
 
-        // Force daily limit: Chef/Jobseeker is 5/day, Employer is UNLIMITED (999999)
-        $dailyLimit = $isEmployer ? 999999 : 5;
+        $hasEmployerProfile = $user && ($user->employerProfile || \App\Models\EmployerProfile::where('user_id', $user->id)->exists());
+        $hasChefProfile = $user && ($user->chefProfile || \App\Models\ChefProfile::where('user_id', $user->id)->exists());
 
+        $isEmployer = in_array($activeRole, ['employer', 'recruiter', 'hirer', 'agency', 'administrator', 'admin']) || $hasEmployerProfile;
+        $isChef = in_array($activeRole, ['chef', 'cook']) || $hasChefProfile;
+
+        // Limit rules: Neither chef nor employer = 1, Chef = 5, Employer = Unlimited
         // Count jobs created by user today
         $todayQuery = \App\Models\JobPost::where('created_by', $userId)
             ->where('created_at', '>=', \Carbon\Carbon::today());
@@ -580,14 +588,36 @@ class JobPostController extends Controller
         $normalJobsPostedToday = (clone $todayQuery)->where('is_referral', false)->count();
         $referralJobsPostedToday = (clone $todayQuery)->where('is_referral', true)->count();
 
-        $postsLeft = $isEmployer ? 999999 : max(0, $dailyLimit - $totalPostedToday);
-        $hasPostsLeft = $isEmployer ? true : ($totalPostedToday < $dailyLimit);
+        if ($isEmployer) {
+            $dailyLimit = 'unlimited';
+            $numericLimit = 999999;
+            $postsLeft = 'unlimited';
+            $numericPostsLeft = 999999;
+            $hasPostsLeft = true;
+            $userRoleLabel = 'employer';
+        } elseif ($isChef) {
+            $dailyLimit = 5;
+            $numericLimit = 5;
+            $postsLeft = max(0, 5 - $totalPostedToday);
+            $numericPostsLeft = $postsLeft;
+            $hasPostsLeft = $totalPostedToday < 5;
+            $userRoleLabel = 'chef';
+        } else {
+            // General user / Job seeker / Neither chef nor employer
+            $dailyLimit = 1;
+            $numericLimit = 1;
+            $postsLeft = max(0, 1 - $totalPostedToday);
+            $numericPostsLeft = $postsLeft;
+            $hasPostsLeft = $totalPostedToday < 1;
+            $userRoleLabel = 'job_seeker';
+        }
 
         return response()->json([
             'success'                    => true,
             'user_id'                    => $userId,
             'user_name'                  => $user ? ($user->full_name ?: ('User #' . $user->id)) : 'User',
-            'user_role'                  => $activeRole,
+            'user_role'                  => $userRoleLabel,
+            'role'                       => $userRoleLabel,
             'date'                       => \Carbon\Carbon::today()->toDateString(),
             'total_jobs_posted_today'    => $totalPostedToday,
             'jobs_posted_today_count'    => $totalPostedToday,
@@ -595,7 +625,9 @@ class JobPostController extends Controller
             'referral_jobs_posted_today' => $referralJobsPostedToday,
             'daily_post_limit'           => $dailyLimit,
             'daily_limit'                => $dailyLimit,
+            'numeric_daily_limit'        => $numericLimit,
             'posts_left_today'           => $postsLeft,
+            'numeric_posts_left'         => $numericPostsLeft,
             'has_posts_left'             => (bool)$hasPostsLeft,
             'can_post_today'             => (bool)$hasPostsLeft,
         ], 200);
