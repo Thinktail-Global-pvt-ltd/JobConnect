@@ -262,14 +262,14 @@ class ProfileController extends Controller
             : [];
             
         $jobLocation = ($user && $user->city) ? $user->city : ($chefAvailability['location_preference'] ?? null);
-        $preference = ($user && $user->preferred_role) ? $user->preferred_role : (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? null));
+        $userJobType = $user ? ($user->job_type ?: ($user->chefProfile?->job_type ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? null)))) : null;
+        $preference = $userJobType ?: ($user ? $user->preferred_role : null);
         $country = ($user && !empty($user->country)) ? $user->country : null;
         $city = ($user && !empty($user->city)) ? $user->city : ($employerData['city'] ?? null);
 
         $isAvailable = $user ? (bool)$user->is_available : true;
         $availabilityStatus = ($user && !empty($user->availability_status)) ? $user->availability_status : null;
         $userAge = $user ? ($user->age ?: ($user->chefProfile?->age ?: ($chefAvailability['age'] ?? null))) : null;
-        $userJobType = $user ? ($user->job_type ?: ($user->chefProfile?->job_type ?: null)) : null;
 
         return response()->json([
             'success' => true,
@@ -367,7 +367,7 @@ class ProfileController extends Controller
                 'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'experience_years' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'current_employer' => $user ? $user->current_employer : null,
-                'job_type' => $user ? $user->preferred_role : null,
+                'job_type' => $user ? ($user->job_type ?: ($user->chefProfile?->job_type ?: null)) : null,
                 'location_preference' => $user ? $user->city : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'skills' => $skillsData,
