@@ -421,6 +421,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/employer/chefs', [AppointmentController::class, 'registeredChefsList'])->name('employer.chefs');
 });
 
+Route::match(['get', 'post'], '/api/jobs/{job}/apply', [WebJobController::class, 'apply'])->name('jobs.apply.public');
+
 Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/profile/update', [WebProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/calendly/save', [WebProfileController::class, 'saveCalendlyLink'])->name('api.profile.calendly.save');
