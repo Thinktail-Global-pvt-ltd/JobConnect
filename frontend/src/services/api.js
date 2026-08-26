@@ -437,11 +437,11 @@ export const mockApi = {
   getStats: async () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      '/backend/api/admin/dashboard',
       '/api/admin/dashboard',
+      '/backend/api/admin/dashboard',
       '/admin/dashboard-stats',
-      `${origin}/backend/api/admin/dashboard`,
-      `${API_BASE}/backend/api/admin/dashboard`
+      `${origin}/api/admin/dashboard`,
+      `${API_BASE}/api/admin/dashboard`
     ];
     for (const ep of endpoints) {
       try {
