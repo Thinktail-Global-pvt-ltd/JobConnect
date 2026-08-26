@@ -17,7 +17,7 @@ export default function Jobs() {
   const [category, setCategory] = useState(initialCategory);
   const [roleFilter, setRoleFilter] = useState(''); // '', 'chef', 'job_seeker', 'employer'
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const employerIdFilter = searchParams.get('employer_id') || searchParams.get('employer') || '';
+  const employerIdFilter = searchParams.get('employer_id') || searchParams.get('employer') || searchParams.get('chef_id') || searchParams.get('user_id') || searchParams.get('created_by') || '';
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);

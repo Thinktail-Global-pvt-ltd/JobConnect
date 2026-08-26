@@ -399,14 +399,28 @@ export default function ChefDetail() {
           <div className="space-y-4">
             
             {/* Box 1: Referral Jobs Posted */}
-            <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-4.5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6" />
+            <div 
+              onClick={() => {
+                const uid = chef?.user_id || chef?.id || id;
+                const chefName = fullName || chef?.full_name || 'Chef';
+                navigate(`/admin/jobs?chef_id=${uid}&chefName=${encodeURIComponent(chefName)}`, { state: { userId: uid, chefName } });
+              }}
+              className="bg-purple-50/60 border border-purple-100 hover:border-purple-300 hover:bg-purple-50 transition-all rounded-2xl p-4.5 flex items-center justify-between gap-4 cursor-pointer group shadow-2xs"
+              title="Click to view all jobs posted by this chef"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-purple-100 group-hover:bg-purple-600 group-hover:text-white text-purple-700 flex items-center justify-center shrink-0 transition-colors">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-extrabold text-slate-800 group-hover:text-purple-950 block">Referral Jobs Posted</span>
+                  <span className="font-outfit font-black text-2xl text-slate-900 group-hover:text-purple-950 block leading-tight my-0.5">{totalPosted}</span>
+                  <span className="text-[11px] font-semibold text-slate-400 block">Total Jobs</span>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-extrabold text-slate-800 block">Referral Jobs Posted</span>
-                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight my-0.5">{totalPosted}</span>
-                <span className="text-[11px] font-semibold text-slate-400 block">Total Jobs</span>
+              <div className="flex items-center text-xs font-black text-purple-600 group-hover:text-purple-800 bg-white px-3 py-1.5 rounded-xl border border-purple-200 shadow-2xs gap-1.5 transition-all shrink-0">
+                <span>View Jobs</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
 
