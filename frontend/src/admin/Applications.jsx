@@ -161,19 +161,47 @@ export default function Applications() {
 
     const totalScore = Math.min(100, Math.max(0, roleScore + locationScore + expScore + skillScore));
 
-    const matchedCriteria = [];
-    if (roleScore >= 15) {
-      matchedCriteria.push({ key: 'role', label: 'Role', value: prefRole || jobTitle || 'Job Role', isMatch: true });
-    }
-    if (locationScore >= 15) {
-      matchedCriteria.push({ key: 'location', label: 'Location', value: userCity || jobLocation || 'Location', isMatch: true });
-    }
-    if (expScore >= 15) {
-      matchedCriteria.push({ key: 'experience', label: 'Exp', value: userExp || jobExp || 'Experience', isMatch: true });
-    }
-    if (skillScore >= 10) {
-      matchedCriteria.push({ key: 'skills', label: 'Skills', value: userSkills.filter(Boolean).slice(0, 2).join(', ') || 'Skills', isMatch: true });
-    }
+    const matchBreakdown = [
+      {
+        key: 'role',
+        label: 'Role',
+        jobReq: job.title || job.job_role || 'Not Specified',
+        candVal: applicant.preferred_role || applicant.job_role || 'Not Specified',
+        isMatch: roleScore >= 20,
+        score: roleScore,
+        maxScore: 35
+      },
+      {
+        key: 'location',
+        label: 'Location',
+        jobReq: job.location || 'Not Specified',
+        candVal: applicant.city || (availability.location_preference ? `Pref: ${availability.location_preference}` : 'Not Specified'),
+        isMatch: locationScore >= 20,
+        score: locationScore,
+        maxScore: 25
+      },
+      {
+        key: 'experience',
+        label: 'Experience',
+        jobReq: job.experience_range || 'Not Specified',
+        candVal: applicant.experience_range || applicant.experience_years || 'Not Specified',
+        isMatch: expScore >= 20,
+        score: expScore,
+        maxScore: 25
+      },
+      {
+        key: 'skills',
+        label: 'Skills',
+        jobReq: job.job_category || job.industry_segment || 'Cuisine & Skills',
+        candVal: userSkills.filter(Boolean).length > 0 ? userSkills.filter(Boolean).slice(0, 3).join(', ') : 'Not Specified',
+        isMatch: skillScore >= 12,
+        score: skillScore,
+        maxScore: 15
+      }
+    ];
+
+    const matchedCriteria = matchBreakdown.filter(m => m.isMatch);
+    const unmatchedCriteria = matchBreakdown.filter(m => !m.isMatch);
 
     return {
       score: totalScore,
@@ -181,11 +209,9 @@ export default function Applications() {
       locationScore,
       expScore,
       skillScore,
+      matchBreakdown,
       matchedCriteria,
-      prefRole: prefRole || jobTitle,
-      userCity: userCity || jobLocation,
-      userExp: userExp || jobExp,
-      userSkills: userSkills.filter(Boolean).slice(0, 3).join(', ')
+      unmatchedCriteria,
     };
   };
 
@@ -818,21 +844,21 @@ export default function Applications() {
                                 <span>{match.score}% Match</span>
                               </span>
 
-                              {/* Matched parameters chips */}
+                              {/* Matched & Unmatched parameters chips */}
                               <div className="flex items-center justify-center flex-wrap gap-1 max-w-[150px] pt-0.5">
-                                {match.matchedCriteria && match.matchedCriteria.length > 0 ? (
-                                  match.matchedCriteria.map((c, ci) => (
-                                    <span 
-                                      key={ci} 
-                                      className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/80 inline-flex items-center gap-0.5 shadow-2xs"
-                                      title={`Matched ${c.label}: ${c.value}`}
-                                    >
-                                      <Check className="w-2.5 h-2.5 text-emerald-600" /> {c.label}
-                                    </span>
-                                  ))
-                                ) : (
-                                  <span className="text-[9px] text-slate-400 font-medium italic">Basic Match</span>
-                                )}
+                                {match.matchBreakdown.map((item, idx) => (
+                                  <span 
+                                    key={idx} 
+                                    className={`px-1.5 py-0.5 rounded text-[9px] font-black inline-flex items-center gap-0.5 border shadow-2xs ${
+                                      item.isMatch 
+                                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80' 
+                                        : 'bg-rose-50 text-rose-700 border-rose-200/80'
+                                    }`}
+                                    title={`${item.label}: Job Required "${item.jobReq}" vs Candidate Has "${item.candVal}"`}
+                                  >
+                                    {item.isMatch ? <Check className="w-2.5 h-2.5 text-emerald-600" /> : <X className="w-2.5 h-2.5 text-rose-500" />} {item.label}
+                                  </span>
+                                ))}
                               </div>
                             </div>
                           </td>
@@ -1106,50 +1132,49 @@ export default function Applications() {
               {(() => {
                 const modalMatch = calculateMatchPercentage(selectedApp);
                 return (
-                  <div className="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-3 text-left">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Candidate Profile Match Breakdown</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${
+                  <div className="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-3.5 text-left shadow-lg">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                      <div>
+                        <span className="text-[11px] font-black uppercase tracking-wider text-slate-300 block">Candidate Profile Match Analysis</span>
+                        <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">Job Posting Required vs Applicant Candidate Has</span>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-black border shadow-sm shrink-0 ${
                         modalMatch.score >= 80 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
                         modalMatch.score >= 60 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
                         'bg-blue-500/20 text-blue-400 border-blue-500/40'
                       }`}>
-                        <Target className="inline w-3 h-3 mr-1" /> {modalMatch.score}% Match
+                        <Target className="inline w-3.5 h-3.5 mr-1" /> {modalMatch.score}% Match
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[10px]">
-                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
-                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
-                          <span><Briefcase className="inline w-3 h-3 mr-1 text-purple-400" /> Role Match</span>
-                          <span className="text-emerald-400 font-black">✓ {modalMatch.roleScore}/35</span>
-                        </span>
-                        <span className="font-bold text-white mt-1 block truncate">{selectedApp.applicant?.preferred_role || selectedApp.job_post?.title || 'Matching Role'}</span>
-                      </div>
+                    {/* Detailed Comparative Table */}
+                    <div className="space-y-2 text-xs">
+                      {modalMatch.matchBreakdown.map((item, idx) => (
+                        <div key={idx} className="bg-slate-800/90 p-2.5 rounded-2xl border border-slate-700/80 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px] font-extrabold">
+                            <span className="text-slate-200 flex items-center gap-1.5">
+                              {item.isMatch ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <X className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
+                              <span>{item.label} Parameter</span>
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-black border ${
+                              item.isMatch ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                            }`}>
+                              {item.isMatch ? '✓ Matched' : '✗ Mismatched'} ({item.score}/{item.maxScore} pts)
+                            </span>
+                          </div>
 
-                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
-                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
-                          <span><MapPin className="inline w-3 h-3 mr-1 text-blue-400" /> Location Match</span>
-                          <span className="text-emerald-400 font-black">✓ {modalMatch.locationScore}/25</span>
-                        </span>
-                        <span className="font-bold text-white mt-1 block truncate">{selectedApp.applicant?.city || selectedApp.job_post?.location || 'Matching Location'}</span>
-                      </div>
-
-                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
-                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
-                          <span><Clock className="inline w-3 h-3 mr-1 text-amber-400" /> Experience Match</span>
-                          <span className="text-emerald-400 font-black">✓ {modalMatch.expScore}/25</span>
-                        </span>
-                        <span className="font-bold text-white mt-1 block truncate">{selectedApp.applicant?.experience_range || 'Matching Exp'}</span>
-                      </div>
-
-                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
-                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
-                          <span><Wrench className="inline w-3 h-3 mr-1 text-teal-400" /> Skills Match</span>
-                          <span className="text-emerald-400 font-black">✓ {modalMatch.skillScore}/15</span>
-                        </span>
-                        <span className="font-bold text-white mt-1 block truncate">{Array.isArray(selectedApp.applicant?.skills) ? selectedApp.applicant.skills.slice(0,2).join(', ') : 'Cuisine & Skills'}</span>
-                      </div>
+                          <div className="grid grid-cols-2 gap-2 text-[10px]">
+                            <div className="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                              <span className="text-slate-400 text-[9px] uppercase tracking-wider block font-bold">Job Posting Required</span>
+                              <span className="text-slate-200 font-extrabold block truncate mt-0.5" title={item.jobReq}>{item.jobReq}</span>
+                            </div>
+                            <div className="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                              <span className="text-slate-400 text-[9px] uppercase tracking-wider block font-bold">Applicant Candidate Has</span>
+                              <span className={`font-extrabold block truncate mt-0.5 ${item.isMatch ? 'text-emerald-300' : 'text-rose-300'}`} title={item.candVal}>{item.candVal}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
