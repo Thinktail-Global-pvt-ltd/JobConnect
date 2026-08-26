@@ -186,9 +186,10 @@ export default function Jobs() {
 
     // 2. Employer ID filter (if specified)
     if (employerIdFilter) {
-      const createdBy = String(job.created_by || job.user_id || job.creator?.id || '');
-      if (createdBy && createdBy === String(employerIdFilter)) {
-        return true;
+      if (isAdminCreatedJob(job)) return false;
+      const createdBy = String(job.created_by || job.user_id || job.creator?.id || job.employer_id || '');
+      if (createdBy !== String(employerIdFilter)) {
+        return false;
       }
     }
 
