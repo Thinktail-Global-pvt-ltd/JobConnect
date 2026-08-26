@@ -3,7 +3,7 @@ import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, Ban, CheckCircle2, Building2, Globe, Briefcase, 
   Users, Award, Calendar, MapPin, Clock, Plane, Utensils, ShieldCheck, 
-  Copy, Check, FileText, UserSquare2
+  Copy, Check, FileText, UserSquare2, ChevronRight
 } from 'lucide-react';
 
 import axios from 'axios';
@@ -154,11 +154,18 @@ export default function EmployerDetail() {
     ? new Date(employer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(employer.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
     : '12 Aug 2024, 10:30 AM';
 
-  const jobsList = Array.isArray(employer.jobs) ? employer.jobs : [];
-  const totalJobs = jobsList.length || employer.total_jobs || 24;
-  const activeJobs = jobsList.filter(j => ['approved', 'published', 'active'].includes((j.status || '').toLowerCase())).length || employer.active_jobs || 18;
-  const pendingJobs = jobsList.filter(j => ['pending', 'draft', 'unread'].includes((j.status || '').toLowerCase())).length || employer.pending_jobs || 4;
-  const closedJobs = jobsList.filter(j => ['closed', 'inactive', 'suspended', 'rejected'].includes((j.status || '').toLowerCase())).length || employer.closed_jobs || 6;
+  const isAdminCreatedJob = (j) => {
+    if (!j) return false;
+    return Boolean(j.is_admin_created) || (j.submitted_by_role || '').toLowerCase() === 'admin' || (j.posted_by_role || '').toLowerCase() === 'admin';
+  };
+
+  const rawJobsList = Array.isArray(employer.jobs) ? employer.jobs : [];
+  const jobsList = rawJobsList.filter(j => !isAdminCreatedJob(j));
+
+  const totalJobs = jobsList.length;
+  const activeJobs = jobsList.filter(j => ['approved', 'published', 'active'].includes((j.status || '').toLowerCase())).length;
+  const pendingJobs = jobsList.filter(j => ['pending', 'draft', 'unread'].includes((j.status || '').toLowerCase())).length;
+  const closedJobs = jobsList.filter(j => ['closed', 'inactive', 'suspended', 'rejected'].includes((j.status || '').toLowerCase())).length;
 
   const rawPhoto = employer.profile_photo_path || employer.profile_photo || employer.company_logo_url || employer.logo_url || employer.photo_url || employer.avatar;
   const photoUrl = resolveImageUrl(rawPhoto);
@@ -361,14 +368,25 @@ export default function EmployerDetail() {
           </h3>
 
           <div className="space-y-5">
-            <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-4.5 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                <Briefcase className="w-6 h-6" />
+            <div 
+              onClick={() => navigate(`/admin/jobs?employer_id=${employer.user_id || employer.id || id}&search=${encodeURIComponent(name)}`)}
+              className="bg-purple-50/60 border border-purple-100 hover:border-purple-300 rounded-2xl p-4.5 flex items-center justify-between gap-4 cursor-pointer transition-all duration-200 hover:shadow-md group"
+              title="Click to view all jobs posted by this employer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200">
+                  <Briefcase className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-extrabold text-slate-800 block">Jobs Posted</span>
+                  <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight my-0.5">{totalJobs}</span>
+                  <span className="text-[11px] font-semibold text-slate-400 block">Total Jobs</span>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-extrabold text-slate-800 block">Jobs Posted</span>
-                <span className="font-outfit font-black text-2xl text-slate-900 block leading-tight my-0.5">{totalJobs}</span>
-                <span className="text-[11px] font-semibold text-slate-400 block">Total Jobs</span>
+
+              <div className="bg-white group-hover:bg-purple-600 group-hover:text-white text-purple-700 border border-purple-200 px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-2xs transition-colors shrink-0">
+                <span>View Jobs</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </div>
             </div>
 
