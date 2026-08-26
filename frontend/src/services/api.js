@@ -68,94 +68,11 @@ const setStored = (key, val) => {
 // MOCK DATABASE (For fallback if backend fails or is offline)
 // ==========================================
 
-const INITIAL_USERS = [
-  { id: '1', full_name: 'Sanjay Kapoor', email: 'sanjay@jobconnect.in', mobile_number: '9876543210', city: 'New Delhi', experience_range: '6+ Years', preferred_role: 'Executive Chef', current_employer: 'The Taj Palace', skills: ['Fine Dining', 'Menu Costing', 'French Cuisine'], is_suspended: false, completeness: 100, role_type: 'job_seeker', created_at: '2026-06-01' },
-  { id: '2', full_name: 'Ananya Sharma', email: 'ananya@bistrobites.com', mobile_number: '8765432109', city: 'Mumbai', experience_range: '4-6 Years', preferred_role: 'F&B Manager', current_employer: 'Bistro Bites Ltd', skills: ['Staff Scheduling', 'POS Operations'], is_suspended: false, completeness: 85, role_type: 'employer', created_at: '2026-06-02' },
-  { id: '3', full_name: 'Vikram Rathore', email: 'vikram@agencies.net', mobile_number: '7654321098', city: 'Bangalore', experience_range: '6+ Years', preferred_role: 'Recruitment Director', skills: ['Staffing', 'Kitchen Setup'], is_suspended: false, completeness: 90, role_type: 'agency', created_at: '2026-06-03' },
-  { id: '4', full_name: 'Ramesh Kumar', email: 'ramesh@jobseeker.in', mobile_number: '9111111100', city: 'Mumbai', experience_range: '2-4 Years', preferred_role: 'F&B Associate', skills: ['Kitchen Assistance', 'Food Service'], is_suspended: false, completeness: 75, role_type: 'job_seeker', created_at: '2026-06-05' },
-  { id: '5', full_name: 'Sunita Rao', email: 'sunita@jobseeker.in', mobile_number: '9111111101', city: 'Mumbai', experience_range: '2-4 Years', preferred_role: 'F&B Associate', skills: ['Kitchen Assistance'], is_suspended: true, completeness: 60, role_type: 'job_seeker', created_at: '2026-06-06' }
-];
+const INITIAL_USERS = [];
+const INITIAL_JOBS = [];
+const INITIAL_APPLICATIONS = [];
 
-const INITIAL_JOBS = [
-  { id: '1', title: 'Urgent: Regional Warehouse Manager', company: 'Global Logistics Corp', category: 'overseas', salary: '$4,500 - $6,200', location: 'Singapore', description: 'Leading the operations for our new hub. Seeking an experienced professional to manage logistics and staff.', status: 'approved', is_pinned: true, country: 'Singapore', visa_assistance: true, accommodation_available: true, job_type: 'Full-time', creator_id: '2', created_at: '2026-06-15T10:00:00Z', requirements: ['Regional logistics exp', 'Inventory control'], benefits: ['Health cover', 'Travel tickets'] },
-  { id: '2', title: 'Senior Pastry Chef', company: 'The Grand Patisserie', category: 'overseas', salary: '£35k - £42k / yr', location: 'Mayfair, London', description: 'We are looking for a creative Senior Pastry Chef to lead our dessert department.', status: 'approved', is_pinned: false, country: 'United Kingdom', visa_assistance: true, accommodation_available: false, job_type: 'Full-time', creator_id: '2', created_at: '2026-06-20T12:00:00Z', requirements: ['Sugar work exp', 'Team management'], benefits: ['Meals provided', 'Private health'] },
-  { id: '3', title: 'Head Chef - New Mumbai Branch', company: 'Fine Dine Group', category: 'india', salary: '₹12L - ₹18L PA', location: 'Mumbai, India', description: 'We are opening our 15th location and looking for a creative culinary leader.', status: 'pending', is_pinned: false, country: 'India', visa_assistance: false, accommodation_available: false, job_type: 'Full-time', creator_id: '2', created_at: '2026-07-02T15:30:00Z', requirements: ['8+ years exp', 'European plating design'], benefits: ['Performance incentives', 'dining vouchers'] },
-  { id: '4', title: 'Executive Sous Chef', company: 'Bistro Palace', category: 'india', salary: '₹8L - ₹10L PA', location: 'New Delhi, India', description: 'Looking for a highly skilled Executive Sous Chef to manage kitchen staff and inventory control.', status: 'pending', is_pinned: false, country: 'India', visa_assistance: false, accommodation_available: true, job_type: 'Full-time', creator_id: '3', created_at: '2026-07-03T09:10:00Z', requirements: ['5+ years exp', 'Staff scheduling', 'Food hygiene Level 3'], benefits: ['Free meals', 'Bonus options'] }
-];
-
-const INITIAL_APPLICATIONS = [
-  { id: '1', job_post_id: '3', applicant_id: '1', status: 'contacted', created_at: '2026-07-02T16:00:00Z' },
-  { id: '2', job_post_id: '3', applicant_id: '4', status: 'new', created_at: '2026-07-02T17:00:00Z' }
-];
-
-const INITIAL_CHEFS = [
-  {
-    id: '1',
-    user_id: '1',
-    full_name: 'Chef Vikram Rathore',
-    email: 'vikram.chef@jobconnect.in',
-    mobile_number: '+91 98765 43210',
-    preferred_role: 'Executive Chef',
-    city: 'Mumbai',
-    country: 'India',
-    experience_range: '8-12 Years',
-    cuisine_specialty: 'Indian, Tandoori, Continental',
-    bio: 'Award-winning Executive Chef with 10+ years leading luxury hotel kitchens and fine dining menus.',
-    calendly_link: 'https://calendly.com/chefvikram',
-    location_preference: 'Both',
-    availability: 'Available Immediately',
-    languages: 'English, Hindi',
-    skills: 'Kitchen Management, Menu Engineering, Food Cost Control',
-    approval_status: 'approved',
-    status: 'approved',
-    photo_url: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80',
-    created_at: '2026-07-01T10:00:00Z'
-  },
-  {
-    id: '2',
-    user_id: '2',
-    full_name: 'Chef Ankit Jha',
-    email: 'ankit.jha@jobrito.com',
-    mobile_number: '+91 98123 45678',
-    preferred_role: 'Head Chef',
-    city: 'New Delhi',
-    country: 'India',
-    experience_range: '5-8 Years',
-    cuisine_specialty: 'Pan-Asian, Chinese, Dim Sum',
-    bio: 'Experienced Head Chef specializing in Asian fusion dining and high-volume banquet operations.',
-    calendly_link: 'https://calendly.com/chefankit',
-    location_preference: 'Overseas',
-    availability: '2 Weeks Notice',
-    languages: 'English, Hindi, Mandarin',
-    skills: 'Wok Master, Team Leadership, Inventory Management',
-    approval_status: 'approved',
-    status: 'approved',
-    photo_url: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=400&q=80',
-    created_at: '2026-07-10T12:00:00Z'
-  },
-  {
-    id: '3',
-    user_id: '3',
-    full_name: 'Chef Maria Santos',
-    email: 'maria.santos@pastry.org',
-    mobile_number: '+971 50 123 4567',
-    preferred_role: 'Pastry Chef',
-    city: 'Dubai',
-    country: 'UAE',
-    experience_range: '6-10 Years',
-    cuisine_specialty: 'French Pastry, Desserts, Chocolatier',
-    bio: 'Passionate Executive Pastry Chef trained in Paris with extensive experience in Middle East resorts.',
-    calendly_link: 'https://calendly.com/chefmariasantos',
-    location_preference: 'Both',
-    availability: 'Available Immediately',
-    languages: 'English, French, Spanish',
-    skills: 'Artisan Baking, Dessert Plating, Sugar Work',
-    approval_status: 'pending',
-    status: 'pending',
-    photo_url: 'https://images.unsplash.com/photo-1607631568010-a87245c0daf8?auto=format&fit=crop&w=400&q=80',
-    created_at: '2026-07-20T14:30:00Z'
-  }
-];
+const INITIAL_CHEFS = [];
 
 export const mockDb = {
   getUsers: () => getStored('mock_users', INITIAL_USERS),

@@ -312,51 +312,10 @@ export default function Applications() {
     }
   };
 
-  // Group applications by job_post_id or training_id AND include all jobs & training listings
+  // Group applications dynamically by job_post_id or training_id based ONLY on actual applications
   const groupedJobsMap = {};
 
-  // 1. Add all job posts from database
-  allJobs.forEach(job => {
-    const isAdminCreated = Boolean(job.is_admin_created) || (job.submitted_by_role || '').toLowerCase() === 'admin' || (job.posted_by_role || '').toLowerCase() === 'admin';
-    const jobId = String(job.id);
-    groupedJobsMap[jobId] = {
-      id: jobId,
-      real_id: job.id,
-      title: job.title || `Job Listing #${job.id}`,
-      company: job.company || 'Employer',
-      location: job.location || 'India',
-      category: job.category || 'india',
-      is_training: false,
-      is_admin_created: isAdminCreated,
-      submitted_by_role: job.submitted_by_role || job.posted_by_role || (isAdminCreated ? 'admin' : 'employer'),
-      type_label: 'Job Listing',
-      applications: [],
-      latestDate: job.created_at || new Date().toISOString(),
-      job_post: job
-    };
-  });
-
-  // 2. Add all training opportunities from database
-  allTrainings.forEach(tr => {
-    const tid = `training_${tr.id}`;
-    groupedJobsMap[tid] = {
-      id: tid,
-      real_id: tr.id,
-      title: tr.name || `Training Program #${tr.id}`,
-      company: tr.employer_details || tr.curriculum || 'Jobrito Academy',
-      location: Array.isArray(tr.countries) ? tr.countries.join(', ') : (tr.countries || tr.location || 'India'),
-      category: 'training',
-      is_training: true,
-      is_admin_created: false,
-      submitted_by_role: 'admin',
-      type_label: 'Training Opportunity',
-      applications: [],
-      latestDate: tr.created_at || new Date().toISOString(),
-      training: tr
-    };
-  });
-
-  // 3. Attach applications to corresponding job/training entry
+  // Attach applications to corresponding job/training entry
   apps.forEach(app => {
     const isTraining = app.is_training || app.type === 'training' || app.application_type === 'training' || app.job_post?.is_training || app.job_post?.category === 'training';
     const jobId = String(app.job_post_id || app.job_post?.id || (isTraining ? `training_${app.training_id || app.id}` : 'unknown'));
