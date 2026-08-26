@@ -64,7 +64,15 @@ class ProfileController extends Controller
             $user = User::find($hId);
         }
         if (!$user) {
-            $user = User::where('active_profile', 'chef')->first() ?: (User::where('active_profile', 'employer')->first() ?: User::first());
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                    $user = User::where('active_profile', 'chef')->first() ?: (User::where('active_profile', 'employer')->first() ?: User::first());
+                } else {
+                    $user = User::first();
+                }
+            } catch (\Throwable $e) {
+                $user = User::first();
+            }
         }
 
         if ($user) {
