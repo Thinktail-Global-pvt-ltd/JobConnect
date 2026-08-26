@@ -515,19 +515,21 @@ export default function JobDetail() {
         {/* Column 2: Employer Details (lg:col-span-4) */}
         <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
           <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <Building2 className="w-4.5 h-4.5 text-slate-500" /> Employer Details
+            <Building2 className="w-4.5 h-4.5 text-slate-500" /> {job.is_referral ? 'Referral Poster / Company Details' : 'Employer Details'}
           </h3>
 
-          <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-3">
+          <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shadow-2xs">
                 🏢
               </div>
               <div>
                 <h4 className="font-outfit font-extrabold text-base text-slate-900">{job.company}</h4>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified Employer Account
-                </span>
+                {job.creator ? (
+                  <span className="text-[11px] font-semibold text-slate-500 block">
+                    Posted by: <strong className="text-slate-800">{job.creator.full_name || job.creator.name}</strong> ({job.creator.active_role || job.creator.user_role || 'User'})
+                  </span>
+                ) : null}
               </div>
             </div>
 
