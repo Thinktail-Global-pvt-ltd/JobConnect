@@ -235,6 +235,9 @@ Route::match(['get', 'post'], '/feed', function(\Illuminate\Http\Request $reques
     return $res;
 });
 Route::match(['get', 'post'], '/jobs/feed', [FeedController::class, 'index']);
+Route::match(['get', 'post'], '/community-feed', [FeedController::class, 'index']);
+Route::match(['get', 'post'], '/community/feed', [FeedController::class, 'index']);
+Route::match(['get', 'post'], '/feed/community', [FeedController::class, 'index']);
 Route::get('/jobs', function(\Illuminate\Http\Request $request) {
     $user = $request->user();
     if (!$user && $request->bearerToken()) {
