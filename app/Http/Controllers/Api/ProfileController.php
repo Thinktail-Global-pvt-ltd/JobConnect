@@ -83,18 +83,33 @@ class ProfileController extends Controller
             if ($user->chefProfile->availability_info) {
                 $availability = is_array($user->chefProfile->availability_info) ? $user->chefProfile->availability_info : (json_decode($user->chefProfile->availability_info, true) ?: []);
             }
+            $opExp = $user->chefProfile->operational_experties ?: ($user->chefProfile->operational_expertise ?? null);
+
             $chefData = [
-                'id' => $user->chefProfile->id,
-                'user_id' => $user->chefProfile->user_id,
+                'id'                    => $user->chefProfile->id,
+                'user_id'               => $user->chefProfile->user_id,
+                'full_name'             => $user->full_name,
+                'name'                  => $user->full_name,
+                'mobile_number'         => $user->mobile_number,
+                'city'                  => $user->city,
+                'country'               => $user->country,
+                'preferred_role'        => $user->preferred_role,
+                'experience_range'      => $user->experience_range ?: $user->experience_years,
                 'cuisine_specialty'     => $user->chefProfile->cuisine_specialty ?: null,
                 'specialties'           => $user->chefProfile->cuisine_specialty ?: null,
-                'operational_experties' => $user->chefProfile->operational_experties ?: null,
-                'operational_expertise' => $user->chefProfile->operational_experties ?: null,
+                'operational_experties' => $opExp,
+                'operational_expertise' => $opExp,
                 'bio'                   => $user->chefProfile->bio ?: null,
-                'calendly_link' => $user->chefProfile->calendly_link ?: null,
-                'availability_info' => $availability,
-                'approval_status' => $user->chefProfile->approval_status ?: 'approved',
-                'status' => $user->chefProfile->approval_status ?: 'approved',
+                'calendly_link'         => $user->chefProfile->calendly_link ?: null,
+                'availability_info'     => $availability,
+                'approval_status'       => $user->chefProfile->approval_status ?: 'approved',
+                'status'                => $user->chefProfile->approval_status ?: 'approved',
+                'age'                   => $user->chefProfile->age ?: ($user->age ?: ($availability['age'] ?? null)),
+                'location_preference'   => $user->city ?: ($availability['location_preference'] ?? null),
+                'availability'          => $user->availability_status ?: ($availability['availability_status'] ?? null),
+                'languages'             => $availability['languages'] ?? [],
+                'regional_experience'   => $availability['regional_experience'] ?? [],
+                'employment_preference' => $availability['employment_preference'] ?? [],
             ];
         }
 
@@ -218,6 +233,7 @@ class ProfileController extends Controller
 
         $isAvailable = $user ? (bool)$user->is_available : true;
         $availabilityStatus = ($user && !empty($user->availability_status)) ? $user->availability_status : null;
+        $userAge = $user ? ($user->age ?: ($user->chefProfile?->age ?: ($chefAvailability['age'] ?? null))) : null;
 
         return response()->json([
             'success' => true,
@@ -228,7 +244,7 @@ class ProfileController extends Controller
                 'name' => $user ? $user->full_name : null,
                 'email' => $user ? $user->email : null,
                 'gender' => $user ? $user->gender : null,
-                'age' => $user ? $user->age : null,
+                'age' => $userAge,
                 'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
                 'profile_photo_path' => $photo,
                 'country' => $country,
@@ -265,7 +281,7 @@ class ProfileController extends Controller
             'location_preference' => $city ?: $jobLocation,
             'preference' => $preference,
             'job_type' => $user ? $user->preferred_role : null,
-            'age' => $user ? $user->age : null,
+            'age' => $userAge,
             'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
             'availability_status' => $availabilityStatus,
             'is_available' => $isAvailable,

@@ -152,7 +152,8 @@ class ProfileProgressService
         $breakdown['profile_photo'] = $hasPhoto ? 6 : 0;
 
         // 16. Age
-        $breakdown['age'] = self::isFilled($user->age) ? 6 : 0;
+        $ageVal = $user->age ?: ($chefProfile ? $chefProfile->age : ($availInfo['age'] ?? null));
+        $breakdown['age'] = self::isFilled($ageVal) ? 6 : 0;
 
         // 17. Overseas Work Experience
         $overseasExp = $user->overseas_work_experience ?: ($chefProfile ? $chefProfile->overseas_work_experience : ($availInfo['overseas_work_experience'] ?? null));
@@ -354,7 +355,8 @@ class ProfileProgressService
         }
 
         // 6. Age (13%)
-        if (self::isFilled($user->age)) {
+        $ageVal = $user->age ?: ($user->chefProfile ? $user->chefProfile->age : null);
+        if (self::isFilled($ageVal)) {
             $percentage += 13;
             $breakdown['age'] = 13;
         } else {
