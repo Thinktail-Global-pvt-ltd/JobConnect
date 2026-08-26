@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 // Axios Instance configured for production deploy
+export const API_BASE = typeof window !== 'undefined'
+  ? (window.location.protocol === 'https:' ? 'https://jobrito.com' : 'http://178.16.138.159')
+  : 'http://178.16.138.159';
+
 export const realApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || API_BASE,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
@@ -435,8 +439,9 @@ export const mockApi = {
     const endpoints = [
       '/backend/api/admin/dashboard',
       '/api/admin/dashboard',
+      '/admin/dashboard-stats',
       `${origin}/backend/api/admin/dashboard`,
-      'http://178.16.138.159/backend/api/admin/dashboard'
+      `${API_BASE}/backend/api/admin/dashboard`
     ];
     for (const ep of endpoints) {
       try {
@@ -1248,12 +1253,13 @@ export const mockApi = {
   },
 
   getSidebarStats: async () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
       '/backend/api/admin/sidebar-stats',
       '/api/admin/sidebar-stats',
       '/admin/sidebar-stats',
-      'http://178.16.138.159/backend/api/admin/sidebar-stats',
-      'https://jobrito.com/backend/api/admin/sidebar-stats'
+      `${origin}/backend/api/admin/sidebar-stats`,
+      `${API_BASE}/backend/api/admin/sidebar-stats`
     ];
     for (const url of endpoints) {
       try {
