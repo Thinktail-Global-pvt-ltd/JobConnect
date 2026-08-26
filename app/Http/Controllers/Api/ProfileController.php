@@ -181,7 +181,7 @@ class ProfileController extends Controller
                 'experience_range' => $user->experience_range ?: ($user->experience_years ?: null),
                 'experience_years' => $user->experience_range ?: ($user->experience_years ?: null),
                 'preferred_role' => $user->preferred_role ?: null,
-                'job_type' => $user->preferred_role ?: null,
+                'job_type' => $user->job_type ?: ($user->preferred_role ?: null),
                 'current_employer' => $user->current_employer ?: null,
                 'skills' => !empty($skillsArray) ? $skillsArray : null,
                 'additional_skills' => !empty($skillsArray) ? implode(', ', $skillsArray) : null,
