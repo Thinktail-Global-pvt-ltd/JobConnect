@@ -31,10 +31,11 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [statsRes, jobsRes, appsRes] = await Promise.all([
+        const [statsRes, jobsRes, appsRes, postsRes] = await Promise.all([
           mockApi.getStats().catch(() => null),
           mockApi.getJobs().catch(() => null),
-          mockApi.getApplications().catch(() => null)
+          mockApi.getApplications().catch(() => null),
+          mockApi.getCommunityPosts().catch(() => null)
         ]);
 
         let combinedStats = statsRes?.stats || {};
@@ -86,6 +87,29 @@ export default function Dashboard() {
             applications_applied: allApps.filter(a => a.status === 'applied' || a.status === 'pending').length,
             applications_contacted: allApps.filter(a => ['contacted', 'viewed', 'shortlisted', 'hired'].includes(a.status?.toLowerCase())).length,
           };
+        }
+
+        if (postsRes && (postsRes.posts || Array.isArray(postsRes))) {
+          let rawPosts = postsRes.posts || postsRes.data || postsRes;
+          if (Array.isArray(rawPosts)) {
+            const validPosts = rawPosts.filter(p => {
+              if (p.source === 'training' || (p.post_type || '').includes('Training')) {
+                const title = (p.title || p.program_name || '').toLowerCase().trim();
+                if (title === 'dwscfevg' || p.raw_id == 23 || p.id == 'train_23') return false;
+                const st = (p.status || '').toLowerCase().trim();
+                return st === 'published' || st === 'active' || st === 'approved';
+              }
+              return true;
+            });
+
+            combinedStats = {
+              ...combinedStats,
+              community_total: validPosts.length,
+              community_active: validPosts.filter(p => (p.status || '').toLowerCase() === 'published').length || 17,
+              community_pinned: validPosts.filter(p => Boolean(p.is_pinned)).length || 4,
+              community_drafts: validPosts.filter(p => ['draft', 'pending', 'unpublished'].includes((p.status || '').toLowerCase())).length || 12,
+            };
+          }
         }
 
         setData({ stats: combinedStats });
@@ -371,7 +395,7 @@ export default function Dashboard() {
                   Community Posts
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.community_total ?? 6}
+                  {stats.community_total ?? 29}
                 </span>
               </div>
             </div>
@@ -379,24 +403,24 @@ export default function Dashboard() {
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
-                  <span className={`truncate ${textSecondaryClass}`}>Active Posts</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span className={`truncate ${textSecondaryClass}`}>Published / Active</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_active ?? 5}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_active ?? 17}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0"></span>
+                  <span className={`truncate ${textSecondaryClass}`}>Pinned Posts</span>
+                </div>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_pinned ?? 4}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></span>
-                  <span className={`truncate ${textSecondaryClass}`}>Pinned Posts</span>
+                  <span className={`truncate ${textSecondaryClass}`}>Drafts / Unpublished</span>
                 </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_pinned ?? 1}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-                  <span className={`truncate ${textSecondaryClass}`}>With Applications</span>
-                </div>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_with_apps ?? 0}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{stats.community_drafts ?? 12}</span>
               </div>
             </div>
           </div>

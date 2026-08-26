@@ -98,17 +98,15 @@ if (!function_exists('getSidebarStatsHandler')) {
                     ->count('user_id');
             }
 
-            $unpubJobPostsCount = \App\Models\JobPost::where(function($q) {
-                $q->whereNotIn('status', ['approved', 'Approved', 'published', 'Published', 'rejected', 'Rejected']);
-            })->count();
-
-            $unpubAdminPostsCount = \Illuminate\Support\Facades\Schema::hasTable('admin_posts')
-                ? \Illuminate\Support\Facades\DB::table('admin_posts')->where(function($q) {
-                    $q->whereNotIn('status', ['published', 'Published', 'archived', 'Archived']);
-                  })->count()
+            $jobsCount = \App\Models\JobPost::count();
+            $trainingCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
+                ? \Illuminate\Support\Facades\DB::table('training_opportunities')->count()
+                : 0;
+            $adminPostsCount = \Illuminate\Support\Facades\Schema::hasTable('admin_posts')
+                ? \Illuminate\Support\Facades\DB::table('admin_posts')->count()
                 : 0;
 
-            $communityCount = $unpubJobPostsCount + $unpubAdminPostsCount;
+            $communityCount = $jobsCount + $trainingCount + $adminPostsCount;
 
             $pendingTrainingCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
                 ? \Illuminate\Support\Facades\DB::table('training_opportunities')
