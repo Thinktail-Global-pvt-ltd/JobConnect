@@ -326,8 +326,18 @@ class JobPostController extends Controller
 
         $allAppliedJobs = $appliedJobs->concat($appliedTrainingJobs);
 
-        // 3. Fetch Job Posts created by this user
-        $createdQuery = JobPost::where('created_by', $user ? $user->id : 0);
+        // 3. Fetch Job Posts created by this user (excluding jobs created/submitted by admin)
+        $createdQuery = JobPost::where('created_by', $user ? $user->id : 0)
+            ->where(function($q) {
+                $q->whereNull('submitted_by_role')
+                  ->orWhere('submitted_by_role', '!=', 'admin');
+            })
+            ->where(function($q) {
+                $q->whereNull('is_admin_created')
+                  ->orWhere('is_admin_created', 0)
+                  ->orWhere('is_admin_created', false);
+            });
+
         if ($request->has('is_referral')) {
             $createdQuery->where('is_referral', filter_var($request->is_referral, FILTER_VALIDATE_BOOLEAN));
         }
@@ -343,6 +353,15 @@ class JobPostController extends Controller
 
         $pendingCreatedJobs = JobPost::where('created_by', $user ? $user->id : 0)
             ->where('status', 'pending')
+            ->where(function($q) {
+                $q->whereNull('submitted_by_role')
+                  ->orWhere('submitted_by_role', '!=', 'admin');
+            })
+            ->where(function($q) {
+                $q->whereNull('is_admin_created')
+                  ->orWhere('is_admin_created', 0)
+                  ->orWhere('is_admin_created', false);
+            })
             ->latest()->get();
 
         // Fetch details of users who saved any of this user's created jobs
