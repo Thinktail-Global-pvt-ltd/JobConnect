@@ -161,12 +161,31 @@ export default function Applications() {
 
     const totalScore = Math.min(100, Math.max(0, roleScore + locationScore + expScore + skillScore));
 
+    const matchedCriteria = [];
+    if (roleScore >= 15) {
+      matchedCriteria.push({ key: 'role', label: 'Role', value: prefRole || jobTitle || 'Job Role', isMatch: true });
+    }
+    if (locationScore >= 15) {
+      matchedCriteria.push({ key: 'location', label: 'Location', value: userCity || jobLocation || 'Location', isMatch: true });
+    }
+    if (expScore >= 15) {
+      matchedCriteria.push({ key: 'experience', label: 'Exp', value: userExp || jobExp || 'Experience', isMatch: true });
+    }
+    if (skillScore >= 10) {
+      matchedCriteria.push({ key: 'skills', label: 'Skills', value: userSkills.filter(Boolean).slice(0, 2).join(', ') || 'Skills', isMatch: true });
+    }
+
     return {
       score: totalScore,
       roleScore,
       locationScore,
       expScore,
       skillScore,
+      matchedCriteria,
+      prefRole: prefRole || jobTitle,
+      userCity: userCity || jobLocation,
+      userExp: userExp || jobExp,
+      userSkills: userSkills.filter(Boolean).slice(0, 3).join(', ')
     };
   };
 
@@ -785,18 +804,37 @@ export default function Applications() {
                             </div>
                           </td>
 
-                          {/* Match Percentage Badge */}
+                          {/* Match Percentage Badge & Matched Criteria Breakdown */}
                           <td className="py-3.5 px-4 text-center">
-                            <span className={`inline-flex items-center gap-1 text-xs font-bold ${
-                              match.score >= 80 
-                                ? 'text-emerald-600' 
-                                : match.score >= 60 
-                                  ? 'text-amber-600' 
-                                  : 'text-blue-600'
-                            }`}>
-                              <Target className="w-3.5 h-3.5" />
-                              <span>{match.score}%</span>
-                            </span>
+                            <div className="flex flex-col items-center justify-center space-y-1">
+                              <span className={`inline-flex items-center gap-1 text-xs font-black px-2.5 py-0.5 rounded-full border shadow-2xs ${
+                                match.score >= 80 
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                  : match.score >= 60 
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}>
+                                <Target className="w-3.5 h-3.5" />
+                                <span>{match.score}% Match</span>
+                              </span>
+
+                              {/* Matched parameters chips */}
+                              <div className="flex items-center justify-center flex-wrap gap-1 max-w-[150px] pt-0.5">
+                                {match.matchedCriteria && match.matchedCriteria.length > 0 ? (
+                                  match.matchedCriteria.map((c, ci) => (
+                                    <span 
+                                      key={ci} 
+                                      className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/80 inline-flex items-center gap-0.5 shadow-2xs"
+                                      title={`Matched ${c.label}: ${c.value}`}
+                                    >
+                                      <Check className="w-2.5 h-2.5 text-emerald-600" /> {c.label}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="text-[9px] text-slate-400 font-medium italic">Basic Match</span>
+                                )}
+                              </div>
+                            </div>
                           </td>
 
                           {/* Job/Training post detail (If in Flat List mode) */}
@@ -1070,32 +1108,47 @@ export default function Applications() {
                 return (
                   <div className="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-3 text-left">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Candidate Match Score</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Candidate Profile Match Breakdown</span>
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${
                         modalMatch.score >= 80 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
                         modalMatch.score >= 60 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
-                        'bg-slate-800 text-slate-700 border-slate-700'
+                        'bg-blue-500/20 text-blue-400 border-blue-500/40'
                       }`}>
-                        <Target className="inline w-3 h-3 mr-1" /> % Match
+                        <Target className="inline w-3 h-3 mr-1" /> {modalMatch.score}% Match
                       </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-[10px]">
-                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]"><MapPin className="inline w-3 h-3 mr-1" /> Location Match ({modalMatch.locationScore}/25)</span>
-                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{selectedApp.applicant?.city || 'N/A'} vs {selectedApp.job_post?.location || 'Remote'}</span>
+                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
+                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
+                          <span><Briefcase className="inline w-3 h-3 mr-1 text-purple-400" /> Role Match</span>
+                          <span className="text-emerald-400 font-black">✓ {modalMatch.roleScore}/35</span>
+                        </span>
+                        <span className="font-bold text-white mt-1 block truncate">{selectedApp.applicant?.preferred_role || selectedApp.job_post?.title || 'Matching Role'}</span>
                       </div>
-                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]"><Briefcase className="inline w-3 h-3 mr-1" /> Role Match ({modalMatch.roleScore}/35)</span>
-                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{selectedApp.applicant?.preferred_role || 'N/A'}</span>
+
+                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
+                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
+                          <span><MapPin className="inline w-3 h-3 mr-1 text-blue-400" /> Location Match</span>
+                          <span className="text-emerald-400 font-black">✓ {modalMatch.locationScore}/25</span>
+                        </span>
+                        <span className="font-bold text-white mt-1 block truncate">{selectedApp.applicant?.city || selectedApp.job_post?.location || 'Matching Location'}</span>
                       </div>
-                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]"><Clock className="inline w-3 h-3 mr-1" /> Experience Match ({modalMatch.expScore}/25)</span>
-                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{selectedApp.applicant?.experience_range || 'N/A'}</span>
+
+                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
+                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
+                          <span><Clock className="inline w-3 h-3 mr-1 text-amber-400" /> Experience Match</span>
+                          <span className="text-emerald-400 font-black">✓ {modalMatch.expScore}/25</span>
+                        </span>
+                        <span className="font-bold text-white mt-1 block truncate">{selectedApp.applicant?.experience_range || 'Matching Exp'}</span>
                       </div>
-                      <div className="bg-slate-800/80 p-2 rounded-xl border border-slate-700/50">
-                        <span className="text-slate-400 block text-[9px]"><Wrench className="inline w-3 h-3 mr-1" /> Skills Match ({modalMatch.skillScore}/15)</span>
-                        <span className="font-extrabold text-slate-700 mt-0.5 block truncate">{Array.isArray(selectedApp.applicant?.skills) ? selectedApp.applicant.skills.slice(0,2).join(', ') : 'General'}</span>
+
+                      <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/80">
+                        <span className="text-slate-300 font-extrabold block text-[10px] flex items-center justify-between">
+                          <span><Wrench className="inline w-3 h-3 mr-1 text-teal-400" /> Skills Match</span>
+                          <span className="text-emerald-400 font-black">✓ {modalMatch.skillScore}/15</span>
+                        </span>
+                        <span className="font-bold text-white mt-1 block truncate">{Array.isArray(selectedApp.applicant?.skills) ? selectedApp.applicant.skills.slice(0,2).join(', ') : 'Cuisine & Skills'}</span>
                       </div>
                     </div>
                   </div>
