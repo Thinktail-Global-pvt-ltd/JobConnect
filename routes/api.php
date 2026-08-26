@@ -213,7 +213,11 @@ Route::match(['get', 'post'], '/feed', function(\Illuminate\Http\Request $reques
     $res = (new \App\Http\Controllers\Api\FeedController)->index($request);
     if ($res instanceof \Illuminate\Http\JsonResponse) {
         $data = $res->getData(true);
-        if (isset($data['data']) && is_array($data['data'])) {
+        $containerKey = isset($data['feed']['data']) && is_array($data['feed']['data']) ? 'feed' : (isset($data['data']) && is_array($data['data']) ? 'root' : null);
+
+        if ($containerKey) {
+            $rawList = $containerKey === 'feed' ? $data['feed']['data'] : $data['data'];
+
             $mappedItems = array_map(function($item) {
                 $submittedRole = strtolower(trim(is_object($item) ? ($item->submitted_by_role ?? '') : ($item['submitted_by_role'] ?? '')));
                 $isAdmin = (is_object($item) ? !empty($item->is_admin_created) : !empty($item['is_admin_created'])) || $submittedRole === 'admin';
@@ -255,9 +259,9 @@ Route::match(['get', 'post'], '/feed', function(\Illuminate\Http\Request $reques
                     }
                 }
                 return $item;
-            }, $data['data']);
+            }, $rawList);
 
-            $data['data'] = array_values(array_filter($mappedItems, function($item) {
+            $filteredList = array_values(array_filter($mappedItems, function($item) {
                 $type = is_object($item) ? ($item->_type ?? ($item->category ?? '')) : ($item['_type'] ?? ($item['category'] ?? ''));
                 if ($type === 'training_opportunity' || $type === 'training') {
                     $st = strtolower(trim(is_object($item) ? ($item->status ?? '') : ($item['status'] ?? '')));
@@ -272,6 +276,13 @@ Route::match(['get', 'post'], '/feed', function(\Illuminate\Http\Request $reques
                 }
                 return true;
             }));
+
+            if ($containerKey === 'feed') {
+                $data['feed']['data'] = $filteredList;
+            } else {
+                $data['data'] = $filteredList;
+            }
+
             return response()->json($data);
         }
     }
