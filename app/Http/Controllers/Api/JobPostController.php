@@ -601,7 +601,39 @@ class JobPostController extends Controller
      */
     public function getApplicationsHistory(Request $request)
     {
-        $user = $request->user();
+        $user = null;
+
+        // 1. Resolve User via query params or body inputs: user_id, id, applicant_id, slug, mobile_number, mobile, phone
+        $targetId = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->query('slug') ?: ($request->input('user_id') ?: ($request->input('id') ?: ($request->input('applicant_id') ?: $request->input('slug')))))));
+        if (!empty($targetId)) {
+            $user = \App\Models\User::find($targetId);
+            if (!$user && \Illuminate\Support\Facades\Schema::hasTable('chef_profiles')) {
+                $chefProf = \Illuminate\Support\Facades\DB::table('chef_profiles')->where('id', $targetId)->first();
+                if ($chefProf && !empty($chefProf->user_id)) {
+                    $user = \App\Models\User::find($chefProf->user_id);
+                }
+            }
+            if (!$user && \Illuminate\Support\Facades\Schema::hasTable('employer_profiles')) {
+                $empProf = \Illuminate\Support\Facades\DB::table('employer_profiles')->where('id', $targetId)->first();
+                if ($empProf && !empty($empProf->user_id)) {
+                    $user = \App\Models\User::find($empProf->user_id);
+                }
+            }
+        }
+
+        $mobile = $request->query('mobile_number') ?: ($request->query('mobile') ?: ($request->query('phone') ?: ($request->input('mobile_number') ?: ($request->input('mobile') ?: $request->input('phone')))));
+        if (!$user && !empty($mobile)) {
+            $user = \App\Models\User::where('mobile_number', $mobile)->first();
+        }
+
+        if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
+            $hId = $request->header('X-User-Id') ?: $request->header('user-id');
+            $user = \App\Models\User::find($hId);
+        }
+
+        if (!$user) {
+            $user = $request->user();
+        }
         if (!$user) {
             $token = $request->bearerToken();
             if ($token) {
@@ -615,10 +647,6 @@ class JobPostController extends Controller
                 }
             }
         }
-        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id') || $request->filled('id'))) {
-            $uId = $request->input('user_id') ?: ($request->input('applicant_id') ?: $request->input('id'));
-            $user = \App\Models\User::find($uId);
-        }
         if (!$user) {
             $user = \Illuminate\Support\Facades\Auth::user();
         }
@@ -627,6 +655,26 @@ class JobPostController extends Controller
         }
 
         $userId = $user ? $user->id : 0;
+        $userRole = $user ? ($user->active_profile ?: ($user->user_role ?: 'job_seeker')) : 'job_seeker';
+        $applicantPhoto = $user ? ($user->profile_photo_path ?: ($user->profile_photo ?: null)) : null;
+        if (!empty($applicantPhoto) && !str_starts_with($applicantPhoto, 'http://') && !str_starts_with($applicantPhoto, 'https://')) {
+            $applicantPhoto = url('/' . ltrim($applicantPhoto, '/'));
+        }
+
+        $applicantPayload = $user ? [
+            'id'                 => $user->id,
+            'user_id'            => $user->id,
+            'full_name'          => $user->full_name ?: ($user->name ?: 'User'),
+            'name'               => $user->full_name ?: ($user->name ?: 'User'),
+            'email'              => $user->email,
+            'mobile_number'      => $user->mobile_number,
+            'role'               => $userRole,
+            'active_profile'     => $userRole,
+            'active_role'        => $userRole,
+            'user_role'          => $userRole,
+            'profile_photo_path' => $applicantPhoto,
+            'profile_photo'      => $applicantPhoto,
+        ] : null;
 
         // 1. Fetch Job Applications
         $jobApplications = \App\Models\JobApplication::with(['jobPost.creator.employerProfile'])
@@ -634,7 +682,7 @@ class JobPostController extends Controller
             ->latest()
             ->get();
 
-        $mappedJobApps = $jobApplications->map(function ($app) {
+        $mappedJobApps = $jobApplications->map(function ($app) use ($user, $userId, $userRole, $applicantPayload) {
             $job = $app->jobPost;
             if (!$job) return null;
 
@@ -655,6 +703,9 @@ class JobPostController extends Controller
                     'city'                => $creator->city ?: ($job->location ?: 'India'),
                     'country'             => $creator->country ?: ($job->country ?: 'India'),
                     'role'                => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
+                    'active_profile'     => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
+                    'active_role'        => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
+                    'user_role'          => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
                     'profile_photo_path'  => $creator->profile_photo_path ?: ($creator->profile_photo ?: null),
                     'profile_photo'       => $creator->profile_photo_path ?: ($creator->profile_photo ?: null),
                 ];
@@ -672,6 +723,9 @@ class JobPostController extends Controller
                     'city'                => $job->location ?: 'India',
                     'country'             => $job->country ?: 'India',
                     'role'                => $job->submitted_by_role ?: 'employer',
+                    'active_profile'     => $job->submitted_by_role ?: 'employer',
+                    'active_role'        => $job->submitted_by_role ?: 'employer',
+                    'user_role'          => $job->submitted_by_role ?: 'employer',
                     'profile_photo_path'  => null,
                     'profile_photo'       => null,
                 ];
@@ -689,6 +743,13 @@ class JobPostController extends Controller
             return [
                 'application_id'        => (string)$app->id,
                 'id'                    => $app->id,
+                'user_id'               => $userId,
+                'applicant_id'          => $userId,
+                'role'                  => $userRole,
+                'user_role'             => $userRole,
+                'active_role'           => $userRole,
+                'active_profile'        => $userRole,
+                'applicant_role'        => $userRole,
                 'job_post_id'           => $job->id,
                 'job_id'                => $job->id,
                 'status'                => $appStatus,
@@ -721,6 +782,8 @@ class JobPostController extends Controller
                 'posted_by'             => $postedBy,
                 'postedby'              => $postedBy,
                 'posted_by_user'        => $postedBy,
+                'applicant'             => $applicantPayload,
+                'user'                  => $applicantPayload,
                 'created_at'            => $app->created_at ? $app->created_at->toIso8601String() : null,
             ];
         })->filter()->values();
@@ -733,7 +796,7 @@ class JobPostController extends Controller
                 ->latest()
                 ->get();
 
-            $mappedTrainingApps = $tApps->map(function ($tApp) {
+            $mappedTrainingApps = $tApps->map(function ($tApp) use ($user, $userId, $userRole, $applicantPayload) {
                 $training = $tApp->trainingOpportunity;
                 if (!$training && $tApp->training_id) {
                     $training = \App\Models\TrainingOpportunity::find($tApp->training_id);
@@ -753,6 +816,9 @@ class JobPostController extends Controller
                     'city'                => $training ? ($training->location ?: 'India') : 'India',
                     'country'             => 'India',
                     'role'                => 'training_provider',
+                    'active_profile'      => 'training_provider',
+                    'active_role'         => 'training_provider',
+                    'user_role'           => 'training_provider',
                     'profile_photo_path'  => null,
                     'profile_photo'       => null,
                 ];
@@ -760,6 +826,13 @@ class JobPostController extends Controller
                 return [
                     'application_id'        => 'training_' . $tApp->id,
                     'id'                    => 'training_' . $tApp->id,
+                    'user_id'               => $userId,
+                    'applicant_id'          => $userId,
+                    'role'                  => $userRole,
+                    'user_role'             => $userRole,
+                    'active_role'           => $userRole,
+                    'active_profile'        => $userRole,
+                    'applicant_role'        => $userRole,
                     'raw_application_id'    => $tApp->id,
                     'training_id'           => $tId,
                     'job_post_id'           => 'training_' . $tId,
@@ -786,6 +859,8 @@ class JobPostController extends Controller
                     'posted_by'             => $tPostedBy,
                     'postedby'              => $tPostedBy,
                     'posted_by_user'        => $tPostedBy,
+                    'applicant'             => $applicantPayload,
+                    'user'                  => $applicantPayload,
                     'created_at'            => $tApp->created_at ? $tApp->created_at->toIso8601String() : null,
                 ];
             });
@@ -794,10 +869,16 @@ class JobPostController extends Controller
         $allApplications = $mappedJobApps->concat($mappedTrainingApps)->sortByDesc('created_at')->values();
 
         return response()->json([
-            'success'      => true,
-            'total'        => $allApplications->count(),
-            'applications' => $allApplications,
-            'data'         => $allApplications,
+            'success'        => true,
+            'total'          => $allApplications->count(),
+            'user_id'        => $userId,
+            'role'           => $userRole,
+            'user_role'      => $userRole,
+            'active_role'    => $userRole,
+            'active_profile' => $userRole,
+            'user'           => $applicantPayload,
+            'applications'   => $allApplications,
+            'data'           => $allApplications,
         ]);
     }
 
