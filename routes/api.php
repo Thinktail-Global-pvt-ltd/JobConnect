@@ -214,7 +214,50 @@ Route::match(['get', 'post'], '/feed', function(\Illuminate\Http\Request $reques
     if ($res instanceof \Illuminate\Http\JsonResponse) {
         $data = $res->getData(true);
         if (isset($data['data']) && is_array($data['data'])) {
-            $data['data'] = array_values(array_filter($data['data'], function($item) {
+            $mappedItems = array_map(function($item) {
+                $submittedRole = strtolower(trim(is_object($item) ? ($item->submitted_by_role ?? '') : ($item['submitted_by_role'] ?? '')));
+                $isAdmin = (is_object($item) ? !empty($item->is_admin_created) : !empty($item['is_admin_created'])) || $submittedRole === 'admin';
+                if ($isAdmin) {
+                    if (is_object($item)) {
+                        $item->posted_by_role = 'admin';
+                        $item->active_role    = 'admin';
+                        $item->user_role      = 'admin';
+                        if (isset($item->creator)) {
+                            if (is_object($item->creator)) {
+                                $item->creator->active_profile = 'admin';
+                                $item->creator->role           = 'admin';
+                                $item->creator->active_role     = 'admin';
+                                $item->creator->user_role       = 'admin';
+                            } elseif (is_array($item->creator)) {
+                                $item->creator['active_profile'] = 'admin';
+                                $item->creator['role']           = 'admin';
+                                $item->creator['active_role']     = 'admin';
+                                $item->creator['user_role']       = 'admin';
+                            }
+                        }
+                    } elseif (is_array($item)) {
+                        $item['posted_by_role'] = 'admin';
+                        $item['active_role']    = 'admin';
+                        $item['user_role']      = 'admin';
+                        if (isset($item['creator'])) {
+                            if (is_array($item['creator'])) {
+                                $item['creator']['active_profile'] = 'admin';
+                                $item['creator']['role']           = 'admin';
+                                $item['creator']['active_role']     = 'admin';
+                                $item['creator']['user_role']       = 'admin';
+                            } elseif (is_object($item['creator'])) {
+                                $item['creator']->active_profile = 'admin';
+                                $item['creator']->role           = 'admin';
+                                $item['creator']->active_role     = 'admin';
+                                $item['creator']->user_role       = 'admin';
+                            }
+                        }
+                    }
+                }
+                return $item;
+            }, $data['data']);
+
+            $data['data'] = array_values(array_filter($mappedItems, function($item) {
                 $type = is_object($item) ? ($item->_type ?? ($item->category ?? '')) : ($item['_type'] ?? ($item['category'] ?? ''));
                 if ($type === 'training_opportunity' || $type === 'training') {
                     $st = strtolower(trim(is_object($item) ? ($item->status ?? '') : ($item['status'] ?? '')));
