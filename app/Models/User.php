@@ -41,6 +41,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'active_profile',
+        'role',
         'active_role',
         'user_role',
     ];
@@ -201,6 +202,11 @@ class User extends Authenticatable
         }
         $anyRole = $this->roles()->first();
         return $anyRole ? $anyRole->role_type : 'job_seeker';
+    }
+
+    public function getRoleAttribute(): string
+    {
+        return $this->getActiveProfileAttribute();
     }
 
     public function getActiveRoleAttribute(): string
