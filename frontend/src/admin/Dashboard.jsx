@@ -52,6 +52,10 @@ export default function Dashboard() {
   }
 
   const stats = data.stats || {};
+  const usersTotal = stats.users_total ?? (stats.users_count || 0);
+  const chefCount = stats.chef_count ?? (stats.chefs_total || stats.chefs_count || 0);
+  const employerCount = stats.employer_count ?? (stats.employers_count || 0);
+  const talentCount = stats.talent_count ?? Math.max(0, usersTotal - (chefCount + employerCount));
 
   // Theme-aware styles
   const cardBgClass = isLight 
@@ -109,7 +113,7 @@ export default function Dashboard() {
                   Total Users
                 </span>
                 <span className={`font-outfit font-black text-2xl leading-none mt-0.5 block ${textPrimaryClass}`}>
-                  {stats.users_total ?? (stats.users_count || 14)}
+                  {usersTotal}
                 </span>
               </div>
             </div>
@@ -117,15 +121,15 @@ export default function Dashboard() {
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span className={textSecondaryClass}>Talent / Jobseeker</span>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.talent_count ?? 8}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{talentCount}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span className={textSecondaryClass}>Chef</span>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.chef_count ?? (stats.chefs_total || 5)}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{chefCount}</span>
               </div>
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span className={textSecondaryClass}>Employer</span>
-                <span className={`font-bold ${textPrimaryClass}`}>{stats.employer_count ?? (stats.employers_count || 1)}</span>
+                <span className={`font-bold ${textPrimaryClass}`}>{employerCount}</span>
               </div>
             </div>
           </div>
