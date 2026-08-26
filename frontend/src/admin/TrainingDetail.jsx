@@ -394,118 +394,110 @@ export default function TrainingDetail() {
         </div>
       </div>
 
-      {/* 3-Column Main Grid Section (Matching Job Detail UI) */}
+      {/* 3-Column Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* Column 1: Complete Program Specifications (lg:col-span-5) */}
-        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
+        {/* Column 1: Specifications Cards (lg:col-span-7) */}
+        <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
           <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <GraduationCap className="w-4.5 h-4.5 text-purple-600" /> Complete Program Specifications
+            <GraduationCap className="w-4.5 h-4.5 text-purple-600" /> Training Program Specifications
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-semibold">
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Program Title</span>
+            {/* Field 1: Training Program Name */}
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 sm:col-span-2">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Training Program Name</span>
               <span className="font-outfit font-extrabold text-sm text-slate-900 block">{name}</span>
             </div>
 
+            {/* Field 2: Initial Status */}
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Curriculum / Subject</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{curriculum}</span>
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Initial Status</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block capitalize">{program.status || 'Published'}</span>
             </div>
 
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Provider / Institution</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{employerDetails}</span>
-            </div>
-
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Primary Feed Category</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">Training & Placement</span>
-            </div>
-
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Training Duration</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{duration}</span>
-            </div>
-
+            {/* Field 3: Deployment Countries */}
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
               <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Deployment Countries</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{countriesList.join(', ')}</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{countriesList.join(', ') || 'N/A'}</span>
             </div>
 
-            {/* Mint Green Highlight Box: Benefits & Placement */}
+            {/* Field 4: Employer Details */}
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Employer Details</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{employerDetails || 'N/A'}</span>
+            </div>
+
+            {/* Field 5: Training Duration */}
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Training Duration</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-900 block">{duration || 'N/A'}</span>
+            </div>
+
+            {/* Field 6: Skills Covered */}
+            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 sm:col-span-2">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Skills Covered</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block whitespace-pre-line">{skillsCovered || 'N/A'}</span>
+            </div>
+
+            {/* Field 7: Training Benefits */}
             <div className="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 space-y-1 sm:col-span-2">
-              <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest block">Training Benefits & Fee Details</span>
-              <div className="pt-0.5">
-                <span className="font-outfit font-extrabold text-sm text-emerald-900 block">
-                  {benefits}
-                </span>
-              </div>
+              <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest block">Training Benefits</span>
+              <span className="font-outfit font-extrabold text-sm text-emerald-900 block whitespace-pre-line">{benefits || 'N/A'}</span>
             </div>
 
+            {/* Field 8: Placement Opportunities */}
             <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 sm:col-span-2">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Skills & Curriculum Covered</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{skillsCovered}</span>
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Placement Opportunities</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block whitespace-pre-line">{placementOpportunities || 'N/A'}</span>
             </div>
 
-            <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-0.5 sm:col-span-2">
-              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Placement & International Opportunities</span>
-              <span className="font-outfit font-extrabold text-sm text-slate-800 block">{placementOpportunities}</span>
+            {/* Field 9: Curriculum / Provider */}
+            <div className="p-3.5 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-1 sm:col-span-2">
+              <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Curriculum / Provider</span>
+              <span className="font-outfit font-extrabold text-sm text-slate-800 block whitespace-pre-line">{curriculum || 'N/A'}</span>
             </div>
           </div>
         </div>
 
-        {/* Column 2: Provider Details (lg:col-span-4) */}
-        <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
-          <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-            <Building2 className="w-4.5 h-4.5 text-slate-500" /> Employer / Provider Details
-          </h3>
-
-          <div className="p-5 bg-emerald-50/40 rounded-2xl border border-emerald-100/70 space-y-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 bg-white rounded-xl border border-emerald-200 flex items-center justify-center text-xl shadow-xs shrink-0">
-                🏫
-              </div>
-              <div>
-                <h4 className="font-outfit font-extrabold text-base text-slate-900 leading-snug">{employerDetails}</h4>
-                <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-md inline-flex items-center gap-1 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Provider Account
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs font-semibold border-t border-emerald-100/80 pt-3 text-slate-700">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Business / Agency</span>
-                <span className="font-extrabold text-slate-900">{employerDetails}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Primary Contact</span>
-                <span className="font-extrabold text-slate-900">{employerDetails}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Deployment Location</span>
-                <span className="font-extrabold text-slate-900">{countriesList.join(', ')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Column 3: Program Overview & Moderation Log (lg:col-span-3) */}
-        <div className="lg:col-span-3 space-y-6">
-          
-          {/* Program Overview Box */}
-          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-3">
+        {/* Column 2: Employer Details & Moderation (lg:col-span-5) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-5">
             <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
-              <FileText className="w-4.5 h-4.5 text-slate-500" /> Program Overview
+              <Building2 className="w-4.5 h-4.5 text-slate-500" /> Employer Details
             </h3>
-            <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100 text-xs font-semibold text-slate-700 leading-relaxed">
-              {curriculum || program.description || 'No detailed overview provided.'}
+
+            <div className="p-5 bg-emerald-50/40 rounded-2xl border border-emerald-100/70 space-y-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 bg-white rounded-xl border border-emerald-200 flex items-center justify-center text-xl shadow-xs shrink-0">
+                  🏫
+                </div>
+                <div>
+                  <h4 className="font-outfit font-extrabold text-base text-slate-900 leading-snug">{employerDetails || 'N/A'}</h4>
+                  <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-md inline-flex items-center gap-1 mt-0.5">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Training Provider
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-xs font-semibold border-t border-emerald-100/80 pt-3 text-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Employer Details</span>
+                  <span className="font-extrabold text-slate-900">{employerDetails || 'N/A'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Deployment Countries</span>
+                  <span className="font-extrabold text-slate-900">{countriesList.join(', ') || 'N/A'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Training Duration</span>
+                  <span className="font-extrabold text-slate-900">{duration || 'N/A'}</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Moderation Log Timeline Box */}
+          {/* Moderation Log */}
           <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs space-y-4">
             <h3 className="font-outfit font-extrabold text-base text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
               <Clock className="w-4.5 h-4.5 text-slate-500" /> Moderation Log
@@ -515,19 +507,18 @@ export default function TrainingDetail() {
               <div className="relative">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute -left-[21px] top-1 ring-4 ring-white" />
                 <span className="text-[10px] font-extrabold text-slate-400 block">{createdDateStr}</span>
-                <span className="text-slate-900 font-extrabold block">Program created & submitted for review</span>
+                <span className="text-slate-900 font-extrabold block">Program created & submitted</span>
               </div>
 
               <div className="relative">
                 <div className={`w-2.5 h-2.5 rounded-full absolute -left-[21px] top-1 ring-4 ring-white ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                <span className="text-[10px] font-extrabold text-slate-400 block">Recently</span>
+                <span className="text-[10px] font-extrabold text-slate-400 block">Status</span>
                 <span className="text-slate-900 font-extrabold block">
-                  {isPublished ? 'Program approved & published live' : 'Program set to Draft / In Review'}
+                  {isPublished ? 'Published' : 'Draft / In Review'}
                 </span>
               </div>
             </div>
           </div>
-
         </div>
 
       </div>
@@ -552,93 +543,104 @@ export default function TrainingDetail() {
             </div>
 
             <form onSubmit={handleSaveEditForm} className="space-y-4 text-xs font-semibold">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Training Program Name *</label>
+                <input 
+                  type="text" 
+                  required
+                  value={editForm.name} 
+                  onChange={e => setEditForm({...editForm, name: e.target.value})}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Program Name / Title *</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={editForm.name} 
-                    onChange={e => setEditForm({...editForm, name: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
-                  />
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Initial Status</label>
+                  <select 
+                    value={editForm.status}
+                    onChange={e => setEditForm({...editForm, status: e.target.value})}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#059669]"
+                  >
+                    <option value="Published">Publish Immediately</option>
+                    <option value="Draft">Save as Draft</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Curriculum / Subject *</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Deployment Countries *</label>
                   <input 
                     type="text" 
                     required
-                    value={editForm.curriculum} 
-                    onChange={e => setEditForm({...editForm, curriculum: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                    value={editForm.countries} 
+                    onChange={e => setEditForm({...editForm, countries: e.target.value})}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Provider / Employer Details *</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Employer Details</label>
                   <input 
                     type="text" 
-                    required
                     value={editForm.employer_details} 
                     onChange={e => setEditForm({...editForm, employer_details: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Training Duration (Max 30 chars)</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Training Duration (Max 30 chars)</label>
                   <input 
                     type="text" 
-                    required
                     maxLength={30}
                     placeholder="e.g. 6 Months"
                     value={editForm.duration} 
                     onChange={e => setEditForm({...editForm, duration: e.target.value.substring(0, 30)})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
+              </div>
 
-                <div className="sm:col-span-2">
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Deployment Countries (Comma Separated)</label>
-                  <input 
-                    type="text" 
-                    value={editForm.countries} 
-                    onChange={e => setEditForm({...editForm, countries: e.target.value})}
-                    placeholder="e.g. Saudi Arabia, UAE, Qatar, India"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Skills Covered</label>
+                <textarea 
+                  rows={2}
+                  value={editForm.skills_covered} 
+                  onChange={e => setEditForm({...editForm, skills_covered: e.target.value})}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
 
-                <div className="sm:col-span-2">
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Skills Covered</label>
-                  <textarea 
-                    rows={2}
-                    value={editForm.skills_covered} 
-                    onChange={e => setEditForm({...editForm, skills_covered: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all resize-none"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Training Benefits</label>
+                <textarea 
+                  rows={3}
+                  value={editForm.benefits} 
+                  onChange={e => setEditForm({...editForm, benefits: e.target.value})}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
 
-                <div className="sm:col-span-2">
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Training Benefits & Fee Structure</label>
-                  <textarea 
-                    rows={2}
-                    value={editForm.benefits} 
-                    onChange={e => setEditForm({...editForm, benefits: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all resize-none"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Placement Opportunities</label>
+                <textarea 
+                  rows={2}
+                  value={editForm.placement_opportunities} 
+                  onChange={e => setEditForm({...editForm, placement_opportunities: e.target.value})}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
+              </div>
 
-                <div className="sm:col-span-2">
-                  <label className="text-[11px] font-extrabold text-slate-700 block mb-1">Placement & International Opportunities</label>
-                  <textarea 
-                    rows={2}
-                    value={editForm.placement_opportunities} 
-                    onChange={e => setEditForm({...editForm, placement_opportunities: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 focus:bg-white focus:border-purple-600 outline-none transition-all resize-none"
-                  />
-                </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Curriculum / Provider</label>
+                <textarea 
+                  rows={4}
+                  value={editForm.curriculum} 
+                  onChange={e => setEditForm({...editForm, curriculum: e.target.value})}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669] min-h-[100px]"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
