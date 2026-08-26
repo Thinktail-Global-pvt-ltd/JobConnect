@@ -129,39 +129,19 @@ class EmployerModeratorController extends Controller
             }
         }
 
-        // Fetch employer job posts using explicit DB query matching user_id, created_by, employer_id, company, and contact_person
-        $busNameClean = trim($busName);
-        $contactClean = trim($contactName);
-        $fullNameClean = trim($user->full_name ?? '');
-
-        $hasUserIdCol = \Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'user_id');
-        $hasEmployerIdCol = \Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'employer_id');
-        $hasCreatedByCol = \Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'created_by');
-
-        $jobsQuery = \Illuminate\Support\Facades\DB::table('job_posts')
-            ->select('job_posts.*')
-            ->where(function($q) use ($user, $hasUserIdCol, $hasEmployerIdCol, $hasCreatedByCol) {
-                if ($hasCreatedByCol) {
-                    $q->orWhere('job_posts.created_by', $user->id);
-                }
-                if ($hasUserIdCol) {
-                    $q->orWhere('job_posts.user_id', $user->id);
-                }
-                if ($hasEmployerIdCol) {
-                    $q->orWhere('job_posts.employer_id', $user->id);
-                }
+        // Fetch employer job posts strictly created by this user
+        $allEmployerJobs = JobPost::where('created_by', $user->id)
+            ->where(function($q) {
+                $q->whereNull('submitted_by_role')
+                  ->orWhere('submitted_by_role', '!=', 'admin');
             })
             ->where(function($q) {
-                $q->whereNull('job_posts.submitted_by_role')
-                  ->orWhere('job_posts.submitted_by_role', '!=', 'admin');
+                $q->whereNull('is_admin_created')
+                  ->orWhere('is_admin_created', 0)
+                  ->orWhere('is_admin_created', false);
             })
-            ->where(function($q) {
-                $q->whereNull('job_posts.is_admin_created')
-                  ->orWhere('job_posts.is_admin_created', 0)
-                  ->orWhere('job_posts.is_admin_created', false);
-            });
-
-        $allEmployerJobs = $jobsQuery->orderBy('job_posts.id', 'desc')->get();
+            ->orderBy('id', 'desc')
+            ->get();
 
         $mappedJobs = $allEmployerJobs->map(function ($j) {
             $statusVal = strtolower($j->status ?: 'pending');
