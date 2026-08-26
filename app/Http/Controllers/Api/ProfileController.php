@@ -118,6 +118,7 @@ class ProfileController extends Controller
                 'languages'             => $availability['languages'] ?? [],
                 'regional_experience'   => $availability['regional_experience'] ?? [],
                 'employment_preference' => $availability['employment_preference'] ?? [],
+                'job_type'              => $user->job_type ?: ($user->chefProfile?->job_type ?: ($user->preferred_role ?: 'Full Time')),
             ];
         }
 
@@ -242,6 +243,7 @@ class ProfileController extends Controller
         $isAvailable = $user ? (bool)$user->is_available : true;
         $availabilityStatus = ($user && !empty($user->availability_status)) ? $user->availability_status : null;
         $userAge = $user ? ($user->age ?: ($user->chefProfile?->age ?: ($chefAvailability['age'] ?? null))) : null;
+        $userJobType = $user ? ($user->job_type ?: ($user->chefProfile?->job_type ?: null)) : null;
 
         return response()->json([
             'success' => true,
@@ -263,7 +265,7 @@ class ProfileController extends Controller
                 'experience_years' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'experience_range' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
-                'job_type' => $user ? $user->preferred_role : null,
+                'job_type' => $userJobType ?: ($user ? $user->preferred_role : null),
                 'current_employer' => $user ? $user->current_employer : null,
                 'skills' => !empty($skillsArray) ? $skillsArray : null,
                 'additional_skills' => !empty($skillsArray) ? implode(', ', $skillsArray) : null,
@@ -288,7 +290,7 @@ class ProfileController extends Controller
             'job_location' => $jobLocation,
             'location_preference' => $city ?: $jobLocation,
             'preference' => $preference,
-            'job_type' => $user ? $user->preferred_role : null,
+            'job_type' => $userJobType ?: ($user ? $user->preferred_role : null),
             'age' => $userAge,
             'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
             'availability_status' => $availabilityStatus,
@@ -494,14 +496,31 @@ class ProfileController extends Controller
                 }
                 if ($request->has('preferred_role')) {
                     $user->preferred_role = $request->input('preferred_role');
-                } elseif ($request->has('job_type')) {
-                    $user->preferred_role = $request->input('job_type');
                 } elseif ($request->has('position')) {
                     $user->preferred_role = $request->input('position');
                 } elseif ($request->has('job_title')) {
                     $user->preferred_role = $request->input('job_title');
                 } elseif ($request->has('role')) {
                     $user->preferred_role = $request->input('role');
+                }
+
+                $jobTypeVal = $request->input('job_type') ?? $request->input('employment_type') ?? $request->input('job_type_preference');
+                if ($jobTypeVal !== null && $jobTypeVal !== '') {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'job_type')) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN job_type VARCHAR(255) NULL");
+                        } catch (\Throwable $e) {}
+                    }
+                    $user->job_type = (string)$jobTypeVal;
+                    if ($user->chefProfile) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('chef_profiles', 'job_type')) {
+                            try {
+                                \Illuminate\Support\Facades\DB::statement("ALTER TABLE chef_profiles ADD COLUMN job_type VARCHAR(255) NULL");
+                            } catch (\Throwable $e) {}
+                        }
+                        $user->chefProfile->job_type = (string)$jobTypeVal;
+                        $user->chefProfile->save();
+                    }
                 }
                 if ($request->has('skills')) {
                     $skillsInput = $request->input('skills');
