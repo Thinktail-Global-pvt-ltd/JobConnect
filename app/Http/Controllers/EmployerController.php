@@ -74,7 +74,17 @@ class EmployerController extends Controller
                 $user = \App\Models\User::find($eId);
             }
             if (!$user && ($request->wantsJson() || $request->ajax() || $request->is('api/*') || $request->is('backend/api/*'))) {
-                $user = \App\Models\User::where('active_profile', 'employer')->orWhere('user_role', 'employer')->first() ?: \App\Models\User::first();
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                        $user = \App\Models\User::where('active_profile', 'employer')->first();
+                    }
+                    if (!$user && \Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role')) {
+                        $user = \App\Models\User::where('user_role', 'employer')->first();
+                    }
+                } catch (\Throwable $e) {}
+                if (!$user) {
+                    $user = \App\Models\User::first();
+                }
             }
 
             if (!$user) {
@@ -780,7 +790,17 @@ class EmployerController extends Controller
                 $user = \App\Models\User::find($request->header('X-User-Id') ?: $request->header('user-id'));
             }
             if (!$user) {
-                $user = \App\Models\User::where('active_profile', 'employer')->orWhere('user_role', 'employer')->first() ?: \App\Models\User::first();
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                        $user = \App\Models\User::where('active_profile', 'employer')->first();
+                    }
+                    if (!$user && \Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role')) {
+                        $user = \App\Models\User::where('user_role', 'employer')->first();
+                    }
+                } catch (\Throwable $e) {}
+                if (!$user) {
+                    $user = \App\Models\User::first();
+                }
             }
 
             $now = now();

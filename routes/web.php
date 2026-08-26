@@ -297,6 +297,24 @@ Route::match(['get', 'post', 'put'], '/api/user/profile/update', function(\Illum
 Route::match(['get', 'post', 'put'], '/backend/api/user/profile/update', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Api\ProfileController)->updatePersonal($request);
 })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/chef/view-profile', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('get')) {
+        return (new \App\Http\Controllers\Api\ChefProfileViewController)->getViews(null, $request);
+    }
+    return (new \App\Http\Controllers\Api\ChefProfileViewController)->recordView();
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/api/chef/view-profile', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('get')) {
+        return (new \App\Http\Controllers\Api\ChefProfileViewController)->getViews(null, $request);
+    }
+    return (new \App\Http\Controllers\Api\ChefProfileViewController)->recordView();
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/backend/api/chef/view-profile', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('get')) {
+        return (new \App\Http\Controllers\Api\ChefProfileViewController)->getViews(null, $request);
+    }
+    return (new \App\Http\Controllers\Api\ChefProfileViewController)->recordView();
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::match(['get', 'post'], '/api/feed', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Api\FeedController)->index($request);
 });

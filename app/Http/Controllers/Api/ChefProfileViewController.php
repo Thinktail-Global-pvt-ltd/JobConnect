@@ -65,7 +65,17 @@ class ChefProfileViewController extends Controller
                 }
             }
             if (!$chefUser) {
-                $chefUser = User::where('active_profile', 'chef')->orWhere('user_role', 'chef')->first() ?: User::first();
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                        $chefUser = User::where('active_profile', 'chef')->first();
+                    }
+                    if (!$chefUser && \Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role')) {
+                        $chefUser = User::where('user_role', 'chef')->first();
+                    }
+                } catch (\Throwable $e) {}
+                if (!$chefUser) {
+                    $chefUser = User::first();
+                }
                 if ($chefUser) {
                     $chefId = (int)$chefUser->id;
                 }
