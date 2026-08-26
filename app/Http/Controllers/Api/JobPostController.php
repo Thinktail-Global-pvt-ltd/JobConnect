@@ -71,9 +71,9 @@ class JobPostController extends Controller
 
             $isEmployer = in_array($userRole, ['employer', 'recruiter', 'hirer', 'agency', 'administrator', 'admin']);
 
-            // Employers have UNLIMITED job creation. Chef & Jobseeker are limited to 1 job per day.
+            // Employers have UNLIMITED job creation. Chef & Jobseeker are limited to 5 jobs per day.
             if (!$isEmployer) {
-                $maxDailyAllowed = 1;
+                $maxDailyAllowed = 5;
 
                 $todayJobsCount = JobPost::where('created_by', $user->id)
                     ->where('created_at', '>=', \Carbon\Carbon::today())
@@ -82,7 +82,7 @@ class JobPostController extends Controller
                 if ($todayJobsCount >= $maxDailyAllowed) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Daily posting limit reached: Chef and Jobseeker users can post a maximum of 1 job per day. Please try again tomorrow.',
+                        'message' => 'Daily posting limit reached: Chef and Jobseeker users can post a maximum of 5 jobs per day. Please try again tomorrow.',
                         'daily_limit' => $maxDailyAllowed,
                         'posted_today' => $todayJobsCount,
                     ], 429);
@@ -561,8 +561,8 @@ class JobPostController extends Controller
         $activeRole = strtolower(trim($user ? ($user->active_profile ?: ($user->user_role ?: 'job_seeker')) : 'job_seeker'));
         $isEmployer = in_array($activeRole, ['employer', 'recruiter', 'hirer', 'agency', 'administrator', 'admin']);
 
-        // Force strict daily limit: Chef/Jobseeker is strictly 1/day, Employer is UNLIMITED (999999)
-        $dailyLimit = $isEmployer ? 999999 : 1;
+        // Force daily limit: Chef/Jobseeker is 5/day, Employer is UNLIMITED (999999)
+        $dailyLimit = $isEmployer ? 999999 : 5;
 
         // Count jobs created by user today
         $todayQuery = \App\Models\JobPost::where('created_by', $userId)
