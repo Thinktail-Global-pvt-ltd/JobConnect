@@ -35,12 +35,32 @@ class EmployerController extends Controller
     }
 
     /**
+     * Ensure employer_job_seen_logs table exists for seen/unseen tracking.
+     */
+    private function ensureEmployerJobSeenLogsTableExists()
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('employer_job_seen_logs')) {
+                \Illuminate\Support\Facades\Schema::create('employer_job_seen_logs', function ($table) {
+                    $table->id();
+                    $table->unsignedBigInteger('employer_id');
+                    $table->unsignedBigInteger('job_id');
+                    $table->timestamp('last_seen_at')->nullable();
+                    $table->timestamps();
+                    $table->unique(['employer_id', 'job_id']);
+                });
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /**
      * Display the employer dashboard and jobs.
      */
     public function index(Request $request)
     {
         try {
             $this->ensureJobApplicationViewedColumns();
+            $this->ensureEmployerJobSeenLogsTableExists();
 
             $user = Auth::user();
             if (!$user && $request->bearerToken()) {
@@ -105,6 +125,17 @@ class EmployerController extends Controller
             $allJobIds = $jobs->pluck('id')->filter()->toArray();
             $savedByMap = [];
             $rawSavedCounts = [];
+            $seenLogs = [];
+            if (!empty($allJobIds)) {
+                try {
+                    $seenLogs = \Illuminate\Support\Facades\DB::table('employer_job_seen_logs')
+                        ->where('employer_id', $user->id)
+                        ->whereIn('job_id', $allJobIds)
+                        ->pluck('last_seen_at', 'job_id')
+                        ->toArray();
+                } catch (\Throwable $th) {}
+            }
+
             if (!empty($allJobIds) && \Illuminate\Support\Facades\Schema::hasTable('saved_jobs')) {
                 try {
                     $countsQuery = \Illuminate\Support\Facades\DB::table('saved_jobs')
@@ -171,7 +202,7 @@ class EmployerController extends Controller
             }
 
             // Map database status values to match frontend expected tabs (active, pending, closed)
-            $mappedJobs = $jobs->map(function ($job) use ($savedByMap, $rawSavedCounts) {
+            $mappedJobs = $jobs->map(function ($job) use ($savedByMap, $rawSavedCounts, $seenLogs) {
                 $status = 'pending';
                 if ($job->status === 'approved') {
                     $status = 'active';
@@ -195,6 +226,31 @@ class EmployerController extends Controller
                     'contacted'   => $jobContacted,
                     'rejected'    => $jobRejected,
                 ];
+
+                // Calculate activity & seen timestamps for backend-driven unseen activity indicator
+                $latestAppTime = null;
+                foreach ($jobApps as $appRecord) {
+                    $t = $appRecord->updated_at ?: $appRecord->created_at;
+                    if ($t) {
+                        $cT = \Carbon\Carbon::parse($t);
+                        if (!$latestAppTime || $cT->greaterThan($latestAppTime)) {
+                            $latestAppTime = $cT;
+                        }
+                    }
+                }
+
+                $lastActivityAt = $latestAppTime;
+                $lastSeenRaw = $seenLogs[$job->id] ?? null;
+                $lastSeenAt = $lastSeenRaw ? \Carbon\Carbon::parse($lastSeenRaw) : null;
+
+                $hasUnseenActivity = false;
+                if ($lastActivityAt !== null) {
+                    if ($lastSeenAt === null) {
+                        $hasUnseenActivity = true;
+                    } elseif ($lastActivityAt->greaterThan($lastSeenAt)) {
+                        $hasUnseenActivity = true;
+                    }
+                }
 
                 // Map application status fields as well
                 $applicants = $job->applications->map(function ($app) {
@@ -387,22 +443,25 @@ class EmployerController extends Controller
                 $savedCount = isset($rawSavedCounts[$job->id]) ? $rawSavedCounts[$job->id] : count($savedUsers);
 
                 return [
-                    'id'                   => $job->id,
-                    'title'                => $job->title,
-                    'status'               => $status,
-                    'location'             => $job->location ?? 'N/A',
-                    'date_posted'          => $job->created_at ? $job->created_at->format('j F Y') : 'N/A',
-                    'openings'             => $job->open_positions ?? 1,
-                    'type'                 => $job->job_type ?? 'Full-time',
-                    'total_saved_count'    => $savedCount,
-                    'saves_count'          => $savedCount,
-                    'saved_count'          => $savedCount,
-                    'saved_by_users_count' => $savedCount,
-                    'saved_by_users'       => $savedUsers,
-                    'saved_users'          => $savedUsers,
-                    'saved_by'             => $savedUsers,
-                    'stats'                => $stats,
-                    'applicants'           => $applicants,
+                    'id'                       => $job->id,
+                    'title'                    => $job->title,
+                    'status'                   => $status,
+                    'location'                 => $job->location ?? 'N/A',
+                    'date_posted'              => $job->created_at ? $job->created_at->format('j F Y') : 'N/A',
+                    'openings'                 => $job->open_positions ?? 1,
+                    'type'                     => $job->job_type ?? 'Full-time',
+                    'total_saved_count'        => $savedCount,
+                    'saves_count'              => $savedCount,
+                    'saved_count'              => $savedCount,
+                    'saved_by_users_count'     => $savedCount,
+                    'saved_by_users'           => $savedUsers,
+                    'saved_users'              => $savedUsers,
+                    'saved_by'                 => $savedUsers,
+                    'stats'                    => $stats,
+                    'has_unseen_activity'      => (bool) $hasUnseenActivity,
+                    'last_activity_at'         => $lastActivityAt ? $lastActivityAt->toIso8601String() : null,
+                    'last_seen_by_employer_at' => $lastSeenAt ? $lastSeenAt->toIso8601String() : null,
+                    'applicants'               => $applicants,
                 ];
             });
 
@@ -680,6 +739,78 @@ class EmployerController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to record applicant view.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark job stats as seen by employer.
+     * POST /backend/api/jobs/{jobId}/mark-stats-seen
+     * POST /api/jobs/{jobId}/mark-stats-seen
+     * POST /jobs/{jobId}/mark-stats-seen
+     */
+    public function markStatsSeen(Request $request, $jobId = null)
+    {
+        try {
+            $this->ensureEmployerJobSeenLogsTableExists();
+
+            $jobIdClean = $jobId ?: ($request->input('job_id') ?: ($request->input('jobId') ?: $request->input('id')));
+            $jobIdClean = (int) preg_replace('/[^0-9]/', '', (string)$jobIdClean);
+
+            $user = Auth::user();
+            if (!$user && $request->bearerToken()) {
+                $tokenStr = $request->bearerToken();
+                try {
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                    if (!$tokenObj && str_contains($tokenStr, '|')) {
+                        $tokenId = explode('|', $tokenStr)[0];
+                        $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                    }
+                    if ($tokenObj) {
+                        $user = $tokenObj->tokenable;
+                    }
+                } catch (\Throwable $e) {}
+            }
+            if (!$user && ($request->filled('employer_id') || $request->filled('user_id'))) {
+                $uId = $request->input('employer_id') ?: $request->input('user_id');
+                $user = \App\Models\User::find($uId);
+            }
+            if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
+                $user = \App\Models\User::find($request->header('X-User-Id') ?: $request->header('user-id'));
+            }
+            if (!$user) {
+                $user = \App\Models\User::where('active_profile', 'employer')->orWhere('user_role', 'employer')->first() ?: \App\Models\User::first();
+            }
+
+            $now = now();
+            if ($user && $jobIdClean) {
+                \Illuminate\Support\Facades\DB::table('employer_job_seen_logs')->updateOrInsert(
+                    [
+                        'employer_id' => $user->id,
+                        'job_id'      => $jobIdClean,
+                    ],
+                    [
+                        'last_seen_at' => $now,
+                        'updated_at'   => $now,
+                        'created_at'   => $now,
+                    ]
+                );
+            }
+
+            return response()->json([
+                'success'                  => true,
+                'job_id'                   => $jobIdClean,
+                'last_seen_by_employer_at' => $now->toIso8601String(),
+                'has_unseen_activity'      => false,
+                'message'                  => 'Job stats marked as seen successfully.'
+            ], 200);
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('markStatsSeen Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark stats as seen.',
                 'error'   => $e->getMessage()
             ], 500);
         }

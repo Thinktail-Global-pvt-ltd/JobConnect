@@ -180,6 +180,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/applications/{id}/view', [EmployerController::class, 'recordApplicantView']);
     Route::post('/employer/applicants/{id}/view', [EmployerController::class, 'recordApplicantView']);
     Route::post('/applicants/{id}/view', [EmployerController::class, 'recordApplicantView']);
+    Route::match(['get', 'post'], '/jobs/{jobId}/mark-stats-seen', [EmployerController::class, 'markStatsSeen']);
+    Route::match(['get', 'post'], '/employer/jobs/{jobId}/mark-stats-seen', [EmployerController::class, 'markStatsSeen']);
 
     // Chef Connect Appointment & Profile View Routes
     Route::post('/appointments/book', [AppointmentController::class, 'book']);

@@ -258,6 +258,21 @@ Route::match(['get', 'post'], '/api/chef/onboarding/save', function(\Illuminate\
 Route::match(['get', 'post'], '/backend/api/chef/onboarding/save', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\ChefOnboardingController)->save($request);
 });
+Route::match(['get', 'post'], '/jobs/{jobId}/mark-stats-seen', function(\Illuminate\Http\Request $request, $jobId = null) {
+    return (new \App\Http\Controllers\EmployerController)->markStatsSeen($request, $jobId);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/api/jobs/{jobId}/mark-stats-seen', function(\Illuminate\Http\Request $request, $jobId = null) {
+    return (new \App\Http\Controllers\EmployerController)->markStatsSeen($request, $jobId);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/backend/api/jobs/{jobId}/mark-stats-seen', function(\Illuminate\Http\Request $request, $jobId = null) {
+    return (new \App\Http\Controllers\EmployerController)->markStatsSeen($request, $jobId);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/api/employer/jobs/{jobId}/mark-stats-seen', function(\Illuminate\Http\Request $request, $jobId = null) {
+    return (new \App\Http\Controllers\EmployerController)->markStatsSeen($request, $jobId);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/backend/api/employer/jobs/{jobId}/mark-stats-seen', function(\Illuminate\Http\Request $request, $jobId = null) {
+    return (new \App\Http\Controllers\EmployerController)->markStatsSeen($request, $jobId);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::match(['get', 'post'], '/api/profile', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Api\ProfileController)->show($request);
 });
