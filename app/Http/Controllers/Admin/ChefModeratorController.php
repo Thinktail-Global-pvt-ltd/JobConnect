@@ -167,6 +167,8 @@ class ChefModeratorController extends Controller
                     'website'   => $socialsObj->website ?: null,
                 ] : null;
 
+                $ageVal = $user ? ($user->age ?: ($chef->age ?: ($availability['age'] ?? null))) : ($chef->age ?: ($availability['age'] ?? null));
+
                 return [
                     'id' => $chef->id,
                     'user_id' => $chef->user_id,
@@ -178,6 +180,7 @@ class ChefModeratorController extends Controller
                     'mobile_number' => $mobile,
                     'phone' => $mobile,
                     'gender' => $gender,
+                    'age' => $ageVal,
                     'city' => $city,
                     'country' => $country,
                     'preferred_role' => $preferredRole,

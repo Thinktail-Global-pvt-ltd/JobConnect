@@ -170,6 +170,9 @@ class ChefOnboardingController extends Controller
                 if ($request->has('gender') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'gender')) {
                     $user->gender = $request->gender;
                 }
+                if ($request->has('age')) {
+                    $user->age = (string)$request->input('age');
+                }
                 $user->experience_range = $request->experience_range;
                 $user->skills = $request->skills;
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'availability_status')) {
@@ -190,6 +193,7 @@ class ChefOnboardingController extends Controller
                     'availability_status' => $availValue,
                     'status' => $availValue,
                     'is_available' => true,
+                    'age' => $request->input('age'),
                 ];
 
                 // 4. Update or create Chef Profile
@@ -203,6 +207,14 @@ class ChefOnboardingController extends Controller
                     'calendly_link'         => $request->calendly_link,
                     'availability_info'     => json_encode($availabilityDetails),
                 ];
+                if ($request->has('age')) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('chef_profiles', 'age')) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE chef_profiles ADD COLUMN age VARCHAR(255) NULL");
+                        } catch (\Throwable $e) {}
+                    }
+                    $updateData['age'] = (string)$request->input('age');
+                }
                 if (!$existingProfile) {
                     // Brand new chef — start as pending, admin must approve
                     $updateData['approval_status'] = 'pending';
