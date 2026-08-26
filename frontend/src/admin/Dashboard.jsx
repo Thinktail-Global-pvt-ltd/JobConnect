@@ -31,106 +31,12 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [statsRes, jobsRes, appsRes, postsRes, trainingRes] = await Promise.all([
-          mockApi.getStats().catch(() => null),
-          mockApi.getJobs().catch(() => null),
-          mockApi.getApplications().catch(() => null),
-          mockApi.getCommunityPosts().catch(() => null),
-          mockApi.getTrainingPrograms().catch(() => null)
-        ]);
-
-        let combinedStats = statsRes?.stats || {};
-
-        if (jobsRes && Array.isArray(jobsRes.jobs)) {
-          const allJobs = jobsRes.jobs;
-
-          const getJobRole = (j) => {
-            const r = (j.submitted_by_role || j.creator?.active_role || j.creator?.user_role || '').toLowerCase();
-            if (j.is_admin_created || r.includes('admin')) return 'admin';
-            if (r.includes('chef')) return 'chef';
-            if (r.includes('talent') || r.includes('seeker') || r.includes('candidate')) return 'talent';
-            return 'employer';
-          };
-
-          const isApproved = (j) => j.status?.toLowerCase() === 'approved' || j.status?.toLowerCase() === 'published';
-          const isPending = (j) => !j.status || ['pending', 'draft', 'unread'].includes(j.status.toLowerCase());
-
-          const empJobs = allJobs.filter(j => ['employer', 'admin'].includes(getJobRole(j)));
-          const chefJobs = allJobs.filter(j => getJobRole(j) === 'chef');
-          const talentJobs = allJobs.filter(j => getJobRole(j) === 'talent');
-
-          combinedStats = {
-            ...combinedStats,
-            jobs_total: allJobs.length,
-            jobs_active: allJobs.filter(isApproved).length,
-            jobs_approved: allJobs.filter(isApproved).length,
-            jobs_pending: allJobs.filter(isPending).length,
-            pending_jobs: allJobs.filter(isPending).length,
-
-            jobs_emp_active: empJobs.filter(isApproved).length,
-            jobs_emp_pending: empJobs.filter(isPending).length,
-
-            jobs_chef_active: chefJobs.filter(isApproved).length,
-            jobs_chef_pending: chefJobs.filter(isPending).length,
-
-            jobs_talent_active: talentJobs.filter(isApproved).length,
-            jobs_talent_pending: talentJobs.filter(isPending).length,
-          };
+        const res = await mockApi.getStats();
+        if (res && res.stats) {
+          setData(res);
         }
-
-        if (appsRes && Array.isArray(appsRes.applications)) {
-          const allApps = appsRes.applications;
-          combinedStats = {
-            ...combinedStats,
-            applications_total: allApps.length,
-            applications_count: allApps.length,
-            applications_new: allApps.filter(a => a.status === 'new' || a.status === 'unread').length,
-            applications_applied: allApps.filter(a => a.status === 'applied' || a.status === 'pending').length,
-            applications_contacted: allApps.filter(a => ['contacted', 'viewed', 'shortlisted', 'hired'].includes(a.status?.toLowerCase())).length,
-          };
-        }
-
-        if (postsRes && (postsRes.posts || Array.isArray(postsRes))) {
-          let rawPosts = postsRes.posts || postsRes.data || postsRes;
-          if (Array.isArray(rawPosts)) {
-            const validPosts = rawPosts.filter(p => {
-              if (p.source === 'training' || (p.post_type || '').includes('Training')) {
-                const title = (p.title || p.program_name || '').toLowerCase().trim();
-                if (title === 'dwscfevg' || p.raw_id == 23 || p.id == 'train_23') return false;
-                const st = (p.status || '').toLowerCase().trim();
-                return st === 'published' || st === 'active' || st === 'approved';
-              }
-              return true;
-            });
-
-            combinedStats = {
-              ...combinedStats,
-              community_total: validPosts.length,
-              community_active: validPosts.filter(p => (p.status || '').toLowerCase() === 'published').length || 17,
-              community_pinned: validPosts.filter(p => Boolean(p.is_pinned)).length || 4,
-              community_drafts: validPosts.filter(p => ['draft', 'pending', 'unpublished'].includes((p.status || '').toLowerCase())).length || 12,
-            };
-          }
-        }
-
-        if (trainingRes && Array.isArray(trainingRes.programs)) {
-          const progs = trainingRes.programs;
-          combinedStats = {
-            ...combinedStats,
-            training_opportunities: progs.length,
-            training_total: progs.length,
-            training_india: progs.filter(p => (p.location || p.countries || '').toLowerCase().includes('india')).length || 1,
-            training_overseas: progs.filter(p => {
-              const loc = (p.location || p.countries || '').toLowerCase();
-              return loc.includes('overseas') || loc.includes('dubai') || loc.includes('saudi') || loc.includes('qatar') || loc.includes('gulf');
-            }).length || 2,
-            training_both: progs.filter(p => (p.location || p.countries || '').toLowerCase().includes('both')).length || 0,
-          };
-        }
-
-        setData({ stats: combinedStats });
       } catch (e) {
-        console.error(e);
+        console.error("Dashboard stats error:", e);
       } finally {
         setLoading(false);
       }
