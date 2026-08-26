@@ -216,7 +216,18 @@ class JobPostController extends Controller
 
         $targetId = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->query('slug') ?: ($request->input('user_id') ?: ($request->input('id') ?: ($request->input('applicant_id') ?: $request->input('slug')))))));
         if (!empty($targetId)) {
-            $foundUser = \App\Models\User::where('id', $targetId)->orWhere('slug', $targetId)->orWhere('mobile_number', $targetId)->first();
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'slug')) {
+                try {
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN slug VARCHAR(255) NULL AFTER name");
+                } catch (\Throwable $th) {}
+            }
+
+            $uQuery = \App\Models\User::where('id', $targetId);
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'slug')) {
+                $uQuery->orWhere('slug', $targetId);
+            }
+            $uQuery->orWhere('mobile_number', $targetId);
+            $foundUser = $uQuery->first();
             if (!$foundUser && \Illuminate\Support\Facades\Schema::hasTable('chef_profiles')) {
                 $chefProf = \Illuminate\Support\Facades\DB::table('chef_profiles')->where('id', $targetId)->first();
                 if ($chefProf && !empty($chefProf->user_id)) {
@@ -663,7 +674,17 @@ class JobPostController extends Controller
         // 1. Resolve User via query params or body inputs: user_id, id, applicant_id, slug, mobile_number, mobile, phone
         $targetId = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->query('slug') ?: ($request->input('user_id') ?: ($request->input('id') ?: ($request->input('applicant_id') ?: $request->input('slug')))))));
         if (!empty($targetId)) {
-            $user = \App\Models\User::where('id', $targetId)->orWhere('slug', $targetId)->first();
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'slug')) {
+                try {
+                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN slug VARCHAR(255) NULL AFTER name");
+                } catch (\Throwable $th) {}
+            }
+
+            $uQuery = \App\Models\User::where('id', $targetId);
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'slug')) {
+                $uQuery->orWhere('slug', $targetId);
+            }
+            $user = $uQuery->first();
             if (!$user && \Illuminate\Support\Facades\Schema::hasTable('chef_profiles')) {
                 $chefProf = \Illuminate\Support\Facades\DB::table('chef_profiles')->where('id', $targetId)->first();
                 if ($chefProf && !empty($chefProf->user_id)) {
