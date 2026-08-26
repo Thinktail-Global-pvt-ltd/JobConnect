@@ -37,17 +37,23 @@ class ProfileController extends Controller
      */
     public function show(Request $request)
     {
-        $user = $request->user();
+        $user = null;
+        try {
+            $user = $request->user();
+        } catch (\Throwable $e) {}
+
         if (!$user && $request->bearerToken()) {
             $tokenStr = $request->bearerToken();
-            $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
-            if (!$tokenObj && str_contains($tokenStr, '|')) {
-                $tokenId = explode('|', $tokenStr)[0];
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
-            }
-            if ($tokenObj) {
-                $user = $tokenObj->tokenable;
-            }
+            try {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                if (!$tokenObj && str_contains($tokenStr, '|')) {
+                    $tokenId = explode('|', $tokenStr)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                }
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            } catch (\Throwable $e) {}
         }
         if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
             $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
