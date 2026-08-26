@@ -149,6 +149,34 @@ export default function ChefDetail() {
 
   const businessTypes = specialtiesList.join(', ') || 'Italian, Indian, Chinese';
 
+  const bioText = chef.bio || chef.about || chef.description || chef.chef_profile?.bio || chef.chefProfile?.bio || null;
+  const calendlyUrl = chef.calendly_link || chef.calendly || chef.chef_profile?.calendly_link || chef.chefProfile?.calendly_link || null;
+
+  let skillsList = [];
+  if (Array.isArray(chef.skills) && chef.skills.length > 0) {
+    skillsList = chef.skills;
+  } else if (typeof chef.skills === 'string' && chef.skills) {
+    try {
+      const parsed = JSON.parse(chef.skills);
+      skillsList = Array.isArray(parsed) ? parsed : chef.skills.split(',').map(s => s.trim()).filter(Boolean);
+    } catch(e) {
+      skillsList = chef.skills.split(',').map(s => s.trim()).filter(Boolean);
+    }
+  } else if (chef.operational_experties) {
+    skillsList = String(chef.operational_experties).split(',').map(s => s.trim()).filter(Boolean);
+  } else if (chef.cuisine_specialty) {
+    skillsList = String(chef.cuisine_specialty).split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  const socials = chef.socials || chef.social_links || chef.user_socials || {};
+  const linkedin = socials.linkedin || chef.linkedin || null;
+  const instagram = socials.instagram || chef.instagram || null;
+  const facebook = socials.facebook || chef.facebook || null;
+  const youtube = socials.youtube || chef.youtube || null;
+  const twitter = socials.twitter || chef.twitter || null;
+  const website = socials.website || socials.portfolio || chef.website || chef.portfolio || null;
+  const hasSocials = Boolean(linkedin || instagram || facebook || youtube || twitter || website);
+
   const totalPosted = postedJobs.length || chef.job_posts_count || 0;
   const totalApplied = appliedJobs.length || chef.applications_count || 0;
 
@@ -385,6 +413,93 @@ export default function ChefDetail() {
                 <Briefcase className="w-4 h-4 text-slate-400" /> Job Role
               </span>
               <span className="text-slate-900 font-extrabold">{jobRole}</span>
+            </div>
+
+            {/* Candidate Bio / About Me */}
+            <div className="pt-3 border-t border-slate-100 space-y-1 text-left">
+              <span className="text-slate-500 flex items-center gap-1.5 text-xs font-extrabold">
+                <FileText className="w-4 h-4 text-purple-600" /> Candidate Bio / Summary
+              </span>
+              <p className="text-xs text-slate-700 font-medium leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100 mt-1">
+                {bioText || 'No profile bio provided by candidate yet.'}
+              </p>
+            </div>
+
+            {/* Core Skills & Expertise */}
+            <div className="pt-3 border-t border-slate-100 space-y-2 text-left">
+              <span className="text-slate-500 flex items-center gap-1.5 text-xs font-extrabold">
+                <Award className="w-4 h-4 text-amber-500" /> Core Skills & Expertise
+              </span>
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {skillsList.length > 0 ? (
+                  skillsList.map((sk, i) => (
+                    <span key={i} className="px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 font-bold text-[11px] border border-purple-100">
+                      {sk}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-slate-400 font-medium italic">No core skills specified</span>
+                )}
+              </div>
+            </div>
+
+            {/* Calendly Interview Booking Link */}
+            <div className="pt-3 border-t border-slate-100 space-y-1 text-left">
+              <span className="text-slate-500 flex items-center gap-1.5 text-xs font-extrabold">
+                <Calendar className="w-4 h-4 text-emerald-600" /> Calendly Scheduling Link
+              </span>
+              {calendlyUrl ? (
+                <a 
+                  href={calendlyUrl.startsWith('http') ? calendlyUrl : `https://${calendlyUrl}`} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="mt-1 flex items-center justify-between gap-2 p-2.5 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-200 text-xs font-extrabold hover:bg-emerald-100 transition-all"
+                >
+                  <span className="truncate">{calendlyUrl}</span>
+                  <span className="shrink-0 bg-white px-2 py-0.5 rounded-lg border border-emerald-200 text-[10px] text-emerald-700 font-black">Book Interview</span>
+                </a>
+              ) : (
+                <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-400 font-medium italic mt-1">
+                  No Calendly link available
+                </div>
+              )}
+            </div>
+
+            {/* Social Links & Portfolio */}
+            <div className="pt-3 border-t border-slate-100 space-y-2 text-left">
+              <span className="text-slate-500 flex items-center gap-1.5 text-xs font-extrabold">
+                <Globe className="w-4 h-4 text-blue-500" /> Social Links & Portfolio
+              </span>
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {linkedin && (
+                  <a href={linkedin.startsWith('http') ? linkedin : `https://${linkedin}`} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 font-bold text-[11px] border border-blue-200 flex items-center gap-1 hover:bg-blue-100 transition-all">
+                    LinkedIn ↗
+                  </a>
+                )}
+                {instagram && (
+                  <a href={instagram.startsWith('http') ? instagram : `https://${instagram}`} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-xl bg-pink-50 text-pink-700 font-bold text-[11px] border border-pink-200 flex items-center gap-1 hover:bg-pink-100 transition-all">
+                    Instagram ↗
+                  </a>
+                )}
+                {facebook && (
+                  <a href={facebook.startsWith('http') ? facebook : `https://${facebook}`} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-xl bg-indigo-50 text-indigo-700 font-bold text-[11px] border border-indigo-200 flex items-center gap-1 hover:bg-indigo-100 transition-all">
+                    Facebook ↗
+                  </a>
+                )}
+                {youtube && (
+                  <a href={youtube.startsWith('http') ? youtube : `https://${youtube}`} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 font-bold text-[11px] border border-rose-200 flex items-center gap-1 hover:bg-rose-100 transition-all">
+                    YouTube ↗
+                  </a>
+                )}
+                {website && (
+                  <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-800 font-bold text-[11px] border border-slate-200 flex items-center gap-1 hover:bg-slate-200 transition-all">
+                    Website/Portfolio ↗
+                  </a>
+                )}
+                {!hasSocials && (
+                  <span className="text-xs text-slate-400 font-medium italic">No social links added</span>
+                )}
+              </div>
             </div>
 
           </div>
