@@ -143,12 +143,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/jobs/store', [JobPostController::class, 'store']);
     Route::post('/jobs/referrals', [JobPostController::class, 'storeReferral']);
     Route::match(['get', 'post'], '/jobs/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
-    Route::match(['get', 'post'], '/my-jobs', [JobPostController::class, 'myJobs']);
-    Route::match(['get', 'post'], '/jobs/my-jobs', [JobPostController::class, 'myJobs']);
-    Route::match(['get', 'post'], '/jobs/myjobs', [JobPostController::class, 'myJobs']);
-    Route::match(['get', 'post'], '/my-applications', [JobPostController::class, 'myJobs']);
-    Route::match(['get', 'post'], '/jobs/applied', [JobPostController::class, 'myJobs']);
-    Route::match(['get', 'post'], '/user/applied-jobs', [JobPostController::class, 'myJobs']);
 
     // Application History API (Job + Training Opportunity Applications merged)
     Route::match(['get', 'post'], '/applications/history', [JobPostController::class, 'getApplicationsHistory']);
@@ -203,9 +197,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chef/profile-views', [ChefProfileViewController::class, 'getChefProfileViews']);
 });
 
-// Public Feed & Approved Jobs Routes (Approved Jobs Only)
+// Public Feed & My Jobs Routes (Unauthenticated + Token optional)
+Route::match(['get', 'post'], '/my-jobs', [JobPostController::class, 'myJobs']);
 Route::match(['get', 'post'], '/jobs/my-jobs', [JobPostController::class, 'myJobs']);
 Route::match(['get', 'post'], '/jobs/myjobs', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/my-applications', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/jobs/applied', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/user/applied-jobs', [JobPostController::class, 'myJobs']);
 Route::match(['get', 'post'], '/chefs/{chef}/view', [ChefProfileViewController::class, 'recordView']);
 Route::match(['get', 'post'], '/chefs/view', [ChefProfileViewController::class, 'recordView']);
 Route::match(['get', 'post'], '/chef/view-profile', [ChefProfileViewController::class, 'recordView']);
