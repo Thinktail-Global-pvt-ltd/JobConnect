@@ -153,12 +153,20 @@ class FeedController extends Controller
             $job->salary_currency = $curr ?: 'INR';
             $job->currency = $job->salary_currency;
             
-            $posterRole = $job->submitted_by_role ?: ($job->creator ? $job->creator->active_profile : 'employer');
+            $submittedRole = strtolower(trim($job->submitted_by_role ?: ''));
+            $isAdminCreated = (bool)$job->is_admin_created || $submittedRole === 'admin';
+
+            $posterRole = $isAdminCreated ? 'admin' : ($submittedRole ?: ($job->creator ? ($job->creator->active_profile ?: ($job->creator->user_role ?: 'employer')) : 'employer'));
+
             $job->posted_by_role = $posterRole;
+            $job->active_role = $posterRole;
+            $job->user_role = $posterRole;
 
             if ($job->creator) {
                 $job->creator->active_profile = $posterRole;
                 $job->creator->role = $posterRole;
+                $job->creator->active_role = $posterRole;
+                $job->creator->user_role = $posterRole;
             }
 
             return $job;
