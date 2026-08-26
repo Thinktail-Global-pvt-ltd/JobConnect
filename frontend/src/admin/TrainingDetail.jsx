@@ -374,25 +374,7 @@ export default function TrainingDetail() {
 
       </div>
 
-      {/* Listing Properties Bar */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs flex items-center gap-4 flex-wrap text-xs font-bold text-slate-700">
-        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Listing Properties:</span>
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border-blue-200">
-            Training & Overseas Feed
-          </span>
-          {isPinned && (
-            <span className="px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border-purple-200">
-              ✓ Pinned Listing
-            </span>
-          )}
-          <span className={`px-3 py-1 rounded-xl border text-xs font-extrabold inline-flex items-center gap-1.5 capitalize ${
-            isPublished ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-          }`}>
-            Status: {isPublished ? 'Published' : 'Draft / In Review'}
-          </span>
-        </div>
-      </div>
+
 
       {/* 3-Column Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
