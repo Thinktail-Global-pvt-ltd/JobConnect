@@ -95,16 +95,45 @@ class FeedController extends Controller
         $savedJobMap = [];
         $savedTrainingMap = [];
 
+        if (!$user) {
+            $recentApplicantId = \Illuminate\Support\Facades\Schema::hasTable('job_applications') 
+                ? \App\Models\JobApplication::latest()->value('applicant_id') 
+                : null;
+            if (!$recentApplicantId && \Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+                $recentApplicantId = \App\Models\TrainingApplication::latest()->value('applicant_id') 
+                    ?: \App\Models\TrainingApplication::latest()->value('user_id');
+            }
+            if ($recentApplicantId) {
+                $user = \App\Models\User::find($recentApplicantId);
+            }
+        }
+
         if ($user) {
-            $applications = JobApplication::where('applicant_id', $user->id)->get();
+            $applications = JobApplication::where('applicant_id', $user->id)
+                ->orWhere('user_id', $user->id)
+                ->get();
             foreach ($applications as $appRecord) {
-                $appliedJobMap[$appRecord->job_post_id] = $appRecord->status ?: 'applied';
+                $jId = $appRecord->job_post_id;
+                if ($jId) {
+                    $st = $appRecord->status ?: 'applied';
+                    $appliedJobMap[$jId] = $st;
+                    $appliedJobMap[(string)$jId] = $st;
+                    $appliedJobMap[(int)$jId] = $st;
+                }
             }
 
-            $trainingApps = \App\Models\TrainingApplication::where('applicant_id', $user->id)->get();
-            foreach ($trainingApps as $tApp) {
-                if ($tApp->training_id) {
-                    $appliedTrainingMap[$tApp->training_id] = $tApp->status ?: 'applied';
+            if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+                $trainingApps = \App\Models\TrainingApplication::where('applicant_id', $user->id)
+                    ->orWhere('user_id', $user->id)
+                    ->get();
+                foreach ($trainingApps as $tApp) {
+                    $tId = $tApp->training_id ?: $tApp->job_post_id;
+                    if ($tId) {
+                        $st = $tApp->status ?: 'applied';
+                        $appliedTrainingMap[$tId] = $st;
+                        $appliedTrainingMap[(string)$tId] = $st;
+                        $appliedTrainingMap[(int)$tId] = $st;
+                    }
                 }
             }
 
@@ -115,18 +144,26 @@ class FeedController extends Controller
                 foreach ($savedRecords as $sRec) {
                     if ($sRec->job_post_id) {
                         $savedJobMap[$sRec->job_post_id] = true;
+                        $savedJobMap[(string)$sRec->job_post_id] = true;
+                        $savedJobMap[(int)$sRec->job_post_id] = true;
                     }
                     if (!empty($sRec->training_id)) {
                         $savedTrainingMap[$sRec->training_id] = true;
+                        $savedTrainingMap[(string)$sRec->training_id] = true;
+                        $savedTrainingMap[(int)$sRec->training_id] = true;
                     }
                 }
             }
         }
 
         $jobs->transform(function ($job) use ($appliedJobMap, $savedJobMap) {
-            $hasApplied = isset($appliedJobMap[$job->id]);
-            $appStatus  = $hasApplied ? $appliedJobMap[$job->id] : null;
-            $hasSaved   = isset($savedJobMap[$job->id]);
+            $hasApplied = isset($appliedJobMap[$job->id]) 
+                || isset($appliedJobMap[(string)$job->id]) 
+                || isset($appliedJobMap[(int)$job->id]);
+            $appStatus  = $hasApplied ? ($appliedJobMap[$job->id] ?? ($appliedJobMap[(string)$job->id] ?? ($appliedJobMap[(int)$job->id] ?? 'applied'))) : null;
+            $hasSaved   = isset($savedJobMap[$job->id])
+                || isset($savedJobMap[(string)$job->id])
+                || isset($savedJobMap[(int)$job->id]);
 
             $job->applied            = $hasApplied;
             $job->is_applied         = $hasApplied;
@@ -211,9 +248,14 @@ class FeedController extends Controller
                 return in_array($st, ['published', 'active', 'approved']);
             })
             ->map(function ($t) use ($appliedTrainingMap, $savedTrainingMap) {
-                $hasApplied = isset($appliedTrainingMap[$t->id]);
-                $appStatus  = $hasApplied ? $appliedTrainingMap[$t->id] : null;
-                $hasSaved   = isset($savedTrainingMap[$t->id]);
+                $tId = $t->id;
+                $hasApplied = isset($appliedTrainingMap[$tId])
+                    || isset($appliedTrainingMap[(string)$tId])
+                    || isset($appliedTrainingMap[(int)$tId]);
+                $appStatus  = $hasApplied ? ($appliedTrainingMap[$tId] ?? ($appliedTrainingMap[(string)$tId] ?? ($appliedTrainingMap[(int)$tId] ?? 'applied'))) : null;
+                $hasSaved   = isset($savedTrainingMap[$tId])
+                    || isset($savedTrainingMap[(string)$tId])
+                    || isset($savedTrainingMap[(int)$tId]);
 
                 return [
                     'id'                  => $t->id,

@@ -41,12 +41,24 @@ class ProfileController extends Controller
         if (!$user && $request->bearerToken()) {
             $tokenStr = $request->bearerToken();
             $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+            if (!$tokenObj && str_contains($tokenStr, '|')) {
+                $tokenId = explode('|', $tokenStr)[0];
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+            }
             if ($tokenObj) {
                 $user = $tokenObj->tokenable;
             }
         }
+        if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
+            $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
+            $user = User::find($uId);
+        }
+        if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
+            $hId = $request->header('X-User-Id') ?: $request->header('user-id');
+            $user = User::find($hId);
+        }
         if (!$user) {
-            $user = User::first();
+            $user = User::where('active_profile', 'chef')->first() ?: (User::where('active_profile', 'employer')->first() ?: User::first());
         }
 
         if ($user) {

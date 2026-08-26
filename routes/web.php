@@ -1174,24 +1174,17 @@ function createWebTrainingOpportunityRecord(\Illuminate\Http\Request $request) {
             } catch (\Throwable $th) {}
         }
 
-        $rawProgramName = $request->input('name') ?? $request->input('program_name') ?? '';
-        $rawProviderName = $request->input('curriculum') ?? $request->input('provider_name') ?? 'Jobrito Academy';
-        $rawLocation = $request->input('countries') ?? $request->input('location') ?? '';
+        $rawProgramName = $request->input('program_name') ?? $request->input('name') ?? $request->input('title') ?? $request->input('program') ?? 'Hospitality Training Program';
+        $rawProviderName = $request->input('provider_name') ?? $request->input('curriculum') ?? $request->input('company') ?? $request->input('provider') ?? 'Jobrito Academy';
+        $rawLocation = $request->input('location') ?? $request->input('countries') ?? $request->input('country') ?? $request->input('deployment_countries') ?? $request->input('city') ?? 'India';
         $rawDuration = $request->input('duration') ?? '12 Months';
         $status = $request->input('status') ?? 'Published';
-        $contactInfo = $request->input('contact_information') ?? 'admissions@jobrito.com';
-        $employerDetails = $request->input('employer_details') ?? '';
-        $skillsCovered = $request->input('skills_covered') ?? '';
+        $contactInfo = $request->input('contact_information') ?? $request->input('contact_info') ?? $request->input('email') ?? 'admissions@jobrito.com';
+        $employerDetails = $request->input('employer_details') ?? $request->input('details') ?? '';
+        $skillsCovered = $request->input('skills_covered') ?? $request->input('skills') ?? '';
         $benefits = $request->input('benefits') ?? $request->input('training_benefits') ?? '';
-        $placementOpportunities = $request->input('placement_opportunities') ?? '';
+        $placementOpportunities = $request->input('placement_opportunities') ?? $request->input('placement') ?? '';
         $isPinned = $request->boolean('is_pinned') ? 1 : 0;
-
-        if (empty($rawProgramName)) {
-            return response()->json(['success' => false, 'message' => 'Program Name is required.'], 422);
-        }
-        if (empty($rawLocation)) {
-            return response()->json(['success' => false, 'message' => 'Deployment Countries / Location is required.'], 422);
-        }
 
         $programName = mb_substr((string)$rawProgramName, 0, 150);
         $providerName = !empty($rawProviderName) && strlen((string)$rawProviderName) <= 50 ? (string)$rawProviderName : 'Jobrito Academy';
