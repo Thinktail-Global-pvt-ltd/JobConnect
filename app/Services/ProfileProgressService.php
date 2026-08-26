@@ -127,8 +127,9 @@ class ProfileProgressService
         $langs = $user->selected_language ?: ($availInfo['languages'] ?? null);
         $breakdown['languages'] = self::isFilled($langs) ? 7 : 0;
 
-        // 11. Skills
-        $breakdown['skills'] = self::isFilled($user->skills) ? 6 : 0;
+        // 11. Skills / Operational Expertise
+        $skillsVal = $user->skills ?: ($chefProfile ? ($chefProfile->operational_expertise ?? ($chefProfile->operational_experties ?? null)) : null);
+        $breakdown['skills'] = self::isFilled($skillsVal) ? 6 : 0;
 
         // 12. Regional Experience
         $regExp = $availInfo['regional_experience'] ?? null;
@@ -155,8 +156,8 @@ class ProfileProgressService
         $ageVal = $user->age ?: ($chefProfile ? $chefProfile->age : ($availInfo['age'] ?? null));
         $breakdown['age'] = self::isFilled($ageVal) ? 6 : 0;
 
-        // 17. Overseas Work Experience
-        $overseasExp = $user->overseas_work_experience ?: ($chefProfile ? $chefProfile->overseas_work_experience : ($availInfo['overseas_work_experience'] ?? null));
+        // 17. Overseas Work Experience / Regional Experience
+        $overseasExp = $user->overseas_work_experience ?: ($chefProfile ? ($chefProfile->overseas_work_experience ?: ($availInfo['regional_experience'] ?? null)) : ($availInfo['regional_experience'] ?? null));
         $breakdown['overseas_work_experience'] = self::isFilled($overseasExp) ? 6 : 0;
 
         $filledCount = 0;
