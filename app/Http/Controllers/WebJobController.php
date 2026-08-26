@@ -65,11 +65,14 @@ class WebJobController extends Controller
                 ]);
             }
 
+            $rawJobStr = is_object($job) ? ($job->id ?? '') : (string)$job;
+            $cleanNumId = (int) preg_replace('/[^0-9]/', '', $rawJobStr);
+
             $jobModel = null;
             if ($job instanceof JobPost) {
                 $jobModel = $job;
-            } elseif (!empty($job) && is_numeric($job)) {
-                $jobModel = JobPost::find($job);
+            } elseif ($cleanNumId > 0) {
+                $jobModel = JobPost::find($cleanNumId);
             }
 
             if (!$jobModel) {
@@ -86,15 +89,13 @@ class WebJobController extends Controller
                 $preferredCallTime = '10:00 AM - 01:00 PM';
             }
 
-            $isTraining = $request->has('is_training') 
-                ? filter_var($request->input('is_training'), FILTER_VALIDATE_BOOLEAN) 
-                : false;
+            $isTraining = str_contains(strtolower($rawJobStr), 'training')
+                || ($request->has('is_training') && filter_var($request->input('is_training'), FILTER_VALIDATE_BOOLEAN));
 
             if ($isTraining) {
-                $urlId = is_numeric($job) ? (int)$job : 0;
                 $trainingId = (int) ($request->input('training_id') 
                     ?: ($request->input('job_id') 
-                    ?: ($urlId > 0 ? $urlId : ($jobModel ? $jobModel->id : 1))));
+                    ?: ($cleanNumId > 0 ? $cleanNumId : ($jobModel ? $jobModel->id : 26))));
 
                 $appId = rand(1000, 9999);
                 try {

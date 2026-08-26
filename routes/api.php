@@ -96,6 +96,7 @@ Route::match(['get', 'post'], '/request-otp', [AuthController::class, 'requestOt
 Route::match(['get', 'post'], '/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::match(['get', 'post'], '/login', [AuthController::class, 'requestOtp']);
 Route::match(['get', 'post'], '/auth/login', [AuthController::class, 'requestOtp']);
+Route::match(['get', 'post'], '/jobs/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
 
 // Secured Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
