@@ -213,10 +213,27 @@ class JobPostController extends Controller
                 }
             }
         }
-        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id') || $request->filled('id'))) {
-            $uId = $request->input('user_id') ?: ($request->input('applicant_id') ?: $request->input('id'));
-            $user = \App\Models\User::find($uId);
+
+        $targetId = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->query('slug') ?: ($request->input('user_id') ?: ($request->input('id') ?: ($request->input('applicant_id') ?: $request->input('slug')))))));
+        if (!empty($targetId)) {
+            $foundUser = \App\Models\User::where('id', $targetId)->orWhere('slug', $targetId)->orWhere('mobile_number', $targetId)->first();
+            if (!$foundUser && \Illuminate\Support\Facades\Schema::hasTable('chef_profiles')) {
+                $chefProf = \Illuminate\Support\Facades\DB::table('chef_profiles')->where('id', $targetId)->first();
+                if ($chefProf && !empty($chefProf->user_id)) {
+                    $foundUser = \App\Models\User::find($chefProf->user_id);
+                }
+            }
+            if (!$foundUser && \Illuminate\Support\Facades\Schema::hasTable('employer_profiles')) {
+                $empProf = \Illuminate\Support\Facades\DB::table('employer_profiles')->where('id', $targetId)->first();
+                if ($empProf && !empty($empProf->user_id)) {
+                    $foundUser = \App\Models\User::find($empProf->user_id);
+                }
+            }
+            if ($foundUser) {
+                $user = $foundUser;
+            }
         }
+
         if (!$user) {
             $user = \Illuminate\Support\Facades\Auth::user();
         }
@@ -646,7 +663,7 @@ class JobPostController extends Controller
         // 1. Resolve User via query params or body inputs: user_id, id, applicant_id, slug, mobile_number, mobile, phone
         $targetId = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->query('slug') ?: ($request->input('user_id') ?: ($request->input('id') ?: ($request->input('applicant_id') ?: $request->input('slug')))))));
         if (!empty($targetId)) {
-            $user = \App\Models\User::find($targetId);
+            $user = \App\Models\User::where('id', $targetId)->orWhere('slug', $targetId)->first();
             if (!$user && \Illuminate\Support\Facades\Schema::hasTable('chef_profiles')) {
                 $chefProf = \Illuminate\Support\Facades\DB::table('chef_profiles')->where('id', $targetId)->first();
                 if ($chefProf && !empty($chefProf->user_id)) {
