@@ -33,36 +33,14 @@ class ProfileController extends Controller
     }
 
     /**
-     * Resolve user flexible via query param (user_id / id / mobile_number), headers, Sanctum Bearer token, or request user.
+     * Fetch user profile.
      */
-    private function resolveUser(Request $request)
+    public function show(Request $request)
     {
         $user = null;
-
-        // 1. Priority: check query parameter or request body for user_id / id / applicant_id
-        if ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id')) {
-            $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
-            $user = User::find($uId);
-        }
-
-        // 2. Check query parameter or request body for mobile_number
-        if (!$user && ($request->filled('mobile_number') || $request->filled('mobile') || $request->filled('phone'))) {
-            $mob = $request->input('mobile_number') ?: ($request->input('mobile') ?: $request->input('phone'));
-            $user = User::where('mobile_number', $mob)->orWhere('phone', $mob)->first();
-        }
-
-        // 3. Check X-User-Id header
-        if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
-            $hId = $request->header('X-User-Id') ?: $request->header('user-id');
-            $user = User::find($hId);
-        }
-
-        // 4. Check Bearer Token or $request->user()
-        if (!$user) {
-            try {
-                $user = $request->user();
-            } catch (\Throwable $e) {}
-        }
+        try {
+            $user = $request->user();
+        } catch (\Throwable $e) {}
 
         if (!$user && $request->bearerToken()) {
             $tokenStr = $request->bearerToken();
@@ -77,29 +55,17 @@ class ProfileController extends Controller
                 }
             } catch (\Throwable $e) {}
         }
-
-        // 5. Default fallback
-        if (!$user) {
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
-                    $user = User::where('active_profile', 'chef')->first() ?: (User::where('active_profile', 'employer')->first() ?: User::first());
-                } else {
-                    $user = User::first();
-                }
-            } catch (\Throwable $e) {
-                $user = User::first();
-            }
+        if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
+            $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
+            $user = User::find($uId);
         }
-
-        return $user;
-    }
-
-    /**
-     * Fetch user profile.
-     */
-    public function show(Request $request)
-    {
-        $user = $this->resolveUser($request);
+        if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
+            $hId = $request->header('X-User-Id') ?: $request->header('user-id');
+            $user = User::find($hId);
+        }
+        if (!$user) {
+            $user = User::where('active_profile', 'chef')->first() ?: (User::where('active_profile', 'employer')->first() ?: User::first());
+        }
 
         if ($user) {
             $user->load(['chefProfile', 'employerProfile', 'socials']);
@@ -117,34 +83,18 @@ class ProfileController extends Controller
             if ($user->chefProfile->availability_info) {
                 $availability = is_array($user->chefProfile->availability_info) ? $user->chefProfile->availability_info : (json_decode($user->chefProfile->availability_info, true) ?: []);
             }
-            $opExp = $user->chefProfile->operational_experties ?: ($user->chefProfile->operational_expertise ?? null);
-
             $chefData = [
-                'id'                    => $user->chefProfile->id,
-                'user_id'               => $user->chefProfile->user_id,
-                'full_name'             => $user->full_name,
-                'name'                  => $user->full_name,
-                'mobile_number'         => $user->mobile_number,
-                'city'                  => $user->city,
-                'country'               => $user->country,
-                'preferred_role'        => $user->preferred_role,
-                'experience_range'      => $user->experience_range ?: $user->experience_years,
+                'id' => $user->chefProfile->id,
+                'user_id' => $user->chefProfile->user_id,
                 'cuisine_specialty'     => $user->chefProfile->cuisine_specialty ?: null,
                 'specialties'           => $user->chefProfile->cuisine_specialty ?: null,
-                'operational_experties' => $opExp,
-                'operational_expertise' => $opExp,
+                'operational_experties' => $user->chefProfile->operational_experties ?: null,
+                'operational_expertise' => $user->chefProfile->operational_experties ?: null,
                 'bio'                   => $user->chefProfile->bio ?: null,
-                'calendly_link'         => $user->chefProfile->calendly_link ?: null,
-                'availability_info'     => $availability,
-                'approval_status'       => $user->chefProfile->approval_status ?: 'approved',
-                'status'                => $user->chefProfile->approval_status ?: 'approved',
-                'age'                   => $user->chefProfile->age ?: ($user->age ?: ($availability['age'] ?? null)),
-                'location_preference'   => $user->city ?: ($availability['location_preference'] ?? null),
-                'availability'          => $user->availability_status ?: ($availability['availability_status'] ?? null),
-                'languages'             => $availability['languages'] ?? [],
-                'regional_experience'   => $availability['regional_experience'] ?? [],
-                'employment_preference' => $availability['employment_preference'] ?? [],
-                'job_type'              => $user->job_type ?: ($user->chefProfile?->job_type ?: ($user->preferred_role ?: 'Full Time')),
+                'calendly_link' => $user->chefProfile->calendly_link ?: null,
+                'availability_info' => $availability,
+                'approval_status' => $user->chefProfile->approval_status ?: 'approved',
+                'status' => $user->chefProfile->approval_status ?: 'approved',
             ];
         }
 
@@ -207,7 +157,7 @@ class ProfileController extends Controller
                 'experience_range' => $user->experience_range ?: ($user->experience_years ?: null),
                 'experience_years' => $user->experience_range ?: ($user->experience_years ?: null),
                 'preferred_role' => $user->preferred_role ?: null,
-                'job_type' => $user->job_type ?: ($user->preferred_role ?: null),
+                'job_type' => $user->preferred_role ?: null,
                 'current_employer' => $user->current_employer ?: null,
                 'skills' => !empty($skillsArray) ? $skillsArray : null,
                 'additional_skills' => !empty($skillsArray) ? implode(', ', $skillsArray) : null,
@@ -262,14 +212,12 @@ class ProfileController extends Controller
             : [];
             
         $jobLocation = ($user && $user->city) ? $user->city : ($chefAvailability['location_preference'] ?? null);
-        $userJobType = $user ? ($user->job_type ?: ($user->chefProfile?->job_type ?: (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? null)))) : null;
-        $preference = $userJobType ?: ($user ? $user->preferred_role : null);
+        $preference = ($user && $user->preferred_role) ? $user->preferred_role : (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? null));
         $country = ($user && !empty($user->country)) ? $user->country : null;
         $city = ($user && !empty($user->city)) ? $user->city : ($employerData['city'] ?? null);
 
         $isAvailable = $user ? (bool)$user->is_available : true;
         $availabilityStatus = ($user && !empty($user->availability_status)) ? $user->availability_status : null;
-        $userAge = $user ? ($user->age ?: ($user->chefProfile?->age ?: ($chefAvailability['age'] ?? null))) : null;
 
         return response()->json([
             'success' => true,
@@ -280,7 +228,7 @@ class ProfileController extends Controller
                 'name' => $user ? $user->full_name : null,
                 'email' => $user ? $user->email : null,
                 'gender' => $user ? $user->gender : null,
-                'age' => $userAge,
+                'age' => $user ? $user->age : null,
                 'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
                 'profile_photo_path' => $photo,
                 'country' => $country,
@@ -291,7 +239,7 @@ class ProfileController extends Controller
                 'experience_years' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'experience_range' => $user ? ($user->experience_range ?: $user->experience_years) : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
-                'job_type' => $userJobType ?: ($user ? $user->preferred_role : null),
+                'job_type' => $user ? $user->preferred_role : null,
                 'current_employer' => $user ? $user->current_employer : null,
                 'skills' => !empty($skillsArray) ? $skillsArray : null,
                 'additional_skills' => !empty($skillsArray) ? implode(', ', $skillsArray) : null,
@@ -316,8 +264,8 @@ class ProfileController extends Controller
             'job_location' => $jobLocation,
             'location_preference' => $city ?: $jobLocation,
             'preference' => $preference,
-            'job_type' => $userJobType ?: ($user ? $user->preferred_role : null),
-            'age' => $userAge,
+            'job_type' => $user ? $user->preferred_role : null,
+            'age' => $user ? $user->age : null,
             'overseas_work_experience' => $user ? $user->overseas_work_experience : null,
             'availability_status' => $availabilityStatus,
             'is_available' => $isAvailable,
@@ -367,7 +315,7 @@ class ProfileController extends Controller
                 'experience_range' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'experience_years' => $user ? ($user->experience_range ?: ($user->experience_years ? $user->experience_years . ' Years' : null)) : null,
                 'current_employer' => $user ? $user->current_employer : null,
-                'job_type' => $user ? ($user->job_type ?: ($user->chefProfile?->job_type ?: null)) : null,
+                'job_type' => $user ? $user->preferred_role : null,
                 'location_preference' => $user ? $user->city : null,
                 'preferred_role' => $user ? $user->preferred_role : null,
                 'skills' => $skillsData,
@@ -400,7 +348,17 @@ class ProfileController extends Controller
     public function updatePersonal(Request $request)
     {
         try {
-            $user = $this->resolveUser($request);
+            $user = $request->user();
+            if (!$user && $request->bearerToken()) {
+                $tokenStr = $request->bearerToken();
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            }
+            if (!$user) {
+                $user = User::first();
+            }
 
             $photoUrl = null;
 
@@ -512,31 +470,14 @@ class ProfileController extends Controller
                 }
                 if ($request->has('preferred_role')) {
                     $user->preferred_role = $request->input('preferred_role');
+                } elseif ($request->has('job_type')) {
+                    $user->preferred_role = $request->input('job_type');
                 } elseif ($request->has('position')) {
                     $user->preferred_role = $request->input('position');
                 } elseif ($request->has('job_title')) {
                     $user->preferred_role = $request->input('job_title');
                 } elseif ($request->has('role')) {
                     $user->preferred_role = $request->input('role');
-                }
-
-                $jobTypeVal = $request->input('job_type') ?? $request->input('employment_type') ?? $request->input('job_type_preference');
-                if ($jobTypeVal !== null && $jobTypeVal !== '') {
-                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'job_type')) {
-                        try {
-                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN job_type VARCHAR(255) NULL");
-                        } catch (\Throwable $e) {}
-                    }
-                    $user->job_type = (string)$jobTypeVal;
-                    if ($user->chefProfile) {
-                        if (!\Illuminate\Support\Facades\Schema::hasColumn('chef_profiles', 'job_type')) {
-                            try {
-                                \Illuminate\Support\Facades\DB::statement("ALTER TABLE chef_profiles ADD COLUMN job_type VARCHAR(255) NULL");
-                            } catch (\Throwable $e) {}
-                        }
-                        $user->chefProfile->job_type = (string)$jobTypeVal;
-                        $user->chefProfile->save();
-                    }
                 }
                 if ($request->has('skills')) {
                     $skillsInput = $request->input('skills');
