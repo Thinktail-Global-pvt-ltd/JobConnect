@@ -36,23 +36,6 @@ class ChefOnboardingController extends Controller
     public function save(Request $request)
     {
         $user = null;
-        try {
-            $user = $request->user();
-        } catch (\Throwable $e) {}
-
-        if (!$user && $request->bearerToken()) {
-            $tokenStr = $request->bearerToken();
-            try {
-                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
-                if (!$tokenObj && str_contains($tokenStr, '|')) {
-                    $tokenId = explode('|', $tokenStr)[0];
-                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
-                }
-                if ($tokenObj) {
-                    $user = $tokenObj->tokenable;
-                }
-            } catch (\Throwable $e) {}
-        }
         if ($request->filled('mobile_number') || $request->filled('phone') || $request->filled('mobile')) {
             $mob = $request->input('mobile_number') ?: ($request->input('phone') ?: $request->input('mobile'));
             $foundByMob = \App\Models\User::where('mobile_number', $mob)->first();
@@ -66,6 +49,26 @@ class ChefOnboardingController extends Controller
             if ($foundByMob) {
                 $user = $foundByMob;
             }
+        }
+
+        if (!$user) {
+            try {
+                $user = $request->user();
+            } catch (\Throwable $e) {}
+        }
+
+        if (!$user && $request->bearerToken()) {
+            $tokenStr = $request->bearerToken();
+            try {
+                $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenStr);
+                if (!$tokenObj && str_contains($tokenStr, '|')) {
+                    $tokenId = explode('|', $tokenStr)[0];
+                    $tokenObj = \Laravel\Sanctum\PersonalAccessToken::find($tokenId);
+                }
+                if ($tokenObj) {
+                    $user = $tokenObj->tokenable;
+                }
+            } catch (\Throwable $e) {}
         }
 
         if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
