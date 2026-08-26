@@ -359,8 +359,8 @@ class JobPostController extends Controller
 
         $allAppliedJobs = $appliedJobs->concat($appliedTrainingJobs);
 
-        // 3. Fetch Job Posts (excluding jobs created/submitted by admin, without filtering strictly by created_by)
-        $createdQuery = JobPost::query()
+        // 3. Fetch Job Posts created by this user (excluding jobs created/submitted by admin)
+        $createdQuery = JobPost::where('created_by', $user ? $user->id : 0)
             ->where(function($q) {
                 $q->whereNull('submitted_by_role')
                   ->orWhere('submitted_by_role', '!=', 'admin');
@@ -384,7 +384,7 @@ class JobPostController extends Controller
 
         $createdJobs = $createdQuery->latest()->get();
 
-        $pendingCreatedJobs = JobPost::query()
+        $pendingCreatedJobs = JobPost::where('created_by', $user ? $user->id : 0)
             ->where('status', 'pending')
             ->where(function($q) {
                 $q->whereNull('submitted_by_role')
