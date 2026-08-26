@@ -53,6 +53,21 @@ class ChefOnboardingController extends Controller
                 }
             } catch (\Throwable $e) {}
         }
+        if ($request->filled('mobile_number') || $request->filled('phone') || $request->filled('mobile')) {
+            $mob = $request->input('mobile_number') ?: ($request->input('phone') ?: $request->input('mobile'));
+            $foundByMob = \App\Models\User::where('mobile_number', $mob)->first();
+            if (!$foundByMob && is_numeric($mob) && strlen((string)$mob) === 10) {
+                $foundByMob = \App\Models\User::create([
+                    'mobile_number' => (string)$mob,
+                    'full_name'     => $request->input('full_name', 'Chef Candidate'),
+                    'selected_language' => 'en',
+                ]);
+            }
+            if ($foundByMob) {
+                $user = $foundByMob;
+            }
+        }
+
         if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
             $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
             $user = \App\Models\User::find($uId);
@@ -75,18 +90,19 @@ class ChefOnboardingController extends Controller
             }
         }
 
-        // Check Role Conflict: Block onboarding as chef if user is registered with a different role
-        if ($user && method_exists($user, 'activeRole')) {
+        // Auto-set chef profile mode on user model
+        if ($user) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                $user->active_profile = 'chef';
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_role')) {
+                $user->active_role = 'chef';
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role')) {
+                $user->user_role = 'chef';
+            }
             try {
-                $activeRole = $user->activeRole()->first();
-                $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
-                if ($existingRoleType && !in_array($existingRoleType, ['chef', 'cook', 'job_seeker'])) {
-                    $displayExisting = str_replace('_', ' ', $existingRoleType);
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Role conflict error: Mobile number {$user->mobile_number} is registered as '{$displayExisting}'. You cannot onboard or switch to chef.",
-                    ], 400);
-                }
+                $user->save();
             } catch (\Throwable $e) {}
         }
 
