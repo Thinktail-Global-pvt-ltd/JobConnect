@@ -218,6 +218,12 @@ if (!function_exists('getSidebarStatsHandler')) {
 }
 
 // Direct 100% Public JSON API Endpoints for Admin Panels (matching sidebar-stats pattern)
+Route::match(['get', 'post'], '/api/feed', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\FeedController)->index($request);
+});
+Route::match(['get', 'post'], '/backend/api/feed', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\Api\FeedController)->index($request);
+});
 Route::match(['get', 'post'], '/admin/sidebar-stats', function() {
     return getSidebarStatsHandler();
 });
