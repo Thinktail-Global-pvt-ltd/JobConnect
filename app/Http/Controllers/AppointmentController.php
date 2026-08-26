@@ -187,11 +187,19 @@ class AppointmentController extends Controller
             $chefProfiles = \App\Models\ChefProfile::with(['user', 'user.socials'])->get();
             
             // Also find users registered as chef who may not have a ChefProfile record yet
-            $chefUsers = User::where(function($q) {
-                $q->where('active_profile', 'chef')
-                  ->orWhere('user_role', 'chef')
-                  ->orWhereHas('roles', fn($r) => $r->where('role_type', 'chef'));
-            })->with(['chefProfile', 'socials'])->get();
+            $chefUsersQuery = User::query();
+            $chefUsersQuery->where(function($q) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
+                    $q->orWhere('active_profile', 'chef');
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'user_role')) {
+                    $q->orWhere('user_role', 'chef');
+                }
+                if (\Illuminate\Support\Facades\Schema::hasTable('roles')) {
+                    $q->orWhereHas('roles', fn($r) => $r->where('role_type', 'chef'));
+                }
+            });
+            $chefUsers = $chefUsersQuery->with(['chefProfile', 'socials'])->get();
 
             $allChefsMap = collect();
 
