@@ -98,12 +98,15 @@ if (!function_exists('getSidebarStatsHandler')) {
                     ->count('user_id');
             }
 
-            $referralJobsCount = \App\Models\JobPost::where('is_referral', true)->count();
+            $jobsCount = \App\Models\JobPost::count();
+            $trainingCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
+                ? \Illuminate\Support\Facades\DB::table('training_opportunities')->count()
+                : 0;
             $adminPostsCount = \Illuminate\Support\Facades\Schema::hasTable('admin_posts')
                 ? \Illuminate\Support\Facades\DB::table('admin_posts')->count()
                 : 0;
 
-            $communityCount = $referralJobsCount + $adminPostsCount;
+            $communityCount = $jobsCount + $trainingCount + $adminPostsCount;
 
             $totalTrainingProgramsCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
                 ? \Illuminate\Support\Facades\DB::table('training_opportunities')->count()
