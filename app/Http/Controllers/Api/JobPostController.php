@@ -754,6 +754,13 @@ class JobPostController extends Controller
             if (!$job) return null;
 
             $creator = $job->creator ?: ($job->created_by ? \App\Models\User::with('employerProfile')->find($job->created_by) : null);
+
+            $actualRole = !empty($job->submitted_by_role)
+                ? $job->submitted_by_role
+                : ($job->is_admin_created
+                    ? 'admin'
+                    : ($creator ? ($creator->active_profile ?: ($creator->active_role ?: ($creator->user_role ?: 'employer'))) : 'employer'));
+
             $postedBy = null;
             if ($creator) {
                 $empProfile = $creator->employerProfile ?: ($creator->employer_profile ?: null);
@@ -769,10 +776,12 @@ class JobPostController extends Controller
                     'phone'               => $creator->mobile_number ?: ($creator->phone ?: 'N/A'),
                     'city'                => $creator->city ?: ($job->location ?: 'India'),
                     'country'             => $creator->country ?: ($job->country ?: 'India'),
-                    'role'                => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
-                    'active_profile'     => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
-                    'active_role'        => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
-                    'user_role'          => $creator->active_profile ?: ($job->submitted_by_role ?: 'employer'),
+                    'role'                => $actualRole,
+                    'submitted_by_role'   => $actualRole,
+                    'posted_by_role'      => $actualRole,
+                    'active_profile'     => $actualRole,
+                    'active_role'        => $actualRole,
+                    'user_role'          => $actualRole,
                     'profile_photo_path'  => $creator->profile_photo_path ?: ($creator->profile_photo ?: null),
                     'profile_photo'       => $creator->profile_photo_path ?: ($creator->profile_photo ?: null),
                 ];
@@ -789,10 +798,12 @@ class JobPostController extends Controller
                     'phone'               => 'N/A',
                     'city'                => $job->location ?: 'India',
                     'country'             => $job->country ?: 'India',
-                    'role'                => $job->submitted_by_role ?: 'employer',
-                    'active_profile'     => $job->submitted_by_role ?: 'employer',
-                    'active_role'        => $job->submitted_by_role ?: 'employer',
-                    'user_role'          => $job->submitted_by_role ?: 'employer',
+                    'role'                => $actualRole,
+                    'submitted_by_role'   => $actualRole,
+                    'posted_by_role'      => $actualRole,
+                    'active_profile'     => $actualRole,
+                    'active_role'        => $actualRole,
+                    'user_role'          => $actualRole,
                     'profile_photo_path'  => null,
                     'profile_photo'       => null,
                 ];
@@ -817,6 +828,9 @@ class JobPostController extends Controller
                 'active_role'           => $userRole,
                 'active_profile'        => $userRole,
                 'applicant_role'        => $userRole,
+                'submitted_by_role'     => $actualRole,
+                'posted_by_role'        => $actualRole,
+                'poster_role'           => $actualRole,
                 'job_post_id'           => $job->id,
                 'job_id'                => $job->id,
                 'status'                => $appStatus,
