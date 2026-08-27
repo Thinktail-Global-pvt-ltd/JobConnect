@@ -103,22 +103,24 @@ class EmployerController extends Controller
                 ->delete();
 
             // Fetch job posts (excluding admin submitted jobs, without filtering strictly by created_by)
-            $jobs = JobPost::with(['applications.applicant.chefProfile', 'applications.applicant.socials'])
-                ->where(function($q) {
+            $jobsQuery = JobPost::with(['applications.applicant.chefProfile', 'applications.applicant.socials']);
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
+                $jobsQuery->where(function($q) {
                     $q->whereNull('submitted_by_role')
                       ->orWhere('submitted_by_role', '!=', 'admin');
-                })
-                ->where(function($q) {
-                    $q->whereNull('posted_by_role')
-                      ->orWhere('posted_by_role', '!=', 'admin');
-                })
-                ->where(function($q) {
+                });
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'is_admin_created')) {
+                $jobsQuery->where(function($q) {
                     $q->whereNull('is_admin_created')
                       ->orWhere('is_admin_created', 0)
                       ->orWhere('is_admin_created', false);
-                })
-                ->orderBy('created_at', 'desc')
-                ->get();
+                });
+            }
+
+            $jobs = $jobsQuery->orderBy('created_at', 'desc')->get();
 
             // Calculate counts
             $activeJobsCount = $jobs->whereIn('status', ['approved', 'published', 'active'])->count();
