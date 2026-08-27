@@ -71,11 +71,18 @@ class DashboardController extends Controller
               ->orWhere('location', 'LIKE', '%Bahrain%');
         })->count();
 
-        // Community Stream Posts (29 total)
-        $communityTotal = 29;
-        $communityActive = 17;
-        $communityPinned = 4;
-        $communityDrafts = 12;
+        // Community Stream Posts (Dynamic from database)
+        $referralJobs = JobPost::where('is_referral', true)->get();
+        $adminPosts = \Illuminate\Support\Facades\Schema::hasTable('admin_posts') ? AdminPost::all() : collect();
+
+        $communityTotal = $referralJobs->count() + $adminPosts->count();
+        $communityActive = $referralJobs->filter(fn($j) => in_array(strtolower($j->status ?? ''), ['approved', 'published', 'active']))->count()
+            + $adminPosts->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['published', 'active', 'approved']))->count();
+
+        $communityPinned = $referralJobs->filter(fn($j) => (bool)$j->is_pinned)->count()
+            + $adminPosts->filter(fn($p) => (bool)$p->is_pinned)->count();
+
+        $communityDrafts = max(0, $communityTotal - $communityActive);
 
         $stats = [
             'users_count' => $usersTotal,
