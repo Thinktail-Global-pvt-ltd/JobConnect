@@ -213,10 +213,10 @@ export default function Footer() {
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs font-sans tracking-wider text-white/[0.25] uppercase">
-            <Link to="#" className="hover:text-white transition-colors">
+            <Link to="/privacy-policy" className="hover:text-white transition-colors">
               Privacy
             </Link>
-            <Link to="#" className="hover:text-white transition-colors">
+            <Link to="/terms-and-conditions" className="hover:text-white transition-colors">
               Terms
             </Link>
           </div>

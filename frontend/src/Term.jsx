@@ -1,12 +1,12 @@
-import Footer from "./component/Footer";
-import Header from "./component/Header";
+import Footer from "./component/layout/Footer";
+import Header from "./component/layout/Navbar";
 
 const Term = () => {
     return (
         <div>
             <Header/>
-            <div className="mt-28 p-3">
-                <h1>Terms and Conditions</h1>
+            <div className="mt-28 p-3 text-color-white">
+                <h1 className="text-color-white">Terms and Conditions</h1>
                 <p>Last updated: June 19, 2026</p>
                 <p>
                     Please read these terms and conditions carefully before

@@ -120,7 +120,7 @@ function App() {
 
         {/* policy & support routes */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms&conditions" element={<Term />} />
+        <Route path="/terms-and-conditions" element={<Term />} />
         <Route path="/help-support" element={<HelpSupport />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
 
