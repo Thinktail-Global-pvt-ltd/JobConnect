@@ -456,9 +456,6 @@ export default function TrainingDetail() {
                 </div>
                 <div>
                   <h4 className="font-outfit font-extrabold text-base text-slate-900 leading-snug">{employerDetails || 'N/A'}</h4>
-                  <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-md inline-flex items-center gap-1 mt-0.5">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Training Provider
-                  </span>
                 </div>
               </div>
 
