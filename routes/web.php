@@ -845,6 +845,8 @@ Route::prefix('admin')->group(function () {
                     'type' => 'job',
                     'type_label' => 'Job Listing',
                     'created_at' => $app->created_at ? $app->created_at->toIso8601String() : null,
+                    'is_admin_created' => $job ? (bool)($job->is_admin_created || strtolower($job->submitted_by_role ?? '') === 'admin') : false,
+                    'submitted_by_role' => $job ? strtolower($job->submitted_by_role ?? 'employer') : 'employer',
                     'applicant' => [
                         'id' => $applicant ? $applicant->id : $app->applicant_id,
                         'full_name' => $fullName,
@@ -866,6 +868,8 @@ Route::prefix('admin')->group(function () {
                         'location' => $job ? ($job->location ?: 'India') : 'India',
                         'category' => $job ? ($job->category ?: 'dubai') : 'dubai',
                         'is_training' => false,
+                        'is_admin_created' => $job ? (bool)($job->is_admin_created || strtolower($job->submitted_by_role ?? '') === 'admin') : false,
+                        'submitted_by_role' => $job ? strtolower($job->submitted_by_role ?? 'employer') : 'employer',
                         'type_label' => 'Job Listing',
                     ]
                 ];
