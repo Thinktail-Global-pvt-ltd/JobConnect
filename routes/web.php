@@ -279,6 +279,66 @@ Route::match(['get', 'post'], '/api/profile', function(\Illuminate\Http\Request 
 Route::match(['get', 'post'], '/backend/api/profile', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Api\ProfileController)->show($request);
 });
+
+if (!function_exists('checkUserExistsHandler')) {
+    function checkUserExistsHandler(\Illuminate\Http\Request $request, $id = null) {
+        $targetId = $id 
+            ?? $request->query('user_id') 
+            ?? $request->query('id') 
+            ?? $request->input('user_id') 
+            ?? $request->input('id');
+
+        $mobile = $request->query('mobile_number') ?? $request->query('mobile') ?? $request->input('mobile_number') ?? $request->input('mobile');
+        $email = $request->query('email') ?? $request->input('email');
+
+        $query = \App\Models\User::query();
+
+        if (!empty($targetId)) {
+            $query->where('id', $targetId);
+        } elseif (!empty($mobile)) {
+            $query->where('mobile_number', $mobile);
+        } elseif (!empty($email)) {
+            $query->where('email', $email);
+        } else {
+            return response()->json([
+                'success' => false,
+                'exists'  => false,
+                'message' => 'Please provide a valid user_id, id, mobile_number, or email'
+            ], 400);
+        }
+
+        $user = $query->first();
+
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'exists'  => true,
+                'user_id' => $user->id,
+                'user'    => [
+                    'id'            => $user->id,
+                    'full_name'     => $user->full_name ?: ($user->name ?: 'User'),
+                    'email'         => $user->email,
+                    'mobile_number' => $user->mobile_number,
+                    'role'          => $user->active_profile ?: ($user->user_role ?: 'job_seeker'),
+                ]
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'exists'  => false,
+            'user_id' => is_numeric($targetId) ? (int)$targetId : $targetId
+        ], 200);
+    }
+}
+
+Route::match(['get', 'post'], '/user/exists/{id?}', function(\Illuminate\Http\Request $request, $id = null) { return checkUserExistsHandler($request, $id); })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/api/user/exists/{id?}', function(\Illuminate\Http\Request $request, $id = null) { return checkUserExistsHandler($request, $id); })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/backend/api/user/exists/{id?}', function(\Illuminate\Http\Request $request, $id = null) { return checkUserExistsHandler($request, $id); })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+Route::match(['get', 'post'], '/user/check/{id?}', function(\Illuminate\Http\Request $request, $id = null) { return checkUserExistsHandler($request, $id); })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/api/user/check/{id?}', function(\Illuminate\Http\Request $request, $id = null) { return checkUserExistsHandler($request, $id); })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/backend/api/user/check/{id?}', function(\Illuminate\Http\Request $request, $id = null) { return checkUserExistsHandler($request, $id); })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::match(['get', 'post'], '/my-jobs', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Api\JobPostController)->myJobs($request);
 })->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
