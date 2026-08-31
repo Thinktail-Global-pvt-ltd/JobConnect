@@ -106,7 +106,17 @@ if (!function_exists('getSidebarStatsHandler')) {
                 ? \Illuminate\Support\Facades\DB::table('admin_posts')->count()
                 : 0;
 
-            $communityCount = $jobsCount + $trainingCount + $adminPostsCount;
+            try {
+                $commRes = (new \App\Http\Controllers\Admin\AdminPostController)->index(request());
+                if ($commRes instanceof \Illuminate\Http\JsonResponse) {
+                    $commData = $commRes->getData(true);
+                    $communityCount = (int)($commData['stats']['total'] ?? ($jobsCount + $trainingCount + $adminPostsCount));
+                } else {
+                    $communityCount = $jobsCount + $trainingCount + $adminPostsCount;
+                }
+            } catch (\Throwable $e) {
+                $communityCount = $jobsCount + $trainingCount + $adminPostsCount;
+            }
 
             $totalTrainingProgramsCount = \Illuminate\Support\Facades\Schema::hasTable('training_opportunities')
                 ? \Illuminate\Support\Facades\DB::table('training_opportunities')->count()

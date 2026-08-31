@@ -71,11 +71,28 @@ class DashboardController extends Controller
               ->orWhere('location', 'LIKE', '%Bahrain%');
         })->count();
 
-        // Community Stream Posts (29 total)
-        $communityTotal = 29;
-        $communityActive = 17;
-        $communityPinned = 4;
-        $communityDrafts = 12;
+        // Community Stream Posts (Dynamic calculation from Feed API)
+        try {
+            $commRes = (new \App\Http\Controllers\Admin\AdminPostController)->index(request());
+            if ($commRes instanceof \Illuminate\Http\JsonResponse) {
+                $commData = $commRes->getData(true);
+                $commStats = $commData['stats'] ?? [];
+                $communityTotal  = (int)($commStats['total'] ?? 0);
+                $communityActive = (int)($commStats['published'] ?? 0);
+                $communityPinned = (int)($commStats['pinned'] ?? 0);
+                $communityDrafts = (int)($commStats['drafts'] ?? 0);
+            } else {
+                $communityTotal  = 0;
+                $communityActive = 0;
+                $communityPinned = 0;
+                $communityDrafts = 0;
+            }
+        } catch (\Throwable $e) {
+            $communityTotal  = 0;
+            $communityActive = 0;
+            $communityPinned = 0;
+            $communityDrafts = 0;
+        }
 
         $stats = [
             'users_count' => $usersTotal,

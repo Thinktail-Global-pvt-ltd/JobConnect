@@ -31,9 +31,34 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const res = await mockApi.getStats();
+        const [res, commRes] = await Promise.all([
+          mockApi.getStats().catch(() => null),
+          mockApi.getCommunityPosts().catch(() => null)
+        ]);
+
+        let commStats = {};
+        if (commRes && commRes.stats) {
+          commStats = {
+            community_total: commRes.stats.total ?? 0,
+            community_active: commRes.stats.published ?? 0,
+            community_pinned: commRes.stats.pinned ?? 0,
+            community_drafts: commRes.stats.drafts ?? 0,
+          };
+        }
+
         if (res && res.stats) {
-          setData(res);
+          setData({
+            ...res,
+            stats: {
+              ...res.stats,
+              ...commStats,
+            }
+          });
+        } else if (commRes && commRes.stats) {
+          setData({
+            success: true,
+            stats: commStats,
+          });
         }
       } catch (e) {
         console.error("Dashboard stats error:", e);
