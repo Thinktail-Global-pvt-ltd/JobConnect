@@ -286,9 +286,19 @@ Route::match(['get', 'post'], '/backend/api/employer/jobs/{jobId}/mark-stats-see
 Route::match(['get', 'post'], '/api/profile', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Api\ProfileController)->show($request);
 });
-Route::match(['get', 'post'], '/backend/api/profile', function(\Illuminate\Http\Request $request) {
-    return (new \App\Http\Controllers\Api\ProfileController)->show($request);
-});
+Route::match(['get', 'post'], '/api/employer/dashboard', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\EmployerController)->index($request);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/backend/api/employer/dashboard', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\EmployerController)->index($request);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/api/employer_dashboard', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\EmployerController)->index($request);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+Route::match(['get', 'post'], '/backend/api/employer_dashboard', function(\Illuminate\Http\Request $request) {
+    return (new \App\Http\Controllers\EmployerController)->index($request);
+})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
 
 if (!function_exists('checkUserExistsHandler')) {
     function checkUserExistsHandler(\Illuminate\Http\Request $request, $id = null) {
