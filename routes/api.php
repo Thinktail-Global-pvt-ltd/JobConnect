@@ -96,6 +96,63 @@ Route::match(['get', 'post'], '/request-otp', [AuthController::class, 'requestOt
 Route::match(['get', 'post'], '/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::match(['get', 'post'], '/login', [AuthController::class, 'requestOtp']);
 Route::match(['get', 'post'], '/auth/login', [AuthController::class, 'requestOtp']);
+
+// User Existence Check API Routes
+$checkUserExistsHandler = function($id = null, \Illuminate\Http\Request $request) {
+    $targetId = $id 
+        ?? $request->query('user_id') 
+        ?? $request->query('id') 
+        ?? $request->input('user_id') 
+        ?? $request->input('id');
+
+    $mobile = $request->query('mobile_number') ?? $request->query('mobile') ?? $request->input('mobile_number') ?? $request->input('mobile');
+    $email = $request->query('email') ?? $request->input('email');
+
+    $query = \App\Models\User::query();
+
+    if (!empty($targetId)) {
+        $query->where('id', $targetId);
+    } elseif (!empty($mobile)) {
+        $query->where('mobile_number', $mobile);
+    } elseif (!empty($email)) {
+        $query->where('email', $email);
+    } else {
+        return response()->json([
+            'success' => false,
+            'exists'  => false,
+            'message' => 'Please provide a valid user_id, id, mobile_number, or email'
+        ], 400);
+    }
+
+    $user = $query->first();
+
+    if ($user) {
+        return response()->json([
+            'success' => true,
+            'exists'  => true,
+            'user_id' => $user->id,
+            'user'    => [
+                'id'            => $user->id,
+                'full_name'     => $user->full_name ?: ($user->name ?: 'User'),
+                'email'         => $user->email,
+                'mobile_number' => $user->mobile_number,
+                'role'          => $user->active_profile ?: ($user->user_role ?: 'job_seeker'),
+            ]
+        ], 200);
+    }
+
+    return response()->json([
+        'success' => true,
+        'exists'  => false,
+        'user_id' => is_numeric($targetId) ? (int)$targetId : $targetId
+    ], 200);
+};
+
+Route::match(['get', 'post'], '/user/exists/{id?}', $checkUserExistsHandler);
+Route::match(['get', 'post'], '/users/exists/{id?}', $checkUserExistsHandler);
+Route::match(['get', 'post'], '/user/check/{id?}', $checkUserExistsHandler);
+Route::match(['get', 'post'], '/users/check/{id?}', $checkUserExistsHandler);
+Route::match(['get', 'post'], '/check-user/{id?}', $checkUserExistsHandler);
 Route::match(['get', 'post'], '/jobs/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
 Route::match(['get', 'post'], '/training/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
 Route::match(['get', 'post'], '/training-opportunities/{job}/apply', [\App\Http\Controllers\WebJobController::class, 'apply']);
