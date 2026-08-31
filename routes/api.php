@@ -197,8 +197,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chef/profile-views', [ChefProfileViewController::class, 'getChefProfileViews']);
 });
 
-// Public Feed & My Jobs Routes (Unauthenticated + Token optional)
+// Public Feed & My Jobs / Posts Routes (Unauthenticated + Token optional)
 Route::match(['get', 'post'], '/my-jobs', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/my-posts', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/user/my-posts', [JobPostController::class, 'myJobs']);
+Route::match(['get', 'post'], '/posts/my-posts', [JobPostController::class, 'myJobs']);
 Route::match(['get', 'post'], '/jobs/my-jobs', [JobPostController::class, 'myJobs']);
 Route::match(['get', 'post'], '/jobs/myjobs', [JobPostController::class, 'myJobs']);
 Route::match(['get', 'post'], '/my-applications', [JobPostController::class, 'myJobs']);
