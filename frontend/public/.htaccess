@@ -2,8 +2,9 @@
     RewriteEngine On
     RewriteBase /
 
-    # Redirect HTTP to HTTPS
+    # Redirect HTTP to HTTPS for web browser traffic (excluding APIs)
     RewriteCond %{HTTPS} off
+    RewriteCond %{REQUEST_URI} !^/(api|backend|index\.php) [NC]
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Exclude backend API and PHP routes from React SPA fallback
