@@ -5,6 +5,10 @@
 
     RewriteEngine On
 
+    # Redirect HTTP to HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Enable Authorization Pass-Through on Apache PHP-FPM / CGI
     CGIPassAuth On
 
