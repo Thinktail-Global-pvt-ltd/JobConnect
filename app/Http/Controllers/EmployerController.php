@@ -109,8 +109,17 @@ class EmployerController extends Controller
                 })
                 ->delete();
 
-            // Fetch job posts (excluding admin submitted jobs, without filtering strictly by created_by)
-            $jobsQuery = JobPost::with(['applications.applicant.chefProfile', 'applications.applicant.socials']);
+            // Fetch job posts created by this employer (excluding admin submitted jobs)
+            $jobsQuery = JobPost::with(['applications.applicant.chefProfile', 'applications.applicant.socials'])
+                ->where(function($q) use ($user) {
+                    $q->where('created_by', $user->id);
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'user_id')) {
+                        $q->orWhere('user_id', $user->id);
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'employer_id')) {
+                        $q->orWhere('employer_id', $user->id);
+                    }
+                });
 
             if (\Illuminate\Support\Facades\Schema::hasColumn('job_posts', 'submitted_by_role')) {
                 $jobsQuery->where(function($q) {
