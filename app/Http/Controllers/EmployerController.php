@@ -143,15 +143,16 @@ class EmployerController extends Controller
 
             // Helper closures for application status matching (strictly mutually exclusive)
             $isAppRejected = fn($a) => strtolower(trim($a->status ?? '')) === 'rejected';
-            $isAppShortlisted = fn($a) => strtolower(trim($a->status ?? '')) === 'shortlisted';
+            $isAppShortlisted = fn($a) => strtolower(trim($a->status ?? '')) === 'shortlisted' || strtolower(trim($a->status ?? '')) === 'approved';
             $isAppContacted = fn($a) => strtolower(trim($a->status ?? '')) === 'contacted' || strtolower(trim($a->status ?? '')) === 'hired';
-            $isAppViewed = fn($a) => !$isAppRejected($a) && !$isAppShortlisted($a) && !$isAppContacted($a) && ((bool)($a->is_viewed ?? false) || strtolower(trim($a->status ?? '')) === 'viewed');
-            $isAppNew = function($a) use ($isAppRejected, $isAppShortlisted, $isAppContacted, $isAppViewed) {
-                if ($isAppRejected($a) || $isAppShortlisted($a) || $isAppContacted($a) || $isAppViewed($a)) {
+            $isAppApplied = fn($a) => strtolower(trim($a->status ?? '')) === 'applied';
+            $isAppViewed = fn($a) => !$isAppRejected($a) && !$isAppShortlisted($a) && !$isAppContacted($a) && !$isAppApplied($a) && ((bool)($a->is_viewed ?? false) || strtolower(trim($a->status ?? '')) === 'viewed');
+            $isAppNew = function($a) use ($isAppRejected, $isAppShortlisted, $isAppContacted, $isAppApplied, $isAppViewed) {
+                if ($isAppRejected($a) || $isAppShortlisted($a) || $isAppContacted($a) || $isAppApplied($a) || $isAppViewed($a)) {
                     return false;
                 }
                 $st = strtolower(trim($a->status ?? ''));
-                return in_array($st, ['new', 'applied', 'pending', '']);
+                return in_array($st, ['new', 'pending']);
             };
 
             // Fetch details of users who saved these jobs
@@ -235,7 +236,7 @@ class EmployerController extends Controller
             }
 
             // Map database status values to match frontend expected tabs (active, pending, closed)
-            $mappedJobs = $jobs->map(function ($job) use ($savedByMap, $rawSavedCounts, $seenLogs, $isAppViewed, $isAppNew, $isAppShortlisted, $isAppContacted, $isAppRejected) {
+            $mappedJobs = $jobs->map(function ($job) use ($savedByMap, $rawSavedCounts, $seenLogs, $isAppViewed, $isAppNew, $isAppApplied, $isAppShortlisted, $isAppContacted, $isAppRejected) {
                 $status = 'pending';
                 if ($job->status === 'approved') {
                     $status = 'active';
@@ -247,6 +248,7 @@ class EmployerController extends Controller
                 $jobTotal = $jobApps->count();
                 $jobViewed = $jobApps->filter($isAppViewed)->count();
                 $jobNew = $jobApps->filter($isAppNew)->count();
+                $jobApplied = $jobApps->filter($isAppApplied)->count();
                 $jobShortlisted = $jobApps->filter($isAppShortlisted)->count();
                 $jobContacted = $jobApps->filter($isAppContacted)->count();
                 $jobRejected = $jobApps->filter($isAppRejected)->count();
@@ -254,6 +256,7 @@ class EmployerController extends Controller
                 $stats = [
                     'total'       => $jobTotal,
                     'new'         => $jobNew,
+                    'applied'     => $jobApplied,
                     'viewed'      => $jobViewed,
                     'shortlisted' => $jobShortlisted,
                     'contacted'   => $jobContacted,
@@ -395,10 +398,8 @@ class EmployerController extends Controller
                     $rawAppStatus = strtolower(trim($app->status ?: 'new'));
                     $isAppViewed = (bool)($app->is_viewed || $rawAppStatus === 'viewed');
                     $formattedStatus = $rawAppStatus;
-                    if ($isAppViewed) {
+                    if ($isAppViewed && in_array($rawAppStatus, ['new', 'pending'])) {
                         $formattedStatus = 'viewed';
-                    } elseif (in_array($rawAppStatus, ['new', 'pending', 'applied'])) {
-                        $formattedStatus = 'new';
                     }
 
                     return [
@@ -420,7 +421,7 @@ class EmployerController extends Controller
                         'job_location' => $city,
                         'location_preference' => $locationPref,
                         'preference' => $applicant ? ($applicant->preferred_role ?: null) : null,
-                        'status' => $formattedStatus, // new | viewed | shortlisted | contacted | rejected
+                        'status' => $formattedStatus, // new | applied | viewed | shortlisted | contacted | rejected
                         'is_viewed' => $isAppViewed,
                         'viewed' => $isAppViewed,
                         'viewed_at' => $app->viewed_at ? \Carbon\Carbon::parse($app->viewed_at)->toIso8601String() : null,
@@ -541,6 +542,7 @@ class EmployerController extends Controller
             // Derive overall metrics directly from mappedJobs to guarantee 100% mathematical consistency
             $totalApplicants = $mappedJobs->sum(fn($j) => $j['stats']['total']);
             $totalNew = $mappedJobs->sum(fn($j) => $j['stats']['new']);
+            $totalApplied = $mappedJobs->sum(fn($j) => $j['stats']['applied'] ?? 0);
             $totalViewed = $mappedJobs->sum(fn($j) => $j['stats']['viewed']);
             $totalShortlisted = $mappedJobs->sum(fn($j) => $j['stats']['shortlisted']);
             $totalRejected = $mappedJobs->sum(fn($j) => $j['stats']['rejected']);
@@ -552,6 +554,7 @@ class EmployerController extends Controller
                     'metrics' => [
                         'total_applicants' => $totalApplicants,
                         'new' => $totalNew,
+                        'applied' => $totalApplied,
                         'viewed' => $totalViewed,
                         'shortlisted' => $totalShortlisted,
                         'rejected' => $totalRejected,
