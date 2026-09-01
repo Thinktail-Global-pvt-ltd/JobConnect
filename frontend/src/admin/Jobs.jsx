@@ -118,8 +118,28 @@ export default function Jobs() {
     return Boolean(j.is_admin_created) || (j.submitted_by_role || '').toLowerCase() === 'admin' || (j.posted_by_role || '').toLowerCase() === 'admin';
   };
 
+  const getPosterRoleName = (job) => {
+    if (isAdminCreatedJob(job)) return 'Admin';
+    const rawRole = (
+      job.posted_by_role || 
+      job.submitted_by_role || 
+      job.creator?.active_profile || 
+      job.creator?.active_role || 
+      job.creator?.user_role || 
+      job.user_role || 
+      ''
+    ).toLowerCase();
+
+    if (rawRole === 'chef' || rawRole === 'cook') return 'Chef';
+    if (rawRole === 'jobseeker' || rawRole === 'job_seeker' || rawRole === 'talent' || rawRole === 'candidate') return 'Talent';
+    if (rawRole === 'admin') return 'Admin';
+    if (rawRole === 'employer' || rawRole === 'agency' || rawRole === 'recruiter' || rawRole === 'hirer') return 'Employer';
+    return 'Employer';
+  };
+
   const getPosterLabel = (job) => {
     if (!job) return 'By: Employer';
+    const roleName = getPosterRoleName(job);
     const creator = job.creator || {};
 
     // 1. Check for Name
@@ -132,7 +152,7 @@ export default function Jobs() {
       (job.posted_by_name || '').trim();
 
     if (posterName) {
-      return `By: ${posterName}`;
+      return `By: ${posterName} (${roleName})`;
     }
 
     // 2. Check for Phone Number if Name is not present
@@ -145,16 +165,16 @@ export default function Jobs() {
       (job.mobile_number || '').trim();
 
     if (posterPhone) {
-      return `By: ${posterPhone}`;
+      return `By: ${posterPhone} (${roleName})`;
     }
 
     // 3. Fallback to business/company name or 'Employer'
     const companyName = job.business_name || job.company_name || job.company;
     if (companyName) {
-      return `By: ${companyName}`;
+      return `By: ${companyName} (${roleName})`;
     }
 
-    return 'By: Employer';
+    return `By: Employer (${roleName})`;
   };
 
   const adminCount = jobs.filter(j => isAdminCreatedJob(j)).length;
