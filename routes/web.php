@@ -1087,7 +1087,11 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                 'job_posts.title as job_title',
                 'job_posts.company as job_company',
                 'job_posts.location as job_location',
-                'job_posts.category as job_category'
+                'job_posts.category as job_category',
+                'job_posts.is_admin_created as job_is_admin_created',
+                'job_posts.submitted_by_role as job_submitted_by_role',
+                'job_posts.posted_by_role as job_posted_by_role',
+                'job_posts.created_by as job_created_by'
             );
 
         if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
@@ -1124,7 +1128,11 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.program_name, job_posts.title, "Training Opportunity") as job_title'),
                     \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.provider_name, job_posts.company, "Jobrito Training Academy") as job_company'),
                     \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.location, job_posts.location, "India") as job_location'),
-                    'job_posts.category as job_category'
+                    'job_posts.category as job_category',
+                    'job_posts.is_admin_created as job_is_admin_created',
+                    'job_posts.submitted_by_role as job_submitted_by_role',
+                    'job_posts.posted_by_role as job_posted_by_role',
+                    'job_posts.created_by as job_created_by'
                 );
 
             if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
@@ -1142,6 +1150,18 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
         $mapped = $allResults->map(function($row) {
             $fullName = $row->applicant_name ?: ('Candidate #' . $row->applicant_id);
             $jobTitle = $row->job_title ?: (($row->is_training ?? false) ? 'Training Opportunity' : ('Job Listing #' . $row->job_post_id));
+
+            $isAdmin = !empty($row->job_is_admin_created)
+                || strtolower($row->job_submitted_by_role ?? '') === 'admin'
+                || strtolower($row->job_posted_by_role ?? '') === 'admin';
+
+            if (!$isAdmin && !empty($row->job_created_by)) {
+                $creator = \App\Models\User::find($row->job_created_by);
+                if ($creator && in_array(strtolower($creator->active_profile ?: ($creator->user_role ?: '')), ['admin', 'super_admin'])) {
+                    $isAdmin = true;
+                }
+            }
+            $submittedRole = $isAdmin ? 'admin' : ($row->job_submitted_by_role ?: ($row->job_posted_by_role ?: 'employer'));
 
             $skills = [];
             if ($row->applicant_skills) {
@@ -1174,6 +1194,8 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                 'preferred_call_time' => $row->preferred_call_time ?: null,
                 'is_training'         => (bool) ($row->is_training ?? false),
                 'application_type'    => ($row->is_training ?? false) ? 'training' : 'job',
+                'is_admin_created'    => (bool) $isAdmin,
+                'submitted_by_role'   => $submittedRole,
                 'created_at'          => $row->created_at ?: now()->toIso8601String(),
                 'applicant'           => [
                     'id'                 => $row->applicant_id,
@@ -1191,11 +1213,14 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     'avatar'             => $photoUrl,
                 ],
                 'job_post'            => [
-                    'id'       => $row->job_post_id,
-                    'title'    => $jobTitle,
-                    'company'  => $row->job_company ?: 'Employer',
-                    'location' => $row->job_location ?: 'India',
-                    'category' => $row->job_category ?: 'dubai',
+                    'id'                => $row->job_post_id,
+                    'title'             => $jobTitle,
+                    'company'           => $row->job_company ?: 'Employer',
+                    'location'          => $row->job_location ?: 'India',
+                    'category'          => $row->job_category ?: 'india',
+                    'is_admin_created'  => (bool) $isAdmin,
+                    'submitted_by_role' => $submittedRole,
+                    'posted_by_role'    => $submittedRole,
                 ]
             ];
         });

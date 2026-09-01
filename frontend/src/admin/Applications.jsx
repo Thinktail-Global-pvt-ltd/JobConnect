@@ -321,7 +321,7 @@ export default function Applications() {
     const jobId = String(app.job_post_id || app.job_post?.id || (isTraining ? `training_${app.training_id || app.id}` : 'unknown'));
 
     if (!groupedJobsMap[jobId]) {
-      const isAdminCreated = Boolean(app.job_post?.is_admin_created) || Boolean(app.is_admin_created) || (app.job_post?.submitted_by_role || app.submitted_by_role || '').toLowerCase() === 'admin';
+      const isAdminCreated = Boolean(app.job_post?.is_admin_created) || Boolean(app.is_admin_created) || (app.job_post?.submitted_by_role || app.job_post?.posted_by_role || app.submitted_by_role || app.posted_by_role || '').toLowerCase() === 'admin';
       groupedJobsMap[jobId] = {
         id: jobId,
         real_id: app.training_id || app.job_post?.real_id || app.job_post_id,
@@ -336,6 +336,12 @@ export default function Applications() {
         applications: [],
         latestDate: app.created_at,
       };
+    } else {
+      const isAdminCreated = Boolean(app.job_post?.is_admin_created) || Boolean(app.is_admin_created) || (app.job_post?.submitted_by_role || app.job_post?.posted_by_role || app.submitted_by_role || app.posted_by_role || '').toLowerCase() === 'admin';
+      if (isAdminCreated) {
+        groupedJobsMap[jobId].is_admin_created = true;
+        groupedJobsMap[jobId].submitted_by_role = 'admin';
+      }
     }
 
     if (!groupedJobsMap[jobId].applications.some(existing => (existing.id && existing.id === app.id))) {
@@ -649,6 +655,11 @@ export default function Applications() {
                                 <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
                                   {job.company}
                                 </span>
+                                {(job.is_admin_created || (job.submitted_by_role || '').toLowerCase() === 'admin') && (
+                                  <span className="text-[10px] font-extrabold text-amber-700 flex items-center gap-1 mt-0.5">
+                                    <ShieldCheck className="w-3 h-3 text-amber-600 inline" /> Admin Posted
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </td>

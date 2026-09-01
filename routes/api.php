@@ -1507,6 +1507,23 @@ function handleGetMergedApplications(\Illuminate\Http\Request $request) {
             ->map(function($a) {
                 $applicant = \App\Models\User::find($a->applicant_id ?? $a->user_id);
                 $jp = \Illuminate\Support\Facades\DB::table('job_posts')->where('id', $a->job_post_id)->first();
+                $isAdmin = false;
+                $submittedRole = 'employer';
+                if ($jp) {
+                    $submittedRole = $jp->submitted_by_role ?? ($jp->posted_by_role ?? 'employer');
+                    if (!empty($jp->is_admin_created) || strtolower($submittedRole) === 'admin') {
+                        $isAdmin = true;
+                    } elseif (!empty($jp->created_by)) {
+                        $creator = \App\Models\User::find($jp->created_by);
+                        if ($creator && in_array(strtolower($creator->active_profile ?: ($creator->user_role ?: '')), ['admin', 'super_admin'])) {
+                            $isAdmin = true;
+                        }
+                    }
+                }
+                if ($isAdmin) {
+                    $submittedRole = 'admin';
+                }
+
                 return [
                     'id' => $a->id,
                     'application_id' => $a->id,
@@ -1515,6 +1532,8 @@ function handleGetMergedApplications(\Illuminate\Http\Request $request) {
                     'status' => $a->status ?? 'applied',
                     'type' => 'job',
                     'is_training' => false,
+                    'is_admin_created' => (bool)$isAdmin,
+                    'submitted_by_role' => $submittedRole,
                     'created_at' => $a->created_at ? \Carbon\Carbon::parse($a->created_at)->toIso8601String() : null,
                     'applicant' => [
                         'id' => optional($applicant)->id,
@@ -1531,8 +1550,9 @@ function handleGetMergedApplications(\Illuminate\Http\Request $request) {
                         'company' => optional($jp)->company ?? 'Employer',
                         'location' => optional($jp)->location ?? 'India',
                         'category' => optional($jp)->category ?? 'india',
-                        'is_admin_created' => (bool)(optional($jp)->is_admin_created ?? false),
-                        'submitted_by_role' => optional($jp)->submitted_by_role ?? (optional($jp)->posted_by_role ?? 'employer'),
+                        'is_admin_created' => (bool)$isAdmin,
+                        'submitted_by_role' => $submittedRole,
+                        'posted_by_role' => $submittedRole,
                     ]
                 ];
             });
