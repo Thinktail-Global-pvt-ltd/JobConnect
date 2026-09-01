@@ -62,17 +62,24 @@ class EmployerController extends Controller
             $this->ensureJobApplicationViewedColumns();
             $this->ensureEmployerJobSeenLogsTableExists();
 
-            $user = Auth::user();
+            $targetUserId = $request->input('user_id') ?: $request->input('employer_id') ?: $request->query('user_id') ?: $request->query('employer_id');
+            $user = null;
+
+            if (!empty($targetUserId)) {
+                $user = \App\Models\User::find($targetUserId);
+            }
+
+            if (!$user) {
+                $user = Auth::user();
+            }
+
             if (!$user && $request->bearerToken()) {
                 $tokenObj = \Laravel\Sanctum\PersonalAccessToken::findToken($request->bearerToken());
                 if ($tokenObj) {
                     $user = $tokenObj->tokenable;
                 }
             }
-            if (!$user && ($request->filled('employer_id') || $request->filled('user_id'))) {
-                $eId = $request->input('employer_id') ?: $request->input('user_id');
-                $user = \App\Models\User::find($eId);
-            }
+
             if (!$user && ($request->wantsJson() || $request->ajax() || $request->is('api/*') || $request->is('backend/api/*'))) {
                 try {
                     if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
@@ -88,7 +95,7 @@ class EmployerController extends Controller
             }
 
             if (!$user) {
-                return redirect()->route('login');
+                return response()->json(['success' => false, 'message' => 'Employer profile not found or unauthorized.'], 401);
             }
 
             // Clean up incomplete/null name applications from the database
