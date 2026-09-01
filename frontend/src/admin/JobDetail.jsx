@@ -160,6 +160,29 @@ export default function JobDetail() {
     }
   };
 
+  const getPosterRoleName = (j) => {
+    if (!j) return 'Employer';
+    const isAdm = Boolean(j.is_admin_created) || (j.submitted_by_role || '').toLowerCase() === 'admin' || (j.posted_by_role || '').toLowerCase() === 'admin';
+    if (isAdm) return 'Admin';
+
+    const rawRole = (
+      j.posted_by_role || 
+      j.submitted_by_role || 
+      j.creator?.active_profile || 
+      j.creator?.active_role || 
+      j.creator?.user_role || 
+      j.creator?.role || 
+      j.user_role || 
+      ''
+    ).toLowerCase();
+
+    if (rawRole === 'chef' || rawRole === 'cook') return 'Chef';
+    if (rawRole === 'jobseeker' || rawRole === 'job_seeker' || rawRole === 'talent' || rawRole === 'candidate') return 'Talent';
+    if (rawRole === 'admin') return 'Admin';
+    if (rawRole === 'employer' || rawRole === 'agency' || rawRole === 'recruiter' || rawRole === 'hirer') return 'Employer';
+    return 'Employer';
+  };
+
   const handleReject = async () => {
     try {
       await mockApi.rejectJob(id);
@@ -527,9 +550,13 @@ export default function JobDetail() {
                 <h4 className="font-outfit font-extrabold text-base text-slate-900">{job.company}</h4>
                 {job.creator ? (
                   <span className="text-[11px] font-semibold text-slate-500 block">
-                    Posted by: <strong className="text-slate-800">{job.creator.full_name || job.creator.name}</strong> ({job.creator.active_role || job.creator.user_role || 'User'})
+                    Posted by: <strong className="text-slate-800">{job.creator.full_name || job.creator.name || job.contact_person || 'Employer'}</strong> ({getPosterRoleName(job)})
                   </span>
-                ) : null}
+                ) : (
+                  <span className="text-[11px] font-semibold text-slate-500 block">
+                    Posted by: <strong className="text-slate-800">{job.contact_person || job.company || 'Employer'}</strong> ({getPosterRoleName(job)})
+                  </span>
+                )}
               </div>
             </div>
 
