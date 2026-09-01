@@ -46,18 +46,18 @@ export default function EmployerDetail() {
             user_id: u.id,
             name: empP.business_name || u.current_employer || u.full_name || 'Employer',
             business_name: empP.business_name || u.current_employer || u.full_name || 'Employer',
-            contact: empP.contact_person_name || u.full_name || 'Feras',
-            contact_person_name: empP.contact_person_name || u.full_name || 'Feras',
-            phone: empP.business_mobile || u.mobile_number || '+91 98865 43210',
-            mobile_number: empP.business_mobile || u.mobile_number || '+91 98865 43210',
-            email: empP.business_email || u.email || 'feras@bigbunn.com',
-            hq: empP.business_location || u.city || 'Riyadh, Central, Saudi Arabia',
-            business_location: empP.business_location || u.city || 'Riyadh, Central, Saudi Arabia',
-            city: u.city || empP.business_location || 'Riyadh',
-            country: u.country || 'Saudi Arabia',
-            industry_segment: empP.industry_segment || 'Café',
+            contact: empP.contact_person_name || u.full_name || '',
+            contact_person_name: empP.contact_person_name || u.full_name || '',
+            phone: empP.business_mobile || u.mobile_number || '',
+            mobile_number: empP.business_mobile || u.mobile_number || '',
+            email: empP.business_email || u.email || '',
+            hq: empP.business_location || u.city || '',
+            business_location: empP.business_location || u.city || '',
+            city: u.city || empP.business_location || '',
+            country: u.country || '',
+            industry_segment: empP.industry_segment || 'Hospitality',
             preferred_language: empP.preferred_language || u.selected_language || 'English',
-            operational_locations: empP.operational_locations || ['Al Khobar, Eastern, Saudi Arabia', 'Jeddah, Western, Saudi Arabia', 'Dammam, Eastern, Saudi Arabia'],
+            operational_locations: empP.operational_locations || [],
             is_suspended: Boolean(u.is_suspended),
             status: u.is_suspended ? 'Suspended' : 'Active',
             created_at: u.created_at || '',
@@ -146,26 +146,24 @@ export default function EmployerDetail() {
     );
   }
 
-  const name = employer.business_name || employer.name || 'Big BUNN';
-  const profileId = employer.profile_id || `EMP-${employer.created_at ? new Date(employer.created_at).getFullYear() : '2024'}-${String(employer.id || id).padStart(6, '0')}`;
-  const businessType = employer.industry_segment || employer.business_type || 'Café';
-  const contactName = employer.contact_person_name || employer.contact || 'Feras';
-  const phone = employer.business_mobile || employer.phone || employer.mobile_number || '+91 98865 43210';
-  const email = employer.business_email || employer.email || 'feras@bigbunn.com';
-  const primaryLocation = employer.business_location || employer.hq || employer.location || 'Riyadh, Central, Saudi Arabia';
+  const name = employer.business_name || employer.name || employer.full_name || 'Employer';
+  const profileId = employer.profile_id || `EMP-${employer.created_at ? new Date(employer.created_at).getFullYear() : new Date().getFullYear()}-${String(employer.id || id).padStart(6, '0')}`;
+  const businessType = employer.industry_segment || employer.business_type || 'Hospitality';
+  const contactName = employer.contact_person_name || employer.contact || employer.name || employer.full_name || 'N/A';
+  const phone = employer.business_mobile || employer.phone || employer.mobile_number || 'N/A';
+  const email = employer.business_email || employer.email || 'N/A';
+  const primaryLocation = employer.business_location || employer.hq || employer.location || [employer.city, employer.state, employer.country].filter(Boolean).join(', ') || 'N/A';
 
   let otherLocations = [];
   if (Array.isArray(employer.operational_locations)) {
     otherLocations = employer.operational_locations;
   } else if (typeof employer.operational_locations === 'string' && employer.operational_locations) {
-    otherLocations = employer.operational_locations.split(',').map(l => l.trim());
-  } else {
-    otherLocations = ['Al Khobar, Eastern, Saudi Arabia', 'Jeddah, Western, Saudi Arabia', 'Dammam, Eastern, Saudi Arabia'];
+    otherLocations = employer.operational_locations.split(',').map(l => l.trim()).filter(Boolean);
   }
 
   const joinedDateTime = employer.created_at 
     ? new Date(employer.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(employer.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
-    : '12 Aug 2024, 10:30 AM';
+    : 'Recently';
 
   const isAdminCreatedJob = (j) => {
     if (!j) return false;
@@ -222,19 +220,11 @@ export default function EmployerDetail() {
   });
 
   if (recentActivities.length === 0) {
-    recentActivities.push(
-      { id: 'act_1', color: 'bg-emerald-500 border-emerald-200', time: 'Today, 09:15 AM', text: 'Posted a new job – Sous Chef', jobId: 'JOB-2024-00128' },
-      { id: 'act_2', color: 'bg-blue-500 border-blue-200', time: 'Yesterday, 04:30 PM', text: 'Hired candidate Rahul Sharma', jobId: 'JOB-2024-00120' },
-      { id: 'act_3', color: 'bg-purple-500 border-purple-200', time: '10 Aug 2024, 11:20 AM', text: 'Posted a new job – Barista', jobId: 'JOB-2024-00118' },
-      { id: 'act_4', color: 'bg-amber-500 border-amber-200', time: '08 Aug 2024, 03:45 PM', text: 'Job closed – Kitchen Helper', jobId: 'JOB-2024-00105' },
-      { id: 'act_5', color: 'bg-teal-500 border-teal-200', time: '05 Aug 2024, 02:10 PM', text: 'Updated business profile information', jobId: null }
-    );
-  } else {
     recentActivities.push({
-      id: 'act_updated',
+      id: 'act_joined',
       color: 'bg-teal-500 border-teal-200',
       time: joinedDateTime,
-      text: 'Updated business profile information',
+      text: 'Joined platform as Employer',
       jobId: null
     });
   }
@@ -296,8 +286,7 @@ export default function EmployerDetail() {
               />
             ) : (
               <div className="text-center">
-                <span className="text-[11px] font-black tracking-widest block uppercase leading-none text-amber-200">BIG</span>
-                <span className="text-sm font-black tracking-wider block uppercase leading-none mt-1">BUNN</span>
+                <span className="text-xl font-extrabold tracking-wider block uppercase">{initials}</span>
               </div>
             )}
           </div>

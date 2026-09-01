@@ -1347,6 +1347,8 @@ if (!function_exists('getWebTrainingOpportunities')) {
                         'placement_opportunities' => $p->placement_opportunities ?? '',
                         'status' => $p->status ?? 'Published',
                         'is_pinned' => (bool)($p->is_pinned ?? false),
+                        'created_at' => $p->created_at ?? null,
+                        'created_date' => $p->created_at ?? null,
                     ];
                 });
 

@@ -279,7 +279,7 @@ export default function Training() {
                   const isActive = prog.status === 'Published' || prog.status === 'Active';
 
                   const createdRaw = prog.created_at || prog.created_date || prog.createdAt;
-                  let formattedDate = '24 Aug 2026';
+                  let formattedDate = 'N/A';
                   if (createdRaw) {
                     try {
                       const d = new Date(createdRaw);
