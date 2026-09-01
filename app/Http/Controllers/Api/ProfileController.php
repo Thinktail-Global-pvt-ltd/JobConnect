@@ -237,7 +237,7 @@ class ProfileController extends Controller
         $jobLocation = ($user && $user->city) ? $user->city : ($chefAvailability['location_preference'] ?? null);
         $preference = ($user && $user->preferred_role) ? $user->preferred_role : (is_array($chefAvailability['employment_preference'] ?? null) ? implode(', ', $chefAvailability['employment_preference']) : ($chefAvailability['employment_preference'] ?? null));
         $country = ($user && !empty($user->country)) ? $user->country : null;
-        $city = ($user && !empty($user->city)) ? $user->city : ($employerData['city'] ?? null);
+        $city = ($user && !empty($user->city)) ? $user->city : (is_array($employerData) ? ($employerData['city'] ?? null) : null);
 
         $isAvailable = $user ? (bool)$user->is_available : true;
         $availabilityStatus = ($user && !empty($user->availability_status)) ? $user->availability_status : null;
