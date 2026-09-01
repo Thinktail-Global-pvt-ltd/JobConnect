@@ -55,9 +55,20 @@ class ProfileController extends Controller
                 }
             } catch (\Throwable $e) {}
         }
-        if (!$user && ($request->filled('user_id') || $request->filled('id') || $request->filled('applicant_id'))) {
-            $uId = $request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id'));
-            $user = User::find($uId);
+        $uIdParam = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->input('user_id') ?: ($request->input('id') ?: $request->input('applicant_id')))));
+        if (empty($uIdParam)) {
+            $rawQuery = urldecode($request->getQueryString() ?: ($_SERVER['QUERY_STRING'] ?? ''));
+            if (preg_match('/[?&]user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $uIdParam = $matches[1];
+            } elseif (preg_match('/user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $uIdParam = $matches[1];
+            }
+        }
+        if (!empty($uIdParam)) {
+            $foundUser = User::find($uIdParam);
+            if ($foundUser) {
+                $user = $foundUser;
+            }
         }
         if (!$user && ($request->header('X-User-Id') || $request->header('user-id'))) {
             $hId = $request->header('X-User-Id') ?: $request->header('user-id');
