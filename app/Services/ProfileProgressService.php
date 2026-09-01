@@ -36,16 +36,9 @@ class ProfileProgressService
     /**
      * Check if user has at least one valid social media or custom link added.
      */
-    private static function hasSocialLinks(User $user, ?ChefProfile $chefProfile = null): bool
+    private static function hasSocialLinks(User $user): bool
     {
         try {
-            if ($chefProfile && !empty($chefProfile->calendly_link)) {
-                $cLink = trim((string)$chefProfile->calendly_link);
-                if ($cLink !== '' && strtolower($cLink) !== 'null' && strtolower($cLink) !== 'n/a' && strtolower($cLink) !== 'undefined') {
-                    return true;
-                }
-            }
-
             $socials = $user->socials ?: UserSocial::where('user_id', $user->id)->first();
             if (!$socials) {
                 return false;
@@ -155,8 +148,8 @@ class ProfileProgressService
         $empPref = $availInfo['employment_preference'] ?? null;
         $breakdown['employment_preference'] = self::isFilled($empPref) ? 6 : 0;
 
-        // 14. Social Links (COMPLETE if AT LEAST ONE valid social link exists)
-        $hasAnySocial = self::hasSocialLinks($user, $chefProfile);
+        // 14. Social Links (COMPLETE if AT LEAST ONE valid social media link is filled in user_socials)
+        $hasAnySocial = self::hasSocialLinks($user);
         $breakdown['social_links'] = $hasAnySocial ? 6 : 0;
 
         // 15. Profile Photo (COMPLETE if AT LEAST ONE photo source exists)
@@ -167,8 +160,8 @@ class ProfileProgressService
         $ageVal = $user->age ?: ($chefProfile ? $chefProfile->age : ($availInfo['age'] ?? null));
         $breakdown['age'] = self::isFilled($ageVal) ? 6 : 0;
 
-        // 17. Overseas Work Experience / Regional Experience
-        $overseasExp = $user->overseas_work_experience ?: ($chefProfile ? ($chefProfile->overseas_work_experience ?: ($availInfo['regional_experience'] ?? null)) : ($availInfo['regional_experience'] ?? null));
+        // 17. Overseas Work Experience
+        $overseasExp = $user->overseas_work_experience ?: ($chefProfile ? $chefProfile->overseas_work_experience : null);
         $breakdown['overseas_work_experience'] = self::isFilled($overseasExp) ? 6 : 0;
 
         $filledCount = 0;
