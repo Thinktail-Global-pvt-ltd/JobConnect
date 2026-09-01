@@ -141,13 +141,21 @@ class EmployerController extends Controller
             $totalRejected = 0;
             $totalContacted = 0;
 
+            // Helper closures for application status matching
+            $isAppViewed = fn($a) => (bool)$a->is_viewed || strtolower(trim($a->status ?? '')) === 'viewed';
+            $isAppNew = fn($a) => !$isAppViewed($a) && in_array(strtolower(trim($a->status ?? 'new')), ['new', 'pending', 'applied', '']);
+            $isAppShortlisted = fn($a) => strtolower(trim($a->status ?? '')) === 'shortlisted';
+            $isAppContacted = fn($a) => strtolower(trim($a->status ?? '')) === 'contacted';
+            $isAppRejected = fn($a) => strtolower(trim($a->status ?? '')) === 'rejected';
+
             foreach ($jobs as $job) {
-                $totalApplicants += $job->applications->count();
-                $totalNew += $job->applications->filter(fn($a) => in_array(strtolower($a->status), ['new', 'pending']) && !$a->is_viewed)->count();
-                $totalViewed += $job->applications->filter(fn($a) => (bool)$a->is_viewed || strtolower($a->status) === 'viewed')->count();
-                $totalShortlisted += $job->applications->where('status', 'shortlisted')->count();
-                $totalRejected += $job->applications->where('status', 'rejected')->count();
-                $totalContacted += $job->applications->where('status', 'contacted')->count();
+                $jApps = $job->applications;
+                $totalApplicants += $jApps->count();
+                $totalNew += $jApps->filter($isAppNew)->count();
+                $totalViewed += $jApps->filter($isAppViewed)->count();
+                $totalShortlisted += $jApps->filter($isAppShortlisted)->count();
+                $totalRejected += $jApps->filter($isAppRejected)->count();
+                $totalContacted += $jApps->filter($isAppContacted)->count();
             }
 
             // Fetch details of users who saved these jobs
@@ -231,7 +239,7 @@ class EmployerController extends Controller
             }
 
             // Map database status values to match frontend expected tabs (active, pending, closed)
-            $mappedJobs = $jobs->map(function ($job) use ($savedByMap, $rawSavedCounts, $seenLogs) {
+            $mappedJobs = $jobs->map(function ($job) use ($savedByMap, $rawSavedCounts, $seenLogs, $isAppViewed, $isAppNew, $isAppShortlisted, $isAppContacted, $isAppRejected) {
                 $status = 'pending';
                 if ($job->status === 'approved') {
                     $status = 'active';
@@ -241,11 +249,11 @@ class EmployerController extends Controller
 
                 $jobApps = $job->applications;
                 $jobTotal = $jobApps->count();
-                $jobViewed = $jobApps->filter(fn($a) => (bool)$a->is_viewed || strtolower($a->status) === 'viewed')->count();
-                $jobNew = $jobApps->filter(fn($a) => !(bool)$a->is_viewed && strtolower($a->status) !== 'viewed' && in_array(strtolower($a->status), ['new', 'pending', 'applied', '']))->count();
-                $jobShortlisted = $jobApps->filter(fn($a) => strtolower($a->status) === 'shortlisted')->count();
-                $jobContacted = $jobApps->filter(fn($a) => strtolower($a->status) === 'contacted')->count();
-                $jobRejected = $jobApps->filter(fn($a) => strtolower($a->status) === 'rejected')->count();
+                $jobViewed = $jobApps->filter($isAppViewed)->count();
+                $jobNew = $jobApps->filter($isAppNew)->count();
+                $jobShortlisted = $jobApps->filter($isAppShortlisted)->count();
+                $jobContacted = $jobApps->filter($isAppContacted)->count();
+                $jobRejected = $jobApps->filter($isAppRejected)->count();
 
                 $stats = [
                     'total'       => $jobTotal,
