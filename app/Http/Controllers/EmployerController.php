@@ -143,20 +143,16 @@ class EmployerController extends Controller
 
             // Helper closures for application status matching
             $isAppViewed = fn($a) => (bool)$a->is_viewed || strtolower(trim($a->status ?? '')) === 'viewed';
-            $isAppNew = fn($a) => !$isAppViewed($a) && in_array(strtolower(trim($a->status ?? 'new')), ['new', 'pending', 'applied', '']);
+            $isAppNew = function($a) use ($isAppViewed) {
+                $st = strtolower(trim($a->status ?? ''));
+                if ($st === 'new' || $st === 'applied' || $st === 'pending' || $st === '') {
+                    return true;
+                }
+                return !$isAppViewed($a);
+            };
             $isAppShortlisted = fn($a) => strtolower(trim($a->status ?? '')) === 'shortlisted';
             $isAppContacted = fn($a) => strtolower(trim($a->status ?? '')) === 'contacted';
             $isAppRejected = fn($a) => strtolower(trim($a->status ?? '')) === 'rejected';
-
-            foreach ($jobs as $job) {
-                $jApps = $job->applications;
-                $totalApplicants += $jApps->count();
-                $totalNew += $jApps->filter($isAppNew)->count();
-                $totalViewed += $jApps->filter($isAppViewed)->count();
-                $totalShortlisted += $jApps->filter($isAppShortlisted)->count();
-                $totalRejected += $jApps->filter($isAppRejected)->count();
-                $totalContacted += $jApps->filter($isAppContacted)->count();
-            }
 
             // Fetch details of users who saved these jobs
             $allJobIds = $jobs->pluck('id')->filter()->toArray();
@@ -541,6 +537,14 @@ class EmployerController extends Controller
                     'applicants'               => $applicants,
                 ];
             });
+
+            // Derive overall metrics directly from mappedJobs to guarantee 100% mathematical consistency
+            $totalApplicants = $mappedJobs->sum(fn($j) => $j['stats']['total']);
+            $totalNew = $mappedJobs->sum(fn($j) => $j['stats']['new']);
+            $totalViewed = $mappedJobs->sum(fn($j) => $j['stats']['viewed']);
+            $totalShortlisted = $mappedJobs->sum(fn($j) => $j['stats']['shortlisted']);
+            $totalRejected = $mappedJobs->sum(fn($j) => $j['stats']['rejected']);
+            $totalContacted = $mappedJobs->sum(fn($j) => $j['stats']['contacted']);
 
             if ($request->wantsJson() || $request->ajax() || $request->is('api/*') || $request->is('backend/api/*')) {
                 return response()->json([
