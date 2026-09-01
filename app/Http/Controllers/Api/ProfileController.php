@@ -820,13 +820,37 @@ class ProfileController extends Controller
      * Get Chef Profile Completeness percentage and breakdown.
      * GET /api/chef/profile/completeness
      */
-    public function getChefCompleteness(Request $request)
+    /**
+     * Helper to resolve target user for profile completeness requests.
+     */
+    private function resolveTargetUser(Request $request): ?User
     {
         $user = $request->user() ?: auth('sanctum')->user();
-        if (!$user) {
-            $user = User::first();
+        $uId = $request->query('user_id') ?: ($request->query('id') ?: ($request->input('user_id') ?: $request->input('id')));
+        if (empty($uId)) {
+            $rawQuery = urldecode($request->getQueryString() ?: ($_SERVER['QUERY_STRING'] ?? ''));
+            if (preg_match('/[?&]user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $uId = $matches[1];
+            } elseif (preg_match('/user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $uId = $matches[1];
+            }
         }
+        if (!empty($uId)) {
+            $foundUser = User::find($uId);
+            if ($foundUser) {
+                return $foundUser;
+            }
+        }
+        return $user ?: User::first();
+    }
 
+    /**
+     * Get Chef Profile Completeness percentage and breakdown.
+     * GET /api/chef/profile/completeness
+     */
+    public function getChefCompleteness(Request $request)
+    {
+        $user = $this->resolveTargetUser($request);
         $result = \App\Services\ProfileProgressService::calculateChef($user);
 
         return response()->json([
@@ -845,11 +869,7 @@ class ProfileController extends Controller
      */
     public function getEmployerCompleteness(Request $request)
     {
-        $user = $request->user() ?: auth('sanctum')->user();
-        if (!$user) {
-            $user = User::first();
-        }
-
+        $user = $this->resolveTargetUser($request);
         $result = \App\Services\ProfileProgressService::calculateEmployer($user);
 
         return response()->json([
@@ -868,11 +888,7 @@ class ProfileController extends Controller
      */
     public function getTalentCompleteness(Request $request)
     {
-        $user = $request->user() ?: auth('sanctum')->user();
-        if (!$user) {
-            $user = User::first();
-        }
-
+        $user = $this->resolveTargetUser($request);
         $result = \App\Services\ProfileProgressService::calculateTalent($user);
 
         return response()->json([
@@ -889,11 +905,7 @@ class ProfileController extends Controller
      */
     public function getCompleteness(Request $request)
     {
-        $user = $request->user() ?: auth('sanctum')->user();
-        if (!$user) {
-            $user = User::first();
-        }
-
+        $user = $this->resolveTargetUser($request);
         $role = $request->query('role') ?? ($user ? ($user->active_profile ?? 'talent') : 'talent');
 
         if ($role === 'chef') {
