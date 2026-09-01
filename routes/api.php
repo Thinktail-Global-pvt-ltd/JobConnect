@@ -320,6 +320,18 @@ Route::match(['get', 'post'], '/feed', function(\Illuminate\Http\Request $reques
                         }
                     }
                 }
+
+                $itemType = is_object($item) ? ($item->_type ?? ($item->category ?? '')) : ($item['_type'] ?? ($item['category'] ?? ''));
+                if ($itemType === 'training_opportunity' || $itemType === 'training') {
+                    $prov = is_object($item) ? ($item->provider_name ?? '') : ($item['provider_name'] ?? '');
+                    if (!empty($prov)) {
+                        if (is_object($item)) {
+                            $item->description = $prov;
+                        } elseif (is_array($item)) {
+                            $item['description'] = $prov;
+                        }
+                    }
+                }
                 return $item;
             }, $rawList);
 

@@ -296,7 +296,7 @@ class FeedController extends Controller
                     'skills_covered'      => $t->skills_covered,
                     'benefits'            => $t->benefits,
                     'placement_opportunities' => $t->placement_opportunities,
-                    'description'         => $t->description,
+                    'description'         => !empty($t->provider_name) ? $t->provider_name : ($t->description ?? ''),
                     'contact_information' => $t->contact_information,
                     'location'            => $t->location,
                     'duration'            => $t->duration ?? '12 Months',
