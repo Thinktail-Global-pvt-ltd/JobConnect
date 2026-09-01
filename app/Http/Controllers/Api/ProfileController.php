@@ -86,8 +86,9 @@ class ProfileController extends Controller
 
         $activeRole = $user ? ($user->active_profile ?: 'job_seeker') : 'job_seeker';
 
-        $chefData = null;
-        $employerData = null;
+        $chefCompleteness = ($user && $user->chefProfile) ? \App\Services\ProfileProgressService::calculateChef($user)['completeness'] : 0;
+        $empCompleteness = ($user && $user->employerProfile) ? \App\Services\ProfileProgressService::calculateEmployer($user)['completeness'] : 0;
+        $talentCompleteness = $user ? \App\Services\ProfileProgressService::calculateTalent($user)['completeness'] : 0;
 
         if ($user && $user->chefProfile) {
             $availability = [];
@@ -106,6 +107,8 @@ class ProfileController extends Controller
                 'availability_info' => $availability,
                 'approval_status' => $user->chefProfile->approval_status ?: 'approved',
                 'status' => $user->chefProfile->approval_status ?: 'approved',
+                'completeness' => $chefCompleteness,
+                'profile_completeness' => $chefCompleteness,
             ];
         }
 
@@ -135,6 +138,8 @@ class ProfileController extends Controller
                 'nominee_relationship' => $user->employerProfile->nominee_relationship ?: null,
                 'nominee_mobile' => $user->employerProfile->nominee_mobile ?: null,
                 'is_completed' => (bool)$user->employerProfile->is_completed,
+                'completeness' => $empCompleteness,
+                'profile_completeness' => $empCompleteness,
                 'created_at' => $user->employerProfile->created_at ? $user->employerProfile->created_at->toIso8601String() : null,
                 'updated_at' => $user->employerProfile->updated_at ? $user->employerProfile->updated_at->toIso8601String() : null,
             ];
@@ -149,8 +154,6 @@ class ProfileController extends Controller
             } elseif (is_string($user->skills) && !empty($user->skills)) {
                 $skillsArray = json_decode($user->skills, true) ?: array_values(array_filter(array_map('trim', explode(',', $user->skills))));
             }
-
-            $talentCompleteness = \App\Services\ProfileProgressService::calculateTalent($user)['completeness'];
 
             $talentData = [
                 'id' => $user->id,
@@ -214,8 +217,14 @@ class ProfileController extends Controller
             'others'    => $othersList,
         ];
 
-        $activeRole = $user ? $user->active_profile : 'job_seeker';
-        $completeness = $user ? \App\Services\ProfileProgressService::calculate($user) : 0;
+        $activeRole = $user ? strtolower($user->active_profile ?? 'job_seeker') : 'job_seeker';
+        if ($activeRole === 'chef') {
+            $completeness = $chefCompleteness;
+        } elseif ($activeRole === 'employer') {
+            $completeness = $empCompleteness;
+        } else {
+            $completeness = $talentCompleteness;
+        }
 
         // Extract location_preference & employment_preference safely if available
         $chefAvailability = ($user && $user->chefProfile && $user->chefProfile->availability_info)
