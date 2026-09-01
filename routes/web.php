@@ -1153,9 +1153,10 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
             $fullName = $row->applicant_name ?: ('Candidate #' . $row->applicant_id);
             $jobTitle = $row->job_title ?: (($row->is_training ?? false) ? 'Training Opportunity' : ('Job Listing #' . $row->job_post_id));
 
+            $postedByRole = property_exists($row, 'job_posted_by_role') ? $row->job_posted_by_role : '';
             $isAdmin = !empty($row->job_is_admin_created)
                 || strtolower($row->job_submitted_by_role ?? '') === 'admin'
-                || strtolower($row->job_posted_by_role ?? '') === 'admin';
+                || strtolower($postedByRole ?? '') === 'admin';
 
             if (!$isAdmin && !empty($row->job_created_by)) {
                 $creator = \App\Models\User::find($row->job_created_by);
@@ -1163,7 +1164,7 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
                     $isAdmin = true;
                 }
             }
-            $submittedRole = $isAdmin ? 'admin' : ($row->job_submitted_by_role ?: ($row->job_posted_by_role ?: 'employer'));
+            $submittedRole = $isAdmin ? 'admin' : ($row->job_submitted_by_role ?: ($postedByRole ?: 'employer'));
 
             $skills = [];
             if ($row->applicant_skills) {
