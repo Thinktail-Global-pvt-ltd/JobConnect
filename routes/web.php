@@ -288,16 +288,16 @@ Route::match(['get', 'post'], '/api/profile', function(\Illuminate\Http\Request 
 });
 Route::match(['get', 'post'], '/api/employer/dashboard', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\EmployerController)->index($request);
-})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+})->withoutMiddleware([\Illuminate\Auth\Middleware\Authenticate::class, 'auth', 'auth:sanctum', \App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::match(['get', 'post'], '/backend/api/employer/dashboard', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\EmployerController)->index($request);
-})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+})->withoutMiddleware([\Illuminate\Auth\Middleware\Authenticate::class, 'auth', 'auth:sanctum', \App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::match(['get', 'post'], '/api/employer_dashboard', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\EmployerController)->index($request);
-})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+})->withoutMiddleware([\Illuminate\Auth\Middleware\Authenticate::class, 'auth', 'auth:sanctum', \App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 Route::match(['get', 'post'], '/backend/api/employer_dashboard', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\EmployerController)->index($request);
-})->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+})->withoutMiddleware([\Illuminate\Auth\Middleware\Authenticate::class, 'auth', 'auth:sanctum', \App\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 
 if (!function_exists('checkUserExistsHandler')) {
@@ -679,7 +679,6 @@ Route::middleware('auth:sanctum,web')->prefix('api')->group(function () {
     Route::post('/logout', [WebAuthController::class, 'apiLogout'])->name('api.logout');
     
     // Employer Dashboard APIs
-    Route::get('/employer_dashboard', [EmployerController::class, 'index'])->name('api.employer.dashboard');
     Route::post('/jobs/{id}/close', [EmployerController::class, 'closeJob'])->name('employer.jobs.close');
     Route::post('/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus'])->name('employer.applicants.status');
     Route::post('/employer/jobs/store', [EmployerController::class, 'storeJob'])->name('employer.jobs.store');

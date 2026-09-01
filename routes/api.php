@@ -224,10 +224,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chefs', [ChefProfileController::class, 'store']);
     Route::get('/chef/dashboard', [ChefProfileController::class, 'dashboardStats']);
 
-    // Employer Dashboard Route
-    Route::get('/employer_dashboard', [EmployerController::class, 'index']);
-    Route::get('/employer/dashboard', [EmployerController::class, 'index']);
-
     // Applicant Status, Shortlisting & View Tracking Routes
     Route::post('/employer/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
     Route::post('/applicants/{id}/status', [EmployerController::class, 'updateApplicantStatus']);
