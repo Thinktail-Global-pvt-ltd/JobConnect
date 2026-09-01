@@ -51,9 +51,20 @@ class FeedController extends Controller
         if (!$user) {
             $user = \Illuminate\Support\Facades\Auth::user();
         }
-        if (!$user && ($request->filled('user_id') || $request->filled('applicant_id') || $request->filled('id'))) {
-            $uId = $request->input('user_id') ?: ($request->input('applicant_id') ?: $request->input('id'));
-            $user = \App\Models\User::find($uId);
+        $uIdParam = $request->input('user_id') ?: ($request->query('user_id') ?: ($request->input('applicant_id') ?: ($request->query('applicant_id') ?: ($request->input('id') ?: $request->query('id')))));
+        if (empty($uIdParam)) {
+            $rawQuery = urldecode($request->getQueryString() ?: ($_SERVER['QUERY_STRING'] ?? ''));
+            if (preg_match('/[?&]user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $uIdParam = $matches[1];
+            } elseif (preg_match('/user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $uIdParam = $matches[1];
+            }
+        }
+        if (!empty($uIdParam)) {
+            $foundUser = \App\Models\User::find($uIdParam);
+            if ($foundUser) {
+                $user = $foundUser;
+            }
         }
 
         // ----------------------------------------------------------------
@@ -74,7 +85,8 @@ class FeedController extends Controller
         }
 
         // Optional category or filter query parameter
-        $filter = $request->input('filter') ?? $request->input('category');
+        $rawFilter = $request->input('filter') ?? $request->input('category');
+        $filter = explode('?', (string)$rawFilter)[0];
         if (!empty($filter) && $filter !== 'all') {
             if (in_array($filter, ['community', 'referral', 'referrals'])) {
                 $query->where(function($q) {
@@ -94,33 +106,6 @@ class FeedController extends Controller
         $appliedTrainingMap = [];
         $savedJobMap = [];
         $savedTrainingMap = [];
-
-        if (!$user) {
-            $hasApplicant = \Illuminate\Support\Facades\Schema::hasColumn('job_applications', 'applicant_id');
-            $hasUser = \Illuminate\Support\Facades\Schema::hasColumn('job_applications', 'user_id');
-            $recentApplicantId = null;
-            if (\Illuminate\Support\Facades\Schema::hasTable('job_applications')) {
-                if ($hasApplicant) {
-                    $recentApplicantId = \App\Models\JobApplication::latest()->value('applicant_id');
-                }
-                if (!$recentApplicantId && $hasUser) {
-                    $recentApplicantId = \App\Models\JobApplication::latest()->value('user_id');
-                }
-            }
-            if (!$recentApplicantId && \Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
-                $hasApplicantTrain = \Illuminate\Support\Facades\Schema::hasColumn('training_applications', 'applicant_id');
-                $hasUserTrain = \Illuminate\Support\Facades\Schema::hasColumn('training_applications', 'user_id');
-                if ($hasApplicantTrain) {
-                    $recentApplicantId = \App\Models\TrainingApplication::latest()->value('applicant_id');
-                }
-                if (!$recentApplicantId && $hasUserTrain) {
-                    $recentApplicantId = \App\Models\TrainingApplication::latest()->value('user_id');
-                }
-            }
-            if ($recentApplicantId) {
-                $user = \App\Models\User::find($recentApplicantId);
-            }
-        }
 
         if ($user) {
             $hasUserIdInJobApps = \Illuminate\Support\Facades\Schema::hasColumn('job_applications', 'user_id');

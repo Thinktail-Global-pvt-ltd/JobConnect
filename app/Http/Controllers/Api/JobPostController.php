@@ -215,6 +215,15 @@ class JobPostController extends Controller
         }
 
         $targetId = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->query('slug') ?: ($request->input('user_id') ?: ($request->input('id') ?: ($request->input('applicant_id') ?: $request->input('slug')))))));
+        if (empty($targetId)) {
+            $rawQuery = urldecode($request->getQueryString() ?: ($_SERVER['QUERY_STRING'] ?? ''));
+            if (preg_match('/[?&]user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $targetId = $matches[1];
+            } elseif (preg_match('/user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $targetId = $matches[1];
+            }
+        }
+
         if (!empty($targetId)) {
             if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'slug')) {
                 try {
@@ -247,9 +256,6 @@ class JobPostController extends Controller
 
         if (!$user) {
             $user = \Illuminate\Support\Facades\Auth::user();
-        }
-        if (!$user) {
-            $user = \App\Models\User::first();
         }
 
         $activeRole = strtolower($user ? ($user->active_profile ?? 'job_seeker') : 'job_seeker');
@@ -662,6 +668,14 @@ class JobPostController extends Controller
 
         // 1. Resolve User via query params or body inputs: user_id, id, applicant_id, slug, mobile_number, mobile, phone
         $targetId = $request->query('user_id') ?: ($request->query('id') ?: ($request->query('applicant_id') ?: ($request->query('slug') ?: ($request->input('user_id') ?: ($request->input('id') ?: ($request->input('applicant_id') ?: $request->input('slug')))))));
+        if (empty($targetId)) {
+            $rawQuery = urldecode($request->getQueryString() ?: ($_SERVER['QUERY_STRING'] ?? ''));
+            if (preg_match('/[?&]user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $targetId = $matches[1];
+            } elseif (preg_match('/user_id=([0-9]+)/i', $rawQuery, $matches)) {
+                $targetId = $matches[1];
+            }
+        }
         if (!empty($targetId)) {
             if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'slug')) {
                 try {
@@ -716,9 +730,6 @@ class JobPostController extends Controller
         }
         if (!$user) {
             $user = \Illuminate\Support\Facades\Auth::user();
-        }
-        if (!$user) {
-            $user = \App\Models\User::first();
         }
 
         $userId = $user ? $user->id : 0;

@@ -98,17 +98,6 @@ class EmployerController extends Controller
                 return response()->json(['success' => false, 'message' => 'Employer profile not found or unauthorized.'], 401);
             }
 
-            // Clean up incomplete/null name applications from the database
-            \Illuminate\Support\Facades\DB::table('job_applications')
-                ->whereNotIn('applicant_id', function($query) {
-                    $query->select('id')
-                          ->from('users')
-                          ->whereNotNull('full_name')
-                          ->where('full_name', '!=', '')
-                          ->where('full_name', '!=', 'null');
-                })
-                ->delete();
-
             // Fetch job posts created by this employer (excluding admin submitted jobs)
             $jobsQuery = JobPost::with(['applications.applicant.chefProfile', 'applications.applicant.socials'])
                 ->where(function($q) use ($user) {
