@@ -1507,10 +1507,11 @@ function handleGetMergedApplications(\Illuminate\Http\Request $request) {
             ->map(function($a) {
                 $applicant = \App\Models\User::find($a->applicant_id ?? $a->user_id);
                 $jp = \Illuminate\Support\Facades\DB::table('job_posts')->where('id', $a->job_post_id)->first();
+                $jpPostedRole = ($jp && property_exists($jp, 'posted_by_role')) ? $jp->posted_by_role : '';
                 $isAdmin = false;
                 $submittedRole = 'employer';
                 if ($jp) {
-                    $submittedRole = $jp->submitted_by_role ?? ($jp->posted_by_role ?? 'employer');
+                    $submittedRole = $jp->submitted_by_role ?? ($jpPostedRole ?: 'employer');
                     if (!empty($jp->is_admin_created) || strtolower($submittedRole) === 'admin') {
                         $isAdmin = true;
                     } elseif (!empty($jp->created_by)) {
