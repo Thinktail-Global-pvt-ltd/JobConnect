@@ -152,15 +152,19 @@ class ProfileProgressService
         $hasAnySocial = self::hasSocialLinks($user);
         $breakdown['social_links'] = $hasAnySocial ? 6 : 0;
 
-        // 15. Profile Photo (COMPLETE if AT LEAST ONE photo source exists)
+        // 15. Calendly / Booking Link (COMPLETE if calendly_link is filled)
+        $hasCalendly = $chefProfile && self::isFilled($chefProfile->calendly_link);
+        $breakdown['calendly_link'] = $hasCalendly ? 6 : 0;
+
+        // 16. Profile Photo (COMPLETE if AT LEAST ONE photo source exists)
         $hasPhoto = self::isFilled($user->profile_photo_path);
         $breakdown['profile_photo'] = $hasPhoto ? 6 : 0;
 
-        // 16. Age
+        // 17. Age
         $ageVal = $user->age ?: ($chefProfile ? $chefProfile->age : ($availInfo['age'] ?? null));
         $breakdown['age'] = self::isFilled($ageVal) ? 6 : 0;
 
-        // 17. Overseas Work Experience
+        // 18. Overseas Work Experience
         $overseasExp = $user->overseas_work_experience ?: ($chefProfile ? $chefProfile->overseas_work_experience : null);
         $breakdown['overseas_work_experience'] = self::isFilled($overseasExp) ? 6 : 0;
 
@@ -172,7 +176,7 @@ class ProfileProgressService
         }
 
         // Exact percentage out of 100%
-        $percentage = round(($filledCount / 17) * 100);
+        $percentage = round(($filledCount / 18) * 100);
 
         $missing = array_keys(array_filter($breakdown, function($val) {
             return $val === 0;
