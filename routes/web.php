@@ -1064,35 +1064,36 @@ Route::prefix('admin')->group(function () {
 // PUBLIC API FALLBACKS (FOR REACT SPA WITHOUT COOKIE AUTH SESSION)
 Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
     try {
+        $selectCols = [
+            'job_applications.id',
+            'job_applications.applicant_id',
+            'job_applications.job_post_id',
+            'job_applications.employer_id',
+            'job_applications.status',
+            'job_applications.preferred_call_time',
+            'job_applications.created_at',
+            'users.full_name as applicant_name',
+            'users.email as applicant_email',
+            'users.mobile_number as applicant_mobile',
+            'users.city as applicant_city',
+            'users.experience_range as applicant_experience',
+            'users.preferred_role as applicant_preferred_role',
+            'users.current_employer as applicant_current_employer',
+            'users.skills as applicant_skills',
+            'users.profile_photo_path as applicant_photo',
+            'job_posts.title as job_title',
+            'job_posts.company as job_company',
+            'job_posts.location as job_location',
+            'job_posts.category as job_category',
+            'job_posts.is_admin_created as job_is_admin_created',
+            'job_posts.submitted_by_role as job_submitted_by_role',
+            'job_posts.created_by as job_created_by'
+        ];
+
         $apps = \Illuminate\Support\Facades\DB::table('job_applications')
             ->leftJoin('users', 'job_applications.applicant_id', '=', 'users.id')
             ->leftJoin('job_posts', 'job_applications.job_post_id', '=', 'job_posts.id')
-            ->select(
-                'job_applications.id',
-                'job_applications.applicant_id',
-                'job_applications.job_post_id',
-                'job_applications.employer_id',
-                'job_applications.status',
-                'job_applications.preferred_call_time',
-                'job_applications.created_at',
-                'users.full_name as applicant_name',
-                'users.email as applicant_email',
-                'users.mobile_number as applicant_mobile',
-                'users.city as applicant_city',
-                'users.experience_range as applicant_experience',
-                'users.preferred_role as applicant_preferred_role',
-                'users.current_employer as applicant_current_employer',
-                'users.skills as applicant_skills',
-                'users.profile_photo_path as applicant_photo',
-                'job_posts.title as job_title',
-                'job_posts.company as job_company',
-                'job_posts.location as job_location',
-                'job_posts.category as job_category',
-                'job_posts.is_admin_created as job_is_admin_created',
-                'job_posts.submitted_by_role as job_submitted_by_role',
-                'job_posts.posted_by_role as job_posted_by_role',
-                'job_posts.created_by as job_created_by'
-            );
+            ->select($selectCols);
 
         if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
             $apps->where('job_applications.status', $request->status);
@@ -1102,38 +1103,39 @@ Route::get('/admin/applications', function(\Illuminate\Http\Request $request) {
 
         $trainingResults = collect();
         if (\Illuminate\Support\Facades\Schema::hasTable('training_applications')) {
+            $tSelectCols = [
+                'training_applications.id',
+                'training_applications.applicant_id',
+                'training_applications.job_post_id',
+                'training_applications.training_id',
+                'training_applications.employer_id',
+                'training_applications.status',
+                'training_applications.preferred_call_time',
+                'training_applications.created_at',
+                \Illuminate\Support\Facades\DB::raw('1 as is_training'),
+                'users.full_name as applicant_name',
+                'users.email as applicant_email',
+                'users.mobile_number as applicant_mobile',
+                'users.city as applicant_city',
+                'users.experience_range as applicant_experience',
+                'users.preferred_role as applicant_preferred_role',
+                'users.current_employer as applicant_current_employer',
+                'users.skills as applicant_skills',
+                'users.profile_photo_path as applicant_photo',
+                \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.program_name, job_posts.title, "Training Opportunity") as job_title'),
+                \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.provider_name, job_posts.company, "Jobrito Training Academy") as job_company'),
+                \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.location, job_posts.location, "India") as job_location'),
+                'job_posts.category as job_category',
+                'job_posts.is_admin_created as job_is_admin_created',
+                'job_posts.submitted_by_role as job_submitted_by_role',
+                'job_posts.created_by as job_created_by'
+            ];
+
             $tApps = \Illuminate\Support\Facades\DB::table('training_applications')
                 ->leftJoin('users', 'training_applications.applicant_id', '=', 'users.id')
                 ->leftJoin('training_opportunities', 'training_applications.training_id', '=', 'training_opportunities.id')
                 ->leftJoin('job_posts', 'training_applications.job_post_id', '=', 'job_posts.id')
-                ->select(
-                    'training_applications.id',
-                    'training_applications.applicant_id',
-                    'training_applications.job_post_id',
-                    'training_applications.training_id',
-                    'training_applications.employer_id',
-                    'training_applications.status',
-                    'training_applications.preferred_call_time',
-                    'training_applications.created_at',
-                    \Illuminate\Support\Facades\DB::raw('1 as is_training'),
-                    'users.full_name as applicant_name',
-                    'users.email as applicant_email',
-                    'users.mobile_number as applicant_mobile',
-                    'users.city as applicant_city',
-                    'users.experience_range as applicant_experience',
-                    'users.preferred_role as applicant_preferred_role',
-                    'users.current_employer as applicant_current_employer',
-                    'users.skills as applicant_skills',
-                    'users.profile_photo_path as applicant_photo',
-                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.program_name, job_posts.title, "Training Opportunity") as job_title'),
-                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.provider_name, job_posts.company, "Jobrito Training Academy") as job_company'),
-                    \Illuminate\Support\Facades\DB::raw('COALESCE(training_opportunities.location, job_posts.location, "India") as job_location'),
-                    'job_posts.category as job_category',
-                    'job_posts.is_admin_created as job_is_admin_created',
-                    'job_posts.submitted_by_role as job_submitted_by_role',
-                    'job_posts.posted_by_role as job_posted_by_role',
-                    'job_posts.created_by as job_created_by'
-                );
+                ->select($tSelectCols);
 
             if ($request->filled('status') && in_array($request->status, ['new', 'contacted', 'shortlisted', 'hired', 'rejected'])) {
                 $tApps->where('training_applications.status', $request->status);

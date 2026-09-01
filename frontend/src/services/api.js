@@ -621,22 +621,24 @@ export const mockApi = {
   },
 
   getApplications: async (status = '') => {
-    try {
-      const res = await realApi.get('/admin/applications', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
-    } catch (e) {}
-    try {
-      const res = await realApi.get('/api/admin/applications', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get('/backend/admin/applications', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get('/backend/api/admin/applications', { params: { status } });
-      if (res.data && res.data.success && Array.isArray(res.data.applications)) return res.data;
-    } catch (e) {}
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const endpoints = [
+      '/backend/api/admin/applications',
+      '/backend/admin/applications',
+      '/api/admin/applications',
+      `${origin}/backend/api/admin/applications`,
+      `${API_BASE}/backend/api/admin/applications`
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { params: { status }, headers: { Accept: 'application/json' } });
+        if (typeof res.data === 'object' && res.data && res.data.success && Array.isArray(res.data.applications)) {
+          return res.data;
+        }
+      } catch (e) {}
+    }
+
     return mockEndpoints.getApplications(status);
   },
 
