@@ -86,6 +86,9 @@ class ProfileController extends Controller
 
         $activeRole = $user ? ($user->active_profile ?: 'job_seeker') : 'job_seeker';
 
+        $chefData = null;
+        $employerData = null;
+
         $chefCompleteness = ($user && $user->chefProfile) ? \App\Services\ProfileProgressService::calculateChef($user)['completeness'] : 0;
         $empCompleteness = ($user && $user->employerProfile) ? \App\Services\ProfileProgressService::calculateEmployer($user)['completeness'] : 0;
         $talentCompleteness = $user ? \App\Services\ProfileProgressService::calculateTalent($user)['completeness'] : 0;
