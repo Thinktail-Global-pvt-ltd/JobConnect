@@ -141,18 +141,18 @@ class EmployerController extends Controller
             $totalRejected = 0;
             $totalContacted = 0;
 
-            // Helper closures for application status matching
-            $isAppViewed = fn($a) => (bool)$a->is_viewed || strtolower(trim($a->status ?? '')) === 'viewed';
-            $isAppNew = function($a) use ($isAppViewed) {
-                $st = strtolower(trim($a->status ?? ''));
-                if ($st === 'new' || $st === 'applied' || $st === 'pending' || $st === '') {
-                    return true;
-                }
-                return !$isAppViewed($a);
-            };
-            $isAppShortlisted = fn($a) => strtolower(trim($a->status ?? '')) === 'shortlisted';
-            $isAppContacted = fn($a) => strtolower(trim($a->status ?? '')) === 'contacted';
+            // Helper closures for application status matching (strictly mutually exclusive)
             $isAppRejected = fn($a) => strtolower(trim($a->status ?? '')) === 'rejected';
+            $isAppShortlisted = fn($a) => strtolower(trim($a->status ?? '')) === 'shortlisted';
+            $isAppContacted = fn($a) => strtolower(trim($a->status ?? '')) === 'contacted' || strtolower(trim($a->status ?? '')) === 'hired';
+            $isAppViewed = fn($a) => !$isAppRejected($a) && !$isAppShortlisted($a) && !$isAppContacted($a) && ((bool)($a->is_viewed ?? false) || strtolower(trim($a->status ?? '')) === 'viewed');
+            $isAppNew = function($a) use ($isAppRejected, $isAppShortlisted, $isAppContacted, $isAppViewed) {
+                if ($isAppRejected($a) || $isAppShortlisted($a) || $isAppContacted($a) || $isAppViewed($a)) {
+                    return false;
+                }
+                $st = strtolower(trim($a->status ?? ''));
+                return in_array($st, ['new', 'applied', 'pending', '']);
+            };
 
             // Fetch details of users who saved these jobs
             $allJobIds = $jobs->pluck('id')->filter()->toArray();
