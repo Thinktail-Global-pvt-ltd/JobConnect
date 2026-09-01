@@ -33,9 +33,19 @@ class ProfileProgressService
     /**
      * Check if user has at least one social media or custom link added.
      */
-    private static function hasSocialLinks(User $user): bool
+    /**
+     * Check if user has at least one valid social media or custom link added.
+     */
+    private static function hasSocialLinks(User $user, ?ChefProfile $chefProfile = null): bool
     {
         try {
+            if ($chefProfile && !empty($chefProfile->calendly_link)) {
+                $cLink = trim((string)$chefProfile->calendly_link);
+                if ($cLink !== '' && strtolower($cLink) !== 'null' && strtolower($cLink) !== 'n/a' && strtolower($cLink) !== 'undefined') {
+                    return true;
+                }
+            }
+
             $socials = $user->socials ?: UserSocial::where('user_id', $user->id)->first();
             if (!$socials) {
                 return false;
@@ -43,15 +53,21 @@ class ProfileProgressService
 
             $fields = ['instagram', 'linkedin', 'facebook', 'twitter', 'youtube', 'website', 'github'];
             foreach ($fields as $field) {
-                if (self::isFilled($socials->$field)) {
+                $val = trim((string)($socials->$field ?? ''));
+                if ($val !== '' && strtolower($val) !== 'null' && strtolower($val) !== 'n/a' && strtolower($val) !== 'undefined') {
                     return true;
                 }
             }
 
             if (!empty($socials->others)) {
                 $others = is_array($socials->others) ? $socials->others : (json_decode($socials->others, true) ?: []);
-                if (count(array_filter($others)) > 0) {
-                    return true;
+                if (is_array($others)) {
+                    foreach ($others as $item) {
+                        $val = trim((string)$item);
+                        if ($val !== '' && strtolower($val) !== 'null' && strtolower($val) !== 'n/a' && strtolower($val) !== 'undefined') {
+                            return true;
+                        }
+                    }
                 }
             }
         } catch (\Throwable $e) {
@@ -139,13 +155,8 @@ class ProfileProgressService
         $empPref = $availInfo['employment_preference'] ?? null;
         $breakdown['employment_preference'] = self::isFilled($empPref) ? 6 : 0;
 
-        // 14. Social Links (COMPLETE if AT LEAST ONE link is filled: calendly, linkedin, instagram, facebook, twitter, etc.)
-        $hasAnySocial = false;
-        if ($chefProfile && self::isFilled($chefProfile->calendly_link)) {
-            $hasAnySocial = true;
-        } else {
-            $hasAnySocial = self::hasSocialLinks($user);
-        }
+        // 14. Social Links (COMPLETE if AT LEAST ONE valid social link exists)
+        $hasAnySocial = self::hasSocialLinks($user, $chefProfile);
         $breakdown['social_links'] = $hasAnySocial ? 6 : 0;
 
         // 15. Profile Photo (COMPLETE if AT LEAST ONE photo source exists)
