@@ -118,6 +118,45 @@ export default function Jobs() {
     return Boolean(j.is_admin_created) || (j.submitted_by_role || '').toLowerCase() === 'admin' || (j.posted_by_role || '').toLowerCase() === 'admin';
   };
 
+  const getPosterLabel = (job) => {
+    if (!job) return 'By: Employer';
+    const creator = job.creator || {};
+
+    // 1. Check for Name
+    const posterName = 
+      (creator.full_name || '').trim() ||
+      (creator.name || '').trim() ||
+      (creator.contact_person_name || '').trim() ||
+      (job.contact_person || '').trim() ||
+      (job.contact_person_name || '').trim() ||
+      (job.posted_by_name || '').trim();
+
+    if (posterName) {
+      return `By: ${posterName}`;
+    }
+
+    // 2. Check for Phone Number if Name is not present
+    const posterPhone = 
+      (creator.mobile_number || '').trim() ||
+      (creator.phone || '').trim() ||
+      (creator.mobile || '').trim() ||
+      (job.contact_info || '').trim() ||
+      (job.phone || '').trim() ||
+      (job.mobile_number || '').trim();
+
+    if (posterPhone) {
+      return `By: ${posterPhone}`;
+    }
+
+    // 3. Fallback to business/company name or 'Employer'
+    const companyName = job.business_name || job.company_name || job.company;
+    if (companyName) {
+      return `By: ${companyName}`;
+    }
+
+    return 'By: Employer';
+  };
+
   const adminCount = jobs.filter(j => isAdminCreatedJob(j)).length;
 
   const chefCount = jobs.filter(j => {
@@ -565,7 +604,7 @@ export default function Jobs() {
                             </span>
                           ) : (
                             <span className="text-[10px] font-semibold text-slate-500 block">
-                              {job.creator && job.creator.full_name ? `By: ${job.creator.full_name}` : 'Employer Posted'}
+                              {getPosterLabel(job)}
                             </span>
                           )}
                         </div>

@@ -101,7 +101,17 @@ class JobModeratorController extends Controller
             }
         }
 
-        $jobs = $query->latest()->get();
+        $jobs = $query->latest()->get()->map(function($job) {
+            if (!$job->relationLoaded('creator') || !$job->creator) {
+                if (!empty($job->created_by)) {
+                    $user = \App\Models\User::find($job->created_by);
+                    if ($user) {
+                        $job->setRelation('creator', $user);
+                    }
+                }
+            }
+            return $job;
+        });
 
         $pendingJobsCount = JobPost::where(function($q) {
             $q->where('status', 'pending')
