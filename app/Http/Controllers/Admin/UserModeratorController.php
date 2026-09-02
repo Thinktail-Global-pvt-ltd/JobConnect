@@ -470,4 +470,75 @@ class UserModeratorController extends Controller
 
         return redirect()->back()->with('success', "User account {$userName} has been permanently deleted from the database.");
     }
+
+    /**
+     * Delete ALL users, sessions, personal access tokens, and notification history from database.
+     */
+    public function deleteAll(Request $request)
+    {
+        try {
+            $driver = \Illuminate\Support\Facades\DB::getDriverName();
+            if ($driver === 'mysql') {
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            } elseif ($driver === 'sqlite') {
+                \Illuminate\Support\Facades\DB::statement('PRAGMA foreign_keys = OFF;');
+            }
+
+            // 1. Clear sessions table
+            if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+                \Illuminate\Support\Facades\DB::table('sessions')->delete();
+            }
+
+            // 2. Clear personal_access_tokens table
+            if (\Illuminate\Support\Facades\Schema::hasTable('personal_access_tokens')) {
+                \Illuminate\Support\Facades\DB::table('personal_access_tokens')->delete();
+            }
+
+            // 3. Clear notification history tables
+            $notifTables = ['user_notification_histories', 'notifications_history', 'notification_histories', 'user_device_tokens'];
+            foreach ($notifTables as $nTable) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($nTable)) {
+                    \Illuminate\Support\Facades\DB::table($nTable)->delete();
+                }
+            }
+
+            // 4. Clear user child tables if present
+            $userChildTables = ['user_otps', 'user_roles', 'user_socials', 'chef_profiles', 'employer_profiles'];
+            foreach ($userChildTables as $cTable) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($cTable)) {
+                    \Illuminate\Support\Facades\DB::table($cTable)->delete();
+                }
+            }
+
+            // 5. Delete all users from users table
+            $deletedUsersCount = \Illuminate\Support\Facades\DB::table('users')->delete();
+
+            // Re-enable Foreign Key checks
+            if ($driver === 'mysql') {
+                \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            } elseif ($driver === 'sqlite') {
+                \Illuminate\Support\Facades\DB::statement('PRAGMA foreign_keys = ON;');
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'All users (' . $deletedUsersCount . '), active sessions, personal access tokens, and notification histories deleted successfully.',
+                'deleted_users_count' => $deletedUsersCount
+            ]);
+        } catch (\Throwable $e) {
+            try {
+                $driver = \Illuminate\Support\Facades\DB::getDriverName();
+                if ($driver === 'mysql') {
+                    \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                } elseif ($driver === 'sqlite') {
+                    \Illuminate\Support\Facades\DB::statement('PRAGMA foreign_keys = ON;');
+                }
+            } catch (\Throwable $t) {}
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete users and sessions: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

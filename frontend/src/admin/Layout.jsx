@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, Sparkles, Palette, LayoutDashboard, UsersRound, BriefcaseBusiness, Share2, Radio, GraduationCap, Utensils, FileText, Building2, CircleHelp, Image, Settings2, CheckCircle2 } from 'lucide-react';
+import { Bell, LogOut, ChevronDown, ChevronRight, Menu, PanelLeftClose, PanelLeftOpen, Sun, Moon, Sparkles, Palette, LayoutDashboard, UsersRound, BriefcaseBusiness, Share2, Radio, GraduationCap, Utensils, FileText, Building2, CircleHelp, Image, Settings2, CheckCircle2, CalendarCheck } from 'lucide-react';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import { mockApi } from '../services/api';
 import logoImg from '../assets/Jobrito full logo.png';
@@ -155,6 +155,7 @@ export default function Layout({ children }) {
     { name: 'Community Feed', path: '/admin/community', icon: null, countKey: 'community' },
     { name: 'Training & Placement', path: '/admin/training', icon: null, countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: null, countKey: 'applications' },
+    { name: 'Appointment Request', path: '/admin/appointment-request', icon: null, countKey: null },
   ];
 
   const handleLogout = () => {
@@ -171,7 +172,7 @@ export default function Layout({ children }) {
       Dashboard: LayoutDashboard, Users: UsersRound, 'Talent / Jobseeker': UsersRound,
       Employer: Building2, Chef: Utensils, Jobs: BriefcaseBusiness, Referrals: Share2,
       'Community Feed': Radio, 'Training & Overseas': GraduationCap, 'Training & Placement': GraduationCap, Training: GraduationCap, Applications: FileText,
-      Enquiries: CircleHelp, Banners: Image, Settings: Settings2, 'Notifications & Logs': Bell,
+      'Appointment Request': CalendarCheck, Enquiries: CircleHelp, Banners: Image, Settings: Settings2, 'Notifications & Logs': Bell,
     };
     const Icon = icons[name] || LayoutDashboard;
     return <Icon className={className} strokeWidth={2.1} />;

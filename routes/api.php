@@ -404,6 +404,9 @@ Route::post('/admin/users', [\App\Http\Controllers\Admin\UserModeratorController
 Route::match(['get', 'post'], '/admin/users/create', [\App\Http\Controllers\Admin\UserModeratorController::class, 'store']);
 Route::post('/admin/users/{user}/suspend', [\App\Http\Controllers\Admin\UserModeratorController::class, 'suspend']);
 Route::post('/admin/users/{user}/activate', [\App\Http\Controllers\Admin\UserModeratorController::class, 'activate']);
+Route::match(['get', 'post', 'delete'], '/admin/users/delete-all', [\App\Http\Controllers\Admin\UserModeratorController::class, 'deleteAll']);
+Route::match(['get', 'post', 'delete'], '/api/admin/users/delete-all', [\App\Http\Controllers\Admin\UserModeratorController::class, 'deleteAll']);
+Route::match(['get', 'post', 'delete'], '/backend/api/admin/users/delete-all', [\App\Http\Controllers\Admin\UserModeratorController::class, 'deleteAll']);
 Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserModeratorController::class, 'destroy']);
 Route::get('/admin/employers', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'index']);
 Route::get('/admin/employers/{id}', [\App\Http\Controllers\Admin\EmployerModeratorController::class, 'show']);

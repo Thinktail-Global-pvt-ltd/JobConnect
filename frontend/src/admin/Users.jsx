@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { mockApi, realApi, resolveImageUrl } from '../services/api';
-import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X, Eye, Smartphone, MapPin, Star } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X, Eye, Smartphone, MapPin, Star, Trash2 } from 'lucide-react';
 
 
 export default function Users() {
@@ -11,6 +11,51 @@ export default function Users() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
+
+  const handleDeleteAllUsers = async () => {
+    const confirmMessage = "⚠️ CRITICAL WARNING!\n\nAre you sure you want to PERMANENTLY DELETE ALL USERS from the database?\n\nThis will wipe:\n• All users from the 'users' table\n• All active user sessions\n• All personal access tokens\n• All notification histories & device tokens\n• All user profiles\n\nThis action CANNOT be undone!";
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    const secondConfirm = window.prompt("Type DELETE to confirm wiping all users, sessions, and tokens from the database:");
+    if (secondConfirm !== 'DELETE') {
+      alert("Action canceled. You must type 'DELETE' to confirm.");
+      return;
+    }
+
+    setIsDeletingAll(true);
+    try {
+      const endpoints = [
+        '/api/admin/users/delete-all',
+        '/backend/api/admin/users/delete-all',
+        '/admin/users/delete-all'
+      ];
+
+      let res = null;
+      for (const ep of endpoints) {
+        try {
+          res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
+          if (res.data?.success) break;
+        } catch (e) {}
+      }
+
+      if (res && res.data?.success) {
+        alert(`Success: ${res.data.message || 'All users, sessions, personal access tokens, and notification histories deleted successfully.'}`);
+        setUsers([]);
+        loadUsers();
+      } else {
+        alert(`Error: ${res?.data?.message || 'Failed to delete all users.'}`);
+      }
+    } catch (err) {
+      console.error('Failed to delete all users:', err);
+      alert('An error occurred while attempting to delete all users.');
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
 
   // Add Talent Form State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -135,6 +180,16 @@ export default function Users() {
           <h2 className="font-outfit font-bold text-[22px] leading-tight text-slate-900 tracking-tight">Talent / Jobseeker Management</h2>
           <p className="text-[12px] font-medium text-slate-600 mt-0.5">Oversee job seekers, candidates, manage access levels, and track registration trends.</p>
         </div>
+
+        <button
+          onClick={handleDeleteAllUsers}
+          disabled={isDeletingAll}
+          className="bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white px-4 py-2 rounded-lg text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 border border-rose-700 cursor-pointer"
+          title="Delete all users, sessions, personal access tokens, and notification history from database"
+        >
+          <Trash2 className="w-4 h-4 text-rose-100" />
+          <span>{isDeletingAll ? 'Deleting All Users...' : 'Delete All Users & Sessions'}</span>
+        </button>
       </div>
 
       {/* Filter tabs and search input row */}

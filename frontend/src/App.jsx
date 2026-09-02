@@ -29,6 +29,7 @@ import Enquiries from "./admin/Enquiries";
 import Settings from "./admin/Settings";
 import Applications from "./admin/Applications";
 import NotificationsLog from "./admin/NotificationsLog";
+import AppointmentRequest from "./admin/AppointmentRequest";
 import Layout from "./admin/Layout";
 
 // Protected Admin Route Guard
@@ -145,6 +146,8 @@ function App() {
         <Route path="/admin/enquiries" element={<Layout><Enquiries /></Layout>} />
         <Route path="/admin/settings" element={<Layout><Settings /></Layout>} />
         <Route path="/admin/applications" element={<Layout><Applications /></Layout>} />
+        <Route path="/admin/appointment-request" element={<Layout><AppointmentRequest /></Layout>} />
+        <Route path="/admin/online-request" element={<Layout><AppointmentRequest /></Layout>} />
         <Route path="/admin/notifications" element={<Layout><NotificationsLog /></Layout>} />
         <Route path="/admin/activity-logs" element={<Layout><NotificationsLog /></Layout>} />
 

@@ -230,15 +230,38 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Card 2: Pro Tip alert box */}
-          <div className="bg-[#eff6ff] border border-blue-15 border-blue-100 rounded-2xl p-5 text-left flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <h4 className="font-outfit font-extrabold text-xs text-slate-800">Pro Tip</h4>
-              <p className="text-[10px] font-semibold text-slate-500 leading-relaxed">
-                Disabling these features will hide the respective tabs from the public user dashboard and restrict new content creation.
-              </p>
-            </div>
+          {/* Card 3: Danger Zone (Purge All Users & Sessions) */}
+          <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-5 text-left space-y-3">
+            <h4 className="font-outfit font-extrabold text-xs text-rose-900 flex items-center gap-1.5">
+              <span>⚠️</span> Danger Zone
+            </h4>
+            <p className="text-[11px] font-semibold text-rose-700 leading-relaxed">
+              Permanently wipe all registered users from the database, invalidate active user sessions, clear personal access tokens, and delete notification histories.
+            </p>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!window.confirm("⚠️ DANGER: Permanently delete ALL users, sessions, personal access tokens, and notification history from database?")) return;
+                if (window.prompt("Type DELETE to confirm wiping all users & sessions:") !== 'DELETE') {
+                  alert("Canceled.");
+                  return;
+                }
+                try {
+                  const res = await fetch('/api/admin/users/delete-all', { method: 'POST', headers: { 'Accept': 'application/json' } });
+                  const data = await res.json();
+                  if (data?.success) {
+                    alert(`Success: ${data.message}`);
+                  } else {
+                    alert(`Error: ${data?.message || 'Failed to delete users'}`);
+                  }
+                } catch (e) {
+                  alert('Error executing request.');
+                }
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white font-extrabold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-rose-700"
+            >
+              <span>Delete All Users, Sessions & Tokens</span>
+            </button>
           </div>
 
         </div>

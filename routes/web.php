@@ -48,6 +48,9 @@ Route::match(['get', 'post'], '/api/get-token/user/{id}', function($id) {
         'token' => $token
     ]);
 });
+Route::match(['get', 'post', 'delete'], '/admin/users/delete-all', [\App\Http\Controllers\Admin\UserModeratorController::class, 'deleteAll']);
+Route::match(['get', 'post', 'delete'], '/api/admin/users/delete-all', [\App\Http\Controllers\Admin\UserModeratorController::class, 'deleteAll']);
+Route::match(['get', 'post', 'delete'], '/backend/api/admin/users/delete-all', [\App\Http\Controllers\Admin\UserModeratorController::class, 'deleteAll']);
 
 Route::match(['get', 'post'], '/backend/api/get-token/user/{id}', function($id) {
     $u = \App\Models\User::find($id) ?: \App\Models\User::where('active_profile', 'employer')->orWhere('active_role', 'employer')->orWhere('user_role', 'employer')->first();
