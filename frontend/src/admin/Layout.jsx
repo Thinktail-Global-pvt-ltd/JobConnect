@@ -155,7 +155,6 @@ export default function Layout({ children }) {
     { name: 'Community Feed', path: '/admin/community', icon: null, countKey: 'community' },
     { name: 'Training & Placement', path: '/admin/training', icon: null, countKey: 'training' },
     { name: 'Applications', path: '/admin/applications', icon: null, countKey: 'applications' },
-    { name: 'Appointment Request', path: '/admin/appointment-request', icon: null, countKey: null },
   ];
 
   const handleLogout = () => {
