@@ -132,26 +132,46 @@ export default function UserDetail() {
     );
   }
 
-  const fullName = user.full_name || user.name || user.mobile_number || 'Rahul Sharma';
-  const profileId = user.profile_id || `TAL-${user.created_at ? new Date(user.created_at).getFullYear() : '2024'}-${String(user.id || id).padStart(6, '0')}`;
-  const age = user.age || (user.dob ? (new Date().getFullYear() - new Date(user.dob).getFullYear()) : 28);
-  const gender = user.gender || 'Male';
-  const experience = user.experience_years || user.experience_range || user.experience || '6 Years';
-  const pastEmployer = user.past_employer || user.previous_company || user.current_employer || 'Taj Hotels, ITC Hotels';
-  const employmentType = user.employment_type || user.job_type || 'Full Time';
-  const overseasExp = user.has_overseas_experience || user.overseas_experience || user.past_overseas_experience ? 'Yes' : 'Yes';
-  const locationPref = user.location_preference || user.preferred_location || user.city || 'Global';
-  const businessTypes = user.business_types || user.industry_interest || 'Restaurant, Café, Cloud Kitchen';
-  const jobRole = user.preferred_role || user.job_role || user.title || 'Sous Chef';
+  const cleanVal = (val) => {
+    if (val === null || val === undefined) return null;
+    const str = String(val).trim();
+    if (!str || str === 'N/A' || str === 'null' || str === 'undefined' || str === 'Not Provided') return null;
+    return str;
+  };
+
+  const fullName = cleanVal(user.full_name) || cleanVal(user.name) || cleanVal(user.mobile_number) || `Candidate #${user.id || id}`;
+  const profileId = user.profile_id || `TAL-${user.created_at ? new Date(user.created_at).getFullYear() : new Date().getFullYear()}-${String(user.id || id).padStart(6, '0')}`;
+  
+  const rawAge = user.age || (user.dob ? (new Date().getFullYear() - new Date(user.dob).getFullYear()) : null);
+  const ageDisplay = rawAge ? (String(rawAge).toLowerCase().includes('year') ? rawAge : `${rawAge} Years`) : null;
+  const genderDisplay = cleanVal(user.gender);
+
+  const experience = cleanVal(user.experience_years) || cleanVal(user.experience_range) || cleanVal(user.experience) || null;
+  const pastEmployer = cleanVal(user.past_employer) || cleanVal(user.previous_company) || cleanVal(user.current_employer) || null;
+  const employmentType = cleanVal(user.employment_type) || cleanVal(user.job_type) || cleanVal(user.job_preference) || null;
+
+  const rawOverseas = user.overseas_work_experience ?? user.has_overseas_experience ?? user.overseas_experience ?? user.past_overseas_experience;
+  let overseasExp = null;
+  if (rawOverseas === true || String(rawOverseas).toLowerCase() === 'yes' || String(rawOverseas).toLowerCase() === 'true') {
+    overseasExp = 'Yes';
+  } else if (rawOverseas === false || String(rawOverseas).toLowerCase() === 'no' || String(rawOverseas).toLowerCase() === 'false') {
+    overseasExp = 'No';
+  } else if (cleanVal(rawOverseas)) {
+    overseasExp = String(rawOverseas);
+  }
+
+  const locationPref = cleanVal(user.location_preference) || cleanVal(user.preferred_location) || cleanVal(user.job_location) || cleanVal(user.city) || null;
+  const businessTypes = cleanVal(user.business_types) || cleanVal(user.industry_interest) || cleanVal(user.business_type) || null;
+  const jobRole = cleanVal(user.preferred_role) || cleanVal(user.job_role) || cleanVal(user.title) || null;
 
   const totalPosted = postedJobs.length || user.job_posts_count || 0;
   const totalApplied = appliedJobs.length || user.applications_count || 0;
 
   const joinedDateTime = user.created_at 
     ? new Date(user.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + new Date(user.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
-    : '12 Aug 2024, 10:30 AM';
+    : 'N/A';
 
-  const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'RS';
+  const initials = fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'C';
 
   const handleCopyProfileId = () => {
     navigator.clipboard.writeText(profileId);
@@ -287,12 +307,24 @@ export default function UserDetail() {
             </div>
 
             <div className="flex items-center gap-3 pt-1 flex-wrap">
-              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" /> {age} Years
-              </span>
-              <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                <span className="text-slate-400">⚥</span> {gender}
-              </span>
+              {ageDisplay ? (
+                <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" /> {ageDisplay}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 italic">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" /> Age: Not Provided
+                </span>
+              )}
+              {genderDisplay ? (
+                <span className="inline-flex items-center gap-1 text-xs font-extrabold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                  <span className="text-slate-400">⚥</span> {genderDisplay}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 italic">
+                  <span className="text-slate-400">⚥</span> Gender: Not Provided
+                </span>
+              )}
             </div>
           </div>
 
@@ -331,22 +363,26 @@ export default function UserDetail() {
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-slate-400" /> Experience
               </span>
-              <span className="text-slate-900 font-extrabold">{experience}</span>
+              <span className={experience ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium italic"}>
+                {experience || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-slate-400" /> Past Employer
               </span>
-              <span className="text-slate-900 font-extrabold text-right">{pastEmployer}</span>
+              <span className={pastEmployer ? "text-slate-900 font-extrabold text-right" : "text-slate-400 font-medium italic text-right"}>
+                {pastEmployer || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-slate-400" /> Employment Type
               </span>
-              <span className="bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100">
-                {employmentType}
+              <span className={employmentType ? "bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100" : "bg-slate-50 text-slate-400 font-medium italic px-2.5 py-0.5 rounded-md text-[11px] border border-slate-200"}>
+                {employmentType || 'Not Provided'}
               </span>
             </div>
 
@@ -354,8 +390,8 @@ export default function UserDetail() {
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Plane className="w-4 h-4 text-slate-400" /> Past Overseas Experience
               </span>
-              <span className="bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100">
-                {overseasExp}
+              <span className={overseasExp ? "bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100" : "bg-slate-50 text-slate-400 font-medium italic px-2.5 py-0.5 rounded-md text-[11px] border border-slate-200"}>
+                {overseasExp || 'Not Provided'}
               </span>
             </div>
 
@@ -363,21 +399,27 @@ export default function UserDetail() {
               <span className="text-slate-500 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-slate-400" /> Job Location Preference
               </span>
-              <span className="text-slate-900 font-extrabold">{locationPref}</span>
+              <span className={locationPref ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium italic"}>
+                {locationPref || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-slate-400" /> Business Type Interested In
               </span>
-              <span className="text-slate-900 font-extrabold text-right">{businessTypes}</span>
+              <span className={businessTypes ? "text-slate-900 font-extrabold text-right" : "text-slate-400 font-medium italic text-right"}>
+                {businessTypes || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-slate-400" /> Job Role
               </span>
-              <span className="text-slate-900 font-extrabold">{jobRole}</span>
+              <span className={jobRole ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium italic"}>
+                {jobRole || 'Not Provided'}
+              </span>
             </div>
 
           </div>

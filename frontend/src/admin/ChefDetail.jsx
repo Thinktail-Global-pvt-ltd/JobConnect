@@ -132,23 +132,30 @@ export default function ChefDetail() {
     );
   }
 
-  const fullName = chef.full_name || chef.name || chef.mobile_number || 'Nisha Chef';
-  const profileId = chef.profile_id || `CHF-${chef.created_at ? new Date(chef.created_at).getFullYear() : '2024'}-${String(chef.id || id).padStart(6, '0')}`;
+  const cleanVal = (val) => {
+    if (val === null || val === undefined) return null;
+    const str = String(val).trim();
+    if (!str || str === 'N/A' || str === 'null' || str === 'undefined' || str === 'Not Provided') return null;
+    return str;
+  };
+
+  const fullName = cleanVal(chef.full_name) || cleanVal(chef.name) || cleanVal(chef.mobile_number) || `Chef #${chef.id || id}`;
+  const profileId = chef.profile_id || `CHF-${chef.created_at ? new Date(chef.created_at).getFullYear() : new Date().getFullYear()}-${String(chef.id || id).padStart(6, '0')}`;
   const rawAge = chef.age || (chef.dob ? (new Date().getFullYear() - new Date(chef.dob).getFullYear()) : null);
   const ageDisplay = rawAge ? (String(rawAge).toLowerCase().includes('year') ? rawAge : `${rawAge} Years`) : null;
   const gender = (chef.gender && chef.gender !== 'N/A' && chef.gender !== 'null') ? chef.gender : null;
-  const experience = chef.experience_range || chef.experience || '1-2 Years Exp.';
-  const pastEmployer = chef.past_employer || chef.previous_company || chef.current_employer || 'Taj Hotels, Oberoi';
-  const employmentType = chef.employment_preference || chef.employment_type || chef.job_type || 'Full Time';
-  const regionalExp = chef.regional_experience || chef.regions_worked || 'India & Overseas';
-  const locationPref = chef.location_preference || chef.city || 'Both (India & Overseas)';
-  const jobRole = chef.preferred_role || chef.job_role || chef.role || 'Sous Chef';
+  const experience = cleanVal(chef.experience_range) || cleanVal(chef.experience) || null;
+  const pastEmployer = cleanVal(chef.past_employer) || cleanVal(chef.previous_company) || cleanVal(chef.current_employer) || null;
+  const employmentType = cleanVal(chef.employment_preference) || cleanVal(chef.employment_type) || cleanVal(chef.job_type) || null;
+  const regionalExp = cleanVal(chef.regional_experience) || cleanVal(chef.regions_worked) || null;
+  const locationPref = cleanVal(chef.location_preference) || cleanVal(chef.city) || null;
+  const jobRole = cleanVal(chef.preferred_role) || cleanVal(chef.job_role) || cleanVal(chef.role) || null;
 
   const specialtiesList = chef.cuisine_specialty 
     ? String(chef.cuisine_specialty).split(',').map(s => s.trim()).filter(Boolean)
-    : (chef.specialties ? String(chef.specialties).split(',').map(s => s.trim()).filter(Boolean) : ['Italian', 'Indian', 'Chinese']);
+    : (chef.specialties ? String(chef.specialties).split(',').map(s => s.trim()).filter(Boolean) : []);
 
-  const businessTypes = specialtiesList.join(', ') || 'Italian, Indian, Chinese';
+  const businessTypes = specialtiesList.join(', ') || null;
 
   const bioText = chef.bio || chef.about || chef.description || chef.chef_profile?.bio || chef.chefProfile?.bio || null;
   const calendlyUrl = chef.calendly_link || chef.calendly || chef.chef_profile?.calendly_link || chef.chefProfile?.calendly_link || null;
@@ -371,22 +378,26 @@ export default function ChefDetail() {
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-slate-400" /> Experience
               </span>
-              <span className="text-slate-900 font-extrabold">{experience}</span>
+              <span className={experience ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium italic"}>
+                {experience || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-slate-400" /> Past Employer
               </span>
-              <span className="text-slate-900 font-extrabold text-right">{pastEmployer}</span>
+              <span className={pastEmployer ? "text-slate-900 font-extrabold text-right" : "text-slate-400 font-medium italic text-right"}>
+                {pastEmployer || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-slate-400" /> Employment Type
               </span>
-              <span className="bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100">
-                {employmentType}
+              <span className={employmentType ? "bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100" : "bg-slate-50 text-slate-400 font-medium italic px-2.5 py-0.5 rounded-md text-[11px] border border-slate-200"}>
+                {employmentType || 'Not Provided'}
               </span>
             </div>
 
@@ -394,8 +405,8 @@ export default function ChefDetail() {
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Plane className="w-4 h-4 text-slate-400" /> Past Overseas Experience
               </span>
-              <span className="bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100">
-                {regionalExp}
+              <span className={regionalExp ? "bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-md text-[11px] border border-emerald-100" : "bg-slate-50 text-slate-400 font-medium italic px-2.5 py-0.5 rounded-md text-[11px] border border-slate-200"}>
+                {regionalExp || 'Not Provided'}
               </span>
             </div>
 
@@ -403,21 +414,27 @@ export default function ChefDetail() {
               <span className="text-slate-500 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-slate-400" /> Job Location Preference
               </span>
-              <span className="text-slate-900 font-extrabold">{locationPref}</span>
+              <span className={locationPref ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium italic"}>
+                {locationPref || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Utensils className="w-4 h-4 text-slate-400" /> Cuisine Specialities
               </span>
-              <span className="text-slate-900 font-extrabold text-right">{businessTypes}</span>
+              <span className={businessTypes ? "text-slate-900 font-extrabold text-right" : "text-slate-400 font-medium italic text-right"}>
+                {businessTypes || 'Not Provided'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500 flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-slate-400" /> Job Role
               </span>
-              <span className="text-slate-900 font-extrabold">{jobRole}</span>
+              <span className={jobRole ? "text-slate-900 font-extrabold" : "text-slate-400 font-medium italic"}>
+                {jobRole || 'Not Provided'}
+              </span>
             </div>
 
             {/* Candidate Bio / About Me */}
