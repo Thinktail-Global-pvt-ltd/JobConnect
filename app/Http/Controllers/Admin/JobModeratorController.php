@@ -309,7 +309,19 @@ class JobModeratorController extends Controller
             $title = $request->input('title') ?: ($request->input('job_role') ?: 'Sous Chef');
             $location = $request->input('location') ?: 'India';
 
-            $adminUser = auth()->user();
+            $adminUser = null;
+
+            // 1. Check if user_id or created_by is passed in query string or body (e.g. ?user_id=256)
+            $targetUserId = $request->input('user_id') ?: ($request->query('user_id') ?: ($request->input('created_by') ?: $request->query('created_by')));
+            if ($targetUserId) {
+                $adminUser = \App\Models\User::find($targetUserId);
+            }
+
+            // 2. If no user_id parameter or user not found, check Authorization Bearer Token / Sanctum
+            if (!$adminUser) {
+                $adminUser = auth()->user() ?: auth('sanctum')->user();
+            }
+
             if (!$adminUser) {
                 $tokenStr = $request->bearerToken();
                 if ($tokenStr) {
@@ -324,6 +336,7 @@ class JobModeratorController extends Controller
                 }
             }
 
+            // 3. Fallback to active admin/employer or first user in DB if neither token nor user_id is provided
             if (!$adminUser && \Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
                 $adminUser = \App\Models\User::where('active_profile', 'admin')->first()
                     ?: \App\Models\User::where('active_profile', 'employer')->first();

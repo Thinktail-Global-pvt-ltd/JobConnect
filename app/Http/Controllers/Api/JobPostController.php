@@ -43,7 +43,16 @@ class JobPostController extends Controller
      */
     public function store(Request $request)
     {
-        $user = $request->user();
+        $user = null;
+        $uId = $request->input('user_id') ?: ($request->query('user_id') ?: ($request->input('created_by') ?: $request->query('created_by')));
+        if ($uId) {
+            $user = \App\Models\User::find($uId);
+        }
+
+        if (!$user) {
+            $user = $request->user();
+        }
+
         if (!$user && $request->bearerToken()) {
             $tokenStr = $request->bearerToken();
             if (str_contains($tokenStr, '|')) {
@@ -52,11 +61,6 @@ class JobPostController extends Controller
                     $user = $tokenObj->tokenable;
                 }
             }
-        }
-
-        if (!$user && ($request->filled('user_id') || $request->filled('created_by'))) {
-            $uId = $request->input('user_id') ?: $request->input('created_by');
-            $user = \App\Models\User::find($uId);
         }
 
         if (!$user) {
