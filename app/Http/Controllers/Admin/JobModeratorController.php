@@ -383,6 +383,47 @@ class JobModeratorController extends Controller
 
             $isAdminCreatedFlag = filter_var($request->input('is_admin_created', false), FILTER_VALIDATE_BOOLEAN) || filter_var($request->input('created_by_admin', false), FILTER_VALIDATE_BOOLEAN) || strtolower($request->input('submitted_by_role', '')) === 'admin';
 
+            // Fetch user's role from user_roles table for the job creator
+            $userRoleFromDb = null;
+            if ($adminUser && isset($adminUser->id)) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('user_roles')) {
+                    $userRoleObj = \Illuminate\Support\Facades\DB::table('user_roles')
+                        ->where('user_id', $adminUser->id)
+                        ->where(function($q) {
+                            $q->where('is_active', 1)->orWhere('is_active', true);
+                        })
+                        ->latest()
+                        ->first();
+
+                    if (!$userRoleObj) {
+                        $userRoleObj = \Illuminate\Support\Facades\DB::table('user_roles')
+                            ->where('user_id', $adminUser->id)
+                            ->latest()
+                            ->first();
+                    }
+
+                    if ($userRoleObj && !empty($userRoleObj->role_type)) {
+                        $userRoleFromDb = strtolower(trim($userRoleObj->role_type));
+                    }
+                }
+
+                if (empty($userRoleFromDb)) {
+                    if (isset($adminUser->active_profile) && !empty($adminUser->active_profile)) {
+                        $userRoleFromDb = strtolower(trim($adminUser->active_profile));
+                    } elseif (isset($adminUser->active_role) && !empty($adminUser->active_role)) {
+                        $userRoleFromDb = strtolower(trim($adminUser->active_role));
+                    } elseif (isset($adminUser->user_role) && !empty($adminUser->user_role)) {
+                        $userRoleFromDb = strtolower(trim($adminUser->user_role));
+                    }
+                }
+            }
+
+            $submittedByRole = $request->input('submitted_by_role')
+                ?: ($userRoleFromDb
+                ?: ($isAdminCreatedFlag ? 'admin' : ($adminUser ? ($adminUser->active_profile ?: 'employer') : 'employer')));
+
+            $submittedByRole = strtolower(trim($submittedByRole));
+
             $job = JobPost::create([
                 'created_by'                => $userId,
                 'title'                     => $title,
@@ -406,7 +447,7 @@ class JobModeratorController extends Controller
                 'is_pinned'                 => filter_var($request->input('is_pinned', false), FILTER_VALIDATE_BOOLEAN),
                 'is_referral'               => filter_var($request->input('is_referral', false), FILTER_VALIDATE_BOOLEAN),
                 'is_admin_created'          => $isAdminCreatedFlag,
-                'submitted_by_role'         => $isAdminCreatedFlag ? 'admin' : ($request->input('submitted_by_role') ?: ($adminUser ? ($adminUser->active_profile ?: 'employer') : 'employer')),
+                'submitted_by_role'         => $submittedByRole,
                 'country'                   => $request->input('country') ?: (str_contains(strtolower($location), 'saudi') ? 'Saudi Arabia' : 'India'),
                 'visa_assistance'           => filter_var($request->input('visa_assistance', false), FILTER_VALIDATE_BOOLEAN),
                 'accommodation_available'   => filter_var($request->input('accommodation_available', false), FILTER_VALIDATE_BOOLEAN),

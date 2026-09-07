@@ -144,7 +144,41 @@ class JobPostController extends Controller
 
         $isAdminCreated = $request->boolean('is_admin_created') || $request->boolean('created_by_admin');
         
-        $rawRole = $isAdminCreated ? 'admin' : ($request->input('submitted_by_role') ?? ($user ? ($user->active_profile ?: 'employer') : 'employer'));
+        $dbRole = null;
+        if ($user && isset($user->id)) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_roles')) {
+                $userRoleObj = \Illuminate\Support\Facades\DB::table('user_roles')
+                    ->where('user_id', $user->id)
+                    ->where(function($q) {
+                        $q->where('is_active', 1)->orWhere('is_active', true);
+                    })
+                    ->latest()
+                    ->first();
+
+                if (!$userRoleObj) {
+                    $userRoleObj = \Illuminate\Support\Facades\DB::table('user_roles')
+                        ->where('user_id', $user->id)
+                        ->latest()
+                        ->first();
+                }
+
+                if ($userRoleObj && !empty($userRoleObj->role_type)) {
+                    $dbRole = strtolower(trim($userRoleObj->role_type));
+                }
+            }
+
+            if (empty($dbRole)) {
+                if (isset($user->active_profile) && !empty($user->active_profile)) {
+                    $dbRole = strtolower(trim($user->active_profile));
+                } elseif (isset($user->active_role) && !empty($user->active_role)) {
+                    $dbRole = strtolower(trim($user->active_role));
+                } elseif (isset($user->user_role) && !empty($user->user_role)) {
+                    $dbRole = strtolower(trim($user->user_role));
+                }
+            }
+        }
+
+        $rawRole = $request->input('submitted_by_role') ?? ($dbRole ?? ($isAdminCreated ? 'admin' : ($user ? ($user->active_profile ?: 'employer') : 'employer')));
         $submittedByRole = str_replace('_', '', strtolower(trim($rawRole)));
 
         // Default status is pending, is_pinned is false
