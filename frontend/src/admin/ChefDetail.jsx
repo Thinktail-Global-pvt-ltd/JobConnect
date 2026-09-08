@@ -34,7 +34,7 @@ export default function ChefDetail() {
       if (res && res.chefs && Array.isArray(res.chefs)) {
         const found = res.chefs.find(c => String(c.id) === String(id) || String(c.user_id) === String(id) || String(c.chef_id) === String(id));
         if (found) {
-          data = data ? { ...found, ...data } : found;
+          data = data ? { ...data, ...found } : found;
         }
       }
     } catch (e) {}
@@ -96,20 +96,63 @@ export default function ChefDetail() {
   }, [id]);
 
   const handleToggleSuspend = async () => {
+    const profileId = chef?.id || id;
+    const userId = chef?.user_id || chef?.user?.id || id;
+    const currentStatus = String(status || chef?.approval_status || chef?.status || '').toLowerCase();
+    const isCurrentlySuspended = ['suspended', 'rejected', 'inactive'].includes(currentStatus);
+    const endpoints = isCurrentlySuspended
+      ? [
+          `/api/admin/chefs/${profileId}/approve`,
+          `/backend/api/admin/chefs/${profileId}/approve`,
+          `/api/admin/chefs/${userId}/approve`,
+          `/backend/api/admin/chefs/${userId}/approve`,
+          `/api/admin/users/${userId}/activate`,
+          `/backend/api/admin/users/${userId}/activate`
+        ]
+      : [
+          `/api/admin/chefs/${profileId}/unpublish`,
+          `/backend/api/admin/chefs/${profileId}/unpublish`,
+          `/api/admin/chefs/${userId}/unpublish`,
+          `/backend/api/admin/chefs/${userId}/unpublish`,
+          `/api/admin/users/${userId}/suspend`,
+          `/backend/api/admin/users/${userId}/suspend`
+        ];
+
     try {
-      if (status === 'suspended' || status === 'rejected') {
-        await mockApi.activateUser(id);
+      let lastError = null;
+      let success = false;
+
+      for (const endpoint of endpoints) {
+        try {
+          const res = await axios.post(endpoint, {}, { headers: { Accept: 'application/json' } });
+          if (res.data?.success) {
+            success = true;
+            break;
+          }
+          lastError = new Error(res.data?.message || `Request failed for ${endpoint}`);
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      if (!success) {
+        throw lastError || new Error('No status endpoint succeeded.');
+      }
+
+      if (isCurrentlySuspended) {
         setStatus('approved');
-        if (chef) setChef({ ...chef, approval_status: 'approved', status: 'approved' });
+        if (chef) setChef({ ...chef, approval_status: 'approved', status: 'approved', is_suspended: false });
         alert('Chef profile status changed to Active.');
       } else {
-        await mockApi.suspendUser(id);
         setStatus('suspended');
-        if (chef) setChef({ ...chef, approval_status: 'suspended', status: 'suspended' });
+        if (chef) setChef({ ...chef, approval_status: 'suspended', status: 'suspended', is_suspended: true });
         alert('Chef profile status changed to Suspended.');
       }
+
+      await fetchChefDetail();
     } catch (err) {
-      alert('Failed to update chef status: ' + err.message);
+      console.error('Chef status update failed:', err);
+      alert('Failed to update chef status: ' + (err.response?.data?.message || err.message));
     }
   };
 
