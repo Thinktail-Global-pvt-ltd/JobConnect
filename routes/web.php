@@ -812,6 +812,7 @@ Route::prefix('admin')->group(function () {
     // Chef Moderator Routes
     Route::get('/chefs', [ChefModeratorController::class, 'index']);
     Route::post('/chefs/{chef}/approve', [ChefModeratorController::class, 'approve']);
+    Route::post('/chefs/{chef}/unpublish', [ChefModeratorController::class, 'unpublish']);
     Route::post('/chefs/{chef}/reject', [ChefModeratorController::class, 'reject']);
     Route::post('/chefs/schedule-appointment', [ChefModeratorController::class, 'scheduleAppointment']);
 

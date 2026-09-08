@@ -129,12 +129,28 @@ export default function Chefs() {
     fetchPublishedEmployerChefs();
   }, [statusFilter]);
 
+  const postToFirstSuccessfulEndpoint = async (endpoints) => {
+    let lastError = null;
+
+    for (const ep of endpoints) {
+      try {
+        const res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
+        if (res.data && res.data.success) {
+          return res.data;
+        }
+        lastError = new Error(res.data?.message || `Request failed for ${ep}`);
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    throw lastError || new Error('No moderation endpoint succeeded.');
+  };
+
   const handleApprove = async (chefItem) => {
     const id = typeof chefItem === 'object' ? chefItem.id : chefItem;
     const userId = typeof chefItem === 'object' ? (chefItem.user_id || chefItem.id) : chefItem;
 
-    setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
-    alert('Chef profile approved & published successfully.');
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/approve`,
@@ -144,14 +160,12 @@ export default function Chefs() {
         `/api/admin/users/${userId}/activate`,
         `/backend/api/admin/users/${userId}/activate`
       ];
-      for (const ep of endpoints) {
-        try {
-          const res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
-          if (res.data && res.data.success) break;
-        } catch (e) {}
-      }
+      await postToFirstSuccessfulEndpoint(endpoints);
+      setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
+      alert('Chef profile approved & published successfully.');
     } catch (err) {
       console.error('Approve failed:', err);
+      alert(err.response?.data?.message || err.message || 'Approve failed. Please check backend connection.');
     } finally {
       await loadChefs();
       await fetchPublishedEmployerChefs();
@@ -162,8 +176,6 @@ export default function Chefs() {
     const id = typeof chefItem === 'object' ? chefItem.id : chefItem;
     const userId = typeof chefItem === 'object' ? (chefItem.user_id || chefItem.id) : chefItem;
 
-    setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
-    alert('Chef profile status set to Unpublished / Suspended.');
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/unpublish`,
@@ -173,14 +185,12 @@ export default function Chefs() {
         `/api/admin/users/${userId}/suspend`,
         `/backend/api/admin/users/${userId}/suspend`
       ];
-      for (const ep of endpoints) {
-        try {
-          const res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
-          if (res.data && res.data.success) break;
-        } catch (e) {}
-      }
+      await postToFirstSuccessfulEndpoint(endpoints);
+      setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
+      alert('Chef profile status set to Unpublished / Suspended.');
     } catch (err) {
       console.error('Unpublish failed:', err);
+      alert(err.response?.data?.message || err.message || 'Unpublish failed. Please check backend connection.');
     } finally {
       await loadChefs();
       await fetchPublishedEmployerChefs();
@@ -191,7 +201,6 @@ export default function Chefs() {
     const id = typeof chefItem === 'object' ? chefItem.id : chefItem;
     const userId = typeof chefItem === 'object' ? (chefItem.user_id || chefItem.id) : chefItem;
 
-    setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/reject`,
@@ -201,14 +210,11 @@ export default function Chefs() {
         `/api/admin/users/${userId}/suspend`,
         `/backend/api/admin/users/${userId}/suspend`
       ];
-      for (const ep of endpoints) {
-        try {
-          const res = await axios.post(ep, {}, { headers: { Accept: 'application/json' } });
-          if (res.data && res.data.success) break;
-        } catch (e) {}
-      }
+      await postToFirstSuccessfulEndpoint(endpoints);
+      setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
     } catch (err) {
       console.error('Reject failed:', err);
+      alert(err.response?.data?.message || err.message || 'Reject failed. Please check backend connection.');
     } finally {
       await loadChefs();
       await fetchPublishedEmployerChefs();
@@ -338,7 +344,7 @@ export default function Chefs() {
                       const mobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;
                       const experience = chef.experience_range || chef.experience || '0 Years';
                       const specialties = chef.cuisine_specialty || chef.specialties || 'Multi-Cuisine';
-                      const status = chef.approval_status || chef.status || 'pending';
+                      const status = String(chef.approval_status || chef.status || 'pending').toLowerCase();
                       const hasCalendly = chef.calendly || Boolean(chef.calendly_link);
                       const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CH';
 
@@ -402,7 +408,7 @@ export default function Chefs() {
                           </td>
 
                           <td className="py-2.5 px-3">
-                            {status === 'approved' ? (
+                            {status === 'approved' || status === 'published' || status === 'active' ? (
                               <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 Approved / Published
                               </span>
@@ -428,7 +434,7 @@ export default function Chefs() {
                                 <Eye className="w-4 h-4" />
                               </Link>
 
-                              {status === 'approved' ? (
+                              {status === 'approved' || status === 'published' || status === 'active' ? (
                                 <button 
                                   onClick={() => handleUnpublish(chef)} 
                                   className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
@@ -714,4 +720,3 @@ export default function Chefs() {
 function empty(val) {
   return !val || val === '' || val === 'null' || val === null;
 }
-

@@ -209,7 +209,7 @@ class AppointmentController extends Controller
                     continue;
                 }
                 $status = strtolower(trim($prof->approval_status ?: ($u ? ($u->approval_status ?: ($u->status ?: 'approved')) : 'approved')));
-                if (in_array($status, ['approved', 'active', 'published']) || empty($status) || $status === 'pending') {
+                if (in_array($status, ['approved', 'active', 'published'])) {
                     $allChefsMap->put($prof->id, [
                         'profile' => $prof,
                         'user' => $u
@@ -222,8 +222,8 @@ class AppointmentController extends Controller
                     continue;
                 }
                 $prof = $u->chefProfile;
-                $status = strtolower(trim($prof ? ($prof->approval_status ?: 'approved') : ($u->approval_status ?: ($u->status ?: 'approved'))));
-                if (in_array($status, ['approved', 'active', 'published']) || empty($status) || $status === 'pending') {
+                $status = strtolower(trim($prof ? ($prof->approval_status ?: 'pending') : ($u->approval_status ?: ($u->status ?: 'pending'))));
+                if (in_array($status, ['approved', 'active', 'published'])) {
                     $pId = $prof ? $prof->id : ('user_' . $u->id);
                     if (!$allChefsMap->has($pId)) {
                         $allChefsMap->put($pId, [

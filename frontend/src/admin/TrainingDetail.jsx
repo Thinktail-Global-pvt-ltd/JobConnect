@@ -6,7 +6,7 @@ import {
   User, Phone, Mail, Copy, X, ShieldCheck, Users
 } from 'lucide-react';
 import axios from 'axios';
-import { mockApi, realApi } from '../services/api';
+import { mockApi } from '../services/api';
 
 export default function TrainingDetail() {
   const { id } = useParams();
@@ -46,12 +46,20 @@ export default function TrainingDetail() {
 
     if (!found) {
       const endpoints = [
+        'https://jobrito.com/api/admin/training-opportunities',
+        '/api/admin/training-opportunities',
+        '/backend/api/admin/training-opportunities',
         `/api/admin/training/${id}`,
         `/backend/api/admin/training/${id}`
       ];
       for (const ep of endpoints) {
         try {
           const res = await axios.get(ep, { headers: { Accept: 'application/json' } });
+          const list = res.data?.programs || res.data?.data || res.data?.items;
+          if (Array.isArray(list)) {
+            found = list.find(p => String(p.id) === String(id));
+            if (found) break;
+          }
           if (res.data && (res.data.program || res.data.data)) {
             found = res.data.program || res.data.data;
             break;

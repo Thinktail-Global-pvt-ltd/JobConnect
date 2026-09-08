@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Eye, Edit2, Globe, ShieldCheck, Clock, BookOpen, Plus, EyeOff, CheckCircle2, FileText, MapPin, Sparkles, Pin, X, Building2, Lightbulb, Target, Search } from 'lucide-react';
-import axios from 'axios';
-import { realApi, mockApi } from '../services/api';
+import { mockApi } from '../services/api';
 
 export default function Training() {
   const navigate = useNavigate();
@@ -37,35 +36,34 @@ export default function Training() {
 
   const loadPrograms = async () => {
     setLoading(true);
-    let data = null;
 
     try {
-      data = await mockApi.getTrainingPrograms();
-    } catch (err) {}
+      const data = await mockApi.getTrainingPrograms();
 
-    if (!data || !data.programs || data.programs.length === 0) {
-      try {
-        const res = await axios.get('/backend/api/admin/training-opportunities');
-        if (res.data?.success && Array.isArray(res.data.programs)) data = res.data;
-      } catch (err) {}
-    }
-
-    if (data && Array.isArray(data.programs)) {
-      setPrograms(data.programs);
-      const allProgs = data.programs;
-      const countries = new Set();
-      allProgs.forEach(p => (p.countries || []).forEach(c => countries.add(c)));
-      setStats({
-        total: data.stats?.total ?? allProgs.length,
-        active: data.stats?.active ?? allProgs.filter(p => p.status === 'Published' || p.status === 'Active').length,
-        pending: data.stats?.pending ?? allProgs.filter(p => p.status === 'Draft' || p.status === 'Reviewing' || p.status === 'Pending').length,
-        countries_count: data.stats?.countries_count ?? countries.size,
-        pinned: data.stats?.pinned ?? allProgs.filter(p => p.is_pinned).length
-      });
-    } else {
+      if (data && Array.isArray(data.programs)) {
+        setPrograms(data.programs);
+        const allProgs = data.programs;
+        const countries = new Set();
+        allProgs.forEach(p => {
+          const programCountries = Array.isArray(p.countries) ? p.countries : String(p.countries || '').split(',');
+          programCountries.map(c => c.trim()).filter(Boolean).forEach(c => countries.add(c));
+        });
+        setStats({
+          total: data.stats?.total ?? allProgs.length,
+          active: data.stats?.active ?? allProgs.filter(p => ['published', 'active', 'approved'].includes(String(p.status || '').toLowerCase())).length,
+          pending: data.stats?.pending ?? allProgs.filter(p => ['draft', 'reviewing', 'pending'].includes(String(p.status || '').toLowerCase())).length,
+          countries_count: data.stats?.countries_count ?? countries.size,
+          pinned: data.stats?.pinned ?? allProgs.filter(p => p.is_pinned).length
+        });
+      } else {
+        setPrograms([]);
+      }
+    } catch (err) {
+      console.error('Failed to load training programs:', err);
       setPrograms([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -656,8 +654,6 @@ export default function Training() {
     </div>
   );
 }
-
-
 
 
 

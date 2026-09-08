@@ -56,6 +56,7 @@ const normalizeRequestUrl = (url) => {
 
 const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
 const shouldUseConfiguredBase = configuredApiBase && (isLocalBrowser || !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(configuredApiBase));
+const TRAINING_OPPORTUNITIES_URL = 'https://jobrito.com/api/admin/training-opportunities';
 
 // Axios Instance configured for production deploy
 export const API_BASE = shouldUseConfiguredBase
@@ -1075,14 +1076,32 @@ export const mockApi = {
   },
 
   getTrainingPrograms: async () => {
-    try {
-      const res = await realApi.get('/api/admin/training-opportunities');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
-    try {
-      const res = await axios.get('/backend/api/admin/training-opportunities');
-      if (res.data && res.data.success) return res.data;
-    } catch (e) {}
+    const endpoints = [
+      TRAINING_OPPORTUNITIES_URL,
+      '/api/admin/training-opportunities',
+      '/backend/api/admin/training-opportunities'
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const res = await axios.get(url, { headers: { Accept: 'application/json' } });
+        const programs = res.data?.programs || res.data?.data || res.data?.items || [];
+        if (res.data && res.data.success && Array.isArray(programs)) {
+          return {
+            ...res.data,
+            programs,
+            stats: res.data.stats || {
+              total: programs.length,
+              active: programs.filter(p => ['published', 'active', 'approved'].includes(String(p.status || '').toLowerCase())).length,
+              pending: programs.filter(p => ['draft', 'reviewing', 'pending'].includes(String(p.status || '').toLowerCase())).length,
+              countries_count: new Set(programs.flatMap(p => Array.isArray(p.countries) ? p.countries : String(p.countries || '').split(',')).filter(Boolean)).size,
+              pinned: programs.filter(p => Boolean(p.is_pinned)).length
+            }
+          };
+        }
+      } catch (e) {}
+    }
+
     return { success: true, programs: [], stats: { total: 0, active: 0, pending: 0, countries_count: 0 } };
   },
 
@@ -1108,9 +1127,9 @@ export const mockApi = {
       is_pinned: Boolean(formData.is_pinned)
     };
 
-    // 1. Direct IP Production Backend Endpoint
+    // 1. Canonical Production Backend Endpoint
     try {
-      const res = await axios.post('http://178.16.138.159/backend/api/admin/training-opportunities/create', payload);
+      const res = await axios.post(`${TRAINING_OPPORTUNITIES_URL}/create`, payload);
       if (res.data && (res.data.success || res.data.id || res.data.program)) return res.data;
       if (res.data && res.data.message) errorResp = res.data;
     } catch (e) {
@@ -1149,8 +1168,7 @@ export const mockApi = {
 
   updateTrainingStatus: async (id, status) => {
     const endpoints = [
-      `http://178.16.138.159/backend/api/admin/training-opportunities/${id}/status`,
-      `https://jobrito.com/api/admin/training-opportunities/${id}/status`,
+      `${TRAINING_OPPORTUNITIES_URL}/${id}/status`,
       `/backend/api/admin/training-opportunities/${id}/status`,
       `/api/admin/training-opportunities/${id}/status`,
       `/admin/training-opportunities/${id}/status`
@@ -1166,8 +1184,7 @@ export const mockApi = {
 
   togglePinTraining: async (id) => {
     const endpoints = [
-      `http://178.16.138.159/backend/api/admin/training-opportunities/${id}/toggle-pin`,
-      `https://jobrito.com/api/admin/training-opportunities/${id}/toggle-pin`,
+      `${TRAINING_OPPORTUNITIES_URL}/${id}/toggle-pin`,
       `/backend/api/admin/training-opportunities/${id}/toggle-pin`,
       `/api/admin/training-opportunities/${id}/toggle-pin`,
       `/admin/training-opportunities/${id}/toggle-pin`
