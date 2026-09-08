@@ -74,13 +74,13 @@ export default function Chefs() {
     let data = null;
 
     const endpoints = [
+      '/api/admin/chefs',
+      '/backend/api/admin/chefs',
+      '/admin/chefs',
       '/backend/api/employer/chefs-all',
       '/api/employer/chefs-all',
       '/employer/chefs-all',
       '/chefs-all',
-      '/api/admin/chefs',
-      '/backend/api/admin/chefs',
-      '/admin/chefs',
       '/chefs'
     ];
 
@@ -237,11 +237,11 @@ export default function Chefs() {
 
   // Dynamic KPI Stats calculation
   const filteredChefs = (chefs || []).filter(c => {
-    if (!statusFilter) return true;
+    if (!statusFilter || statusFilter === 'all') return true;
     const st = (c.approval_status || c.status || 'pending').toLowerCase();
-    if (statusFilter === 'pending') return st !== 'approved' && st !== 'published';
+    if (statusFilter === 'pending') return st === 'pending' || st === 'unpublished' || (st !== 'approved' && st !== 'published' && st !== 'rejected');
     if (statusFilter === 'approved') return st === 'approved' || st === 'published';
-    if (statusFilter === 'rejected') return st === 'rejected';
+    if (statusFilter === 'rejected') return st === 'rejected' || st === 'unpublished' || st === 'suspended';
     return true;
   });
 
