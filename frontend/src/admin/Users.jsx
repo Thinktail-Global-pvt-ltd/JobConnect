@@ -14,13 +14,13 @@ export default function Users() {
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   const handleDeleteAllUsers = async () => {
-    const confirmMessage = "⚠️ CRITICAL WARNING!\n\nAre you sure you want to PERMANENTLY DELETE ALL USERS from the database?\n\nThis will wipe:\n• All users from the 'users' table\n• All active user sessions\n• All personal access tokens\n• All notification histories & device tokens\n• All user profiles\n\nThis action CANNOT be undone!";
+    const confirmMessage = "⚠️ CRITICAL WARNING!\n\nAre you sure you want to PERMANENTLY DELETE ALL USERS from the database?\n\nThis will wipe:\n• All users from the 'users' table\n• All job posts from the 'job_posts' table\n• All job applications, training applications, and saved jobs\n• All active user sessions\n• All personal access tokens\n• All notification histories & device tokens\n• All user profiles\n\nThis action CANNOT be undone!";
     
     if (!window.confirm(confirmMessage)) {
       return;
     }
 
-    const secondConfirm = window.prompt("Type DELETE to confirm wiping all users, sessions, and tokens from the database:");
+    const secondConfirm = window.prompt("Type DELETE to confirm wiping all users, job posts, sessions, and tokens from the database:");
     if (secondConfirm !== 'DELETE') {
       alert("Action canceled. You must type 'DELETE' to confirm.");
       return;
@@ -43,7 +43,7 @@ export default function Users() {
       }
 
       if (res && res.data?.success) {
-        alert(`Success: ${res.data.message || 'All users, sessions, personal access tokens, and notification histories deleted successfully.'}`);
+        alert(`Success: ${res.data.message || 'All users, job posts, sessions, personal access tokens, and notification histories deleted successfully.'}`);
         setUsers([]);
         loadUsers();
       } else {
@@ -185,7 +185,7 @@ export default function Users() {
           onClick={handleDeleteAllUsers}
           disabled={isDeletingAll}
           className="bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white px-4 py-2 rounded-lg text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 border border-rose-700 cursor-pointer"
-          title="Delete all users, sessions, personal access tokens, and notification history from database"
+          title="Delete all users, job posts, sessions, personal access tokens, and notification history from database"
         >
           <Trash2 className="w-4 h-4 text-rose-100" />
           <span>{isDeletingAll ? 'Deleting All Users...' : 'Delete All Users & Sessions'}</span>
@@ -587,7 +587,6 @@ export default function Users() {
     </div>
   );
 }
-
 
 
 

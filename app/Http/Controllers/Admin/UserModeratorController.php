@@ -472,7 +472,7 @@ class UserModeratorController extends Controller
     }
 
     /**
-     * Delete ALL users, sessions, personal access tokens, and notification history from database.
+     * Delete ALL users, job posts, sessions, personal access tokens, and notification history from database.
      */
     public function deleteAll(Request $request)
     {
@@ -502,7 +502,20 @@ class UserModeratorController extends Controller
                 }
             }
 
-            // 4. Clear user child tables if present
+            // 4. Clear job data before removing users.
+            $jobRelatedTables = ['job_applications', 'training_applications', 'saved_jobs'];
+            foreach ($jobRelatedTables as $jTable) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($jTable)) {
+                    \Illuminate\Support\Facades\DB::table($jTable)->delete();
+                }
+            }
+
+            $deletedJobPostsCount = 0;
+            if (\Illuminate\Support\Facades\Schema::hasTable('job_posts')) {
+                $deletedJobPostsCount = \Illuminate\Support\Facades\DB::table('job_posts')->delete();
+            }
+
+            // 5. Clear user child tables if present
             $userChildTables = ['user_otps', 'user_roles', 'user_socials', 'chef_profiles', 'employer_profiles'];
             foreach ($userChildTables as $cTable) {
                 if (\Illuminate\Support\Facades\Schema::hasTable($cTable)) {
@@ -510,7 +523,7 @@ class UserModeratorController extends Controller
                 }
             }
 
-            // 5. Delete all users from users table
+            // 6. Delete all users from users table
             $deletedUsersCount = \Illuminate\Support\Facades\DB::table('users')->delete();
 
             // Re-enable Foreign Key checks
@@ -522,8 +535,9 @@ class UserModeratorController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'All users (' . $deletedUsersCount . '), active sessions, personal access tokens, and notification histories deleted successfully.',
-                'deleted_users_count' => $deletedUsersCount
+                'message' => 'All users (' . $deletedUsersCount . '), job posts (' . $deletedJobPostsCount . '), active sessions, personal access tokens, and notification histories deleted successfully.',
+                'deleted_users_count' => $deletedUsersCount,
+                'deleted_job_posts_count' => $deletedJobPostsCount
             ]);
         } catch (\Throwable $e) {
             try {
@@ -537,7 +551,7 @@ class UserModeratorController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete users and sessions: ' . $e->getMessage()
+                'message' => 'Failed to delete users, job posts, and sessions: ' . $e->getMessage()
             ], 500);
         }
     }

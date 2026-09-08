@@ -205,10 +205,10 @@ class AppointmentController extends Controller
 
             foreach ($chefProfiles as $prof) {
                 $u = $prof->user;
-                if ($u && $u->is_suspended) {
+                if (!$u || $u->is_suspended) {
                     continue;
                 }
-                $status = strtolower(trim($prof->approval_status ?: ($u ? ($u->approval_status ?: ($u->status ?: 'approved')) : 'approved')));
+                $status = strtolower(trim($prof->approval_status ?: 'pending'));
                 if (in_array($status, ['approved', 'active', 'published'])) {
                     $allChefsMap->put($prof->id, [
                         'profile' => $prof,
@@ -222,7 +222,10 @@ class AppointmentController extends Controller
                     continue;
                 }
                 $prof = $u->chefProfile;
-                $status = strtolower(trim($prof ? ($prof->approval_status ?: 'pending') : ($u->approval_status ?: ($u->status ?: 'pending'))));
+                if (!$prof) {
+                    continue;
+                }
+                $status = strtolower(trim($prof->approval_status ?: 'pending'));
                 if (in_array($status, ['approved', 'active', 'published'])) {
                     $pId = $prof ? $prof->id : ('user_' . $u->id);
                     if (!$allChefsMap->has($pId)) {

@@ -229,7 +229,7 @@ class ChefProfileController extends Controller
      */
     public function employerFeed(Request $request)
     {
-        $moderator = new \App\Http\Controllers\Admin\ChefModeratorController();
-        return $moderator->apiIndex($request);
+        $appointments = new \App\Http\Controllers\AppointmentController();
+        return $appointments->registeredChefsList();
     }
 }
