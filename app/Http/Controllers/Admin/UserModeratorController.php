@@ -472,7 +472,7 @@ class UserModeratorController extends Controller
     }
 
     /**
-     * Delete ALL users, job posts, sessions, personal access tokens, and notification history from database.
+     * Delete ALL users, job posts, training programs, sessions, personal access tokens, and notification history from database.
      */
     public function deleteAll(Request $request)
     {
@@ -515,6 +515,11 @@ class UserModeratorController extends Controller
                 $deletedJobPostsCount = \Illuminate\Support\Facades\DB::table('job_posts')->delete();
             }
 
+            $deletedTrainingProgramsCount = 0;
+            if (\Illuminate\Support\Facades\Schema::hasTable('training_opportunities')) {
+                $deletedTrainingProgramsCount = \Illuminate\Support\Facades\DB::table('training_opportunities')->delete();
+            }
+
             // 5. Clear user child tables if present
             $userChildTables = ['user_otps', 'user_roles', 'user_socials', 'chef_profiles', 'employer_profiles'];
             foreach ($userChildTables as $cTable) {
@@ -535,9 +540,10 @@ class UserModeratorController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'All users (' . $deletedUsersCount . '), job posts (' . $deletedJobPostsCount . '), active sessions, personal access tokens, and notification histories deleted successfully.',
+                'message' => 'All users (' . $deletedUsersCount . '), job posts (' . $deletedJobPostsCount . '), training programs (' . $deletedTrainingProgramsCount . '), active sessions, personal access tokens, and notification histories deleted successfully.',
                 'deleted_users_count' => $deletedUsersCount,
-                'deleted_job_posts_count' => $deletedJobPostsCount
+                'deleted_job_posts_count' => $deletedJobPostsCount,
+                'deleted_training_programs_count' => $deletedTrainingProgramsCount
             ]);
         } catch (\Throwable $e) {
             try {
@@ -551,7 +557,7 @@ class UserModeratorController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete users, job posts, and sessions: ' . $e->getMessage()
+                'message' => 'Failed to delete users, job posts, training programs, and sessions: ' . $e->getMessage()
             ], 500);
         }
     }
