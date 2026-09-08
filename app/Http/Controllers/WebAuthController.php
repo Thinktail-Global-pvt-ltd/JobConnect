@@ -24,13 +24,36 @@ class WebAuthController extends Controller
         return view('auth.login');
     }
 
+    private function normalizeMobileForLogin(Request $request): string
+    {
+        $mobile = preg_replace('/[^0-9]/', '', (string) $request->input('mobile_number'));
+        $countryCode = $request->input('country_code')
+            ?? $request->input('extension')
+            ?? $request->input('dial_code')
+            ?? $request->input('phone_code');
+        $countryCode = preg_replace('/[^0-9]/', '', (string) $countryCode);
+
+        if ($countryCode !== '') {
+            $mobile = ltrim($mobile, '0');
+            if (!str_starts_with($mobile, $countryCode)) {
+                return $countryCode . $mobile;
+            }
+        }
+
+        return $mobile;
+    }
+
     /**
      * Submit mobile number to request OTP.
      */
     public function submitLogin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
+            'mobile_number' => 'required|string|regex:/^[0-9+()\-\s]{7,20}$/',
+            'country_code' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'extension' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'dial_code' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'phone_code' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
             'login_role' => 'required|string|in:job_seeker,employer,chef',
         ]);
 
@@ -41,7 +64,7 @@ class WebAuthController extends Controller
             ], 422);
         }
 
-        $mobile = $request->mobile_number;
+        $mobile = $this->normalizeMobileForLogin($request);
         $targetRole = $request->input('login_role', 'job_seeker');
 
         // Check for Role Conflict on existing user before requesting/sending OTP
@@ -205,7 +228,11 @@ class WebAuthController extends Controller
     public function submitVerify(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
+            'mobile_number' => 'required|string|regex:/^[0-9+()\-\s]{7,20}$/',
+            'country_code' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'extension' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'dial_code' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'phone_code' => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
             'otp' => 'required|string|size:6',
             'login_role' => 'required|string|in:job_seeker,employer,chef',
             'selected_language' => 'nullable|string|max:10',
@@ -218,7 +245,7 @@ class WebAuthController extends Controller
             ], 422);
         }
 
-        $mobile = $request->mobile_number;
+        $mobile = $this->normalizeMobileForLogin($request);
         $otp = $request->otp;
         $targetRole = $request->login_role;
 
@@ -253,7 +280,12 @@ class WebAuthController extends Controller
         Cache::forget("web_otp_{$mobile}");
 
         // Fetch or create user
-        $user = User::where('mobile_number', $mobile)->first();
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+        $last10 = strlen($cleanMobile) >= 10 ? substr($cleanMobile, -10) : $cleanMobile;
+        $user = User::where('mobile_number', $mobile)
+            ->orWhere('mobile_number', $cleanMobile)
+            ->orWhere('mobile_number', 'LIKE', '%' . $last10)
+            ->first();
         
         if (!$user) {
             $user = User::create([

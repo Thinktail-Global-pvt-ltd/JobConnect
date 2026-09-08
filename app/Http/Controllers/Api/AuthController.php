@@ -32,13 +32,36 @@ class AuthController extends Controller
         return $r;
     }
 
+    private function normalizeMobileForLogin(Request $request): string
+    {
+        $mobile = preg_replace('/[^0-9]/', '', (string) $request->input('mobile_number'));
+        $countryCode = $request->input('country_code')
+            ?? $request->input('extension')
+            ?? $request->input('dial_code')
+            ?? $request->input('phone_code');
+        $countryCode = preg_replace('/[^0-9]/', '', (string) $countryCode);
+
+        if ($countryCode !== '') {
+            $mobile = ltrim($mobile, '0');
+            if (!str_starts_with($mobile, $countryCode)) {
+                return $countryCode . $mobile;
+            }
+        }
+
+        return $mobile;
+    }
+
     /**
      * Request OTP endpoint.
      */
     public function requestOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile_number' => 'required|string|regex:/^[0-9]{10}$/',
+            'mobile_number' => 'required|string|regex:/^[0-9+()\-\s]{7,20}$/',
+            'country_code'   => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'extension'      => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'dial_code'      => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'phone_code'     => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
             'role'          => 'nullable|string',
             'role_type'     => 'nullable|string',
             'login_role'    => 'nullable|string',
@@ -51,16 +74,17 @@ class AuthController extends Controller
             ], 422);
         }
 
+        $mobile = $this->normalizeMobileForLogin($request);
         $requestedRole = $request->role ?? $request->role_type ?? $request->login_role;
 
         if ($requestedRole) {
-            $existingRole = $this->checkRoleConflict($request->mobile_number, $requestedRole);
+            $existingRole = $this->checkRoleConflict($mobile, $requestedRole);
             if ($existingRole) {
                 $displayExisting = $this->formatRoleDisplayName($existingRole);
                 $displayRequested = $this->formatRoleDisplayName($requestedRole);
                 return response()->json([
                     'success' => false,
-                    'message' => "Account Role Conflict: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
+                    'message' => "Account Role Conflict: Mobile number {$mobile} is already registered as '{$displayExisting}'. You cannot request OTP or log in as '{$displayRequested}'.",
                     'existing_role' => $displayExisting,
                     'requested_role' => $displayRequested,
                 ], 400);
@@ -70,6 +94,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'OTP sent successfully. Use 123456 for testing.',
+            'mobile' => $mobile,
         ]);
     }
 
@@ -79,7 +104,11 @@ class AuthController extends Controller
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'mobile_number'     => 'required|string|regex:/^[0-9]{10}$/',
+            'mobile_number'     => 'required|string|regex:/^[0-9+()\-\s]{7,20}$/',
+            'country_code'      => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'extension'         => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'dial_code'         => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
+            'phone_code'        => 'nullable|string|regex:/^\+?[0-9]{1,4}$/',
             'otp'               => 'required|string|size:6',
             'selected_language' => 'nullable|string|max:10',
             'fcm_token'          => 'nullable|string',
@@ -95,6 +124,8 @@ class AuthController extends Controller
             ], 422);
         }
 
+        $mobile = $this->normalizeMobileForLogin($request);
+
         // Verify strictly 123456
         if ($request->otp !== '123456') {
             return response()->json([
@@ -106,7 +137,12 @@ class AuthController extends Controller
         $requestedRole = $this->normalizeRole($request->role ?? $request->role_type ?? $request->login_role);
 
         // Fetch user
-        $user = User::where('mobile_number', $request->mobile_number)->first();
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+        $last10 = strlen($cleanMobile) >= 10 ? substr($cleanMobile, -10) : $cleanMobile;
+        $user = User::where('mobile_number', $mobile)
+            ->orWhere('mobile_number', $cleanMobile)
+            ->orWhere('mobile_number', 'LIKE', '%' . $last10)
+            ->first();
         $isNewUser = false;
 
         if ($user) {
@@ -120,7 +156,7 @@ class AuthController extends Controller
                 $displayRequested = $this->formatRoleDisplayName($requestedRole);
                 return response()->json([
                     'success' => false,
-                    'message' => "Account Role Conflict: Mobile number {$request->mobile_number} is already registered as '{$displayExisting}'. You cannot log in or change role to '{$displayRequested}'.",
+                    'message' => "Account Role Conflict: Mobile number {$mobile} is already registered as '{$displayExisting}'. You cannot log in or change role to '{$displayRequested}'.",
                     'existing_role' => $displayExisting,
                     'requested_role' => $displayRequested,
                 ], 400);
@@ -142,7 +178,7 @@ class AuthController extends Controller
             $userRoleType = $requestedRole ?? 'job_seeker';
 
             $user = User::create([
-                'mobile_number' => $request->mobile_number,
+                'mobile_number' => $mobile,
                 'is_suspended' => false,
                 'selected_language' => $request->selected_language ?? 'en',
                 'fcm_token' => $request->fcm_token,
