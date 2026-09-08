@@ -169,9 +169,14 @@ class ChefModeratorController extends Controller
 
                 $ageVal = $user ? ($user->age ?: ($chef->age ?: ($availability['age'] ?? null))) : ($chef->age ?: ($availability['age'] ?? null));
 
+                $isSuspended = $user ? (bool)$user->is_suspended : false;
+                $approvalStatus = $chef->approval_status ?: 'pending';
+                $displayStatus = $isSuspended ? 'suspended' : $approvalStatus;
+
                 return [
                     'id' => $chef->id,
                     'user_id' => $chef->user_id,
+                    'is_suspended' => $isSuspended,
                     'is_viewed' => (bool)$isViewed,
                     'viewed' => (bool)$isViewed,
                     'full_name' => $fullName,
@@ -201,8 +206,8 @@ class ChefModeratorController extends Controller
                     'bio' => $chef->bio ?: null,
                     'calendly_link' => $chef->calendly_link ?: null,
                     'calendly' => !empty($chef->calendly_link),
-                    'approval_status' => $chef->approval_status ?: 'pending',
-                    'status' => $chef->approval_status ?: 'pending',
+                    'approval_status' => $approvalStatus,
+                    'status' => $displayStatus,
                     'availability_info' => $availability,
                     'availability_status' => $availabilityStatus ?: ($isAvailable ? 'Available' : 'Unavailable'),
                     'is_available' => $isAvailable,

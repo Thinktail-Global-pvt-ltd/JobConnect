@@ -263,10 +263,13 @@ export default function Chefs() {
   // Dynamic KPI Stats calculation
   const filteredChefs = (chefs || []).filter(c => {
     if (!statusFilter || statusFilter === 'all') return true;
-    const st = (c.approval_status || c.status || 'pending').toLowerCase();
-    if (statusFilter === 'pending') return st === 'pending' || st === 'unpublished' || (st !== 'approved' && st !== 'published' && st !== 'rejected');
+    const st = (c.is_suspended || String(c.status || '').toLowerCase() === 'suspended')
+      ? 'suspended'
+      : String(c.approval_status || c.status || 'pending').toLowerCase();
+    if (statusFilter === 'pending') return st === 'pending' || st === 'unpublished' || (st !== 'approved' && st !== 'published' && st !== 'rejected' && st !== 'suspended');
     if (statusFilter === 'approved') return st === 'approved' || st === 'published';
-    if (statusFilter === 'rejected') return st === 'rejected' || st === 'unpublished' || st === 'suspended';
+    if (statusFilter === 'rejected') return st === 'rejected' || st === 'unpublished';
+    if (statusFilter === 'suspended') return st === 'suspended';
     return true;
   });
 
@@ -303,6 +306,7 @@ export default function Chefs() {
                   <option value="pending">Pending / Unpublished Only</option>
                   <option value="approved">Approved / Published Only</option>
                   <option value="rejected">Rejected Only</option>
+                  <option value="suspended">Suspended Only</option>
                 </select>
                 <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
               </div>
@@ -344,9 +348,13 @@ export default function Chefs() {
                       const mobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;
                       const experience = chef.experience_range || chef.experience || '0 Years';
                       const specialties = chef.cuisine_specialty || chef.specialties || 'Multi-Cuisine';
-                      const status = String(chef.approval_status || chef.status || 'pending').toLowerCase();
+                      const status = (chef.is_suspended || String(chef.status || '').toLowerCase() === 'suspended')
+                        ? 'suspended'
+                        : String(chef.approval_status || chef.status || 'pending').toLowerCase();
                       const hasCalendly = chef.calendly || Boolean(chef.calendly_link);
                       const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CH';
+                      const isApproved = status === 'approved' || status === 'published' || status === 'active';
+                      const isSuspended = status === 'suspended';
 
                       return (
                         <tr key={chef.id} className="hover:bg-[#f8fafc] transition-colors">
@@ -408,11 +416,15 @@ export default function Chefs() {
                           </td>
 
                           <td className="py-2.5 px-3">
-                            {status === 'approved' || status === 'published' || status === 'active' ? (
+                            {isApproved ? (
                               <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 Approved / Published
                               </span>
-                            ) : status === 'rejected' || status === 'suspended' ? (
+                            ) : isSuspended ? (
+                              <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                                Suspended
+                              </span>
+                            ) : status === 'rejected' ? (
                               <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
                                 Rejected
                               </span>
@@ -434,7 +446,7 @@ export default function Chefs() {
                                 <Eye className="w-4 h-4" />
                               </Link>
 
-                              {status === 'approved' || status === 'published' || status === 'active' ? (
+                              {isApproved ? (
                                 <button 
                                   onClick={() => handleUnpublish(chef)} 
                                   className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
@@ -443,7 +455,7 @@ export default function Chefs() {
                                   <EyeOff className="w-3 h-3" />
                                   <span>Unpublish</span>
                                 </button>
-                              ) : (
+                              ) : !isSuspended ? (
                                 <button 
                                   onClick={() => handleApprove(chef)} 
                                   className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-black rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
@@ -452,6 +464,10 @@ export default function Chefs() {
                                   <Check className="w-3 h-3" />
                                   <span>Publish</span>
                                 </button>
+                              ) : (
+                                <span className="px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-lg border border-slate-200">
+                                  Suspended
+                                </span>
                               )}
 
                               {status !== 'rejected' && status !== 'suspended' && (
