@@ -112,12 +112,12 @@ export default function EmployerDetail() {
   const handleToggleSuspend = async () => {
     try {
       if (suspended) {
-        await mockApi.activateUser(id);
+        await mockApi.activateEmployer(id);
         setSuspended(false);
         if (employer) setEmployer({ ...employer, is_suspended: false, status: 'Active' });
         alert('Employer profile status changed to Active.');
       } else {
-        await mockApi.suspendUser(id);
+        await mockApi.suspendEmployer(id);
         setSuspended(true);
         if (employer) setEmployer({ ...employer, is_suspended: true, status: 'Suspended' });
         alert('Employer profile status changed to Suspended.');

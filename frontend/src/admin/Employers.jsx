@@ -113,16 +113,21 @@ export default function Employers() {
   };
 
   // Toggle Suspend / Activate
-  const toggleSuspend = (id) => {
-    let nextStatus = 'Active';
-    setEmployers(employers.map(emp => {
-      if (emp.id === id) {
-        nextStatus = emp.status === 'Active' ? 'Suspended' : 'Active';
-        return { ...emp, status: nextStatus };
+  const toggleSuspend = async (emp) => {
+    const isSuspended = emp.is_suspended || emp.status === 'Suspended';
+    try {
+      if (isSuspended) {
+        await mockApi.activateEmployer(emp.id);
+        alert(`Employer "${emp.name || emp.business_name}" account activated successfully.`);
+      } else {
+        await mockApi.suspendEmployer(emp.id);
+        alert(`Employer "${emp.name || emp.business_name}" account suspended successfully.`);
       }
-      return emp;
-    }));
-    alert(`Employer status changed to ${nextStatus}.`);
+    } catch (err) {
+      console.error('Employer suspend error:', err);
+    } finally {
+      await fetchEmployers();
+    }
   };
 
   const activePartnersCount = employers.filter(e => e.status === 'Active').length;
@@ -311,14 +316,14 @@ export default function Employers() {
                       </Link>
 
                       <button 
-                        onClick={() => toggleSuspend(emp.id)}
+                        onClick={() => toggleSuspend(emp)}
                         className={`px-3 py-1.5 rounded-md text-[11px] font-bold border transition-all cursor-pointer shadow-sm ${
-                          emp.status === 'Active'
+                          (emp.status === 'Active' && !emp.is_suspended)
                             ? 'bg-white hover:bg-rose-50 text-rose-700 border border-rose-200'
                             : 'bg-emerald-500 hover:bg-emerald-600 text-white border border-emerald-500'
                         }`}
                       >
-                        {emp.status === 'Active' ? 'Suspend' : 'Activate'}
+                        {(emp.status === 'Active' && !emp.is_suspended) ? 'Suspend' : 'Activate'}
                       </button>
                       </div>
                     </td>

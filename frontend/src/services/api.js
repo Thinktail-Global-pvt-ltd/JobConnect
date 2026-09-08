@@ -427,6 +427,38 @@ export const mockApi = {
     return mockEndpoints.activateUser(id);
   },
 
+  suspendEmployer: async (id) => {
+    const endpoints = [
+      `/api/admin/employers/${id}/suspend`,
+      `/backend/api/admin/employers/${id}/suspend`,
+      `/api/admin/users/${id}/suspend`,
+      `/backend/api/admin/users/${id}/suspend`
+    ];
+    for (const ep of endpoints) {
+      try {
+        const res = await axios.post(ep);
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
+    return mockEndpoints.suspendUser(id);
+  },
+
+  activateEmployer: async (id) => {
+    const endpoints = [
+      `/api/admin/employers/${id}/activate`,
+      `/backend/api/admin/employers/${id}/activate`,
+      `/api/admin/users/${id}/activate`,
+      `/backend/api/admin/users/${id}/activate`
+    ];
+    for (const ep of endpoints) {
+      try {
+        const res = await axios.post(ep);
+        if (res.data && res.data.success) return res.data;
+      } catch (e) {}
+    }
+    return mockEndpoints.activateUser(id);
+  },
+
   deleteUser: async (id) => {
     try {
       const res = await realApi.delete(`/api/admin/users/${id}`);
