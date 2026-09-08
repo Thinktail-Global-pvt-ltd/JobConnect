@@ -129,13 +129,20 @@ export default function Chefs() {
     fetchPublishedEmployerChefs();
   }, [statusFilter]);
 
-  const handleApprove = async (id) => {
-    setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
-    alert('Chef profile approved successfully.');
+  const handleApprove = async (chefItem) => {
+    const id = typeof chefItem === 'object' ? chefItem.id : chefItem;
+    const userId = typeof chefItem === 'object' ? (chefItem.user_id || chefItem.id) : chefItem;
+
+    setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'approved', approval_status: 'approved' } : c));
+    alert('Chef profile approved & published successfully.');
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/approve`,
-        `/backend/api/admin/chefs/${id}/approve`
+        `/backend/api/admin/chefs/${id}/approve`,
+        `/api/admin/chefs/${userId}/approve`,
+        `/backend/api/admin/chefs/${userId}/approve`,
+        `/api/admin/users/${userId}/activate`,
+        `/backend/api/admin/users/${userId}/activate`
       ];
       for (const ep of endpoints) {
         try {
@@ -151,15 +158,20 @@ export default function Chefs() {
     }
   };
 
-  const handleUnpublish = async (id) => {
-    setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
-    alert('Chef profile status set to Suspended / Unpublished.');
+  const handleUnpublish = async (chefItem) => {
+    const id = typeof chefItem === 'object' ? chefItem.id : chefItem;
+    const userId = typeof chefItem === 'object' ? (chefItem.user_id || chefItem.id) : chefItem;
+
+    setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
+    alert('Chef profile status set to Unpublished / Suspended.');
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/unpublish`,
-        `/api/admin/chefs/${id}/reject`,
         `/backend/api/admin/chefs/${id}/unpublish`,
-        `/backend/api/admin/chefs/${id}/reject`
+        `/api/admin/chefs/${userId}/unpublish`,
+        `/backend/api/admin/chefs/${userId}/unpublish`,
+        `/api/admin/users/${userId}/suspend`,
+        `/backend/api/admin/users/${userId}/suspend`
       ];
       for (const ep of endpoints) {
         try {
@@ -175,12 +187,19 @@ export default function Chefs() {
     }
   };
 
-  const handleReject = async (id) => {
-    setChefs(prev => prev.map(c => (c.id === id || c.user_id === id) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
+  const handleReject = async (chefItem) => {
+    const id = typeof chefItem === 'object' ? chefItem.id : chefItem;
+    const userId = typeof chefItem === 'object' ? (chefItem.user_id || chefItem.id) : chefItem;
+
+    setChefs(prev => prev.map(c => (c.id === id || c.user_id === userId) ? { ...c, status: 'rejected', approval_status: 'rejected' } : c));
     try {
       const endpoints = [
         `/api/admin/chefs/${id}/reject`,
-        `/backend/api/admin/chefs/${id}/reject`
+        `/backend/api/admin/chefs/${id}/reject`,
+        `/api/admin/chefs/${userId}/reject`,
+        `/backend/api/admin/chefs/${userId}/reject`,
+        `/api/admin/users/${userId}/suspend`,
+        `/backend/api/admin/users/${userId}/suspend`
       ];
       for (const ep of endpoints) {
         try {
@@ -411,18 +430,18 @@ export default function Chefs() {
 
                               {status === 'approved' ? (
                                 <button 
-                                  onClick={() => handleUnpublish(chef.id)} 
+                                  onClick={() => handleUnpublish(chef)} 
                                   className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
-                                  title="Unpublish Chef from Employer API"
+                                  title="Unpublish / Suspend Chef"
                                 >
                                   <EyeOff className="w-3 h-3" />
                                   <span>Unpublish</span>
                                 </button>
                               ) : (
                                 <button 
-                                  onClick={() => handleApprove(chef.id)} 
+                                  onClick={() => handleApprove(chef)} 
                                   className="px-3 py-1 bg-[#059669] hover:bg-[#047857] text-white text-[10px] font-black rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
-                                  title="Publish & Approve Chef for Employer API"
+                                  title="Publish & Approve Chef"
                                 >
                                   <Check className="w-3 h-3" />
                                   <span>Publish</span>
@@ -431,9 +450,9 @@ export default function Chefs() {
 
                               {status !== 'rejected' && status !== 'suspended' && (
                                 <button 
-                                  onClick={() => handleReject(chef.id)} 
+                                  onClick={() => handleReject(chef)} 
                                   className="w-8 h-8 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 flex items-center justify-center border border-rose-800/60 transition-colors cursor-pointer" 
-                                  title="Reject Chef"
+                                  title="Reject / Suspend Chef"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
