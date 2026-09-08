@@ -1,12 +1,69 @@
 import axios from 'axios';
 
+const KNOWN_BACKEND_HOSTS = new Set([
+  '178.16.138.159',
+  'jobrito.com',
+  'www.jobrito.com',
+]);
+
+const LOCAL_BACKEND_HOSTS = new Set([
+  '127.0.0.1',
+  'localhost',
+]);
+
+const isBrowser = typeof window !== 'undefined';
+const isLocalBrowser = isBrowser && LOCAL_BACKEND_HOSTS.has(window.location.hostname);
+
+const normalizeBackendPath = (path) => {
+  if (!path) return path;
+
+  if (path.startsWith('/backend/api/')) {
+    return path.replace(/^\/backend\/api/, '/api');
+  }
+
+  if (path.startsWith('/backend/admin/')) {
+    return path.replace(/^\/backend\/admin/, '/api/admin');
+  }
+
+  if (path.startsWith('/backend/')) {
+    return path.replace(/^\/backend/, '/api');
+  }
+
+  return path;
+};
+
+const normalizeRequestUrl = (url) => {
+  if (!isBrowser || typeof url !== 'string') return url;
+
+  if (url.startsWith('/')) {
+    return normalizeBackendPath(url);
+  }
+
+  try {
+    const parsed = new URL(url);
+    const isKnownBackend = KNOWN_BACKEND_HOSTS.has(parsed.hostname);
+    const isLocalBackend = LOCAL_BACKEND_HOSTS.has(parsed.hostname);
+
+    if (isKnownBackend || (!isLocalBrowser && isLocalBackend)) {
+      return normalizeBackendPath(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+    }
+  } catch (e) {
+    return url;
+  }
+
+  return url;
+};
+
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL;
+const shouldUseConfiguredBase = configuredApiBase && (isLocalBrowser || !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(configuredApiBase));
+
 // Axios Instance configured for production deploy
-export const API_BASE = typeof window !== 'undefined'
-  ? (window.location.protocol === 'https:' ? 'https://jobrito.com' : 'http://178.16.138.159')
-  : 'http://178.16.138.159';
+export const API_BASE = shouldUseConfiguredBase
+  ? configuredApiBase
+  : (isBrowser ? window.location.origin : '');
 
 export const realApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || API_BASE,
+  baseURL: API_BASE,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
@@ -35,8 +92,10 @@ export const resolveImageUrl = (path) => {
   return clean;
 };
 
-// Inject Sanctum Auth Token in headers
-realApi.interceptors.request.use((config) => {
+// Keep all browser API calls on same-origin HTTPS in production.
+const attachApiRequestInterceptor = (client) => client.interceptors.request.use((config) => {
+  config.url = normalizeRequestUrl(config.url);
+
   const token = localStorage.getItem('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -45,6 +104,9 @@ realApi.interceptors.request.use((config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+attachApiRequestInterceptor(axios);
+attachApiRequestInterceptor(realApi);
 
 // LocalStorage helper functions
 const getStored = (key, defaultVal) => {
