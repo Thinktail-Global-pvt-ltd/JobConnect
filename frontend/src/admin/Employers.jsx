@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, TrendingUp, ChevronLeft, ChevronRight, MapPin, FileText, Smartphone } from 'lucide-react';
 import axios from 'axios';
-import { realApi, resolveImageUrl } from '../services/api';
+import { mockApi, realApi, resolveImageUrl } from '../services/api';
 
 
 export default function Employers() {
