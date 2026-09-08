@@ -41,20 +41,24 @@ export default function Chefs() {
     approval_status: 'approved',
   });
 
-  // Fetch Public Employer Discovery Chefs (GET /api/employer/chefs)
+  // Fetch Public Employer Discovery Chefs (GET /backend/api/employer/chefs-all)
   const fetchPublishedEmployerChefs = async () => {
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const endpoints = [
-        '/api/employer/chefs',
+        '/backend/api/employer/chefs-all',
+        '/api/employer/chefs-all',
+        '/employer/chefs-all',
+        '/chefs-all',
         '/backend/api/employer/chefs',
-        `${origin}/api/employer/chefs`
+        '/api/employer/chefs'
       ];
       for (const ep of endpoints) {
         try {
           const res = await axios.get(ep, { headers: { Accept: 'application/json' } });
-          if (res.data && (res.data.success || res.data.status === 'success') && Array.isArray(res.data.chefs)) {
-            setPublishedChefs(res.data.chefs);
+          if (res.data && (res.data.success || res.data.status === 'success') && (Array.isArray(res.data.chefs) || Array.isArray(res.data.profiles) || Array.isArray(res.data.data))) {
+            const list = res.data.chefs || res.data.profiles || res.data.data || [];
+            setPublishedChefs(list);
             break;
           }
         } catch (e) {}
@@ -64,14 +68,20 @@ export default function Chefs() {
     }
   };
 
-  // Load real chefs directly from backend database API (/api/admin/chefs)
+  // Load real chefs directly from backend database API (/backend/api/employer/chefs-all & /api/admin/chefs)
   const loadChefs = async () => {
     setLoading(true);
     let data = null;
 
     const endpoints = [
+      '/backend/api/employer/chefs-all',
+      '/api/employer/chefs-all',
+      '/employer/chefs-all',
+      '/chefs-all',
       '/api/admin/chefs',
-      '/backend/api/admin/chefs'
+      '/backend/api/admin/chefs',
+      '/admin/chefs',
+      '/chefs'
     ];
 
     for (const endpoint of endpoints) {
@@ -85,6 +95,24 @@ export default function Chefs() {
           break;
         }
       } catch (err) {}
+    }
+
+    if (!data) {
+      try {
+        const fallbackRes = await mockApi.getEmployerChefs();
+        if (fallbackRes && (fallbackRes.success || fallbackRes.chefs)) {
+          data = fallbackRes;
+        }
+      } catch (e) {}
+    }
+
+    if (!data) {
+      try {
+        const fallbackRes = await mockApi.getChefs(statusFilter);
+        if (fallbackRes && (fallbackRes.success || fallbackRes.chefs)) {
+          data = fallbackRes;
+        }
+      } catch (e) {}
     }
 
     if (data) {

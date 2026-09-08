@@ -515,11 +515,23 @@ Route::match(['get', 'post'], '/api/admin/jobs/create', function(\Illuminate\Htt
 Route::match(['get', 'post'], '/backend/api/admin/jobs/create', function(\Illuminate\Http\Request $request) {
     return (new \App\Http\Controllers\Admin\JobModeratorController)->store($request);
 });
+Route::match(['get', 'post'], '/employer/chefs-all', function() {
+    return (new \App\Http\Controllers\AppointmentController)->registeredChefsList();
+});
+Route::match(['get', 'post'], '/api/employer/chefs-all', function() {
+    return (new \App\Http\Controllers\AppointmentController)->registeredChefsList();
+});
+Route::match(['get', 'post'], '/backend/api/employer/chefs-all', function() {
+    return (new \App\Http\Controllers\AppointmentController)->registeredChefsList();
+});
+Route::match(['get', 'post'], '/employer/chefs', function() {
+    return (new \App\Http\Controllers\AppointmentController)->registeredChefsList();
+});
 Route::match(['get', 'post'], '/api/employer/chefs', function() {
-    return (new \App\Http\Controllers\Api\ChefProfileController)->employerFeed();
+    return (new \App\Http\Controllers\AppointmentController)->registeredChefsList();
 });
 Route::match(['get', 'post'], '/backend/api/employer/chefs', function() {
-    return (new \App\Http\Controllers\Api\ChefProfileController)->employerFeed();
+    return (new \App\Http\Controllers\AppointmentController)->registeredChefsList();
 });
 
 Route::match(['get', 'post'], '/api/admin/community-posts', function(\Illuminate\Http\Request $request) {

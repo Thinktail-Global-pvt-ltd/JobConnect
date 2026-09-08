@@ -866,15 +866,18 @@ export const mockApi = {
   getEmployerChefs: async () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const endpoints = [
-      'http://178.16.138.159/backend/api/employer/chefs',
-      `${origin}/backend/api/employer/chefs`,
+      '/backend/api/employer/chefs-all',
+      '/api/employer/chefs-all',
+      '/employer/chefs-all',
+      '/chefs-all',
+      `${origin}/backend/api/employer/chefs-all`,
       '/backend/api/employer/chefs',
       '/api/employer/chefs'
     ];
     for (const url of endpoints) {
       try {
         const res = await axios.get(url, { headers: { Accept: 'application/json' } });
-        if (res.data && res.data.success && Array.isArray(res.data.chefs)) {
+        if (res.data && (res.data.success || res.data.status === 'success') && (Array.isArray(res.data.chefs) || Array.isArray(res.data.profiles) || Array.isArray(res.data.data))) {
           return res.data;
         }
       } catch (e) {}

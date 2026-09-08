@@ -395,7 +395,18 @@ Route::get('/jobs', function(\Illuminate\Http\Request $request) {
 });
 
 // Public Candidate / Chef Connect Discovery Routes (Approved Chefs Only)
-Route::get('/employer/chefs', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/employer/chefs-all', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/api/employer/chefs-all', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/backend/api/employer/chefs-all', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/backend/employer/chefs-all', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/chefs-all', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/api/chefs-all', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/backend/api/chefs-all', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+
+Route::match(['get', 'post'], '/employer/chefs', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/api/employer/chefs', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/backend/api/employer/chefs', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
+Route::match(['get', 'post'], '/backend/employer/chefs', [\App\Http\Controllers\AppointmentController::class, 'registeredChefsList']);
 
 // Admin Dashboard & Moderation Routes
 Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index']);
