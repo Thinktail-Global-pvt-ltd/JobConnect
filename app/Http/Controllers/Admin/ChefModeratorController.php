@@ -267,18 +267,20 @@ class ChefModeratorController extends Controller
     {
         $chef = ChefProfile::where('id', $id)->orWhere('user_id', $id)->first();
         if (!$chef) {
-            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'approved']);
+            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'approved', 'cuisine_specialty' => 'Multi-Cuisine', 'bio' => 'Professional Chef']);
         } else {
             $chef->update(['approval_status' => 'approved']);
         }
 
         if ($chef->user_id) {
+            $updateData = ['is_suspended' => 0];
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'approval_status')) {
-                User::where('id', $chef->user_id)->update(['approval_status' => 'approved']);
+                $updateData['approval_status'] = 'approved';
             }
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_approved')) {
-                User::where('id', $chef->user_id)->update(['is_approved' => true]);
+                $updateData['is_approved'] = 1;
             }
+            User::where('id', $chef->user_id)->update($updateData);
         }
 
         // Shoot FCM Push Notification to Chef safely
@@ -304,18 +306,20 @@ class ChefModeratorController extends Controller
     {
         $chef = ChefProfile::where('id', $id)->orWhere('user_id', $id)->first();
         if (!$chef) {
-            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'rejected']);
-        } else {
-            $chef->update(['approval_status' => 'rejected']);
+            return response()->json(['success' => false, 'message' => 'Chef profile not found.'], 404);
         }
 
+        $chef->update(['approval_status' => 'rejected']);
+
         if ($chef->user_id) {
+            $updateData = ['is_suspended' => 1];
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'approval_status')) {
-                User::where('id', $chef->user_id)->update(['approval_status' => 'rejected']);
+                $updateData['approval_status'] = 'rejected';
             }
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_approved')) {
-                User::where('id', $chef->user_id)->update(['is_approved' => false]);
+                $updateData['is_approved'] = 0;
             }
+            User::where('id', $chef->user_id)->update($updateData);
         }
 
         return response()->json(['success' => true, 'message' => 'Chef unpublished/rejected successfully.']);
@@ -328,18 +332,20 @@ class ChefModeratorController extends Controller
     {
         $chef = ChefProfile::where('id', $id)->orWhere('user_id', $id)->first();
         if (!$chef) {
-            $chef = ChefProfile::create(['user_id' => $id, 'approval_status' => 'rejected']);
-        } else {
-            $chef->update(['approval_status' => 'rejected']);
+            return response()->json(['success' => false, 'message' => 'Chef profile not found.'], 404);
         }
 
+        $chef->update(['approval_status' => 'rejected']);
+
         if ($chef->user_id) {
+            $updateData = ['is_suspended' => 1];
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'approval_status')) {
-                User::where('id', $chef->user_id)->update(['approval_status' => 'rejected']);
+                $updateData['approval_status'] = 'rejected';
             }
             if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_approved')) {
-                User::where('id', $chef->user_id)->update(['is_approved' => false]);
+                $updateData['is_approved'] = 0;
             }
+            User::where('id', $chef->user_id)->update($updateData);
         }
 
         return response()->json(['success' => true, 'message' => 'Chef rejected successfully.']);
