@@ -4,6 +4,11 @@ import axios from 'axios';
 import { Filter, Eye, EyeOff, Check, X, UserPlus, RefreshCw, Smartphone, Phone, List, Signal, Wifi, Battery, MapPin, Building2, Calendar, Star, ArrowUpRight, Award, CheckCircle2 } from 'lucide-react';
 import { mockApi, resolveImageUrl } from '../services/api';
 
+const getMobileWithoutPrefix = (value) => {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (!digits) return null;
+  return digits.length > 10 ? digits.slice(-10) : digits;
+};
 
 export default function Chefs() {
   const location = useLocation();
@@ -346,7 +351,7 @@ export default function Chefs() {
                       const name = chef.full_name || chef.name || 'Unnamed Chef';
                       const email = chef.email || '';
                       const rawMobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;
-                      const mobile = chef.mobile_without_extension || chef.user?.mobile_without_extension || rawMobile;
+                      const mobile = chef.mobile_without_extension || chef.user?.mobile_without_extension || getMobileWithoutPrefix(rawMobile);
                       const experience = chef.experience_range || chef.experience || '0 Years';
                       const specialties = chef.cuisine_specialty || chef.specialties || 'Multi-Cuisine';
                       const status = (chef.is_suspended || String(chef.status || '').toLowerCase() === 'suspended')
