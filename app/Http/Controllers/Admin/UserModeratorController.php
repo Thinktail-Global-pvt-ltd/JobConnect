@@ -11,6 +11,30 @@ class UserModeratorController extends Controller
     /**
      * Display a list of all users.
      */
+    private function splitPhoneParts($phone): array
+    {
+        $rawPhone = trim((string) $phone);
+        $digits = preg_replace('/\D+/', '', $rawPhone);
+
+        if ($digits === '') {
+            return ['extension' => 'N/A', 'mobile' => 'N/A'];
+        }
+
+        if (strlen($digits) > 10) {
+            $extension = substr($digits, 0, -10);
+
+            return [
+                'extension' => $extension ? '+' . $extension : 'N/A',
+                'mobile' => substr($digits, -10),
+            ];
+        }
+
+        return [
+            'extension' => 'N/A',
+            'mobile' => $digits,
+        ];
+    }
+
     private function isJsonRequest(Request $request): bool
     {
         return $request->wantsJson() 
@@ -91,6 +115,9 @@ class UserModeratorController extends Controller
             $user->profile_photo_path = $photoUrl;
             $user->profile_photo = $photoUrl;
             $user->avatar = $photoUrl;
+            $phoneParts = $this->splitPhoneParts($user->mobile_number);
+            $user->phone_extension = $phoneParts['extension'];
+            $user->mobile_without_extension = $phoneParts['mobile'];
             return $user;
         });
 
@@ -133,10 +160,14 @@ class UserModeratorController extends Controller
             $skills = json_decode($user->skills, true) ?: array_values(array_filter(array_map('trim', explode(',', $user->skills))));
         }
 
+        $phoneParts = $this->splitPhoneParts($user->mobile_number);
+
         $userData = [
             'id'                  => $user->id,
             'full_name'           => $user->full_name ?: 'Not Provided',
             'mobile_number'       => $user->mobile_number ?: 'N/A',
+            'phone_extension'     => $phoneParts['extension'],
+            'mobile_without_extension' => $phoneParts['mobile'],
             'email'               => $user->email ?: 'N/A',
             'gender'              => $user->gender ?: 'N/A',
             'country'             => $user->country ?: 'India',

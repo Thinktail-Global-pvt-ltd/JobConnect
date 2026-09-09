@@ -4,6 +4,23 @@ import axios from 'axios';
 import { mockApi, realApi, resolveImageUrl } from '../services/api';
 import { Search, ChevronLeft, ChevronRight, AlertTriangle, TrendingUp, ShieldCheck, Activity, UserPlus, X, Eye, Smartphone, MapPin, Star, Trash2 } from 'lucide-react';
 
+const splitPhoneParts = (value) => {
+  const digits = String(value || '').replace(/\D/g, '');
+
+  if (!digits) {
+    return { extension: 'N/A', mobile: 'N/A' };
+  }
+
+  if (digits.length > 10) {
+    const extension = digits.slice(0, -10);
+    return {
+      extension: extension ? `+${extension}` : 'N/A',
+      mobile: digits.slice(-10),
+    };
+  }
+
+  return { extension: 'N/A', mobile: digits };
+};
 
 export default function Users() {
   const navigate = useNavigate();
@@ -234,6 +251,7 @@ export default function Users() {
               <thead>
                 <tr className="bg-[#f1f3f5] border-b border-[#d7dce2] text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                   <th className="py-2.5 px-3">User Name</th>
+                  <th className="py-2.5 px-3">Extension</th>
                   <th className="py-2.5 px-3">Mobile Number</th>
                   <th className="py-2.5 px-3">City</th>
                   <th className="py-2.5 px-3">Join Date</th>
@@ -242,7 +260,12 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#d7dce2] text-slate-700 text-xs font-semibold">
-                {users.map(user => (
+                {users.map(user => {
+                  const phoneParts = splitPhoneParts(user.mobile_without_extension || user.mobile_number || user.phone);
+                  const extension = user.phone_extension || phoneParts.extension;
+                  const mobile = user.mobile_without_extension || phoneParts.mobile;
+
+                  return (
                   <tr key={user.id} className="hover:bg-[#f8fafc] transition-colors">
                     {/* User Name & Avatar */}
                     <td className="py-4 px-6 flex items-center gap-3">
@@ -254,9 +277,14 @@ export default function Users() {
                       </Link>
                     </td>
 
+                    {/* Extension */}
+                    <td className="py-4 px-6 font-semibold text-slate-700">
+                      <code className="bg-slate-50 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px] border border-[#d7dce2]">{extension}</code>
+                    </td>
+
                     {/* Mobile Number */}
                     <td className="py-4 px-6 font-semibold text-slate-700">
-                      <code className="bg-slate-50 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px] border border-[#d7dce2]">{user.mobile_number}</code>
+                      <code className="bg-slate-50 px-2 py-0.5 rounded text-slate-700 font-mono text-[11px] border border-[#d7dce2]">{mobile}</code>
                     </td>
 
                     {/* City */}
@@ -303,7 +331,8 @@ export default function Users() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -361,15 +390,30 @@ export default function Users() {
 
                   {/* Full User Attributes Table Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                    {(() => {
+                      const selectedPhoneParts = splitPhoneParts(selectedUser.mobile_without_extension || selectedUser.mobile_number || selectedUser.phone);
+                      const selectedExtension = selectedUser.phone_extension || selectedPhoneParts.extension;
+                      const selectedMobile = selectedUser.mobile_without_extension || selectedPhoneParts.mobile;
+
+                      return (
+                        <>
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Full Name</span>
                       <span className="font-extrabold text-slate-900 block">{selectedUser.full_name || 'N/A'}</span>
                     </div>
 
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
-                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Mobile Phone</span>
-                      <span className="font-extrabold text-emerald-700 block font-mono"><Smartphone className="w-3 h-3 inline-block mr-1" /> {selectedUser.mobile_number || selectedUser.phone || 'N/A'}</span>
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Extension</span>
+                      <span className="font-extrabold text-emerald-700 block font-mono"><Smartphone className="w-3 h-3 inline-block mr-1" /> {selectedExtension}</span>
                     </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Mobile Phone</span>
+                      <span className="font-extrabold text-emerald-700 block font-mono"><Smartphone className="w-3 h-3 inline-block mr-1" /> {selectedMobile}</span>
+                    </div>
+                        </>
+                      );
+                    })()}
 
                     <div className="bg-white p-3 rounded-xl border border-[#d7dce2] space-y-0.5">
                       <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Email Address</span>
@@ -587,5 +631,3 @@ export default function Users() {
     </div>
   );
 }
-
-
