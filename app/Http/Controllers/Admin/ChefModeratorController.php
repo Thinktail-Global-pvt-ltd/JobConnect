@@ -123,6 +123,8 @@ class ChefModeratorController extends Controller
                 $fullName = ($user && $user->full_name) ? $user->full_name : ('Chef #' . $chef->user_id);
                 $email = $user ? ($user->email ?: null) : null;
                 $mobile = $user ? ($user->mobile_number ?: null) : null;
+                $mobileWithoutExtension = $user ? ($user->mobile_without_extension ?: null) : null;
+                $phoneExtension = $user ? ($user->phone_extension ?: null) : null;
                 $gender = $user ? ($user->gender ?: null) : null;
                 $city = $user ? ($user->city ?: null) : null;
                 $country = $user ? ($user->country ?: null) : null;
@@ -183,6 +185,8 @@ class ChefModeratorController extends Controller
                     'name' => $fullName,
                     'email' => $email,
                     'mobile_number' => $mobile,
+                    'mobile_without_extension' => $mobileWithoutExtension,
+                    'phone_extension' => $phoneExtension,
                     'phone' => $mobile,
                     'gender' => $gender,
                     'age' => $ageVal,

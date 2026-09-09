@@ -345,7 +345,8 @@ export default function Chefs() {
                     {filteredChefs.map((chef) => {
                       const name = chef.full_name || chef.name || 'Unnamed Chef';
                       const email = chef.email || '';
-                      const mobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;
+                      const rawMobile = chef.mobile_number || chef.phone || chef.phone_number || chef.mobile || chef.user?.mobile_number || null;
+                      const mobile = chef.mobile_without_extension || chef.user?.mobile_without_extension || rawMobile;
                       const experience = chef.experience_range || chef.experience || '0 Years';
                       const specialties = chef.cuisine_specialty || chef.specialties || 'Multi-Cuisine';
                       const status = (chef.is_suspended || String(chef.status || '').toLowerCase() === 'suspended')
@@ -382,7 +383,7 @@ export default function Chefs() {
                           <td className="py-2.5 px-3">
                             {mobile ? (
                               <a 
-                                href={`tel:${mobile}`}
+                                href={`tel:${rawMobile || mobile}`}
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-800 bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-colors font-mono"
                               >
                                 <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
