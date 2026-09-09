@@ -4,6 +4,24 @@ import { Filter, Eye, X, Building2, Plus, ShieldCheck, ClipboardList, Search, Tr
 import axios from 'axios';
 import { mockApi, realApi, resolveImageUrl } from '../services/api';
 
+const splitPhoneParts = (value) => {
+  const rawPhone = String(value || '').trim();
+  const digits = rawPhone.replace(/\D/g, '');
+
+  if (!digits) {
+    return { extension: 'N/A', mobile: 'N/A' };
+  }
+
+  if (digits.length > 10) {
+    const extension = digits.slice(0, -10);
+    return {
+      extension: extension ? `+${extension}` : 'N/A',
+      mobile: digits.slice(-10),
+    };
+  }
+
+  return { extension: 'N/A', mobile: digits };
+};
 
 export default function Employers() {
   const [employers, setEmployers] = useState([]);
@@ -63,7 +81,8 @@ export default function Employers() {
     const searchLower = (search || '').toLowerCase();
     const name = String(emp.name || '').toLowerCase();
     const contact = String(emp.contact || '').toLowerCase();
-    const phone = String(emp.phone || '').toLowerCase();
+    const phoneParts = splitPhoneParts(emp.phone || emp.mobile_number || emp.business_mobile);
+    const phone = `${emp.phone || ''} ${phoneParts.extension} ${phoneParts.mobile}`.toLowerCase();
     const hq = String(emp.hq || '').toLowerCase();
 
     const normalizedStatus = String(emp.status || (emp.is_suspended ? 'Suspended' : 'Active')).toLowerCase();
@@ -238,6 +257,7 @@ export default function Employers() {
               <tr className="bg-[#e5e5e5] border-b border-[#b9cfbe] text-[11px] font-bold text-[#344054] uppercase tracking-wider">
                 <th className="py-2.5 px-3">Business Name</th>
                 <th className="py-2.5 px-3">Contact Person</th>
+                <th className="py-2.5 px-3">Extension</th>
                 <th className="py-2.5 px-3">Mobile Number</th>
                 <th className="py-2.5 px-3">Status</th>
                 <th className="py-2.5 px-3 text-center">Actions</th>
@@ -246,12 +266,17 @@ export default function Employers() {
             <tbody className="divide-y divide-[#b9cfbe] text-[#183b61] text-xs font-semibold">
               {filteredEmployers.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan="6" className="py-12 text-center text-slate-400 font-medium">
                     No matching employer accounts found.
                   </td>
                 </tr>
               ) : (
-                paginatedEmployers.map(emp => (
+                paginatedEmployers.map(emp => {
+                  const phoneParts = splitPhoneParts(emp.mobile_without_extension || emp.phone || emp.mobile_number || emp.business_mobile);
+                  const extension = emp.phone_extension || phoneParts.extension;
+                  const mobile = emp.mobile_without_extension || phoneParts.mobile;
+
+                  return (
                   <tr key={emp.id} className="hover:bg-[#f3f6f8] transition-colors">
                     
                     {/* Business Name with avatar */}
@@ -285,10 +310,17 @@ export default function Employers() {
                       {emp.contact || emp.contact_person_name || emp.full_name || 'N/A'}
                     </td>
 
+                    {/* Extension */}
+                    <td className="py-4 px-6 font-semibold text-slate-600 text-xs">
+                      <code className="bg-transparent px-0 py-0 rounded text-slate-500 font-mono text-[13px] border-0">
+                        {extension || 'N/A'}
+                      </code>
+                    </td>
+
                     {/* Mobile number */}
                     <td className="py-4 px-6 font-semibold text-slate-600 text-xs">
                       <code className="bg-transparent px-0 py-0 rounded text-slate-500 font-mono text-[13px] border-0">
-                        {emp.phone || emp.mobile_number || emp.business_mobile || 'N/A'}
+                        {mobile || 'N/A'}
                       </code>
                     </td>
 
@@ -328,7 +360,8 @@ export default function Employers() {
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+                })
               )}
             </tbody>
           </table>

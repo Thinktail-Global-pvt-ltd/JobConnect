@@ -9,6 +9,25 @@ import {
 import axios from 'axios';
 import { realApi, mockApi, resolveImageUrl } from '../services/api';
 
+const splitPhoneParts = (value) => {
+  const rawPhone = String(value || '').trim();
+  const digits = rawPhone.replace(/\D/g, '');
+
+  if (!digits) {
+    return { extension: 'N/A', mobile: 'N/A' };
+  }
+
+  if (digits.length > 10) {
+    const extension = digits.slice(0, -10);
+    return {
+      extension: extension ? `+${extension}` : 'N/A',
+      mobile: digits.slice(-10),
+    };
+  }
+
+  return { extension: 'N/A', mobile: digits };
+};
+
 export default function EmployerDetail() {
   const { id } = useParams();
   const location = useLocation();
@@ -150,7 +169,10 @@ export default function EmployerDetail() {
   const profileId = employer.profile_id || `EMP-${employer.created_at ? new Date(employer.created_at).getFullYear() : new Date().getFullYear()}-${String(employer.id || id).padStart(6, '0')}`;
   const businessType = employer.industry_segment || employer.business_type || 'Hospitality';
   const contactName = employer.contact_person_name || employer.contact || employer.name || employer.full_name || 'N/A';
-  const phone = employer.business_mobile || employer.phone || employer.mobile_number || 'N/A';
+  const rawPhone = employer.business_mobile || employer.phone || employer.mobile_number || '';
+  const inferredPhoneParts = splitPhoneParts(rawPhone);
+  const phoneExtension = employer.phone_extension || inferredPhoneParts.extension;
+  const phone = employer.mobile_without_extension || inferredPhoneParts.mobile;
   const email = employer.business_email || employer.email || 'N/A';
   const primaryLocation = employer.business_location || employer.hq || employer.location || [employer.city, employer.state, employer.country].filter(Boolean).join(', ') || 'N/A';
 
@@ -337,8 +359,12 @@ export default function EmployerDetail() {
               <span className="text-slate-900 font-extrabold">{contactName}</span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-slate-400 text-[11px]">Phone</span>
-              <span className="text-slate-900 font-mono font-extrabold">{phone}</span>
+              <span className="text-slate-400 text-[11px]">Extension</span>
+              <span className="text-slate-900 font-mono font-extrabold">{phoneExtension || 'N/A'}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-400 text-[11px]">Mobile</span>
+              <span className="text-slate-900 font-mono font-extrabold">{phone || 'N/A'}</span>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-400 text-[11px]">Email</span>

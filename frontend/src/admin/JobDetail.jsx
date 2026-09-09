@@ -8,6 +8,27 @@ import {
   Mail, Globe, CheckCircle2, Copy, Award, FileText, Layers, Tag, Clock
 } from 'lucide-react';
 
+const splitPhoneParts = (value) => {
+  const rawPhone = String(value || '').trim();
+  const digits = rawPhone.replace(/\D/g, '');
+
+  if (!digits) {
+    return { extension: '', mobile: '' };
+  }
+
+  if (digits.length > 10) {
+    const extension = digits.slice(0, -10);
+    return {
+      extension: extension ? `+${extension}` : '',
+      mobile: digits.slice(-10),
+    };
+  }
+
+  return { extension: '', mobile: digits };
+};
+
+const isEmailContact = (value) => String(value || '').includes('@');
+
 export default function JobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -36,6 +57,8 @@ export default function JobDetail() {
     open_positions: 1,
     contact_person: '',
     contact_info: '',
+    contact_prefix: '',
+    contact_mobile: '',
     status: 'approved',
     visa_assistance: false,
     accommodation_available: false,
@@ -195,6 +218,9 @@ export default function JobDetail() {
 
   const handleOpenEditModal = () => {
     if (!job) return;
+    const contactPhoneParts = splitPhoneParts(job.contact_info);
+    const hasPhoneContact = !isEmailContact(job.contact_info) && Boolean(contactPhoneParts.mobile);
+
     setEditForm({
       title: job.title || '',
       job_role: job.job_role === 'N/A' ? '' : (job.job_role || ''),
@@ -212,7 +238,9 @@ export default function JobDetail() {
       job_type: job.job_type || 'Full-Time',
       open_positions: job.open_positions || 1,
       contact_person: job.contact_person || '',
-      contact_info: job.contact_info || '',
+      contact_info: hasPhoneContact ? '' : (job.contact_info || ''),
+      contact_prefix: hasPhoneContact ? (job.phone_extension || contactPhoneParts.extension || '') : '',
+      contact_mobile: hasPhoneContact ? (job.mobile_without_extension || contactPhoneParts.mobile || '') : '',
       status: job.status || 'approved',
       visa_assistance: Boolean(job.visa_assistance),
       accommodation_available: Boolean(job.accommodation_available),
@@ -227,9 +255,19 @@ export default function JobDetail() {
     e.preventDefault();
     setIsSaving(true);
     try {
+      const cleanedPrefix = String(editForm.contact_prefix || '').replace(/\D/g, '');
+      const cleanedMobile = String(editForm.contact_mobile || '').replace(/\D/g, '');
+      const normalizedContactInfo = cleanedMobile ? `${cleanedPrefix}${cleanedMobile}` : editForm.contact_info;
+      const payload = {
+        ...editForm,
+        contact_info: normalizedContactInfo,
+        contact_prefix: cleanedPrefix ? `+${cleanedPrefix}` : '',
+        contact_mobile: cleanedMobile,
+      };
+
       let updatedData = null;
       try {
-        const res = await realApi.post(`/api/admin/jobs/${id}/update`, editForm);
+        const res = await realApi.post(`/api/admin/jobs/${id}/update`, payload);
         if (res && res.data && (res.data.job || res.data.success)) {
           updatedData = res.data.job;
         }
@@ -239,7 +277,9 @@ export default function JobDetail() {
 
       setJob(prev => ({
         ...prev,
-        ...editForm,
+        ...payload,
+        phone_extension: payload.contact_prefix || null,
+        mobile_without_extension: payload.contact_mobile || null,
         ...(updatedData || {})
       }));
 
@@ -292,6 +332,10 @@ export default function JobDetail() {
   const isPending = job.status === 'pending';
   const isApproved = job.status === 'approved';
   const isRejected = job.status === 'rejected';
+  const contactPhoneParts = splitPhoneParts(job.contact_info);
+  const hasPhoneContact = !isEmailContact(job.contact_info) && Boolean(job.mobile_without_extension || contactPhoneParts.mobile);
+  const contactPrefix = job.phone_extension || contactPhoneParts.extension || 'N/A';
+  const contactMobile = job.mobile_without_extension || contactPhoneParts.mobile || 'N/A';
 
   return (
     <div className="space-y-6 text-left pb-12 font-sans bg-[#f8fafc] -m-6 p-6 min-h-screen">
@@ -423,7 +467,18 @@ export default function JobDetail() {
               <span className="text-slate-400 text-[11px]">Submitted by</span>
               <span className="text-slate-900 font-extrabold">{job.contact_person || job.company}</span>
             </div>
-            {job.contact_info && (
+            {hasPhoneContact ? (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400 text-[11px]">Prefix</span>
+                  <span className="text-slate-900 font-mono font-extrabold">{contactPrefix}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-slate-400 text-[11px]">Mobile</span>
+                  <span className="text-slate-900 font-mono font-extrabold">{contactMobile}</span>
+                </div>
+              </>
+            ) : job.contact_info && (
               <div className="flex items-center justify-between gap-3">
                 <span className="text-slate-400 text-[11px]">Contact Info</span>
                 <span className="text-slate-900 font-mono font-extrabold">{job.contact_info}</span>
@@ -571,7 +626,18 @@ export default function JobDetail() {
                   <span className="text-slate-900 font-extrabold">{job.contact_person}</span>
                 </div>
               )}
-              {job.contact_info && (
+              {hasPhoneContact ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Prefix</span>
+                    <span className="text-[#153e69] font-mono font-extrabold">{contactPrefix}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Mobile Number</span>
+                    <span className="text-[#153e69] font-mono font-extrabold">{contactMobile}</span>
+                  </div>
+                </>
+              ) : job.contact_info && (
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">Contact Info</span>
                   <span className="text-[#153e69] font-mono font-extrabold">{job.contact_info}</span>
@@ -845,7 +911,7 @@ export default function JobDetail() {
               </div>
 
               {/* Field 7: Contact Info & Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Contact Person</label>
                   <input
@@ -857,12 +923,23 @@ export default function JobDetail() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Contact Info *</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Prefix</label>
                   <input
                     type="text"
-                    required
-                    value={editForm.contact_info}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, contact_info: e.target.value }))}
+                    placeholder="+91"
+                    value={editForm.contact_prefix}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, contact_prefix: e.target.value }))}
+                    className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Mobile Number</label>
+                  <input
+                    type="text"
+                    placeholder="9876543210"
+                    value={editForm.contact_mobile}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, contact_mobile: e.target.value }))}
                     className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
                   />
                 </div>
@@ -879,6 +956,16 @@ export default function JobDetail() {
                     <option value="rejected">Rejected</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Email / Other Contact</label>
+                <input
+                  type="text"
+                  value={editForm.contact_info}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, contact_info: e.target.value }))}
+                  className="w-full bg-[#f8f9fc] border border-[#e2e8f0] rounded-xl px-3.5 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#059669]"
+                />
               </div>
 
               {/* Field 8: Checkboxes */}

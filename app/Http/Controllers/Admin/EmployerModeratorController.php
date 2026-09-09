@@ -9,6 +9,31 @@ use Illuminate\Http\Request;
 
 class EmployerModeratorController extends Controller
 {
+    private function splitPhoneParts($phone): array
+    {
+        $rawPhone = trim((string) $phone);
+        $digits = preg_replace('/\D+/', '', $rawPhone);
+
+        if ($digits === '') {
+            return ['extension' => 'N/A', 'mobile' => 'N/A'];
+        }
+
+        if (strlen($digits) > 10) {
+            $extension = substr($digits, 0, -10);
+            $mobile = substr($digits, -10);
+
+            return [
+                'extension' => $extension ? '+' . $extension : 'N/A',
+                'mobile' => $mobile,
+            ];
+        }
+
+        return [
+            'extension' => 'N/A',
+            'mobile' => $digits,
+        ];
+    }
+
     /**
      * Display a dynamic list of all employer users without pagination.
      */
@@ -55,6 +80,7 @@ class EmployerModeratorController extends Controller
             $busName = optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company'));
             $contactName = optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A');
             $phoneNum = optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A');
+            $phoneParts = $this->splitPhoneParts($phoneNum);
             $emailAddr = optional($empProfile)->business_email ?: ($user->email ?: '');
             $locationHq = optional($empProfile)->business_location ?: ($user->city ?: 'India');
 
@@ -78,6 +104,8 @@ class EmployerModeratorController extends Controller
                 'contact_person_name'  => $contactName,
                 'phone'                => $phoneNum,
                 'mobile_number'        => $phoneNum,
+                'phone_extension'      => $phoneParts['extension'],
+                'mobile_without_extension' => $phoneParts['mobile'],
                 'email'                => $emailAddr,
                 'hq'                   => $locationHq,
                 'business_location'    => $locationHq,
@@ -114,6 +142,7 @@ class EmployerModeratorController extends Controller
         $busName = optional($empProfile)->business_name ?: ($user->current_employer ?: ($user->full_name ?: 'Employer Company'));
         $contactName = optional($empProfile)->contact_person_name ?: ($user->full_name ?: 'N/A');
         $phoneNum = optional($empProfile)->business_mobile ?: ($user->mobile_number ?: 'N/A');
+        $phoneParts = $this->splitPhoneParts($phoneNum);
         $emailAddr = optional($empProfile)->business_email ?: ($user->email ?: '');
         $locationHq = optional($empProfile)->business_location ?: ($user->city ?: 'India');
 
@@ -177,6 +206,8 @@ class EmployerModeratorController extends Controller
                 'contact_person_name' => $contactName,
                 'phone'               => $phoneNum,
                 'mobile_number'       => $phoneNum,
+                'phone_extension'     => $phoneParts['extension'],
+                'mobile_without_extension' => $phoneParts['mobile'],
                 'email'               => $emailAddr,
                 'hq'                  => $locationHq,
                 'business_location'   => $locationHq,
