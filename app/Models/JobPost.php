@@ -2,16 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPhoneNumberParts;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class JobPost extends Model
 {
-    use HasPhoneNumberParts;
-
-    protected $phonePartsEmptyValue = null;
-
     protected $fillable = [
         'created_by',
         'title',
@@ -64,8 +59,6 @@ class JobPost extends Model
         'posted_by_role',
         'active_role',
         'user_role',
-        'phone_extension',
-        'mobile_without_extension',
     ];
 
     public function getPostedByRoleAttribute(): string

@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPhoneNumberParts;
 use Illuminate\Database\Eloquent\Model;
 
 class EmployerProfile extends Model
 {
-    use HasPhoneNumberParts;
-
     protected $fillable = [
         'user_id',
         'business_name',
@@ -29,11 +26,6 @@ class EmployerProfile extends Model
     protected $casts = [
         'operational_locations' => 'array',
         'is_completed' => 'boolean',
-    ];
-
-    protected $appends = [
-        'phone_extension',
-        'mobile_without_extension',
     ];
 
     /**

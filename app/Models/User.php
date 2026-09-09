@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPhoneNumberParts;
 use App\Services\ProfileProgressService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,7 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasPhoneNumberParts, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -45,8 +44,6 @@ class User extends Authenticatable
         'role',
         'active_role',
         'user_role',
-        'phone_extension',
-        'mobile_without_extension',
     ];
 
     /**

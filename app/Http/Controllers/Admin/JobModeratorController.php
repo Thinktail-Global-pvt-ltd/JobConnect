@@ -10,6 +10,30 @@ use Illuminate\Support\Facades\Validator;
 
 class JobModeratorController extends Controller
 {
+    private function splitPhoneParts($phone): array
+    {
+        $rawPhone = trim((string) $phone);
+        $digits = preg_replace('/\D+/', '', $rawPhone);
+
+        if ($digits === '') {
+            return ['extension' => null, 'mobile' => null];
+        }
+
+        if (strlen($digits) > 10) {
+            $extension = substr($digits, 0, -10);
+
+            return [
+                'extension' => $extension ? '+' . $extension : null,
+                'mobile' => substr($digits, -10),
+            ];
+        }
+
+        return [
+            'extension' => null,
+            'mobile' => $digits,
+        ];
+    }
+
     private function isJsonRequest(Request $request): bool
     {
         return $request->wantsJson() 
@@ -110,6 +134,9 @@ class JobModeratorController extends Controller
                     }
                 }
             }
+            $phoneParts = $this->splitPhoneParts($job->contact_info);
+            $job->phone_extension = $phoneParts['extension'];
+            $job->mobile_without_extension = $phoneParts['mobile'];
             return $job;
         });
 
@@ -231,6 +258,9 @@ class JobModeratorController extends Controller
     public function show(JobPost $job)
     {
         $job->load('creator');
+        $phoneParts = $this->splitPhoneParts($job->contact_info);
+        $job->phone_extension = $phoneParts['extension'];
+        $job->mobile_without_extension = $phoneParts['mobile'];
 
         if (request()->wantsJson() || request()->ajax() || request()->isJson()) {
             return response()->json([
@@ -298,6 +328,9 @@ class JobModeratorController extends Controller
 
         $jobModel->update(array_filter($data, fn($v) => !is_null($v)));
         $jobModel->load('creator');
+        $phoneParts = $this->splitPhoneParts($jobModel->contact_info);
+        $jobModel->phone_extension = $phoneParts['extension'];
+        $jobModel->mobile_without_extension = $phoneParts['mobile'];
 
         return response()->json([
             'success' => true,
