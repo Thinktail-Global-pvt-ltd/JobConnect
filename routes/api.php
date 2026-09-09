@@ -671,7 +671,7 @@ function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
         $rawProgramName = $request->input('program_name') ?? $request->input('name') ?? $request->input('title') ?? $request->input('program') ?? 'Hospitality Training Program';
         $rawProviderName = $request->input('provider_name') ?? $request->input('curriculum') ?? $request->input('company') ?? $request->input('provider') ?? 'Jobrito Academy';
         $rawLocation = $request->input('location') ?? $request->input('countries') ?? $request->input('country') ?? $request->input('deployment_countries') ?? $request->input('city') ?? 'India';
-        $rawDuration = $request->input('duration') ?? '12 Months';
+        $rawDuration = $request->input('duration');
         $status = $request->input('status') ?? 'Published';
         $contactInfo = $request->input('contact_information') ?? $request->input('contact_info') ?? $request->input('email') ?? 'admissions@jobrito.com';
         $employerDetails = $request->input('employer_details') ?? $request->input('details') ?? '';
@@ -686,6 +686,12 @@ function handleCreateTrainingOpportunity(\Illuminate\Http\Request $request) {
         // Truncate duration to first line and max 30 chars
         $rawDurationClean = explode("\n", trim((string)$rawDuration))[0];
         $duration = mb_substr(trim($rawDurationClean), 0, 30);
+        if ($duration === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Training Duration is required and must be 30 characters or fewer.'
+            ], 422);
+        }
         $contactInfo = mb_substr((string)$contactInfo, 0, 100);
 
         $descParts = array_filter([$rawProviderName, $employerDetails, $skillsCovered, $benefits, $placementOpportunities]);
@@ -1842,4 +1848,3 @@ Route::match(['get', 'post'], '/admin/enquiries/{id}/status', function($id, \Ill
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
 });
-

@@ -125,8 +125,8 @@ export default function Training() {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!formData.name || !formData.countries) {
-      setErrorMsg('Please fill in both Program Name and Deployment Countries.');
+    if (!formData.name || !formData.countries || !formData.duration.trim()) {
+      setErrorMsg('Please fill in Program Name, Deployment Countries, and Training Duration.');
       return;
     }
     setSubmitting(true);
@@ -476,9 +476,10 @@ export default function Training() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Training Duration (Max 30 chars)</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Training Duration (Max 30 chars) *</label>
                   <input 
                     type="text" 
+                    required
                     maxLength={30}
                     placeholder="e.g. 6 Months"
                     autoComplete="off"
@@ -654,7 +655,6 @@ export default function Training() {
     </div>
   );
 }
-
 
 
 

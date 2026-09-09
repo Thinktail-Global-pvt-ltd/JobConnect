@@ -28,6 +28,7 @@ class TrainingController extends Controller
             'provider_name' => 'required|string|max:255',
             'description' => 'required|string',
             'contact_information' => 'required|string',
+            'duration' => 'required|string|max:30',
             'external_link' => 'nullable|url|max:255',
         ]);
 
@@ -50,6 +51,7 @@ class TrainingController extends Controller
             'provider_name' => 'required|string|max:255',
             'description' => 'required|string',
             'contact_information' => 'required|string',
+            'duration' => 'required|string|max:30',
             'external_link' => 'nullable|url|max:255',
         ]);
 
