@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    private const REVIEW_TEST_OTP = '000000';
+
     /**
      * Helper method to normalize input role strings.
      */
@@ -51,6 +53,171 @@ class AuthController extends Controller
         return $mobile;
     }
 
+    private function reviewTestAccounts(): array
+    {
+        return [
+            '8602180000' => [
+                'role' => 'employer',
+                'mobile_number' => '918602180000',
+                'user' => [
+                    'full_name' => 'App Review Employer',
+                    'email' => 'app.review.employer@jobrito.com',
+                    'country' => 'India',
+                    'city' => 'Mumbai',
+                    'selected_language' => 'en',
+                    'is_suspended' => false,
+                    'is_available' => true,
+                    'availability_status' => 'Available',
+                ],
+                'employer_profile' => [
+                    'business_name' => 'Jobrito Review Hospitality',
+                    'industry_segment' => 'Hotels, Restaurants and Catering',
+                    'business_location' => 'Mumbai, Maharashtra',
+                    'contact_person_name' => 'Review Hiring Manager',
+                    'business_mobile' => '918602180000',
+                    'business_email' => 'app.review.employer@jobrito.com',
+                    'preferred_language' => 'en',
+                    'operational_locations' => ['Mumbai', 'Delhi', 'Bengaluru'],
+                    'nominee_name' => 'Review Operations',
+                    'nominee_relationship' => 'Manager',
+                    'nominee_mobile' => '918602180000',
+                    'is_completed' => true,
+                ],
+            ],
+            '8602180001' => [
+                'role' => 'job_seeker',
+                'mobile_number' => '918602180001',
+                'user' => [
+                    'full_name' => 'App Review Talent',
+                    'email' => 'app.review.talent@jobrito.com',
+                    'country' => 'India',
+                    'city' => 'Delhi',
+                    'experience_range' => '3-5 Years',
+                    'preferred_role' => 'Commis Chef',
+                    'current_employer' => 'Sample Bistro',
+                    'skills' => ['Food Preparation', 'Kitchen Hygiene', 'Inventory Support'],
+                    'age' => '27',
+                    'overseas_work_experience' => 'No',
+                    'selected_language' => 'en',
+                    'is_suspended' => false,
+                    'is_available' => true,
+                    'availability_status' => 'Available',
+                ],
+            ],
+            '8602180002' => [
+                'role' => 'chef',
+                'mobile_number' => '918602180002',
+                'user' => [
+                    'full_name' => 'App Review Chef',
+                    'email' => 'app.review.chef@jobrito.com',
+                    'country' => 'India',
+                    'city' => 'Bengaluru',
+                    'experience_range' => '5-8 Years',
+                    'preferred_role' => 'Sous Chef',
+                    'current_employer' => 'Sample Fine Dining',
+                    'skills' => ['Indian Cuisine', 'Continental Cuisine', 'Menu Planning'],
+                    'age' => '32',
+                    'overseas_work_experience' => 'Yes',
+                    'selected_language' => 'en',
+                    'is_suspended' => false,
+                    'is_available' => true,
+                    'availability_status' => 'Available',
+                ],
+                'chef_profile' => [
+                    'cuisine_specialty' => 'Indian and Continental Cuisine',
+                    'operational_experties' => 'Kitchen Operations, Menu Planning, Team Training',
+                    'bio' => 'Review chef profile for app store testing across feed, saved jobs, training and consulting flows.',
+                    'calendly_link' => 'https://calendly.com/jobrito-review/chef-consulting',
+                    'availability_info' => [
+                        'employment_preference' => ['Full Time', 'Consulting'],
+                        'location_preference' => 'Bengaluru',
+                        'languages' => ['English', 'Hindi'],
+                        'age' => '32',
+                    ],
+                    'approval_status' => 'approved',
+                    'overseas_work_experience' => 'Yes',
+                ],
+            ],
+        ];
+    }
+
+    private function getReviewTestAccountForMobile(string $mobile): ?array
+    {
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+        $last10 = strlen($cleanMobile) >= 10 ? substr($cleanMobile, -10) : $cleanMobile;
+
+        return $this->reviewTestAccounts()[$last10] ?? null;
+    }
+
+    private function onlyExistingColumns(string $table, array $data): array
+    {
+        return array_filter(
+            $data,
+            fn ($value, $column) => \Illuminate\Support\Facades\Schema::hasColumn($table, $column),
+            ARRAY_FILTER_USE_BOTH
+        );
+    }
+
+    private function findUserByMobile(string $mobile): ?User
+    {
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+        $last10 = strlen($cleanMobile) >= 10 ? substr($cleanMobile, -10) : $cleanMobile;
+
+        return User::where('mobile_number', $mobile)
+            ->orWhere('mobile_number', $cleanMobile)
+            ->orWhere('mobile_number', 'LIKE', '%' . $last10)
+            ->first();
+    }
+
+    private function ensureReviewTestAccount(string $mobile): User
+    {
+        $account = $this->getReviewTestAccountForMobile($mobile);
+        if (!$account) {
+            throw new \InvalidArgumentException('Mobile number is not configured as a review test account.');
+        }
+
+        $user = $this->findUserByMobile($mobile);
+        $userData = $this->onlyExistingColumns('users', array_merge(
+            ['mobile_number' => $account['mobile_number']],
+            $account['user']
+        ));
+
+        if ($user) {
+            unset($userData['mobile_number']);
+            $user->update($userData);
+        } else {
+            $user = User::create($userData);
+        }
+
+        $user->roles()->update(['is_active' => false]);
+        UserRole::updateOrCreate(
+            ['user_id' => $user->id, 'role_type' => $account['role']],
+            ['is_active' => true]
+        );
+
+        if ($account['role'] === 'employer' && \Illuminate\Support\Facades\Schema::hasTable('employer_profiles')) {
+            $profileData = $this->onlyExistingColumns('employer_profiles', array_merge(
+                ['user_id' => $user->id],
+                $account['employer_profile']
+            ));
+            \App\Models\EmployerProfile::updateOrCreate(['user_id' => $user->id], $profileData);
+        }
+
+        if ($account['role'] === 'chef' && \Illuminate\Support\Facades\Schema::hasTable('chef_profiles')) {
+            $chefProfile = $account['chef_profile'];
+            if (isset($chefProfile['availability_info']) && is_array($chefProfile['availability_info'])) {
+                $chefProfile['availability_info'] = json_encode($chefProfile['availability_info']);
+            }
+            $profileData = $this->onlyExistingColumns('chef_profiles', array_merge(
+                ['user_id' => $user->id],
+                $chefProfile
+            ));
+            \App\Models\ChefProfile::updateOrCreate(['user_id' => $user->id], $profileData);
+        }
+
+        return $user->fresh(['roles', 'chefProfile', 'employerProfile']);
+    }
+
     /**
      * Request OTP endpoint.
      */
@@ -76,6 +243,20 @@ class AuthController extends Controller
 
         $mobile = $this->normalizeMobileForLogin($request);
         $requestedRole = $request->role ?? $request->role_type ?? $request->login_role;
+        $reviewAccount = $this->getReviewTestAccountForMobile($mobile);
+
+        if ($reviewAccount) {
+            $user = $this->ensureReviewTestAccount($mobile);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP verified for app review test account. Use 000000.',
+                'mobile' => $user->mobile_number,
+                'static_otp' => self::REVIEW_TEST_OTP,
+                'role' => $reviewAccount['role'],
+                'is_review_test_account' => true,
+            ]);
+        }
 
         if ($requestedRole) {
             $existingRole = $this->checkRoleConflict($mobile, $requestedRole);
@@ -125,9 +306,16 @@ class AuthController extends Controller
         }
 
         $mobile = $this->normalizeMobileForLogin($request);
+        $reviewAccount = $this->getReviewTestAccountForMobile($mobile);
 
-        // Verify strictly 123456
-        if ($request->otp !== '123456') {
+        if ($reviewAccount) {
+            if ($request->otp !== self::REVIEW_TEST_OTP) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid OTP code provided.',
+                ], 401);
+            }
+        } elseif ($request->otp !== '123456') {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid OTP code provided.',
@@ -137,12 +325,7 @@ class AuthController extends Controller
         $requestedRole = $this->normalizeRole($request->role ?? $request->role_type ?? $request->login_role);
 
         // Fetch user
-        $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
-        $last10 = strlen($cleanMobile) >= 10 ? substr($cleanMobile, -10) : $cleanMobile;
-        $user = User::where('mobile_number', $mobile)
-            ->orWhere('mobile_number', $cleanMobile)
-            ->orWhere('mobile_number', 'LIKE', '%' . $last10)
-            ->first();
+        $user = $reviewAccount ? $this->ensureReviewTestAccount($mobile) : $this->findUserByMobile($mobile);
         $isNewUser = false;
 
         if ($user) {
@@ -151,7 +334,7 @@ class AuthController extends Controller
             $existingRoleType = $activeRole ? $activeRole->role_type : ($user->roles()->first()?->role_type);
             $existingRoleType = $this->normalizeRole($existingRoleType);
 
-            if ($requestedRole && $existingRoleType && $existingRoleType !== $requestedRole) {
+            if (!$reviewAccount && $requestedRole && $existingRoleType && $existingRoleType !== $requestedRole) {
                 $displayExisting = $this->formatRoleDisplayName($existingRoleType);
                 $displayRequested = $this->formatRoleDisplayName($requestedRole);
                 return response()->json([
@@ -200,14 +383,15 @@ class AuthController extends Controller
         }
 
         // Enforce single active role for the user
+        $targetRole = $reviewAccount['role'] ?? $requestedRole;
         $user->roles()->update(['is_active' => false]);
-        $primaryRole = $user->roles()->first();
+        $primaryRole = $targetRole ? $user->roles()->where('role_type', $targetRole)->first() : $user->roles()->first();
         if ($primaryRole) {
             $primaryRole->update(['is_active' => true]);
         } else {
             UserRole::create([
                 'user_id' => $user->id,
-                'role_type' => $requestedRole ?? 'job_seeker',
+                'role_type' => $targetRole ?? 'job_seeker',
                 'is_active' => true,
             ]);
         }
@@ -223,6 +407,7 @@ class AuthController extends Controller
 
         // Generate new single active Sanctum auth token
         $token = $user->createToken('auth_token')->plainTextToken;
+        $refreshToken = $user->createToken('refresh_token')->plainTextToken;
 
         // Fetch roles details
         $roles = $user->roles()->get();
@@ -357,6 +542,9 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Authenticated successfully.',
             'token' => $token,
+            'refreshToken' => $refreshToken,
+            'refresh_token' => $refreshToken,
+            'is_review_test_account' => (bool)$reviewAccount,
             'user' => [
                 'id' => $user->id,
                 'mobile_number' => $user->mobile_number,
