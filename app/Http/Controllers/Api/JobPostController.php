@@ -13,7 +13,7 @@ class JobPostController extends Controller
     {
         $rawStatus = strtolower(trim((string)($status ?: 'pending')));
         $activeStatuses = ['approved', 'published', 'active'];
-        $rejectedStatuses = ['rejected', 'closed', 'inactive'];
+        $rejectedStatuses = ['rejected', 'closed', 'inactive', 'archived'];
 
         if (in_array($rawStatus, $activeStatuses, true)) {
             $normalizedStatus = 'active';
@@ -1364,6 +1364,7 @@ class JobPostController extends Controller
 
                     $training = $trainingOpps[$rec->training_id];
                     $providerName = !empty($training->provider_name) ? $training->provider_name : 'Jobrito Academy';
+                    $trainingStatusPayload = $this->formatJobPostStatus($training->status ?: 'published');
                     return [
                         'saved_id'              => $rec->id,
                         'id'                    => 'training_' . $training->id,
@@ -1382,6 +1383,14 @@ class JobPostController extends Controller
                         'job_type'              => 'Training / Program',
                         'experience_range'      => 'Any',
                         'description'           => $training->description ?: 'Specialized training program.',
+                        'job_status'            => $trainingStatusPayload['job_status'],
+                        'job_post_status'       => $trainingStatusPayload['job_post_status'],
+                        'job_status_label'      => $trainingStatusPayload['job_status_label'],
+                        'is_job_active'         => $trainingStatusPayload['is_job_active'],
+                        'is_job_rejected'       => $trainingStatusPayload['is_job_rejected'],
+                        'is_job_pending'        => $trainingStatusPayload['is_job_pending'],
+                        'training_status'       => $trainingStatusPayload['job_status'],
+                        'training_post_status'  => $trainingStatusPayload['job_post_status'],
                         'is_training'           => true,
                         'is_saved'              => true,
                         'saved'                 => true,
