@@ -9,6 +9,30 @@ use Illuminate\Support\Facades\Validator;
 
 class JobPostController extends Controller
 {
+    private function formatJobPostStatus($status): array
+    {
+        $rawStatus = strtolower(trim((string)($status ?: 'pending')));
+        $activeStatuses = ['approved', 'published', 'active'];
+        $rejectedStatuses = ['rejected', 'closed', 'inactive'];
+
+        if (in_array($rawStatus, $activeStatuses, true)) {
+            $normalizedStatus = 'active';
+        } elseif (in_array($rawStatus, $rejectedStatuses, true)) {
+            $normalizedStatus = 'rejected';
+        } else {
+            $normalizedStatus = 'pending';
+        }
+
+        return [
+            'job_status'        => $normalizedStatus,
+            'job_post_status'   => $rawStatus,
+            'job_status_label'  => ucfirst($normalizedStatus),
+            'is_job_active'     => $normalizedStatus === 'active',
+            'is_job_rejected'   => $normalizedStatus === 'rejected',
+            'is_job_pending'    => $normalizedStatus === 'pending',
+        ];
+    }
+
     /**
      * POST /api/jobs
      *
@@ -866,6 +890,7 @@ class JobPostController extends Controller
             } elseif (in_array($rawStatus, ['new', 'pending', 'applied'])) {
                 $appStatus = 'new';
             }
+            $jobStatusPayload = $this->formatJobPostStatus($job->status);
 
             return [
                 'application_id'        => (string)$app->id,
@@ -889,6 +914,12 @@ class JobPostController extends Controller
                 'job_application_status'=> $appStatus,
                 'status_label'          => ucfirst($appStatus),
                 'status_text'           => ucfirst($appStatus),
+                'job_status'            => $jobStatusPayload['job_status'],
+                'job_post_status'       => $jobStatusPayload['job_post_status'],
+                'job_status_label'      => $jobStatusPayload['job_status_label'],
+                'is_job_active'         => $jobStatusPayload['is_job_active'],
+                'is_job_rejected'       => $jobStatusPayload['is_job_rejected'],
+                'is_job_pending'        => $jobStatusPayload['is_job_pending'],
                 'is_viewed'             => $isViewed,
                 'viewed'                => $isViewed,
                 'viewed_at'             => $app->viewed_at ? \Carbon\Carbon::parse($app->viewed_at)->toIso8601String() : null,
@@ -1276,6 +1307,7 @@ class JobPostController extends Controller
                     $isReferral = (bool)$job->is_referral || 
                                   $job->category === 'community' || 
                                   in_array(strtolower(trim($creatorRole)), ['chef', 'cook', 'job_seeker', 'jobseeker', 'talent', 'candidate']);
+                    $jobStatusPayload = $this->formatJobPostStatus($job->status);
 
                     return [
                         'saved_id'              => $rec->id,
@@ -1299,6 +1331,12 @@ class JobPostController extends Controller
                         'posted_by_role'        => $creatorRole,
                         'submitted_by_role'     => $job->submitted_by_role ?: $creatorRole,
                         '_type'                 => $isReferral ? 'referral_job' : 'job',
+                        'job_status'            => $jobStatusPayload['job_status'],
+                        'job_post_status'       => $jobStatusPayload['job_post_status'],
+                        'job_status_label'      => $jobStatusPayload['job_status_label'],
+                        'is_job_active'         => $jobStatusPayload['is_job_active'],
+                        'is_job_rejected'       => $jobStatusPayload['is_job_rejected'],
+                        'is_job_pending'        => $jobStatusPayload['is_job_pending'],
                         'applied'               => $hasApplied,
                         'is_applied'            => $hasApplied,
                         'has_applied'           => $hasApplied,
