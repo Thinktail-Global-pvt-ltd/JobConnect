@@ -183,11 +183,19 @@ class AppointmentController extends Controller
                 }
             }
 
-            // Find all chef profiles and user records
-            $chefProfiles = \App\Models\ChefProfile::with(['user', 'user.socials'])->get();
+            // Only approved chef profiles should be visible in employer discovery.
+            $approvedChefStatus = function ($query) {
+                $query->whereRaw('LOWER(TRIM(approval_status)) = ?', ['approved']);
+            };
+
+            // Find approved chef profiles and user records
+            $chefProfiles = \App\Models\ChefProfile::with(['user', 'user.socials'])
+                ->where($approvedChefStatus)
+                ->get();
             
-            // Also find users registered as chef who may not have a ChefProfile record yet
+            // Also find users registered as chef, but only when their ChefProfile is approved.
             $chefUsersQuery = User::query();
+            $chefUsersQuery->whereHas('chefProfile', $approvedChefStatus);
             $chefUsersQuery->where(function($q) {
                 if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'active_profile')) {
                     $q->orWhere('active_profile', 'chef');
