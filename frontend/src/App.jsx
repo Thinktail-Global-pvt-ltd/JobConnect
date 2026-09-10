@@ -124,6 +124,8 @@ function App() {
         <Route path="/terms-and-conditions" element={<Term />} />
         <Route path="/help-support" element={<HelpSupport />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
+        <Route path="/delete-account" element={<DataDeletion />} />
+        <Route path="/account-deletion" element={<DataDeletion />} />
 
         {/* Admin Panel Mappings */}
         <Route path="/admin/login" element={<AdminLogin />} />
